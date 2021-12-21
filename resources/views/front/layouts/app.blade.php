@@ -29,6 +29,8 @@
     <meta name="msapplication-TileColor" content="#314837">
     <meta name="theme-color" content="#ffffff">
 
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
+
     <!-- Vendor Styles including: Font Icons, Plugins, etc.-->
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <!-- Main Theme Styles + Bootstrap-->
