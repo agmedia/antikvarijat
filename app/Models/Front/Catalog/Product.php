@@ -78,10 +78,10 @@ class Product extends Model
             $from = now()->subDay();
             $to = now()->addDay();
 
-            if ($this->special_from) {
+            if ($this->special_from && $this->special_from != '0000-00-00 00:00:00') {
                 $from = Carbon::make($this->special_from);
             }
-            if ($this->special_to) {
+            if ($this->special_to && $this->special_to != '0000-00-00 00:00:00') {
                 $to = Carbon::make($this->special_to);
             }
 
