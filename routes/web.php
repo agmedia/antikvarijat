@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Fortify\ForgotPasswordController;
 use App\Http\Controllers\Api\v2\CartController;
 use App\Http\Controllers\Api\v2\FilterController;
 use App\Http\Controllers\Back\Catalog\AuthorController;
@@ -300,13 +301,22 @@ Route::get('blog/{blog?}', [CatalogRouteController::class, 'blog'])->name('catal
 //
 Route::get('cache/image', [HomeController::class, 'imageCache']);
 Route::get('cache/thumb', [HomeController::class, 'thumbCache']);
-/*
- * Groups, Categories and Products routes resolver.
- * https://www.antikvarijat-biblos.hr/kategorija-proizvoda/knjige/
+/**
+ * Sitemap routes
  */
 Route::redirect('/sitemap.xml', '/sitemap');
 Route::get('sitemap/{sitemap?}', [HomeController::class, 'sitemapXML'])->name('sitemap');
-
+/**
+ * Forgot password routes
+ */
+Route::get('forgot-password', [ForgotPasswordController::class, 'showForgetPasswordForm'])->name('forget.password.get');
+Route::post('forget-password', [ForgotPasswordController::class, 'submitForgetPasswordForm'])->name('forget.password.post');
+Route::get('reset-password/{token}', [ForgotPasswordController::class, 'showResetPasswordForm'])->name('reset.password.get');
+Route::post('reset-password', [ForgotPasswordController::class, 'submitResetPasswordForm'])->name('reset.password.post');
+/*
+ * Groups, Categories and Products routes resolver.
+ * npr. https://www.antikvarijat-biblos.hr/kategorija-proizvoda/knjige/
+ */
 Route::get('proizvod/{prod?}/', [CatalogRouteController::class, 'resolveOldUrl']);
 Route::get('kategorija-proizvoda/{group?}/{cat?}/{subcat?}', [CatalogRouteController::class, 'resolveOldCategoryUrl']);
 //
