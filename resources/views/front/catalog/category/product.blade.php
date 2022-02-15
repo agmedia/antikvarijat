@@ -1,5 +1,5 @@
 <div class="card product-card-alt">
-   <span class="badge rounded-pill bg-primary mt-3 ms-1 badge-shadow">-20%</span>
+
     <div class="product-thumb">
         <div class="product-card-actions">
             <a class="btn btn-light btn-icon btn-shadow fs-base mx-2" href="{{ url($product->url) }}"><i class="ci-eye"></i></a>
