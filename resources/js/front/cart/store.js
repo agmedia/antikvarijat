@@ -273,7 +273,7 @@ let store = {
             state.service.checkCart(ids).then(response => {
                 state.storage.setCart(response.cart);
 
-                if (response.message) {
+                if (response.message && window.location.pathname != '/uspjeh') {
                     window.ToastWarningLong.fire(response.message)
 
                     if (window.location.pathname != '/kosarica') {

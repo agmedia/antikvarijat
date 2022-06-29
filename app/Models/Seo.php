@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Helpers\Metatags;
 use App\Models\Front\Catalog\Author;
 use App\Models\Front\Catalog\Category;
 use App\Models\Front\Catalog\Product;
 use App\Models\Front\Catalog\Publisher;
+use Illuminate\Http\Request;
 
 /**
  * Class Sitemap
@@ -76,6 +78,27 @@ class Seo
             'title'       => $title,
             'description' => $description
         ];
+    }
+
+
+    public static function getMetaTags(Request $request, $target = 'product')
+    {
+        $response = [];
+        $data = $request->toArray();
+
+        if ($target == 'filter') {
+            if (array_key_exists('start', $data) || array_key_exists('end', $data) || array_key_exists('autor', $data) || array_key_exists('nakladnik', $data)) {
+                array_push($response, Metatags::noFollow());
+            }
+        }
+
+        if ($target == 'ap_filter') {
+            if (array_key_exists('letter', $data)) {
+                array_push($response, Metatags::noFollow());
+            }
+        }
+
+        return $response;
     }
 
 

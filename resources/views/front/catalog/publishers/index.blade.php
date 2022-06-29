@@ -1,5 +1,13 @@
 @extends('front.layouts.app')
 
+@if (isset($meta_tags))
+    @push('meta_tags')
+        @foreach ($meta_tags as $tag)
+            <meta name={{ $tag['name'] }} content={{ $tag['content'] }}>
+        @endforeach
+    @endpush
+@endif
+
 @section('content')
 
     <section class="position-relative  bg-size-cover bg-position-center-x position-relative py-3 mb-3" style="background-image: url({{ config('settings.images_domain') . 'media/img/indexslika.jpg' }});-webkit-background-size: cover;-moz-background-size: cover;-o-background-size: cover;background-size: cover;">

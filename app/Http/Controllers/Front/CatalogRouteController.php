@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class CatalogRouteController extends Controller
@@ -82,9 +83,11 @@ class CatalogRouteController extends Controller
             $subcat->count = $subcat->products()->count();
         }
 
+        $meta_tags = Seo::getMetaTags($request, 'filter');
+
         $crumbs = (new Breadcrumb())->category($group, $cat, $subcat)->resolve();
 
-        return view('front.catalog.category.index', compact('group', 'cat', 'subcat', 'prod', 'crumbs'));
+        return view('front.catalog.category.index', compact('group', 'cat', 'subcat', 'prod', 'crumbs', 'meta_tags'));
     }
 
 
@@ -154,7 +157,9 @@ class CatalogRouteController extends Controller
                                       ->appends(request()->query());
             });
 
-            return view('front.catalog.authors.index', compact('authors', 'letters', 'letter'));
+            $meta_tags = Seo::getMetaTags($request, 'ap_filter');
+
+            return view('front.catalog.authors.index', compact('authors', 'letters', 'letter', 'meta_tags'));
         }
 
         $letter = null;
@@ -201,7 +206,9 @@ class CatalogRouteController extends Controller
                                          ->appends(request()->query());
             });
 
-            return view('front.catalog.publishers.index', compact('publishers', 'letters', 'letter'));
+            $meta_tags = Seo::getMetaTags($request, 'ap_filter');
+
+            return view('front.catalog.publishers.index', compact('publishers', 'letters', 'letter', 'meta_tags'));
         }
 
         $letter = null;

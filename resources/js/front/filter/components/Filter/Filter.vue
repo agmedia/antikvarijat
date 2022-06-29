@@ -256,10 +256,27 @@
                     pojam: this.search_query,
                 };
 
+                this.checkNoFollowQuery(params);
+
                 return Object.entries(params).reduce((acc, [key, val]) => {
                     if (!val) return acc
                     return { ...acc, [key]: val }
                 }, {});
+            },
+
+            /**
+             *
+             */
+            checkNoFollowQuery(param) {
+                if (param.nakladnik || param.autor || param.start || param.end) {
+                    if (!document.querySelectorAll('meta[name="robots"]').length > 0) {
+                        $('head').append('<meta name=robots content=noindex,nofollow>');
+                    }
+                } else {
+                    if (document.querySelectorAll('meta[name="robots"]').length > 0) {
+                        document.querySelector("[name='robots']").remove()
+                    }
+                }
             },
 
             /**
@@ -299,6 +316,9 @@
                 return params;
             },
 
+            /**
+             *
+             */
             preselect() {
                 if (this.autor != '') {
                     if ((this.autor).includes('+')) {
@@ -323,6 +343,8 @@
                 this.$router.push({query: {}}).catch(()=>{});
                 this.selectedAuthors = [];
                 this.selectedPublishers = [];
+                this.start = '';
+                this.end = '';
             },
 
             /**
