@@ -25,14 +25,15 @@ class Product extends Model
      */
     protected $guarded = ['id', 'created_at', 'updated_at'];
 
+    /**
+     * @var string[]
+     */
     protected $appends = ['eur_price'];
 
+    /**
+     * @var
+     */
     protected $eur;
-
-    public function __construct()
-    {
-        $this->eur = Settings::get('currency', 'list')->where('code', 'EUR')->first();
-    }
 
 
     /**
@@ -46,8 +47,16 @@ class Product extends Model
     }
 
 
+    /**
+     * @return string
+     */
     public function getEurPriceAttribute()
     {
+        $this->eur = Settings::get('currency', 'list')->where('code', 'EUR')->first();
+
+        if ( ! isset($this->eur->value)) {
+            $this->eur->value = config('settings.eur_divide_amount');
+        }
 
         return number_format(($this->price * $this->eur->value), 2);
     }

@@ -25,6 +25,8 @@ return [
 
     'images_domain' => 'https://images.antikvarijatbibl.lin73.host25.com/',
 
+    'eur_divide_amount' => 0.13272280,
+
     'sorting_list' => [
         0 => [
             'title' => 'Najnovije',
