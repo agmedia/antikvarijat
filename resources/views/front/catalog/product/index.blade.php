@@ -110,7 +110,7 @@
                     <div class="col-lg-5 pt-4 pt-lg-0">
                         <div class="product-details ms-auto pb-3">
 
-                            <div class="mb-3 mt-4">
+                            <div class="mb-0 mt-4">
                                 @if ($prod->special())
                                     <span class="h3 fw-normal text-accent me-1">{!! $prod->priceString($prod->special()) !!}</span>
                                     <del class="text-muted fs-lg me-3">{!! $prod->priceString() !!}</del>
@@ -123,6 +123,11 @@
                                 @else
                                     <span class="badge bg-fourth align-middle mt-n2">Nedostupno</span>
                                 @endif
+                            </div>
+
+                            <div class="mb-3 mt-1">
+                                <span class="h4 fw-normal text-accent me-1">20 €</span>
+                                <del class="text-muted fs-lg me-3">20 €</del>
                             </div>
 
                             <add-to-cart-btn id="{{ $prod->id }}"></add-to-cart-btn>
