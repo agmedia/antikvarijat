@@ -28,7 +28,7 @@ class Product extends Model
     /**
      * @var string[]
      */
-    protected $appends = ['eur_price'];
+    protected $appends = ['eur_price', 'eur_special'];
 
     /**
      * @var
@@ -54,11 +54,25 @@ class Product extends Model
     {
         $this->eur = Settings::get('currency', 'list')->where('code', 'EUR')->first();
 
-        if ( ! isset($this->eur->value)) {
-            $this->eur->value = config('settings.eur_divide_amount');
+        if (isset($this->eur->status) && $this->eur->status) {
+            return number_format(($this->price * $this->eur->value), 2);
         }
 
-        return number_format(($this->price * $this->eur->value), 2);
+        return null;
+    }
+
+    /**
+     * @return string
+     */
+    public function getEurSpecialAttribute()
+    {
+        $this->eur = Settings::get('currency', 'list')->where('code', 'EUR')->first();
+
+        if (isset($this->eur->status) && $this->eur->status) {
+            return number_format(($this->special() * $this->eur->value), 2);
+        }
+
+        return null;
     }
 
 
@@ -180,12 +194,12 @@ class Product extends Model
                 $set[1] = '00';
             }
 
-            return number_format($price, 0, '', '.') . ',<small>' . substr($set[1], 0, 2) . 'kn</small>';
+            return number_format($price, 0, '', '.') . ',<small>' . substr($set[1], 0, 2) . ' kn</small>';
         }
 
         $set = explode('.', $this->price);
 
-        return number_format($this->price, 0, '', '.') . ',<small>' . substr($set[1], 0, 2) . 'kn</small>';
+        return number_format($this->price, 0, '', '.') . ',<small>' . substr($set[1], 0, 2) . ' kn</small>';
     }
 
 
