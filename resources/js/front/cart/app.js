@@ -27,9 +27,9 @@ import store from './store.js';
 
 //import Storage from './services/Storage'
 
+Vue.component('cart-nav-icon', require('./components/CartNavIcon/CartNavIcon').default);
 Vue.component('cart-view', require('./components/CartView/CartView').default);
 Vue.component('cart-view-aside', require('./components/CartViewAside/CartViewAside').default);
-Vue.component('cart-nav-icon', require('./components/CartNavIcon/CartNavIcon').default);
 Vue.component('cart-footer-icon', require('./components/CartFooterIcon/CartFooterIcon').default);
 Vue.component('add-to-cart-btn', require('./components/AddToCartBtn/AddToCartBtn').default);
 Vue.component('add-to-cart-btn-simple', require('./components/AddToCartBtnSimple/AddToCartBtnSimple').default);

@@ -125,10 +125,16 @@
                                 @endif
                             </div>
 
-                            <div class="mb-3 mt-1">
-                                <span class="h4 fw-normal text-accent me-1">20 €</span>
-                                <del class="text-muted fs-lg me-3">20 €</del>
-                            </div>
+                            @if($prod->eur_price)
+                                <div class="mb-3 mt-1">
+                                    @if ($prod->special())
+                                        <span class="h3 fw-normal text-accent me-1">{{ $prod->eur_special }} €</span>
+                                        <del class="text-muted fs-lg me-3">{{ $prod->eur_price }} €</del>
+                                    @else
+                                        <span class="h3 fw-normal text-accent me-1">{{ $prod->eur_special }} €</span>
+                                    @endif
+                                </div>
+                            @endif
 
                             <add-to-cart-btn id="{{ $prod->id }}"></add-to-cart-btn>
 

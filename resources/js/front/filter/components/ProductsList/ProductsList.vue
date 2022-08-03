@@ -51,7 +51,7 @@
                             <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2" v-if="!product.special">{{ $store.state.service.formatPrice(product.price) }}</div>
                         </div>
 
-                        <div class="d-flex flex-wrap justify-content-between align-items-center price-box mt-2">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center price-box mt-2" v-if="product.eur_price">
                             <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2" v-if="product.special" style="text-decoration: line-through;">{{ product.eur_price }} €</div>
                             <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2" v-if="product.special">{{ product.eur_special }} €</div>
                             <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2" v-if="!product.special">{{ product.eur_price }} €</div>
@@ -144,8 +144,6 @@
         //
         mounted() {
             this.checkQuery(this.$route);
-
-            console.log('TU SAM')
         },
 
         methods: {
