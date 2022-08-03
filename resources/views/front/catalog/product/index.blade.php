@@ -131,7 +131,7 @@
                                         <span class="h3 fw-normal text-accent me-1">{{ $prod->eur_special }} €</span>
                                         <del class="text-muted fs-lg me-3">{{ $prod->eur_price }} €</del>
                                     @else
-                                        <span class="h3 fw-normal text-accent me-1">{{ $prod->eur_special }} €</span>
+                                        <span class="h3 fw-normal text-accent me-1">{{ $prod->eur_price }} €</span>
                                     @endif
                                 </div>
                             @endif
