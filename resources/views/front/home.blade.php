@@ -21,6 +21,10 @@
                         <div class="form-text text-white py-2"><span class="text-muted-light">*</span> Sve knjige na stranici su dostupne</div>
                     </div>
                 </div>
+                <div class="widget mt-4 text-md-nowrap text-center text-md-start">
+                    <a class="btn-social bs-light bs-instagram me-2 mb-2" href="https://www.instagram.com/antikvarijat_biblos/"><i class="ci-instagram"></i></a>
+                    <a class="btn-social bs-light bs-facebook me-2 mb-2" href="https://www.facebook.com/AntikvarijatBiblos/"><i class="ci-facebook"></i></a>
+                </div>
             </div>
         </div>
     </section>
