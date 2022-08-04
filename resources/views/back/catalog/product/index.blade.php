@@ -156,7 +156,7 @@
                                 <td class="font-size-sm text-center">
                                     <ag-input-field item="{{ $product }}" target="year"></ag-input-field>
                                 </td>
-                                <td class="font-size-sm text-center">{{ $product->polica }}</td>
+                                <td class="font-size-sm text-center">  <ag-input-field item="{{ $product }}" target="polica"></ag-input-field></td>
                                 <td class="font-size-sm text-center">  <ag-input-field item="{{ $product }}" target="dimensions"></ag-input-field></td>
                                 <td class="font-size-sm text-center">{{ $product->quantity }}</td>
                                 <td class="font-size-sm">{{ \Illuminate\Support\Carbon::make($product->created_at)->format('d.m.Y') }}</td>
