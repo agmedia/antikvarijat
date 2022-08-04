@@ -3,6 +3,7 @@
 namespace App\Http\Livewire\Front;
 
 use App\Helpers\Country;
+use App\Helpers\Helper;
 use App\Helpers\Session\CheckoutSession;
 use App\Models\Back\Settings\Settings;
 use App\Models\Front\Checkout\GeoZone;
@@ -57,6 +58,11 @@ class Checkout extends Component
     public $payment = '';
 
     /**
+     * @var int|null
+     */
+    public $eur = null;
+
+    /**
      * @var string[]
      */
     protected $address_rules = [
@@ -108,6 +114,8 @@ class Checkout extends Component
         if (CheckoutSession::hasPayment()) {
             $this->payment = CheckoutSession::getPayment();
         }
+
+        $this->eur = Helper::getEur();
 
         $this->changeStep($this->step);
     }

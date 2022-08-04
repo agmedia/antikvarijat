@@ -108,6 +108,25 @@ class AgService {
 
     /**
      *
+     * @returns {*}
+     */
+    getSettings() {
+        return axios.get('settings/get')
+        .then(response => { return response.data })
+        .catch(error => { return this.returnError(messages.error) })
+    }
+
+    /**
+     *
+     * @param msg
+     * @returns {*}
+     */
+    returnSettings(settings) {
+        window.AGSettings = settings;
+    }
+
+    /**
+     *
      * @param msg
      * @returns {*}
      */
@@ -170,7 +189,7 @@ class AgService {
             tax = items - (items / 1.25);
         }
 
-        return this.formatPrice(tax);
+        return tax;
     }
 }
 
@@ -203,7 +222,8 @@ let store = {
         storage: new AgStorage(),
         service: new AgService(),
         cart: storage_cart.cart,
-        messages: messages
+        messages: messages,
+        settings: null
     },
 
     actions: {
@@ -314,6 +334,21 @@ let store = {
          */
         flushCart(context) {
             context.state.cart = context.state.storage.setCart(storage_cart.cart);
+        },
+
+        /**
+         *
+         * @param context
+         * @param item
+         */
+        getSettings(context, item) {
+            let state = context.state;
+
+            state.service.getSettings(item).then(settings => {
+                if (settings) {
+                    state.settings = settings;
+                }
+            });
         },
     },
 

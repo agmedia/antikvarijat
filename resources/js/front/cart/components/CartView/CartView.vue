@@ -1,8 +1,19 @@
 <template>
     <div>
-        <div class="d-flex justify-content-between align-items-center pt-3 pb-4 pb-sm-5 mt-1" v-if="show_buttons">
-            <h2 class="h6 text-dark mb-0">Artikli</h2><a class="btn btn-secondary btn-sm ps-2" :href="continueurl"><i class="ci-arrow-left me-2"></i>Nastavi kupnju</a>
+        <div class="d-flex pt-3 pb-2 mt-1">
+            <h2 class="h6 text-dark mb-0">Artikli</h2>
         </div>
+        <div class="d-flex pt-3 pb-2 mt-1" v-if="!$store.state.cart.count">
+            <p class="text-dark mb-0">Vaša košarica je prazna!</p>
+        </div>
+
+        <div class="d-flex border p-2" style="background-color: rgba(245,245,245,0.96);" v-if="$store.state.cart.total < freeship && $store.state.cart.count">
+            <p class="small mb-0">Još {{ freeship - $store.state.cart.total }} kn <span v-if="$store.state.cart.eur">({{ ((freeship - $store.state.cart.total) * $store.state.cart.eur).toFixed(2) }} €)</span> do besplatne dostave!</p>
+        </div>
+        <div class="d-flex border p-2" style="background-color: rgba(245,245,245,0.96);" v-if="$store.state.cart.total > freeship && $store.state.cart.count">
+            <p class="small mb-0">Ostvarili ste pravo na besplatnu dostavu!</p>
+        </div>
+
         <!-- Item-->
         <div class="d-sm-flex justify-content-between align-items-center my-2 pb-3 border-bottom" v-for="item in $store.state.cart.items">
             <div class="d-block d-sm-flex align-items-center text-center text-sm-start">
@@ -13,6 +24,7 @@
                     <h3 class="product-title fs-base mb-2"><a :href="base_path + item.attributes.path">{{ item.name }}</a></h3>
 
                     <div class="fs-lg text-accent pt-2">{{ Object.keys(item.conditions).length ? $store.state.service.formatPrice(item.price - item.conditions.parsedRawValue) : $store.state.service.formatPrice(item.price) }}</div>
+                    <div class="fs-lg text-accent pt-2" v-if="item.associatedModel.eur_price">{{ Object.keys(item.conditions).length ? (item.associatedModel.eur_special) : item.associatedModel.eur_price }} €</div>
                 </div>
             </div>
             <div class="pt-2 pt-sm-0 ps-sm-3 mx-auto mx-sm-0 text-center text-sm-start" style="max-width: 9rem;">
@@ -20,6 +32,10 @@
                 <input class="form-control" type="number" v-model="item.quantity" min="1" max="1" value="1" readonly>
                 <button class="btn btn-link px-0 text-danger" type="button" @click.prevent="removeFromCart(item)"><i class="ci-close-circle me-2"></i><span class="fs-sm">Ukloni</span></button>
             </div>
+        </div>
+
+        <div class="d-flex pt-3 pb-4 pb-sm-5 mt-1" v-if="show_buttons">
+            <a class="btn btn-secondary btn-sm ps-2" :href="continueurl"><i class="ci-arrow-left me-2"></i>Natrag na trgovinu</a>
         </div>
     </div>
 </template>
@@ -29,6 +45,7 @@
         props: {
             continueurl: String,
             checkouturl: String,
+            freeship: String,
             buttons: {type: String, default: 'true'},
         },
         data() {
@@ -96,6 +113,8 @@
              */
             checkIfEmpty() {
                 let cart = this.$store.state.storage.getCart();
+
+                console.log(cart)
 
                 if (cart && ! cart.count && window.location.pathname != '/kosarica') {
                     window.location.href = '/kosarica';

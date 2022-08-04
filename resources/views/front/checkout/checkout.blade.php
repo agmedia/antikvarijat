@@ -29,7 +29,7 @@
             </section>
             <!-- Sidebar-->
             <aside class="col-lg-4 pt-4 pt-lg-0 ps-xl-5 d-none d-lg-block">
-                <cart-view-aside route="naplata" continueurl="{{ route('index') }}" checkouturl="{{ route('naplata') }}"></cart-view-aside>
+                <cart-view-aside route="naplata" continueurl="{{ \Illuminate\Support\Facades\URL::previous() }}" checkouturl="{{ route('naplata') }}"></cart-view-aside>
             </aside>
         </div>
     </div>

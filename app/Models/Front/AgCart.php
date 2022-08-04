@@ -3,6 +3,7 @@
 namespace App\Models\Front;
 
 use App\Helpers\Session\CheckoutSession;
+use App\Models\Back\Settings\Settings;
 use App\Models\Front\Cart\Totals;
 use App\Models\Front\Catalog\Product;
 use App\Models\Front\Catalog\ProductAction;
@@ -46,6 +47,7 @@ class AgCart extends Model
     public function get()
     {
         $detail_conditions = $this->setCartConditions();
+        $eur = $this->getEur();
 
         $response = [
             'id'         => $this->cart_id,
@@ -56,6 +58,7 @@ class AgCart extends Model
             'conditions' => $this->cart->getConditions(),
             'detail_con' => $detail_conditions,
             'total'      => $this->cart->getTotal(),
+            'eur'        => $eur,
         ];
         //$response['tax'] = $this->getTax($response);
         //$response['total'] = $this->cart->getTotal() + $response['tax'][0]['value'];
@@ -65,6 +68,21 @@ class AgCart extends Model
         //Log::info($response);
 
         return $response;
+    }
+
+
+    /**
+     * @return null
+     */
+    public function getEur()
+    {
+        $eur = Settings::get('currency', 'list')->where('code', 'EUR')->first();
+
+        if (isset($eur->status) && $eur->status) {
+            return $eur->value;
+        }
+
+        return null;
     }
 
 
@@ -276,6 +294,7 @@ class AgCart extends Model
             'id'              => $product->id,
             'name'            => $product->name,
             'price'           => $product->price,
+            'eur_price'       => $product->eur_price,
             'quantity'        => $request['item']['quantity'],
             'associatedModel' => $product,
             'attributes'      => $this->structureCartItemAttributes($product)

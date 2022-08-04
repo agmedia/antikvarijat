@@ -144,6 +144,9 @@
         //
         mounted() {
             this.checkQuery(this.$route);
+
+            /*console.log('twindow.AGSettings')
+            console.log(window.AGSettings)*/
         },
 
         methods: {

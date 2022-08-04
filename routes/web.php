@@ -241,6 +241,8 @@ Route::prefix('api/v2')->group(function () {
 
     // SETTINGS
     Route::prefix('settings')->group(function () {
+        // FRONT SETTINGS LIST
+        Route::get('/get', [SettingsController::class, 'get']);
         // WIDGET
         Route::prefix('widget')->group(function () {
             Route::post('destroy', [WidgetController::class, 'destroy'])->name('widget.destroy');

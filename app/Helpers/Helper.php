@@ -3,6 +3,7 @@
 
 namespace App\Helpers;
 
+use App\Models\Back\Settings\Settings;
 use App\Models\Back\Widget\WidgetGroup;
 use App\Models\Front\Blog;
 use App\Models\Front\Catalog\Author;
@@ -357,6 +358,21 @@ class Helper
         }
 
         return Cache::tags([$tag]);
+    }
+
+
+    /**
+     * @return null
+     */
+    public static function getEur()
+    {
+        $eur = Settings::get('currency', 'list')->where('code', 'EUR')->first();
+
+        if (isset($eur->status) && $eur->status) {
+            return $eur->value;
+        }
+
+        return null;
     }
 
 }
