@@ -161,12 +161,19 @@
 
         {{--        </div>--}}
     </div>
-    <div class="container pb-4 mb-2 mb-md-4" >
-    @if ($cat && ! $subcat)
-        {!! $cat->description !!}
-    @elseif ($subcat && ! $subcat)
-        {!! $cat->description !!}
+
+    @if (isset($author) && $author && ! empty($author->description))
+        <div class="container pb-4 mb-2 mb-md-4" >
+            {!! $author->description !!}
+        </div>
     @endif
+
+    <div class="container pb-4 mb-2 mb-md-4" >
+        @if ($cat && ! $subcat)
+            {!! $cat->description !!}
+        @elseif ($subcat && ! $subcat)
+            {!! $cat->description !!}
+        @endif
     </div>
 
 @endsection
