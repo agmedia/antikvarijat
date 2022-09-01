@@ -36,33 +36,6 @@
     @if (request()->routeIs(['index']))
 
         <!-- Hero section -->
-        <section class="bg-accent bg-position-top-left bg-repeat-0 py-5" style="background-image: url({{ 'http://antikvarijat.agm/19_discount.png' }});-webkit-background-size: cover;-moz-background-size: cover;-o-background-size: cover;background-size: cover;">
-            <div class="pb-lg-5 mb-lg-3">
-                <div class="container py-lg-4 my-lg-5">
-                    <div class="row mb-2 mb-sm-3">
-                        <div class="col-lg-7 col-md-9  text-start">
-
-                        </div>
-                    </div>
-                    <div class="row pb-lg-2 mb-3 mb-sm-3">
-                        <div class="col-lg-7 col-md-8">
-
-                        </div>
-                    </div>
-
-                    <div class="row mb-3 mb-sm-3">
-                        <div class="col-lg-7 col-md-9 text-start">
-
-                        </div>
-                    </div>
-
-                    <div class="widget mt-4 text-md-nowrap  pb-lg-5 mb-4 mb-sm-3 text-start">
-                    </div>
-                </div>
-            </div>
-        </section>
-
-
         <section class="bg-accent bg-position-top-left bg-repeat-0 py-5" style="background-image: url({{ config('settings.images_domain') . 'media/img/lightslider.webp' }});-webkit-background-size: cover;-moz-background-size: cover;-o-background-size: cover;background-size: cover;">
             <div class="pb-lg-5 mb-lg-3">
                 <div class="container py-lg-4 my-lg-5">
