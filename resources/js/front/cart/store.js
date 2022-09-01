@@ -168,7 +168,7 @@ class AgService {
     getDiscountAmount(price, special) {
         let discount = ((price - special) / price) * 100;
 
-        return parseInt(discount);
+        return Math.round(discount).toFixed(0);
     }
 
     /**
