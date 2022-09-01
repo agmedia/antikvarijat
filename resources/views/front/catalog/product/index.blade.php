@@ -112,7 +112,7 @@
 
                             <div class="mb-0 mt-4">
                                 @if ($prod->special())
-                                    <span class="h3 fw-normal text-accent me-1">{!! $prod->priceString($prod->special()) !!}</span>
+                                    <span class="h3 fw-normal text-accent me-1">{{ number_format(\App\Helpers\Helper::calculateDiscountPrice($prod->price, floatval(\App\Helpers\Helper::calculateDiscount($prod->price, $prod->special()))), 2, ',', '.') }}</span>
                                     <del class="text-muted fs-lg me-3">{!! $prod->priceString() !!}</del>
                                     <span class="badge bg-danger align-middle mt-n2">Akcija</span>
                                 @else
