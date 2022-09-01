@@ -59,15 +59,15 @@
                                 <td><strong>{{ $product->name }} -  {{ $product->product->sku }}</strong></td>
                                 <td>{{ $product->product->polica }}</td>
                                 <td class="text-center"><strong>{{ $product->quantity }}</strong></td>
-                                <td class="text-right">{!! \App\Helpers\Helper::priceString($product->price) !!}</td>
-                                <td class="text-right">{!! \App\Helpers\Helper::priceString($product->total) !!}</td>
+                                <td class="text-right">{{ number_format($product->price, 2, ',', '.') }}</td>
+                                <td class="text-right">{{ number_format($product->total, 2, ',', '.') }}</td>
                             </tr>
                         @endforeach
 
                         @foreach ($order->totals as $total)
                             <tr>
                                 <td colspan="5" class="text-right"><strong>{{ $total->title }}:</strong></td>
-                                <td class="text-right">{!! \App\Helpers\Helper::priceString($total->value) !!}</td>
+                                <td class="text-right">{{ number_format($total->value, 2, ',', '.') }}</td>
                             </tr>
                         @endforeach
                         </tbody>
