@@ -4,11 +4,14 @@ namespace App\Http\Controllers\Back;
 
 use App\Helpers\Country;
 use App\Http\Controllers\Controller;
+use App\Mail\StatusCanceled;
+use App\Mail\StatusPaid;
 use App\Models\Back\Orders\Order;
 use App\Models\Back\Orders\OrderHistory;
 use App\Models\Back\Settings\Settings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class OrderController extends Controller
 {
@@ -144,6 +147,25 @@ class OrderController extends Controller
                 Order::where('id', $request->input('order_id'))->update([
                     'order_status_id' => $request->input('status')
                 ]);
+            }
+
+            /*$order = Order::find($request->input('order_id'));
+            $status = $order->status($request->input('status'));*/
+
+            if ($request->input('status') == config('settings.order.status.paid')) {
+                $order = Order::find($request->input('order_id'));
+
+                dispatch(function () use ($order) {
+                    Mail::to($order->payment_email)->send(new StatusPaid($order));
+                });
+            }
+
+            if ($request->input('status') == config('settings.order.status.canceled')) {
+                $order = Order::find($request->input('order_id'));
+
+                dispatch(function () use ($order) {
+                    Mail::to($order->payment_email)->send(new StatusCanceled($order));
+                });
             }
 
             OrderHistory::store($request->input('order_id'), $request);

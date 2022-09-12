@@ -58,6 +58,7 @@ return [
             'new' => 1,
             'unfinished' => 8,
             'declined' => 7,
+            'canceled' => 5,
             'paid' => 3,
             'send' => 4,
         ]

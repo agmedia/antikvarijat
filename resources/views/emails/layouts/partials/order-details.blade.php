@@ -1,4 +1,4 @@
-<h3>{{ __('Detalji narudžbe') }}:</h3>
+<h3>Podaci o kupcu:</h3>
 <table cellspacing="0" cellpadding="0" border="0" width="100%">
     <tr>
         <td style="width: 40%">{{ __('Ime i prezime') }}:</td>
