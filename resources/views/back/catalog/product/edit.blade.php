@@ -220,21 +220,20 @@
 
                             <div class="form-group row items-push mb-3">
                                 <div class="col-md-3">
+                                    <label for="origin-input">Mjesto izdavanja</label>
+                                    <input type="text" class="form-control" id="origin-input" name="origin" placeholder="Upišite mjesto izdavanja" value="{{ isset($product) ? $product->origin : old('origin') }}">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="origin-input">Godina izdavanja</label>
+                                    <input type="text" class="form-control" id="year-input" name="year" placeholder="Upišite godinu izdavanja" value="{{ isset($product) ? $product->year : old('year') }}">
+                                </div>
+                                <div class="col-md-3">
                                     <label for="pages-input">Broj stranica</label>
                                     <input type="text" class="form-control" id="pages-input" name="pages" placeholder="Upišite broj stranica" value="{{ isset($product) ? $product->pages : old('pages') }}">
                                 </div>
                                 <div class="col-md-3">
                                     <label for="dimensions-input">Dimenzije</label>
                                     <input type="text" class="form-control" id="dimensions-input" name="dimensions" placeholder="Upišite dimenzije" value="{{ isset($product) ? $product->dimensions : old('dimensions') }}">
-                                </div>
-                                <div class="col-md-3">
-                                    <label for="origin-input">Mjesto izdavanja</label>
-                                    <input type="text" class="form-control" id="origin-input" name="origin" placeholder="Upišite mjesto izdavanja" value="{{ isset($product) ? $product->origin : old('origin') }}">
-                                </div>
-
-                                <div class="col-md-3">
-                                    <label for="origin-input">Godina izdavanja</label>
-                                    <input type="text" class="form-control" id="year-input" name="year" placeholder="Upišite godinu izdavanja" value="{{ isset($product) ? $product->year : old('year') }}">
                                 </div>
                             </div>
 
