@@ -161,4 +161,17 @@ class HomeController extends Controller
         ])->header('Content-Type', 'text/xml');
     }
 
+
+    /**
+     * @return \Illuminate\Http\Response
+     */
+    public function sitemapImageXML()
+    {
+        $sm = new Sitemap('images');
+
+        return response()->view('front.layouts.partials.sitemap-image', [
+            'items' => $sm->getResponse()
+        ])->header('Content-Type', 'text/xml');
+    }
+
 }

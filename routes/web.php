@@ -324,6 +324,7 @@ Route::get('cache/thumb', [HomeController::class, 'thumbCache']);
  */
 Route::redirect('/sitemap.xml', '/sitemap');
 Route::get('sitemap/{sitemap?}', [HomeController::class, 'sitemapXML'])->name('sitemap');
+Route::get('image-sitemap', [HomeController::class, 'sitemapImageXML'])->name('sitemap');
 /**
  * Forgot password & login routes.
  */

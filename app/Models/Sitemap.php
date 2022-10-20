@@ -35,7 +35,7 @@ class Sitemap
      */
     public function __construct(string $sitemap = null)
     {
-        $this->sitemap = $sitemap ? $this->setSitemap($sitemap) : null;
+        $this->sitemap = $this->setSitemap($sitemap);
     }
 
 
@@ -49,12 +49,25 @@ class Sitemap
 
 
     /**
+     * @return array
+     */
+    public function getResponse(): array
+    {
+        return $this->response;
+    }
+
+
+    /**
      * @param string $sitemap
      *
      * @return array
      */
     private function setSitemap(string $sitemap)
     {
+        if ( ! $sitemap) {
+            return $sitemap;
+        }
+
         if ($sitemap == 'pages' || $sitemap == 'pages.xml') {
             return $this->getPages();
         }
@@ -74,6 +87,37 @@ class Sitemap
         if ($sitemap == 'publishers' || $sitemap == 'publishers.xml') {
             return $this->getPublishers();
         }
+
+        if ($sitemap == 'images' || $sitemap == 'img') {
+            return $this->getImages();
+        }
+    }
+
+
+    /**
+     * @return array
+     */
+    private function getImages(): array
+    {
+        $products = Product::query()->active()->hasStock()->select('url', 'id', 'image')->with('images');
+
+        foreach ($products->get() as $product) {
+            $this->response[$product->id] = [
+                'loc' => url($product->url)
+            ];
+
+            $this->response[$product->id]['images'][] = [
+                'loc' => $product->image
+            ];
+
+            foreach ($product->images as $image) {
+                $this->response[$product->id]['images'][] = [
+                    'loc' => config('settings.images_domain') . $image->image
+                ];
+            }
+        }
+
+        return $this->response;
     }
 
 
