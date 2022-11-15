@@ -98,7 +98,7 @@
             <hr class="hr-light mb-4 d-none d-sm-block">
 
             <div class="d-md-flex justify-content-between pt-2">
-                <div class="pb-4 fs-xs text-light opacity-50 text-center text-md-start">© Sva prava pridržana. Web by <a class="text-light" href="https://www.agmedia.hr" target="_blank" rel="noopener">AG media</a></div>
+                <div class="pb-4 fs-xs text-light opacity-50 text-center text-md-start">© Sva prava pridržana. Web by <a class="text-light" title="Izrada web shopa - B2C ili B2B web trgovina - AG media" href="https://www.agmedia.hr/usluge/izrada-web-shopa/" target="_blank" rel="noopener">AG media</a></div>
                 <div class="widget widget-links widget-light pb-4 text-center text-md-end">
                     <img class="d-inline-block" style="width: 55px;margin-right:3px" src="{{ config('settings.images_domain') }}media/cards/visa.svg" width="55" height="35" alt="Visa"/>
                     <img class="d-inline-block" style="width: 55px;margin-right:3px" src="{{ config('settings.images_domain') }}media/cards/maestro.svg" width="55" height="35" alt="Maestro"/>
