@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class Author extends Model
@@ -152,5 +153,35 @@ class Author extends Model
         }
 
         return false;
+    }
+
+
+    /*******************************************************************************
+    *                                Copyright : AGmedia                           *
+    *                              email: filip@agmedia.hr                         *
+    *******************************************************************************/
+
+    /**
+     * @return int
+     */
+    public static function checkStatuses_CRON()
+    {
+        $log_start = microtime(true);
+
+        $total = Author::query()->pluck('id');
+
+        $authors_with = Author::query()->whereHas('products', function ($query) {
+            $query->where('status', 1);
+        })->pluck('id');
+
+        $authors_without = $total->diff($authors_with);
+
+        Author::query()->whereIn('id', $authors_with)->update(['status' => 1]);
+        Author::query()->whereIn('id', $authors_without)->update(['status' => 0]);
+
+        $log_end = microtime(true);
+        Log::info('__Check Author Statuses - Total Execution Time: ' . number_format(($log_end - $log_start), 2, ',', '.') . ' sec.');
+
+        return 1;
     }
 }
