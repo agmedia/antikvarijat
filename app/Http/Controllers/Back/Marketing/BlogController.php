@@ -5,6 +5,10 @@ namespace App\Http\Controllers\Back\Marketing;
 use App\Http\Controllers\Controller;
 use App\Models\Back\Marketing\Blog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Intervention\Image\Facades\Image;
 
 class BlogController extends Controller
 {
@@ -131,5 +135,32 @@ class BlogController extends Controller
         }
 
         return response()->json(['error' => 300]);
+    }
+
+
+    /**
+     * @param Request $request
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function uploadBlogImage(Request $request)
+    {
+        if ( ! $request->hasFile('upload')) {
+            return response()->json(['uploaded' => false]);
+        }
+
+        $blog_id = $request->input('blog_id');
+        $img = $request->file('upload');
+        $name = Str::random(9) . '_' . $img->getClientOriginalName();
+
+        $path = '';
+
+        if ($blog_id) {
+            $path = $blog_id . '/';
+        }
+
+        Storage::disk('blog')->putFileAs($path, $img, $name);
+
+        return response()->json(['fileName' => $name, 'uploaded' => true, 'url' => url(config('filesystems.disks.blog.url') . $path . $name)]);
     }
 }

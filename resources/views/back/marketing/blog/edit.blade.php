@@ -152,7 +152,11 @@
     <script>
         $(() => {
             ClassicEditor
-            .create( document.querySelector('#description-editor'))
+            .create(document.querySelector('#description-editor'), {
+                ckfinder: {
+                    uploadUrl: '{{ route('blogs.upload.image') }}?_token=' + document.querySelector('meta[name="csrf-token"]').getAttribute('content') + '&blog_id={{ $blog->id ?: 0 }}',
+                }
+            })
             .then( editor => {
                 console.log(editor);
             } )

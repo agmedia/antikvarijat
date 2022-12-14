@@ -230,6 +230,7 @@ Route::prefix('api/v2')->group(function () {
     Route::post('/publishers/destroy/api', [PublisherController::class, 'destroyApi'])->name('publishers.destroy.api');
     Route::post('/products/destroy/api', [ProductController::class, 'destroyApi'])->name('products.destroy.api');
     Route::post('/blogs/destroy/api', [BlogController::class, 'destroyApi'])->name('blogs.destroy.api');
+    Route::post('/blogs/upload/image', [BlogController::class, 'uploadBlogImage'])->name('blogs.upload.image');
 
     // FILTER
     Route::prefix('filter')->group(function () {
