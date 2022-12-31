@@ -43,14 +43,17 @@ class ProductController extends Controller
     public function destroyImage(Request $request)
     {
         $image = ProductImage::where('id', $request->input('data'))->first();
-        $path = str_replace(config('filesystems.disks.products.url'), '', $image->image);
-        // Obriši staru sliku
-        Storage::disk('products')->delete($path);
 
-        if (ProductImage::where('id', $request->input('data'))->delete()) {
-            ProductImage::where('image', $image->image)->delete();
+        if (isset($image->image)) {
+            $path = str_replace(config('filesystems.disks.products.url'), '', $image->image);
+            // Obriši staru sliku
+            Storage::disk('products')->delete($path);
 
-            return response()->json(['success' => 200]);
+            if (ProductImage::where('id', $request->input('data'))->delete()) {
+                ProductImage::where('image', $image->image)->delete();
+
+                return response()->json(['success' => 200]);
+            }
         }
 
         return response()->json(['error' => 400]);

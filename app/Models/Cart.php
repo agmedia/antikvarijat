@@ -84,11 +84,13 @@ class Cart extends Model
             if ($has_cart) {
                 $cart_data = json_decode(json_encode($has_cart->cart_data));
 
-                foreach ($cart_data->items as $item) {
-                    $cart->add($cart->resolveItemRequest($item));
+                if (isset($cart_data->items)) {
+                    foreach ($cart_data->items as $item) {
+                        $cart->add($cart->resolveItemRequest($item));
+                    }
                 }
 
-                if ( ! empty($cart_data->coupon)) {
+                if (isset($cart_data->coupon) && ! empty($cart_data->coupon)) {
                     $cart->coupon($cart_data->coupon);
                 }
 

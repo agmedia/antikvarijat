@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Back\Settings\Faq;
 use App\Models\Back\Settings\Settings;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class CurrencyController extends Controller
@@ -33,6 +34,8 @@ class CurrencyController extends Controller
      */
     public function store(Request $request)
     {
+        $this->cleanCache();
+
         $data = $request->data;
 
         $setting = Settings::where('code', 'currency')->where('key', 'list')->first();
@@ -83,6 +86,8 @@ class CurrencyController extends Controller
      */
     public function storeMain(Request $request)
     {
+        $this->cleanCache();
+
         $data = $request->data;
 
         $setting = Settings::where('code', 'currency')->where('key', 'list')->first();
@@ -126,6 +131,8 @@ class CurrencyController extends Controller
      */
     public function destroy(Request $request)
     {
+        $this->cleanCache();
+
         $data = $request->data;
 
         if ($data['id']) {
@@ -145,5 +152,18 @@ class CurrencyController extends Controller
         }
 
         return response()->json(['message' => 'Server error! Pokušajte ponovo ili kontaktirajte administratora!']);
+    }
+
+
+    /**
+     * @return bool
+     */
+    public function cleanCache()
+    {
+        Cache::forget('currency_list');
+        Cache::forget('currency_main');
+        Cache::forget('currency_secondary');
+
+        return true;
     }
 }

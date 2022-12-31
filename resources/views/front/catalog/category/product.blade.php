@@ -1,5 +1,5 @@
 <div class="card product-card-alt">
-    @if ($product->special())
+    @if ($product->main_price > $product->main_special)
         <span class="badge rounded-pill bg-primary mt-3 ms-1 badge-shadow">-{{ floatval(\App\Helpers\Helper::calculateDiscount($product->price, $product->special())) }}%</span>
     @endif
     <div class="product-thumb">
@@ -28,20 +28,20 @@
             </div>
         @endif
         <div class="d-flex flex-wrap justify-content-between align-items-center price-box mt-2">
-            @if ($product->special())
-                <div class="bg-faded-accent text-accent text-sm rounded-1 py-1 px-1" style="text-decoration: line-through;">{!! $product->priceString() !!}</div>
-                <div class="bg-faded-accent text-accent text-sm rounded-1 py-1 px-1">{{ number_format(\App\Helpers\Helper::calculateDiscountPrice($product->price, floatval(\App\Helpers\Helper::calculateDiscount($product->price, $product->special()))), 2, ',', '.') }}</div>
+            @if ($product->main_price > $product->main_special)
+                <div class="bg-faded-accent text-accent text-sm rounded-1 py-1 px-1" style="text-decoration: line-through;">{{ $product->main_special_text }}</div>
+                <div class="bg-faded-accent text-accent text-sm rounded-1 py-1 px-1">{{ $product->main_price_text }}</div>
             @else
-                <div class="bg-faded-accent text-accent rounded-1 py-1 px-1">{!! $product->priceString() !!}</div>
+                <div class="bg-faded-accent text-accent rounded-1 py-1 px-1">{{ $product->main_price_text }}</div>
             @endif
         </div>
-        @if($product->eur_price)
+        @if($product->secondary_price_text)
             <div class="d-flex flex-wrap justify-content-between align-items-center price-box mt-2">
-                @if ($product->special())
-                    <div class="bg-faded-accent text-accent text-sm rounded-1 py-1 px-1" style="text-decoration: line-through;">{{ $product->eur_price }} €</div>
-                    <div class="bg-faded-accent text-accent text-sm rounded-1 py-1 px-1">{{ $product->eur_special }} €</div>
+                @if ($product->main_price > $product->main_special)
+                    <div class="bg-faded-accent text-accent text-sm rounded-1 py-1 px-1" style="text-decoration: line-through;">{{ $product->secondary_special_text }}</div>
+                    <div class="bg-faded-accent text-accent text-sm rounded-1 py-1 px-1">{{ $product->secondary_price_text }}</div>
                 @else
-                    <div class="bg-faded-accent text-accent rounded-1 py-1 px-1">{{ $product->eur_price }} €</div>
+                    <div class="bg-faded-accent text-accent rounded-1 py-1 px-1">{{ $product->secondary_price_text }}</div>
                 @endif
             </div>
         @endif

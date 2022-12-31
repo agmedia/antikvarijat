@@ -46,15 +46,15 @@
                         </div>
 
                         <div class="d-flex flex-wrap justify-content-between align-items-center price-box mt-2">
-                            <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2" v-if="product.special" style="text-decoration: line-through;">{{ $store.state.service.formatPrice(product.price) }}</div>
-                            <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2" v-if="product.special">{{ $store.state.service.formatPrice(product.special) }}</div>
-                            <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2" v-if="!product.special">{{ $store.state.service.formatPrice(product.price) }}</div>
+                            <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2" v-if="product.special" style="text-decoration: line-through;">{{ product.main_price_text }}</div>
+                            <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2" v-if="product.special">{{ product.main_special_text }}</div>
+                            <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2" v-if="!product.special">{{ product.main_price_text }}</div>
                         </div>
 
-                        <div class="d-flex flex-wrap justify-content-between align-items-center price-box mt-2" v-if="product.eur_price">
-                            <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2" v-if="product.special" style="text-decoration: line-through;">{{ product.eur_price }} €</div>
-                            <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2" v-if="product.special">{{ product.eur_special }} €</div>
-                            <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2" v-if="!product.special">{{ product.eur_price }} €</div>
+                        <div class="d-flex flex-wrap justify-content-between align-items-center price-box mt-2" v-if="product.secondary_price">
+                            <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2" v-if="product.special" style="text-decoration: line-through;">{{ product.secondary_price_text }}</div>
+                            <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2" v-if="product.special">{{ product.secondary_special_text }}</div>
+                            <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2" v-if="!product.special">{{ product.secondary_price_text }}</div>
                         </div>
                     </div>
                 </div>
@@ -283,12 +283,8 @@
                 let now = new Date();
 
                 for (let i = 0; i < this.products.data.length; i++) {
-                    let from = new Date(this.products.data[i].special_from);
-                    let to = new Date(this.products.data[i].special_to);
-
-                    if (now > from && now < to) {
-                    } else {
-                        this.products.data[i].special = null;
+                    if (this.products.data[i].main_price <= this.products.data[i].main_special) {
+                        this.products.data[i].special = false;
                     }
                 }
             },

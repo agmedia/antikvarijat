@@ -2,6 +2,7 @@
 
 namespace App\Models\Front\Catalog;
 
+use App\Helpers\Currency;
 use App\Models\Back\Catalog\Product\ProductAction;
 use App\Models\Back\Settings\Settings;
 use Carbon\Carbon;
@@ -12,6 +13,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
+/**
+ *
+ */
 class Product extends Model
 {
 
@@ -28,7 +32,18 @@ class Product extends Model
     /**
      * @var string[]
      */
-    protected $appends = ['eur_price', 'eur_special'];
+    protected $appends = [
+        'eur_price',
+        'eur_special',
+        'main_price',
+        'main_price_text',
+        'main_special',
+        'main_special_text',
+        'secondary_price',
+        'secondary_price_text',
+        'secondary_special',
+        'secondary_special_text',
+    ];
 
     /**
      * @var
@@ -44,6 +59,78 @@ class Product extends Model
     public function getRouteKeyName()
     {
         return 'slug';
+    }
+
+
+    /**
+     * @return Collection|string
+     */
+    public function getMainPriceAttribute()
+    {
+        return Currency::main($this->price);
+    }
+
+
+    /**
+     * @return Collection|string
+     */
+    public function getMainPriceTextAttribute()
+    {
+        return Currency::main($this->price, true);
+    }
+
+
+    /**
+     * @return Collection|string
+     */
+    public function getMainSpecialAttribute()
+    {
+        return Currency::main($this->special());
+    }
+
+
+    /**
+     * @return Collection|string
+     */
+    public function getMainSpecialTextAttribute()
+    {
+        return Currency::main($this->special(), true);
+    }
+
+
+    /**
+     * @return Collection|string
+     */
+    public function getSecondaryPriceAttribute()
+    {
+        return Currency::secondary($this->price);
+    }
+
+
+    /**
+     * @return Collection|string
+     */
+    public function getSecondaryPriceTextAttribute()
+    {
+        return Currency::secondary($this->price, true);
+    }
+
+
+    /**
+     * @return Collection|string
+     */
+    public function getSecondarySpecialAttribute()
+    {
+        return Currency::secondary($this->special());
+    }
+
+
+    /**
+     * @return Collection|string
+     */
+    public function getSecondarySpecialTextAttribute()
+    {
+        return Currency::secondary($this->special(), true);
     }
 
 
@@ -129,7 +216,7 @@ class Product extends Model
             }
         }
 
-        return false;
+        return $this->price;
     }
 
 

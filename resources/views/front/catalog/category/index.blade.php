@@ -145,21 +145,6 @@
                            publisher="{{ isset($publisher) ? $publisher['slug'] : null }}">
             </products-view>
         </div>
-
-        {{--        <div class="row">--}}
-        {{--            <!-- FILTER -->--}}
-        {{--            @if (isset($author) && $author)--}}
-        {{--            @livewire('front.partials.author-filter', ['ids' => $ids, 'selected_author' => $author, 'category' => $cat, 'subcategory' => $subcat])--}}
-        {{--            @elseif (isset($publisher) && $publisher)--}}
-        {{--            @livewire('front.partials.author-filter', ['ids' => $ids, 'selected_publisher' => $publisher, 'category' => $cat, 'subcategory' => $subcat])--}}
-        {{--            @else--}}
-        {{--            @livewire('front.partials.catalog-filter', ['ids' => $ids, 'group' => $group, 'category' => $cat, 'subcategory' => $subcat])--}}
-        {{--        @endif--}}
-
-        {{--        <!-- PRODUCTS  -->--}}
-        {{--            @livewire('front.product-category-list', ['ids' => $ids, 'author' => isset($author) ? $author : null, 'publisher' => isset($publisher) ? $publisher : null, 'group' => $group, 'cat' => $cat, 'subcat' => $subcat])--}}
-
-        {{--        </div>--}}
     </div>
 
     @if (isset($author) && $author && ! empty($author->description))

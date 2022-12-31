@@ -74,3 +74,4 @@ window.ToastWarningLong = app.$swal.mixin({
     showConfirmButton: false,
     timer: 5000,
 })
+

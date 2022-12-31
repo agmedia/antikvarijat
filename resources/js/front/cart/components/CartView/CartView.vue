@@ -23,8 +23,8 @@
                 <div class="pt-2">
                     <h3 class="product-title fs-base mb-2"><a :href="base_path + item.attributes.path">{{ item.name }}</a></h3>
 
-                    <div class="fs-lg text-accent pt-2">{{ Object.keys(item.conditions).length ? $store.state.service.formatPrice(item.price - item.conditions.parsedRawValue) : $store.state.service.formatPrice(item.price) }}</div>
-                    <div class="fs-lg text-accent pt-2" v-if="item.associatedModel.eur_price">{{ Object.keys(item.conditions).length ? (item.associatedModel.eur_special) : item.associatedModel.eur_price }} €</div>
+                    <div class="fs-lg text-accent pt-2">{{ Object.keys(item.conditions).length ? item.associatedModel.main_special_text : item.associatedModel.main_price_text }}</div>
+                    <div class="fs-lg text-accent pt-2" v-if="item.associatedModel.secondary_price">{{ Object.keys(item.conditions).length ? item.associatedModel.secondary_special_text : item.associatedModel.secondary_price_text }}</div>
                 </div>
             </div>
             <div class="pt-2 pt-sm-0 ps-sm-3 mx-auto mx-sm-0 text-center text-sm-start" style="max-width: 9rem;">
@@ -113,8 +113,6 @@
              */
             checkIfEmpty() {
                 let cart = this.$store.state.storage.getCart();
-
-                console.log(cart)
 
                 if (cart && ! cart.count && window.location.pathname != '/kosarica') {
                     window.location.href = '/kosarica';

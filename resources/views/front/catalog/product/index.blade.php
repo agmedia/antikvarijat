@@ -111,12 +111,12 @@
                         <div class="product-details ms-auto pb-3">
 
                             <div class="mb-0 mt-4">
-                                @if ($prod->special())
-                                    <span class="h3 fw-normal text-accent me-1">{{ number_format(\App\Helpers\Helper::calculateDiscountPrice($prod->price, floatval(\App\Helpers\Helper::calculateDiscount($prod->price, $prod->special()))), 2, ',', '.') }}</span>
-                                    <del class="text-muted fs-lg me-3">{!! $prod->priceString() !!}</del>
+                                @if ($prod->main_price > $prod->main_special)
+                                    <span class="h3 fw-normal text-accent me-1">{{ $prod->main_special_text }}</span>
+                                    <del class="text-muted fs-lg me-3">{{ $prod->main_price_text }}</del>
                                     <span class="badge bg-danger align-middle mt-n2">Akcija</span>
                                 @else
-                                    <span class="h3 fw-normal text-accent me-1">{!! $prod->priceString() !!}</span>
+                                    <span class="h3 fw-normal text-accent me-1">{{ $prod->main_price_text }}</span>
                                 @endif
                                 @if ($prod->quantity)
                                     <span class="badge bg-success align-middle mt-n2">Dostupno</span>
@@ -125,13 +125,13 @@
                                 @endif
                             </div>
 
-                            @if($prod->eur_price)
+                            @if($prod->secondary_price_text)
                                 <div class="mb-3 mt-1">
-                                    @if ($prod->special())
-                                        <span class="h3 fw-normal text-accent me-1">{{ $prod->eur_special }} €</span>
-                                        <del class="text-muted fs-lg me-3">{{ $prod->eur_price }} €</del>
+                                    @if ($prod->main_price > $prod->main_special)
+                                        <span class="h3 fw-normal text-accent me-1">{{ $prod->secondary_special_text }}</span>
+                                        <del class="text-muted fs-lg me-3">{{ $prod->secondary_price_text }}</del>
                                     @else
-                                        <span class="h3 fw-normal text-accent me-1">{{ $prod->eur_price }} €</span>
+                                        <span class="h3 fw-normal text-accent me-1">{{ $prod->secondary_price_text }}</span>
                                     @endif
                                 </div>
                             @endif
