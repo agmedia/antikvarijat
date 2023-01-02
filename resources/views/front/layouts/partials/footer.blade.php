@@ -63,7 +63,7 @@
                         <i class="ci-gift text-primary" style="font-size: 2.25rem;"></i>
                         <div class="ps-3">
                             <h6 class="fs-base text-light mb-1">Besplatna dostava</h6>
-                            <p class="mb-0 fs-ms text-light opacity-50">Za sve narudžbe u RH iznad 500 kn.</p>
+                            <p class="mb-0 fs-ms text-light opacity-50">Za sve narudžbe u RH iznad 70 EUR.</p>
                         </div>
                     </div>
                 </div>

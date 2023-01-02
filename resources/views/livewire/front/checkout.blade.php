@@ -55,7 +55,7 @@
                                 <div class="mb-3">
                                     <label class="form-label" for="si-email">Email adresa</label>
                                     <input class="form-control" type="email" wire:model.defer="login.email" placeholder="" required>
-                                    <div class="invalid-feedback">MOlimo upišite ispravnu email adresu.</div>
+                                    <div class="invalid-feedback">Molimo upišite ispravnu email adresu.</div>
                                 </div>
                             </div>
                             <div class="col-sm-6">
@@ -205,7 +205,17 @@
                         <td class="align-middle"><span class="text-dark fw-medium">{{ $s_method->title }}</span><br><span class="text-muted">{!! $s_method->data->short_description !!}</span></td>
                         <td class="align-middle">{{ $s_method->data->time }}</td>
                         <td class="align-middle">
-                            {{ $s_method->data->price }} €
+                            @if ($is_free_shipping)
+                                € 0
+                                @if ($secondary_price)
+                                    <br>0 kn
+                                @endif
+                            @else
+                                € {{ $s_method->data->price }}
+                                @if ($secondary_price)
+                                    <br>{{ $s_method->data->price ? number_format($s_method->data->price * $secondary_price, 2) : '0' }} kn
+                                @endif
+                            @endif
                         </td>
                     </tr>
                 @endforeach

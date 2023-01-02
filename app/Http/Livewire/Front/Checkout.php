@@ -3,6 +3,7 @@
 namespace App\Http\Livewire\Front;
 
 use App\Helpers\Country;
+use App\Helpers\Currency;
 use App\Helpers\Helper;
 use App\Helpers\Session\CheckoutSession;
 use App\Models\Back\Settings\Settings;
@@ -21,6 +22,11 @@ class Checkout extends Component
      * @var string
      */
     public $step = '';
+
+    /**
+     * @var string
+     */
+    public $is_free_shipping = '';
 
     /**
      * @var array
@@ -58,9 +64,9 @@ class Checkout extends Component
     public $payment = '';
 
     /**
-     * @var int|null
+     * @var int|bool
      */
-    public $eur = null;
+    public $secondary_price = false;
 
     /**
      * @var string[]
@@ -115,7 +121,7 @@ class Checkout extends Component
             $this->payment = CheckoutSession::getPayment();
         }
 
-        $this->eur = Helper::getEur();
+        $this->secondary_price = Currency::secondary() ? Currency::secondary()->value : false;
 
         $this->changeStep($this->step);
     }

@@ -42,7 +42,9 @@ class CheckoutController extends Controller
             $step = $request->input('step');
         }
 
-        return view('front.checkout.checkout', compact('step'));
+        $is_free_shipping = (config('settings.free_shipping') < $this->shoppingCart()->get()['total']) ? true : false;
+
+        return view('front.checkout.checkout', compact('step', 'is_free_shipping'));
     }
 
 
