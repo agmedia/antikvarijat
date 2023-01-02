@@ -88,7 +88,7 @@
                                     <div class="input-group">
                                         <input type="text" class="form-control" id="price-input" name="price" placeholder="00.00" value="{{ isset($product) ? $product->price : old('price') }}">
                                         <div class="input-group-append">
-                                            <span class="input-group-text">kn</span>
+                                            <span class="input-group-text">EUR</span>
                                         </div>
                                     </div>
                                     @error('price')
@@ -119,7 +119,7 @@
                                     <div class="input-group">
                                         <input type="text" class="form-control" id="special-input" name="special" placeholder="00.00" value="{{ isset($product) ? $product->special : old('special') }}">
                                         <div class="input-group-append">
-                                            <span class="input-group-text">kn</span>
+                                            <span class="input-group-text">EUR</span>
                                         </div>
                                     </div>
                                 </div>

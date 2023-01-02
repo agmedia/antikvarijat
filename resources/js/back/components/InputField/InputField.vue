@@ -102,7 +102,7 @@
                     style: 'currency',
                     //currencyDisplay: 'narrowSymbol',
                     currencyDisplay: 'symbol',
-                    currency: 'HRK'
+                    currency: 'EUR'
                 });
             },
             /**
