@@ -58,13 +58,13 @@
                     <h2 class="widget-title text-center">Sažetak narudžbe</h2>
                 </div>
                 <ul class="list-unstyled fs-sm pb-2 border-bottom">
-                    <li class="d-flex justify-content-between align-items-center"><span class="me-2">Ukupno:</span><span class="text-end">{{ Number($store.state.cart.subtotal).toFixed(2)}}</span></li>
+                    <li class="d-flex justify-content-between align-items-center"><span class="me-2">Ukupno:</span><span class="text-end">€ {{ Number($store.state.cart.subtotal).toFixed(2)}}</span></li>
                     <li v-if="$store.state.cart.secondary_price" class="d-flex justify-content-between align-items-center">
-                        <span class="me-2"></span><span class="text-end">{{ ($store.state.cart.subtotal * $store.state.cart.secondary_price).toFixed(2) }} €</span>
+                        <span class="me-2"></span><span class="text-end">{{ ($store.state.cart.subtotal * $store.state.cart.secondary_price).toFixed(2) }} kn</span>
                     </li>
                     <div v-for="condition in $store.state.cart.detail_con">
-                        <li class="d-flex justify-content-between align-items-center"><span class="me-2">{{ condition.name }}</span><span class="text-end">{{ Number(condition.value).toFixed(2) }}</span></li>
-                        <li v-if="$store.state.cart.secondary_price" class="d-flex justify-content-between align-items-center"><span class="me-2"></span><span class="text-end">{{ (condition.value * $store.state.cart.secondary_price).toFixed(2) }} €</span></li>
+                        <li class="d-flex justify-content-between align-items-center"><span class="me-2">{{ condition.name }}</span><span class="text-end">€ {{ Number(condition.value).toFixed(2) }}</span></li>
+                        <li v-if="$store.state.cart.secondary_price" class="d-flex justify-content-between align-items-center"><span class="me-2"></span><span class="text-end">{{ (condition.value * $store.state.cart.secondary_price).toFixed(2) }} kn</span></li>
                     </div>
                 </ul>
                 <h3 class="fw-normal text-center my-2">€ {{ Number($store.state.cart.total).toFixed(2) }}</h3>
