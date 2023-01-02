@@ -95,7 +95,7 @@ class Payway
         $data['lang'] = 'HR';
         $data['plan'] = '';
         $data['cc_name'] = '';//...??
-        $data['currency'] = 'HRK';
+        $data['currency'] = 'EUR';
         $data['rate'] = 1;
         $data['return'] = $payment_method->data->callback;
         $data['cancel'] = route('kosarica');
