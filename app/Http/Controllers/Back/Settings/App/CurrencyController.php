@@ -7,6 +7,7 @@ use App\Models\Back\Settings\Faq;
 use App\Models\Back\Settings\Settings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class CurrencyController extends Controller
@@ -98,6 +99,9 @@ class CurrencyController extends Controller
             $values = collect(json_decode($setting->value));
         }
 
+        Log::debug($data);
+        Log::debug($values);
+
         if (isset($data['main'])) {
             $values->where('id', intval($data['main']))->map(function ($item) use ($data) {
                 $item->main = true;
@@ -111,6 +115,9 @@ class CurrencyController extends Controller
                 return $item;
             });
         }
+
+        //DB::update('update products set price = (price * 0.13272280)');
+        //DB::update('update products set special = (special * 0.13272280);');
 
         $stored = Settings::edit($setting->id, 'currency', 'list', $values->toJson(), true);
 

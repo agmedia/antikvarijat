@@ -180,6 +180,12 @@
                                         @endforeach
                                     </select>
                                 </div>
+<!--                                <div class="form-group">
+                                    <div class="custom-control custom-switch custom-control-info">
+                                        <input type="checkbox" class="custom-control-input" id="change-prices-switch" name="change_prices">
+                                        <label class="custom-control-label" for="change-prices-switch">Preračunaj Cijene</label>
+                                    </div>
+                                </div>-->
                             </div>
                         </div>
                     </div>
@@ -287,7 +293,9 @@
          *
          */
         function storeMainCurrency() {
-            let item = { main: $('#currency-main-select').val() };
+            let item = {
+                main: $('#currency-main-select').val()
+            };
 
             axios.post("{{ route('api.currencies.store.main') }}", { data: item })
             .then(response => {
