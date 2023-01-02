@@ -46,20 +46,20 @@
                         </td>
                         <td class="text-right">
                             <input v-if="product.edit" type="text" class="form-control py-0" style="height: 26px;" :value="product.org_price" @keyup.enter="product.edit=false; $emit('update')" @blur="product.edit=false; ChangePrice(product.id, $event); $emit('update')">
-                            <span v-else @click="product.edit=true;">{{ Number(product.org_price).toLocaleString('hr-HR', currency_style) }}</span>
+                            <span v-else @click="product.edit=true;">{{ Number(product.org_price).toLocaleString(localization, currency_style) }}</span>
                         </td>
-                        <td class="text-right">{{ Number(product.org_price * product.quantity).toLocaleString('hr-HR', currency_style) }}</td>
+                        <td class="text-right">{{ Number(product.org_price * product.quantity).toLocaleString(localization, currency_style) }}</td>
                         <td class="text-right">
                             <input v-if="product.edit" type="text" class="form-control py-0" style="height: 26px;" :value="product.rabat" @keyup.enter="product.edit=false; $emit('update')" @blur="product.edit=false; ChangeRabat(product.id, $event); $emit('update')">
-                            <span v-else @click="product.edit=true;">-{{ Number((product.rabat) * product.quantity).toLocaleString('hr-HR', currency_style) }}</span>
+                            <span v-else @click="product.edit=true;">-{{ Number((product.rabat) * product.quantity).toLocaleString(localization, currency_style) }}</span>
                         </td>
-                        <td class="text-right font-w600">{{ Number(product.total).toLocaleString('hr-HR', currency_style) }}</td>
+                        <td class="text-right font-w600">{{ Number(product.total).toLocaleString(localization, currency_style) }}</td>
                     </tr>
 
                     <!-- Totals -->
                     <tr v-if="sums.length" v-for="(total, index) in sums">
                         <td colspan="6" class="text-right">{{ total.name }}:</td>
-                        <td colspan="2" class="text-right font-w600">{{ Number(total.value).toLocaleString('hr-HR', currency_style) }}</td>
+                        <td colspan="2" class="text-right font-w600">{{ Number(total.value).toLocaleString(localization, currency_style) }}</td>
                     </tr>
 
                     <input type="hidden" :value="JSON.stringify(items)" name="items">
@@ -107,8 +107,9 @@ export default {
             action_value: 0,
             currency_style: {
                 style: 'currency',
-                currency: 'HRK'
-            }
+                currency: 'EUR'
+            },
+            localization: 'de-DE'
         }
     },
     //
@@ -293,7 +294,7 @@ export default {
         autoComplete() {
             this.results = []
 
-            if (this.query.length > 1) {
+            if (this.query.length > 2) {
                 axios.get(this.products_autocomplete_url, {params: {query: this.query}}).then(response => {
                     this.results = response.data;
                 })

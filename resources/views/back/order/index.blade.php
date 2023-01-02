@@ -92,10 +92,6 @@
                         </thead>
                         <tbody>
                         @forelse ($orders->sortByDesc('id') as $order)
-
-
-
-
                             <tr>
                                 <td class="text-center">
                                     <div class="form-group">
@@ -119,7 +115,11 @@
                                 </td>
                                 <td class="text-center">{{ $order->products->count() }}</td>
                                 <td class="text-right">
-                                    <strong>{{ number_format($order->total, 2, ',', '.') }} kn</strong>
+                                    @if ($order->id > 4627)
+                                        <strong>€ {{ number_format($order->total, 2, ',', '.') }}</strong>
+                                    @else
+                                        <strong>{{ number_format($order->total, 2, ',', '.') }} kn</strong>
+                                    @endif
                                 </td>
                                 <td class="text-right font-size-base">
                                     <a class="btn btn-sm btn-alt-secondary" href="{{ route('orders.show', ['order' => $order]) }}">
