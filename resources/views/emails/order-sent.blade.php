@@ -30,7 +30,7 @@
 
                     <p style="font-size:12px"> Ukoliko u tom roku ne zaprimimo uplatu, nažalost moramo poništiti ovu narudžbu.</p>
 
-                    <p style="font-size:12px">MOLIMO IZVRŠITE UPLATU U IZNOSU OD  {{number_format($order->total, 2)}} kn</p>
+                    <p style="font-size:12px">MOLIMO IZVRŠITE UPLATU U IZNOSU OD € {{number_format($order->total, 2)}}</p>
 
 
                     <p style="font-size:12px"> IBAN RAČUN: HR3123600001101595832<br>
