@@ -5,22 +5,21 @@
     <meta name="author" content="Skladišna Logistika" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>  @yield ('title' ) - {{ config('app.name') }}</title>
-    <link rel="stylesheet" href="{{ asset('temp/css/bootstrap.css') }}" type="text/css" />
-    <link rel="stylesheet" href="{{ asset('temp/style.css') }}" type="text/css" />
-    <link rel="stylesheet" href="{{ asset('temp/css/dark.css') }}" type="text/css" />
-    <link rel="stylesheet" href="{{ asset('temp/css/swiper.css') }}" type="text/css" />
-    <!-- shop Demo Specific Stylesheet -->
-    <link rel="stylesheet" href="{{ asset('demos/shop/shop.css') }}" type="text/css" />
-    <link rel="stylesheet" href="{{ asset('demos/shop/css/fonts.css') }}" type="text/css" />
-    <!-- / -->
-    <link rel="stylesheet" href="{{ asset('temp/css/font-icons.css') }}" type="text/css" />
-    <link rel="stylesheet" href="{{ asset('temp/css/animate.css') }}" type="text/css" />
-    <link rel="stylesheet" href="{{ asset('temp/css/magnific-popup.css') }}" type="text/css" />
-    <link rel="stylesheet" href="{{ asset('temp/css/responsive.css') }}" type="text/css" />
-    <!-- Include mmenu files -->
-    <link href="{{ asset('dist/mmenu.css') }}" rel="stylesheet" />
-    <link href="{{ asset('dist/mburger.css') }}" rel="stylesheet" />
-    <script src="{{ asset('dist/mmenu.js') }}"></script>
+    <!-- Favicon and Touch Icons-->
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ config('settings.images_domain') . 'media/img/favicon-32x32.png' }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ config('settings.images_domain') . 'media/img/favicon-32x32.png' }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ config('settings.images_domain') . 'media/img/favicon-16x16.png' }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ config('settings.images_domain') . 'apple-touch-icon.png' }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ config('settings.images_domain') . 'favicon-32x32.png' }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ config('settings.images_domain') . 'favicon-16x16.png' }}">
+    <link rel="mask-icon" href="{{ config('settings.images_domain') . 'safari-pinned-tab.svg' }}" color="#314837">
+    <meta name="msapplication-TileColor" content="#314837">
+    <meta name="theme-color" content="#ffffff">
+
+    <!-- Vendor Styles including: Font Icons, Plugins, etc.-->
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <!-- Main Theme Styles + Bootstrap-->
+    <link rel="stylesheet" media="screen" href="{{ config('settings.images_domain') . 'css/theme.min.css?v=1.6' }}">
     <!-- Fire the plugin -->
     <script>
         document.addEventListener(
@@ -60,19 +59,18 @@
 <!-- Footer -->
     @include('front.layouts.partials.footer')
 </div><!-- #wrapper end -->
-<!-- Go To Top -->
-<div id="gotoTop" class="icon-angle-up"></div>
-<!-- Go To Top
-============================================= -->
-<div id="gotoTop" class="icon-angle-up"></div>
-<!-- External JavaScripts
-============================================= -->
-<script src="{{ asset('temp/js/jquery.js') }}"></script>
-<script src="{{ asset('js/blazy.min.js') }}"></script>
-<script src="{{ asset('temp/js/plugins.js') }}"></script>
-<!-- Footer Scripts
-============================================= -->
-<script src="{{ asset('temp/js/functions.js') }}"></script>
+
+<link rel="stylesheet" media="screen" href="{{ config('settings.images_domain') . 'css/tiny-slider.css?v=1.2' }}"/>
+<!-- Vendor scrits: js libraries and plugins-->
+<script src="{{ asset('js/jquery/jquery-2.1.1.min.js?v=1.2') }}"></script>
+<script src="{{ asset('js/bootstrap.bundle.min.js?v=1.2') }}"></script>
+<script src="{{ asset('js/tiny-slider.js?v=1.2') }}"></script>
+<script src="{{ asset('js/smooth-scroll.polyfills.min.js?v=1.2') }}"></script>
+<!-- Main theme script-->
+
+<script src="{{ asset('js/cart.js?v=2.0.2') }}"></script>
+
+<script src="{{ asset('js/theme.min.js') }}"></script>
 @stack('js')
 <script>
     jQuery(function() {
