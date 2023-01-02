@@ -8,7 +8,7 @@
         </div>
 
         <div class="d-flex border p-2" style="background-color: rgba(245,245,245,0.96);" v-if="$store.state.cart.total < freeship && $store.state.cart.count">
-            <p class="small mb-0">Još {{ freeship - $store.state.cart.total }} kn <span v-if="$store.state.cart.eur">({{ ((freeship - $store.state.cart.total) * $store.state.cart.eur).toFixed(2) }} €)</span> do besplatne dostave!</p>
+            <p class="small mb-0">Još €{{ (freeship - $store.state.cart.total).toFixed(2) }} <span v-if="$store.state.cart.secondary_price">({{ ((freeship - $store.state.cart.total) * $store.state.cart.secondary_price).toFixed(2) }} kn)</span> do besplatne dostave!</p>
         </div>
         <div class="d-flex border p-2" style="background-color: rgba(245,245,245,0.96);" v-if="$store.state.cart.total > freeship && $store.state.cart.count">
             <p class="small mb-0">Ostvarili ste pravo na besplatnu dostavu!</p>

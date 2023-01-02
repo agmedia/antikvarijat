@@ -99,9 +99,6 @@ class CurrencyController extends Controller
             $values = collect(json_decode($setting->value));
         }
 
-        Log::debug($data);
-        Log::debug($values);
-
         if (isset($data['main'])) {
             $values->where('id', intval($data['main']))->map(function ($item) use ($data) {
                 $item->main = true;

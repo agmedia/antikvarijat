@@ -2,6 +2,7 @@
 
 namespace App\Models\Front;
 
+use App\Helpers\Currency;
 use App\Helpers\Session\CheckoutSession;
 use App\Models\Back\Settings\Settings;
 use App\Models\Front\Cart\Totals;
@@ -59,6 +60,7 @@ class AgCart extends Model
             'detail_con' => $detail_conditions,
             'total'      => $this->cart->getTotal(),
             'eur'        => $eur,
+            'secondary_price' => $eur
         ];
         //$response['tax'] = $this->getTax($response);
         //$response['total'] = $this->cart->getTotal() + $response['tax'][0]['value'];
@@ -76,7 +78,7 @@ class AgCart extends Model
      */
     public function getEur()
     {
-        $eur = Settings::get('currency', 'list')->where('code', 'EUR')->first();
+        return Currency::secondary()->value;
 
         if (isset($eur->status) && $eur->status) {
             return $eur->value;
@@ -294,7 +296,7 @@ class AgCart extends Model
             'id'              => $product->id,
             'name'            => $product->name,
             'price'           => $product->price,
-            'eur_price'       => $product->eur_price,
+            'sec_price'       => $product->secondary_price,
             'quantity'        => $request['item']['quantity'],
             'associatedModel' => $product,
             'attributes'      => $this->structureCartItemAttributes($product)
