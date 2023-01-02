@@ -205,10 +205,7 @@
                         <td class="align-middle"><span class="text-dark fw-medium">{{ $s_method->title }}</span><br><span class="text-muted">{!! $s_method->data->short_description !!}</span></td>
                         <td class="align-middle">{{ $s_method->data->time }}</td>
                         <td class="align-middle">
-                            {{ $s_method->data->price }} kn
-                            @if ($eur)
-                                <br>{{ number_format($s_method->data->price * $eur, 2) }} €
-                            @endif
+                            {{ $s_method->data->price }} €
                         </td>
                     </tr>
                 @endforeach
