@@ -159,6 +159,51 @@ class AgService {
     }
 
     /**
+     * Returns HR formated price string.
+     *
+     * @param price
+     * @returns {string}
+     */
+    formatMainPrice(price) {
+        let list = store.state.settings['currency.list'];
+        let main_currency = {};
+
+        list.forEach((item) => {
+            if (item.main) {
+                main_currency = item;
+            }
+        });
+
+        let left = main_currency.symbol_left ? main_currency.symbol_left + ' ' : '';
+        let right = main_currency.symbol_right ? ' ' + main_currency.symbol_right : '';
+
+        return left + Number(price * main_currency.value).toFixed(main_currency.decimal_places) + right;
+    }
+
+    /**
+     * Returns HR formated price string.
+     *
+     * @param price
+     * @returns {string}
+     */
+    formatSecondaryPrice(price) {
+        let list = store.state.settings['currency.list'];
+        let main_currency = {};
+
+        list.forEach((item) => {
+            if ( ! item.main) {
+                main_currency = item;
+                return;
+            }
+        });
+
+        let left = main_currency.symbol_left ? main_currency.symbol_left + ' ' : '';
+        let right = main_currency.symbol_right ? ' ' + main_currency.symbol_right : '';
+
+        return left + Number(price * main_currency.value).toFixed(main_currency.decimal_places) + right;
+    }
+
+    /**
      * Calculate tax on items.
      * Item can be number or object.
      *
