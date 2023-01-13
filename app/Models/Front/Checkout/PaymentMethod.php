@@ -242,7 +242,7 @@ class PaymentMethod
         if ($payment) {
             $value = $payment->data->price;
 
-            if ($cart->getTotal() > 500) {
+            if ($cart->getTotal() > config('settings.free_shipping')) {
                 $value = 0;
             }
 
