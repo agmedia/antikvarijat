@@ -103,7 +103,7 @@ class CatalogRouteController extends Controller
             $prod = Product::where('slug', 'LIKE', $prod . '%')->first();
 
             if ($prod) {
-                return redirect()->to(url($prod->url, 301));
+                return redirect()->to(url($prod->url));
             }
         }
 
