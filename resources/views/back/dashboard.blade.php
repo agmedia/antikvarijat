@@ -122,7 +122,7 @@
                                     <td>
                                         <a href="{{ route('products.edit', ['product' => $product->product_id]) }}">{{ $product->name }}</a>
                                     </td>
-                                    <td class="font-w600 text-right">{{ \App\Helpers\Currency::main($product->price, true) }}</td>
+                                    <td class="font-w600 text-right" style="width: 20%;">{{ \App\Helpers\Currency::main($product->price, true) }}</td>
                                 </tr>
                             @endforeach
                             </tbody>
@@ -156,7 +156,7 @@
                                     <td class="text-right" style="width: 5%;">
                                         <span class="badge badge-pill badge-{{ $order->status->color }}">{{ $order->status->title }}</span>
                                     </td>
-                                    <td class="font-w600 text-right">{{ \App\Helpers\Currency::main($order->total, true) }}</td>
+                                    <td class="font-w600 text-right" style="width: 20%;">{{ \App\Helpers\Currency::main($order->total, true) }}</td>
                                 </tr>
                             @endforeach
                             </tbody>
