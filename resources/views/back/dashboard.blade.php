@@ -116,13 +116,13 @@
                             <tbody>
                             @foreach ($products as $product)
                                 <tr>
-                                    <td class="text-center" style="width: 100px;">
+                                    <td class="text-center" style="width: 5%;">
                                         <a class="font-w600" href="{{ route('products.edit', ['product' => $product->product_id]) }}">{{ $product->id }}</a>
                                     </td>
                                     <td>
                                         <a href="{{ route('products.edit', ['product' => $product->product_id]) }}">{{ $product->name }}</a>
                                     </td>
-                                    <td class="font-w600 text-right">{{ number_format($product->price, 2, ',', '.') }} kn</td>
+                                    <td class="font-w600 text-right">{{ \App\Helpers\Currency::main($product->price, true) }}</td>
                                 </tr>
                             @endforeach
                             </tbody>
@@ -147,16 +147,16 @@
                             <tbody>
                             @foreach ($orders as $order)
                                 <tr>
-                                    <td class="font-w600 text-center" style="width: 100px;">
+                                    <td class="font-w600 text-center" style="width: 5%;">
                                         <a href="{{ route('orders.edit', ['order' => $order]) }}">{{ $order->id }}</a>
                                     </td>
                                     <td class="d-none d-sm-table-cell">
                                         <a href="{{ route('orders.edit', ['order' => $order]) }}">{{ $order->payment_fname . ' ' . $order->payment_lname }}</a>
                                     </td>
-                                    <td>
+                                    <td class="text-right" style="width: 5%;">
                                         <span class="badge badge-pill badge-{{ $order->status->color }}">{{ $order->status->title }}</span>
                                     </td>
-                                    <td class="font-w600 text-right">{{ number_format($order->total, 2, ',', '.') }} kn</td>
+                                    <td class="font-w600 text-right">{{ \App\Helpers\Currency::main($order->total, true) }}</td>
                                 </tr>
                             @endforeach
                             </tbody>
