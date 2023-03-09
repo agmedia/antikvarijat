@@ -54,7 +54,7 @@
             <td style="border-right: none; border-top: none;"></td>
             <td style="border-left: none; border-right: none;"></td>
             <td style="border-left: none; text-align: right; {{ $total->code == 'shipping' ? '' : 'font-weight: bold;' }}">{{ $total->title }}</td>
-            @if ($order->shipping_state == 'Croatia' && $total->code == 'shipping')
+            @if ($order->shipping_state != 'Croatia' && $total->code == 'shipping')
                 <td style="border-left: none; text-align: right; {{ $total->code == 'shipping' ? '' : 'font-weight: bold;' }}" width="20%">Trošak dostave če Vam biti poslan u roku od 24h.</td>
             @else
                 <td style="border-left: none; text-align: right; {{ $total->code == 'shipping' ? '' : 'font-weight: bold;' }}" width="20%">{{ number_format($total->value, 2, ',', '.') }}</td>
