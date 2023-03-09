@@ -294,9 +294,9 @@ Route::prefix('api/v2')->group(function () {
     });
 });
 
-Route::get('/phpinfo', function () {
+/*Route::get('/phpinfo', function () {
     return phpinfo();
-})->name('index');
+})->name('index');*/
 
 /**
  * FRONT ROUTES
