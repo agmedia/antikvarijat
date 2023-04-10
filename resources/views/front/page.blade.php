@@ -13,8 +13,8 @@
     <meta property="og:description" content="Dobrodošli na stranice Antikvarijata Biblos, Palmotićeva 28, Zagreb. Radno vrijeme pon-pet 09-20h, sub 09-14h." />
     <meta property="og:url" content="{{ env('APP_URL')}}"  />
     <meta property="og:site_name" content="Antikvarijat Biblos" />
-    <meta property="og:image" content="https://images.antikvarijatbibl.lin73.host25.com/media/antikvarijat-biblos.jpg" />
-    <meta property="og:image:secure_url" content="https://images.antikvarijatbibl.lin73.host25.com/media/antikvarijat-biblos.jpg" />
+    <meta property="og:image" content="https://www.antikvarijat-biblos.hr//media/antikvarijat-biblos.jpg" />
+    <meta property="og:image:secure_url" content="https://www.antikvarijat-biblos.hr//media/antikvarijat-biblos.jpg" />
     <meta property="og:image:width" content="1920" />
     <meta property="og:image:height" content="720" />
     <meta property="og:image:type" content="image/jpeg" />
@@ -22,7 +22,7 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Antikvarijat Biblos - Knjige, vedute i zemljovidi" />
     <meta name="twitter:description" content="Antikvarijat Biblos - Knjige, vedute i zemljovidi" />
-    <meta name="twitter:image" content="https://images.antikvarijatbibl.lin73.host25.com/media/antikvarijat-biblos.jpg" />
+    <meta name="twitter:image" content="https://www.antikvarijat-biblos.hr/media/antikvarijat-biblos.jpg" />
 
 @endpush
 

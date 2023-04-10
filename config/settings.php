@@ -25,7 +25,7 @@ return [
     'author_path' => 'autor',
     'publisher_path' => 'nakladnik',
 
-    'images_domain' => 'https://images.antikvarijatbibl.lin73.host25.com/',
+    'images_domain' => 'https://www.antikvarijat-biblos.hr/',
 
     'eur_divide_amount' => 0.13272280,
 
