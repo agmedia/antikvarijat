@@ -50,6 +50,17 @@ class AgService {
                 return false;
             }
 
+            let product = response.data.items[item.id].associatedModel;
+
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push({ ecommerce: null });
+            window.dataLayer.push({
+                'event': 'add_to_cart',
+                'ecommerce': {
+                    'items': [ product.dataLayer ]
+                }
+            });
+
             this.returnSuccess(messages.cartAdd);
             return response.data
         })

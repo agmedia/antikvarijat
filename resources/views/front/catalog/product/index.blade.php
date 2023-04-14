@@ -28,6 +28,20 @@
 
 @endpush
 
+@if (isset($gdl))
+    @section('google_data_layer')
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push({ ecommerce: null });
+            window.dataLayer.push({
+                'event': 'view_item',
+                'ecommerce': {
+                    'items': [<?php echo json_encode($gdl); ?>]
+                } });
+        </script>
+    @endsection
+@endif
+
 @section('content')
 
     <!-- Page Title-->

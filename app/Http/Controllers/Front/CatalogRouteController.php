@@ -14,6 +14,7 @@ use App\Models\Front\Catalog\Category;
 use App\Models\Front\Catalog\Product;
 use App\Models\Front\Catalog\Publisher;
 use App\Models\Seo;
+use App\Models\TagManager;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -55,12 +56,13 @@ class CatalogRouteController extends Controller
             }
 
             $seo = Seo::getProductData($prod);
+            $gdl = TagManager::getGoogleProductDataLayer($prod);
 
             $bc = new Breadcrumb();
             $crumbs = $bc->product($group, $cat, $subcat, $prod)->resolve();
             $bookscheme = $bc->productBookSchema($prod);
 
-            return view('front.catalog.product.index', compact('prod', 'group', 'cat', 'subcat', 'seo', 'crumbs', 'bookscheme'));
+            return view('front.catalog.product.index', compact('prod', 'group', 'cat', 'subcat', 'seo', 'crumbs', 'bookscheme', 'gdl'));
         }
 
         // If only group...

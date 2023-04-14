@@ -24,7 +24,9 @@ class CheckoutController extends Controller
      */
     public function cart(Request $request)
     {
-        return view('front.checkout.cart');
+        $gdl = TagManager::getGoogleCartDataLayer($this->shoppingCart()->get());
+
+        return view('front.checkout.cart', compact('gdl'));
     }
 
 
@@ -122,7 +124,7 @@ class CheckoutController extends Controller
         $data['order'] = CheckoutSession::getOrder();
 
         if ( ! $data['order']) {
-            return redirect()->route('front.checkout.checkout', ['step' => '']);
+            return redirect()->route('index');
         }
 
         $order = \App\Models\Back\Orders\Order::where('id', $data['order']['id'])->first();
@@ -149,7 +151,7 @@ class CheckoutController extends Controller
             CheckoutSession::forgetShipping();
             $this->shoppingCart()->flush();
 
-            $data['google_tag_manager'] = TagManager::getGoogleDataLayer($order);
+            $data['google_tag_manager'] = TagManager::getGoogleSuccessDataLayer($order);
 
             return view('front.checkout.success', compact('data'));
         }
@@ -216,7 +218,11 @@ class CheckoutController extends Controller
      */
     private function shoppingCart(): AgCart
     {
-        return new AgCart(session(config('session.cart')));
+        if (session()->has(config('session.cart'))) {
+            return new AgCart(session(config('session.cart')));
+        }
+
+        return new AgCart(config('session.cart'));
     }
 
 }

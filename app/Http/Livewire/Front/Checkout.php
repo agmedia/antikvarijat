@@ -7,9 +7,11 @@ use App\Helpers\Currency;
 use App\Helpers\Helper;
 use App\Helpers\Session\CheckoutSession;
 use App\Models\Back\Settings\Settings;
+use App\Models\Front\AgCart;
 use App\Models\Front\Checkout\GeoZone;
 use App\Models\Front\Checkout\PaymentMethod;
 use App\Models\Front\Checkout\ShippingMethod;
+use App\Models\TagManager;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -69,6 +71,19 @@ class Checkout extends Component
     public $secondary_price = false;
 
     /**
+     * @var array
+     */
+    public $gdl = [];
+
+    public $gdl_event = '';
+
+    public $gdl_shipping = false;
+
+    public $gdl_payment = false;
+
+    protected $cart = false;
+
+    /**
      * @var string[]
      */
     protected $address_rules = [
@@ -123,6 +138,10 @@ class Checkout extends Component
 
         $this->secondary_price = Currency::secondary() ? Currency::secondary()->value : false;
 
+        if (session()->has(config('session.cart'))) {
+            $this->cart = new AgCart(session(config('session.cart')));
+        }
+
         $this->changeStep($this->step);
     }
 
@@ -156,6 +175,12 @@ class Checkout extends Component
      */
     public function changeStep(string $step = '')
     {
+        if (in_array($step, ['', 'podaci']) && $this->cart) {
+            $this->gdl = TagManager::getGoogleCartDataLayer($this->cart->get());
+            $this->gdl_event = 'begin_checkout';
+            $this->gdl_shipping = false;
+            $this->gdl_payment = false;
+        }
         // Podaci
         if ($step == '') {
             $step = 'podaci';
@@ -169,6 +194,18 @@ class Checkout extends Component
         if (in_array($step, ['dostava', 'placanje'])) {
             $this->setAddress($this->address);
             $this->validate($this->address_rules);
+
+            if ($step == 'dostava' && $this->shipping != '') {
+                $this->checkShipping($this->shipping);
+                $this->gdl = TagManager::getGoogleCartDataLayer($this->cart->get());
+                $this->gdl_event = 'add_shipping_info';
+            }
+
+            if ($step == 'placanje' && $this->payment != '') {
+                $this->checkPayment($this->payment);
+                $this->gdl = TagManager::getGoogleCartDataLayer($this->cart->get());
+                $this->gdl_event = 'add_payment_info';
+            }
         }
 
         // Plaćanje
@@ -205,6 +242,8 @@ class Checkout extends Component
     {
         $this->shipping = $shipping;
 
+        $this->checkShipping($shipping);
+
         CheckoutSession::setShipping($shipping);
 
         return redirect()->route('naplata', ['step' => 'dostava']);
@@ -217,6 +256,8 @@ class Checkout extends Component
     public function selectPayment(string $payment)
     {
         $this->payment = $payment;
+
+        $this->checkPayment($payment);
 
         CheckoutSession::setPayment($payment);
     }
@@ -290,5 +331,37 @@ class Checkout extends Component
         //dd($this->address);
 
         return $this->address;
+    }
+
+
+    /**
+     * @param string $shipping
+     *
+     * @return void
+     */
+    private function checkShipping(string $shipping): void
+    {
+        if ($shipping == 'pickup') {
+            $this->gdl_shipping = 'osobno preuzimanje';
+        } else {
+            $this->gdl_shipping = 'dostava';
+        }
+    }
+
+
+    /**
+     * @param string $payment
+     *
+     * @return void
+     */
+    private function checkPayment(string $payment): void
+    {
+        if ($payment == 'bank') {
+            $this->gdl_payment = 'uplatnica';
+        } elseif ($payment == 'cod') {
+            $this->gdl_payment = 'pouzeće';
+        } else {
+            $this->gdl_payment = 'kartica';
+        }
     }
 }

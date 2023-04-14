@@ -1,8 +1,19 @@
-
 @extends('front.layouts.app')
 
-@section('content')
+@if (isset($gdl))
+    @section('google_data_layer')
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push({ ecommerce: null });
+            window.dataLayer.push({
+                'event': 'view_cart',
+                'ecommerce': {'items': <?php echo json_encode($gdl); ?>}
+            });
+        </script>
+    @endsection
+@endif
 
+@section('content')
 
 <!-- Page Title-->
 <div class="page-title-overlap bg-accent pt-4" >

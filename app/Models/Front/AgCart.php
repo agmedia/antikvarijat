@@ -3,6 +3,7 @@
 namespace App\Models\Front;
 
 use App\Helpers\Currency;
+use App\Helpers\Helper;
 use App\Helpers\Session\CheckoutSession;
 use App\Models\Back\Settings\Settings;
 use App\Models\Front\Cart\Totals;
@@ -10,6 +11,7 @@ use App\Models\Front\Catalog\Product;
 use App\Models\Front\Catalog\ProductAction;
 use App\Models\Front\Checkout\PaymentMethod;
 use App\Models\Front\Checkout\ShippingMethod;
+use App\Models\TagManager;
 use Darryldecode\Cart\CartCondition;
 use Darryldecode\Cart\Facades\CartFacade as Cart;
 use Illuminate\Database\Eloquent\Model;
@@ -287,6 +289,8 @@ class AgCart extends Model
     private function structureCartItem($request)
     {
         $product = Product::where('id', $request['item']['id'])->first();
+
+        $product->dataLayer = TagManager::getGoogleProductDataLayer($product);
 
         if ($request['item']['quantity'] > $product->quantity) {
             return ['error' => 'Nažalost nema dovoljnih količina artikla..!'];

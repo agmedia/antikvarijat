@@ -22,6 +22,50 @@
         </a>
     </div>
 
+    @if ( ! empty($gdl) && ! $gdl_shipping && ! $gdl_payment)
+        @section('google_data_layer')
+            <script>
+                window.dataLayer = window.dataLayer || [];
+                window.dataLayer.push({ ecommerce: null });
+                window.dataLayer.push({
+                    'event': '<?php echo $gdl_event; ?>',
+                    'ecommerce': {
+                        'items': <?php echo json_encode($gdl); ?>
+                    } });
+            </script>
+        @endsection
+    @endif
+
+    @if ( ! empty($gdl) && $gdl_shipping && $gdl_event == 'add_shipping_info')
+        @section('google_data_layer')
+            <script>
+                window.dataLayer = window.dataLayer || [];
+                window.dataLayer.push({ ecommerce: null });
+                window.dataLayer.push({
+                    'event': '<?php echo $gdl_event; ?>',
+                    'ecommerce': {
+                        'shipping_tier': '<?php echo $gdl_shipping; ?>',
+                        'items': <?php echo json_encode($gdl); ?>
+                    } });
+            </script>
+        @endsection
+    @endif
+
+    @if ( ! empty($gdl) && $gdl_payment && $gdl_event == 'add_payment_info')
+        @section('google_data_layer')
+            <script>
+                window.dataLayer = window.dataLayer || [];
+                window.dataLayer.push({ ecommerce: null });
+                window.dataLayer.push({
+                    'event': '<?php echo $gdl_event; ?>',
+                    'ecommerce': {
+                        'payment_type': '<?php echo $gdl_payment; ?>',
+                        'items': <?php echo json_encode($gdl); ?>
+                    } });
+            </script>
+        @endsection
+    @endif
+
     @if ($step == 'podaci')
         <h2 class="h6 pt-1 pb-3 mb-3 border-bottom">Adresa dostave</h2>
 
