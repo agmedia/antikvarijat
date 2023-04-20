@@ -46,6 +46,8 @@
                     <li class="nav-item"><a class="nav-link" href="{{ route('catalog.route.author') }}"><i class="ci-user-circle d-none d-xl-inline-block align-middle mt-n1 me-1"></i>Autori</a>
                     <li class="nav-item"><a class="nav-link" href="{{ route('catalog.route.publisher') }}"><i class="ci-bookmark d-none d-xl-inline-block align-middle mt-n1 me-1"></i>Nakladnici</a>
 
+                    <li class="nav-item"><a class="nav-link" href="https://www.antikvarijat-biblos.hr/blog"><i class="ci-view-list d-none d-xl-inline-block align-middle mt-n1 me-1"></i>Blog</a>
+
 {{--                    <li class="nav-item"><a class="nav-link" href="{{ route('catalog.route.actions') }}"><i class="ci-discount d-none d-xl-inline-block align-middle mt-n1 me-1"></i>Sniženje</a></li>--}}
 
                     <li class="nav-item d-inloine-block d-lg-none"><a class="nav-link" href="{{ route('catalog.route.page',['page' => 'o-nama']) }}">O nama</a></li>
