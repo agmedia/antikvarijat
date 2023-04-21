@@ -67,7 +67,7 @@ class Product extends Model
      */
     public function getMainPriceAttribute()
     {
-        return Currency::main($this->price);
+        return (int)Currency::main($this->price);
     }
 
 
@@ -85,7 +85,7 @@ class Product extends Model
      */
     public function getMainSpecialAttribute()
     {
-        return Currency::main($this->special());
+        return (int)Currency::main($this->special());
     }
 
 
