@@ -175,6 +175,10 @@ class Checkout extends Component
      */
     public function changeStep(string $step = '')
     {
+        /*if ( ! $this->cart) {
+            return redirect()->route('kosarica');
+        }*/
+
         if (in_array($step, ['', 'podaci']) && $this->cart) {
             $this->gdl = TagManager::getGoogleCartDataLayer($this->cart->get());
             $this->gdl_event = 'begin_checkout';
