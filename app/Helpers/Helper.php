@@ -38,6 +38,13 @@ class Helper
      */
     public static function calculateDiscount($list_price, $seling_price)
     {
+        if (is_string($list_price)) {
+            $list_price = str_replace(',', '.', $list_price);
+        }
+        if (is_string($seling_price)) {
+            $seling_price = str_replace(',', '.', $seling_price);
+        }
+
         return (($list_price - $seling_price) / $list_price) * 100;;
     }
 
