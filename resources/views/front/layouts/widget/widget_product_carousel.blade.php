@@ -3,7 +3,7 @@
     @if ($data['container'])
         <div class="card px-lg-2 border-0 shadow-lg">
             <div class="card-body px-4 pt-4 pb-4">
-                    <img src="media/img/noc-knjige.png" class="mb-5"/>
+
                 <h2 class="h3 text-center">{{ $data['title'] }}</h2>
                 <p class="text-muted-light text-center ">{{ $data['subtitle'] }}</p>
                 @if($data['url'] !='/')
@@ -22,6 +22,8 @@
                 </div>
             </div>
         </div>
+
+        <img src="media/img/noc-knjige.png" class="mb-1"/>
     @else
         <h2 class="h3 text-center">{{ $data['title'] }}</h2>
         <p class="text-muted-light text-center">{{ $data['subtitle'] }}</p>
