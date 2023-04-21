@@ -29,8 +29,8 @@
         @endif
         <div class="d-flex flex-wrap justify-content-between align-items-center price-box mt-2">
             @if ($product->main_price > $product->main_special)
-                <div class="bg-faded-accent text-accent text-sm rounded-1 py-1 px-1" style="text-decoration: line-through;">{{ $product->main_special_text }}</div>
-                <div class="bg-faded-accent text-accent text-sm rounded-1 py-1 px-1">{{ $product->main_price_text }}</div>
+                <div class="bg-faded-accent text-accent text-sm rounded-1 py-1 px-1" style="text-decoration: line-through;">{{ $product->main_price_text }}</div>
+                <div class="bg-faded-accent text-accent text-sm rounded-1 py-1 px-1">{{ $product->main_special_text }}</div>
             @else
                 <div class="bg-faded-accent text-accent rounded-1 py-1 px-1">{{ $product->main_price_text }}</div>
             @endif
@@ -38,8 +38,8 @@
         @if($product->secondary_price_text)
             <div class="d-flex flex-wrap justify-content-between align-items-center price-box mt-2">
                 @if ($product->main_price > $product->main_special)
-                    <div class="bg-faded-accent text-accent text-sm rounded-1 py-1 px-1" style="text-decoration: line-through;">{{ $product->secondary_special_text }}</div>
-                    <div class="bg-faded-accent text-accent text-sm rounded-1 py-1 px-1">{{ $product->secondary_price_text }}</div>
+                    <div class="bg-faded-accent text-accent text-sm rounded-1 py-1 px-1" style="text-decoration: line-through;">{{ $product->secondary_price_text }}</div>
+                    <div class="bg-faded-accent text-accent text-sm rounded-1 py-1 px-1">{{ $product->secondary_special_text }}</div>
                 @else
                     <div class="bg-faded-accent text-accent rounded-1 py-1 px-1">{{ $product->secondary_price_text }}</div>
                 @endif
