@@ -23,7 +23,7 @@
             </div>
         </div>
 
-        <img src="media/img/noc-knjige.png" class="mb-1"/>
+        <img src="media/img/noc-knjige.png" class="mb-0 mt-5 p-3">
     @else
         <h2 class="h3 text-center">{{ $data['title'] }}</h2>
         <p class="text-muted-light text-center">{{ $data['subtitle'] }}</p>
