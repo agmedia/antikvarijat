@@ -283,7 +283,7 @@
                 let now = new Date();
 
                 for (let i = 0; i < this.products.data.length; i++) {
-                    if (this.products.data[i].main_price <= this.products.data[i].main_special) {
+                    if (Number(this.products.data[i].main_price) <= Number(this.products.data[i].main_special)) {
                         this.products.data[i].special = false;
                     }
                 }
