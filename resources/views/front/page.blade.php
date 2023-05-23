@@ -61,7 +61,7 @@
                         <div class="col-lg-7 col-md-9  text-start">
 
                             <h2 class="h5 text-white fw-light">Dobrodošli na stranice Antikvarijata Biblos</h2>
-                            <p class="text-white fw-light">Palmotićeva 28, Zagreb (križanje Palmotićeve i Đorđićeve ulice) radno vrijeme ponedjeljak-petak 09-20h, subotom 09-14h.</p>
+                            <p class="text-white fw-light">Palmotićeva 28, Zagreb (križanje Palmotićeve i Đorđićeve ulice) <br>Radno vrijeme: PONEDJELJAK - PETAK: 9:00-20:00 | SUBOTA: 9:00-14:00</p>
                         </div>
                     </div>
 
