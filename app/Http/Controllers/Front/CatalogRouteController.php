@@ -303,7 +303,9 @@ class CatalogRouteController extends Controller
             return view('front.blog', compact('blogs'));
         }
 
-        return view('front.blog', compact('blog'));
+        $gdl = TagManager::getGoogleBlogDataLayer($blog);
+
+        return view('front.blog', compact('blog', 'gdl'));
     }
 
 

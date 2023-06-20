@@ -4,8 +4,10 @@ namespace App\Models;
 
 use App\Helpers\Helper;
 use App\Models\Back\Orders\Order;
+use App\Models\Front\Blog;
 use App\Models\Front\Catalog\Product;
 use Darryldecode\Cart\CartCollection;
+use Illuminate\Support\Carbon;
 use function Livewire\str;
 
 /**
@@ -99,6 +101,32 @@ class TagManager
         }
 
         return $items;
+    }
+
+
+    /**
+     * @param Blog $blog
+     *
+     * @return array
+     */
+    public static function getGoogleBlogDataLayer(Blog $blog): array
+    {
+        $published = $blog->publish_date;
+
+        if ( ! $published) {
+            $published = $blog->created_at;
+        }
+
+        $item = [
+            'id'          => $blog->id,
+            'title'       => $blog->title,
+            'description' => $blog->meta_description,
+            'image'       => $blog->image,
+            'published'   => Carbon::make($published)->format('Y-m-d'),
+            'created'     => Carbon::make($blog->created_at)->format('Y-m-d')
+        ];
+
+        return $item;
     }
 
 }
