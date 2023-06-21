@@ -115,8 +115,8 @@ class Breadcrumb
                 'author' => ($prod->author) ? $prod->author->title : 'Autor',
                 'offers' => [
                     '@type' => 'Offer',
-                    'priceCurrency' => 'HRK',
-                    'price' => ($prod->special()) ? $prod->special() : number_format($prod->price, 2, '.', ''),
+                    'priceCurrency' => 'EUR',
+                    'price' => ($prod->special()) ? $prod->main_special : $prod->main_price,
                     'sku' => $prod->sku,
                     'availability' => ($prod->quantity) ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock'
                 ],
