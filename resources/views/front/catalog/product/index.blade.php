@@ -17,8 +17,8 @@
     <meta property="og:image:height" content="480" />
     <meta property="og:image:type" content="image/jpeg" />
     <meta property="og:image:alt" content="{{ $prod->image_alt }}" />
-    <meta property="product:price:amount" content="{{ number_format($prod->price, 2) }}" />
-    <meta property="product:price:currency" content="HRK" />
+    <meta property="product:price:amount" content="{{ $prod->main_price }}" />
+    <meta property="product:price:currency" content="EUR" />
     <meta property="product:availability" content="instock" />
     <meta property="product:retailer_item_id" content="{{ $prod->sku }}" />
     <meta name="twitter:card" content="summary_large_image" />
