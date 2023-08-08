@@ -60,6 +60,11 @@
                             </div>
 
                             <div class="form-group mb-3">
+                                <label for="url-input">URL Link @include('back.layouts.partials.popover', ['title' => 'Link Widgeta', 'content' => 'Može se proizvoljno upisati bilo koji link. Odete na front gdje želite > Copy/Paste i to je to.'])</label>
+                                <input type="text" class="form-control" name="url" id="url-input" value="{{ isset($widget->url) ? $widget->url : '' }}" placeholder="">
+                            </div>
+
+                            <div class="form-group mb-3">
                                 <label for="css-input">Custom CSS klasa</label>
                                 <input type="text" class="form-control" name="css" id="css-input" value="{{ isset($widget->data['css']) ? $widget->data['css'] : '' }}" placeholder="Klasa se odnosi na vanjski okvir widgeta...">
                             </div>

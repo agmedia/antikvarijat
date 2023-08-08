@@ -19,5 +19,8 @@
                 @endforeach
             </div>
         </div>
+        @if($data['url'] !='/')
+            <p class="text-center"><a class="btn btn-primary btn-shadow" href="{{ url($data['url']) }}">Pogledajte sve {{ $data['title'] }} <i class="ci-arrow-right"></i></a></p>
+        @endif
     </div>
 </section>

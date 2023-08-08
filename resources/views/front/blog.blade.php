@@ -11,25 +11,7 @@
 @if (isset($gdl))
     @section('google_data_layer')
         <script type="application/ld+json">
-            {
-                "@context": "https://schema.org",
-                "@type": "BlogPosting",
-                "headline": "{{ $gdl['title'] }}",
-                "image": "{{ $gdl['image'] }}",
-                "description": "{{ $gdl['description'] }}. Pročitajte blog na www.antikvarijat-biblos.hr",
-                "author": {
-                    "@type": "Organization",
-                    "name": "Antikvarijat Biblos",
-                    "url": "https://www.antikvarijat-biblos.hr/"
-                },
-                "publisher": {
-                    "@type": "Organization",
-                    "name": "Antikvarijat Biblos",
-                    "url": "https://www.antikvarijat-biblos.hr/"
-                },
-                "datePublished": "{{ $gdl['published'] }}",
-                "dateCreated": "{{ $gdl['created'] }}"
-                }
+            <?php echo json_encode($gdl); ?>
         </script>
     @endsection
 @endif

@@ -118,15 +118,35 @@ class TagManager
         }
 
         $item = [
-            'id'          => $blog->id,
-            'title'       => $blog->title,
-            'description' => $blog->meta_description,
-            'image'       => $blog->image,
-            'published'   => Carbon::make($published)->format('Y-m-d'),
-            'created'     => Carbon::make($blog->created_at)->format('Y-m-d')
+            '@context'      => 'https://schema.org',
+            '@type'         => 'BlogPosting',
+            'headline'      => $blog->title,
+            'image'         => $blog->image,
+            'description'   => $blog->meta_description,
+            'author'        => static::getAuthorObject(),
+            'publisher'     => static::getAuthorObject(),
+            'datePublished' => Carbon::make($published)->format('Y-m-d'),
+            'dateCreated'   => Carbon::make($blog->created_at)->format('Y-m-d')
         ];
 
         return $item;
+    }
+
+    /*******************************************************************************
+    *                                Copyright : AGmedia                           *
+    *                              email: filip@agmedia.hr                         *
+    *******************************************************************************/
+
+    /**
+     * @return string[]
+     */
+    private static function getAuthorObject(): array
+    {
+        return [
+            "@type" => "Organization",
+            "name"  => "Antikvarijat Biblos",
+            "url"   => "https://www.antikvarijat-biblos.hr/"
+        ];
     }
 
 }
