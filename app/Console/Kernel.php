@@ -26,6 +26,8 @@ class Kernel extends ConsoleKernel
     {
         $schedule->command('clean:authors')->dailyAt('00:03');
         $schedule->command('clean:publishers')->dailyAt('00:04');
+        //
+        $schedule->command('check:wishlist')->everySixHours();//->everyMinute();
     }
 
     /**

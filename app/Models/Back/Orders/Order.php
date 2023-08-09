@@ -2,6 +2,7 @@
 
 namespace App\Models\Back\Orders;
 
+use App\Helpers\Session\CheckoutSession;
 use App\Models\Back\Settings\Settings;
 use App\Models\Back\Users\Client;
 use App\User;
@@ -396,6 +397,41 @@ class Order extends Model
         }
 
         return $query->orderBy('created_at', 'desc');
+    }
+
+
+    /**
+     * @param $products
+     *
+     * @return $this
+     */
+    public function decreaseCartItems($products)
+    {
+        foreach ($products as $product) {
+            $product->real->decrement('quantity', $product->quantity);
+
+            /*if ( ! $product->real->quantity) {
+                $product->real->update([
+                    'status' => 0
+                ]);
+            }*/
+        }
+
+        return $this;
+    }
+
+
+    /**
+     * @return bool
+     */
+    public function forgetSession()
+    {
+        CheckoutSession::forgetOrder();
+        CheckoutSession::forgetStep();
+        CheckoutSession::forgetPayment();
+        CheckoutSession::forgetShipping();
+
+        return $this;
     }
 
 

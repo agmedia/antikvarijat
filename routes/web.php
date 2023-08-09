@@ -306,6 +306,8 @@ Route::get('/kontakt', [HomeController::class, 'contact'])->name('kontakt');
 Route::post('/kontakt/posalji', [HomeController::class, 'sendContactMessage'])->name('poruka');
 Route::get('/faq', [CatalogRouteController::class, 'faq'])->name('faq');
 //
+Route::post('/dodaj-u-listu-zelja', [HomeController::class, 'wishlist'])->name('wishlist');
+
 Route::get('/kosarica', [CheckoutController::class, 'cart'])->name('kosarica');
 Route::get('/naplata', [CheckoutController::class, 'checkout'])->name('naplata');
 Route::get('/pregled', [CheckoutController::class, 'view'])->name('pregled');

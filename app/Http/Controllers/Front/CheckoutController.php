@@ -135,20 +135,9 @@ class CheckoutController extends Controller
                 Mail::to($order->payment_email)->send(new OrderSent($order));
             });
 
-            foreach ($order->products as $product) {
-                $product->real->decrement('quantity', $product->quantity);
+            $order->decreaseCartItems($order->products)
+                  ->forgetSession();
 
-                if ( ! $product->real->quantity) {
-                    $product->real->update([
-                        'status' => 0
-                    ]);
-                }
-            }
-
-            CheckoutSession::forgetOrder();
-            CheckoutSession::forgetStep();
-            CheckoutSession::forgetPayment();
-            CheckoutSession::forgetShipping();
             $this->shoppingCart()->flush();
 
             $data['google_tag_manager'] = TagManager::getGoogleSuccessDataLayer($order);

@@ -7,14 +7,14 @@ use App\Helpers\Recaptcha;
 use App\Http\Controllers\Controller;
 use App\Imports\ProductImport;
 use App\Mail\ContactFormMessage;
+use App\Models\Back\Marketing\Wishlist;
 use App\Models\Front\Page;
 use App\Models\Sitemap;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Intervention\Image\Facades\Image;
-use PhpOffice\PhpSpreadsheet\IOFactory;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
 
 class HomeController extends Controller
 {
@@ -43,6 +43,24 @@ class HomeController extends Controller
     public function page(Page $page)
     {
         return view('front.page', compact('page'));
+    }
+
+
+    /**
+     * @param Request $request
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function wishlist(Request $request)
+    {
+        $wish = new Wishlist();
+        $wish->validateRequest($request);
+
+        if ($wish->create()) {
+            return back()->with(['success' => 'Vaš Email je upisan u listu želja za ovaj artikl..!']);
+        }
+
+        return back()->with(['error' => 'Wishlist Greška! Molimo vas kontaktirajte administratora!']);
     }
 
 

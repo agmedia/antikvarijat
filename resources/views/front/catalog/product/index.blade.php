@@ -91,6 +91,7 @@
         <div class="bg-light shadow-lg rounded-3 px-4 py-3 mb-5">
             <div class="px-lg-3">
                 <div class="row">
+                    @include('front.layouts.partials.session')
                     <!-- Product gallery-->
                     <div class="col-lg-7 pe-lg-0 pt-lg-4">
                         <div class="product-gallery">
@@ -108,11 +109,9 @@
 
                             <div class="product-gallery-thumblist order-sm-1" style="z-index: 10;position: relative;">
                                 @if ($prod->images->count())
-                                @if ( ! empty($prod->thumb))
-                                    <a class="product-gallery-thumblist-item active" href="#first"><img src="{{ asset($prod->thumb) }}" alt="{{ $prod->name }}"></a>
-                                @endif
-
-
+                                    @if ( ! empty($prod->thumb))
+                                        <a class="product-gallery-thumblist-item active" href="#first"><img src="{{ asset($prod->thumb) }}" alt="{{ $prod->name }}"></a>
+                                    @endif
                                     @foreach ($prod->images as $key => $image)
                                         <a class="product-gallery-thumblist-item" href="#key{{ $key + 1 }}"><img src="{{ url('cache/thumb?size=100x100&src=' . $image->thumb) }}" width="100" height="100" alt="{{ $image->alt }}"></a>
                                     @endforeach
@@ -135,7 +134,7 @@
                                 @if ($prod->quantity)
                                     <span class="badge bg-success align-middle mt-n2">Dostupno</span>
                                 @else
-                                    <span class="badge bg-fourth align-middle mt-n2">Nedostupno</span>
+                                    <span class="badge bg-danger align-middle mt-n2">Nije dostupno</span>
                                 @endif
                             </div>
 
@@ -150,7 +149,7 @@
                                 </div>
                             @endif
 
-                            <add-to-cart-btn id="{{ $prod->id }}"></add-to-cart-btn>
+                            <add-to-cart-btn id="{{ $prod->id }}" wishlist="{{ $prod->quantity }}"></add-to-cart-btn>
 
                             <!-- Product panels-->
                             <ul class="list-unstyled fs-sm spec">
@@ -221,4 +220,6 @@
         {!! collect($bookscheme)->toJson() !!}
     </script>
     <script type='text/javascript' src='https://platform-api.sharethis.com/js/sharethis.js#property=6134a372eae16400120a5035&product=sop' async='async'></script>
+
+    @include('front.layouts.modal.wishlist-email')
 @endpush
