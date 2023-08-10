@@ -369,11 +369,17 @@ class Product extends Model
         }
 
         if ($request->has('status')) {
-            if ($request->input('status') == 'active') {
+            /*if ($request->input('status') == 'active') {
                 $query->where('status', 1);
             }
             if ($request->input('status') == 'inactive') {
                 $query->where('status', 0);
+            }*/
+            if ($request->input('status') == 'available') {
+                $query->where('quantity', '>', 0);
+            }
+            if ($request->input('status') == 'unavailable') {
+                $query->where('quantity', 0)->orWhere('quantity', '<', 0);
             }
         }
 

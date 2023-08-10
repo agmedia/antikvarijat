@@ -86,8 +86,8 @@
                                     <select class="js-select2 form-control" id="status-select" name="status" style="width: 100%;" data-placeholder="Odaberi Status">
                                         <option></option><!-- Required for data-placeholder attribute to work with Select2 plugin -->
                                         <option value="all" {{ 'all' == request()->input('status') ? 'selected' : '' }}>Svi artikli</option>
-                                        <option value="active" {{ 'active' == request()->input('status') ? 'selected' : '' }}>Aktivni</option>
-                                        <option value="inactive" {{ 'inactive' == request()->input('status') ? 'selected' : '' }}>Neaktivni</option>
+                                        <option value="available" {{ 'available' == request()->input('status') ? 'selected' : '' }}>Dostupni: qty > 0</option>
+                                        <option value="unavailable" {{ 'unavailable' == request()->input('status') ? 'selected' : '' }}>Nedostupni: qty = 0</option>
                                         <option value="with_action" {{ 'with_action' == request()->input('status') ? 'selected' : '' }}>Sa akcijama</option>
                                         <option value="without_action" {{ 'without_action' == request()->input('status') ? 'selected' : '' }}>Bez akcija</option>
                                     </select>
@@ -151,14 +151,14 @@
                                 </td>
                                 <td class="font-size-sm">{{ $product->sku }}</td>
                                 <td class="font-size-sm text-right">
-                                    <ag-input-field item="{{ $product }}" target="price"></ag-input-field>
+                                    <ag-input-field item="{{ $product }}" target="price" field="price"></ag-input-field>
                                 </td>
                                 <td class="font-size-sm text-center">
                                     <ag-input-field item="{{ $product }}" target="year"></ag-input-field>
                                 </td>
                                 <td class="font-size-sm text-center">  <ag-input-field item="{{ $product }}" target="polica"></ag-input-field></td>
                                 <td class="font-size-sm text-center">  <ag-input-field item="{{ $product }}" target="dimensions"></ag-input-field></td>
-                                <td class="font-size-sm text-center">{{ $product->quantity }}</td>
+                                <td class="font-size-sm text-center">  <ag-input-field item="{{ $product }}" target="quantity"></ag-input-field></td>
                                 <td class="font-size-sm">{{ \Illuminate\Support\Carbon::make($product->created_at)->format('d.m.Y') }}</td>
                                 <td class="font-size-sm">{{ \Illuminate\Support\Carbon::make($product->updated_at)->format('d.m.Y') }}</td>
                                 <td class="text-center font-size-sm">
