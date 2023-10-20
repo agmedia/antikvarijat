@@ -7,6 +7,7 @@ use App\Models\Back\Settings\Settings;
 use App\Models\Back\Widget\WidgetGroup;
 use App\Models\Front\Blog;
 use App\Models\Front\Catalog\Author;
+use App\Models\Front\Catalog\Category;
 use App\Models\Front\Catalog\Product;
 use App\Models\Front\Catalog\Publisher;
 use Illuminate\Database\Eloquent\Builder;
@@ -220,7 +221,7 @@ class Helper
 
         $widgets = [];
 
-        if ($wg->template == 'product_carousel' || $wg->template == 'page_carousel') {
+        if ($wg->template == 'product_carousel' || $wg->template == 'page_carousel' || $wg->template == 'categories_carousel') {
             $widget = $wg->widgets()->first();
             $data = unserialize($widget->data);
 
@@ -230,6 +231,10 @@ class Helper
 
             if (static::isDescriptionTarget($data, 'blog')) {
                 $items = static::blogs($data)->get();
+            }
+
+            if (static::isDescriptionTarget($data, 'category')) {
+                $items = static::categories($data)->get();
             }
 
             $widgets = [
@@ -352,6 +357,25 @@ class Helper
         }
 
         return $blogs;
+    }
+
+
+    /**
+     * @param array $data
+     *
+     * @return Builder
+     */
+    private static function categories(array $data): Builder
+    {
+        $categories = (new Category())->newQuery();
+
+        $categories->active();
+
+        if (isset($data['list']) && $data['list']) {
+            $categories->whereIn('id', $data['list']);
+        }
+
+        return $categories;
     }
 
 
