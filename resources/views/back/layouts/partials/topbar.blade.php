@@ -40,14 +40,16 @@
 
                         <div role="separator" class="dropdown-divider"></div>
 
-                        <a class="dropdown-item text-danger" href="{{ route('maintenance.on') }}">
-                            <i class="si si-ban mr-1"></i> Održavanje ON
-                        </a>
-                        <a class="dropdown-item text-success" href="{{ route('maintenance.off') }}">
-                            <i class="si si-control-play mr-1"></i> Održavanje OFF
-                        </a>
+                        @if (auth()->user()->can('*'))
+                            <a class="dropdown-item text-danger" href="{{ route('maintenance.on') }}">
+                                <i class="si si-ban mr-1"></i> Održavanje ON
+                            </a>
+                            <a class="dropdown-item text-success" href="{{ route('maintenance.off') }}">
+                                <i class="si si-control-play mr-1"></i> Održavanje OFF
+                            </a>
 
-                        <div role="separator" class="dropdown-divider"></div>
+                            <div role="separator" class="dropdown-divider"></div>
+                        @endif
 
                         <a class="dropdown-item text-danger-light" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                             <i class="si si-logout mr-1"></i> Odjava
