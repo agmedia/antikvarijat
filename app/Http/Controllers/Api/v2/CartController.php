@@ -43,6 +43,8 @@ class CartController extends Controller
 
             if (session()->has($this->key)) {
                 $this->cart = new AgCart(session($this->key));
+
+                Cart::checkLogged($this->cart, session($this->key));
             } else {
                 $this->resolveSession();
             }
@@ -147,11 +149,11 @@ class CartController extends Controller
      */
     private function resolveSession(): void
     {
-        $sl_cart_id = Str::random(8);
-        $this->cart = new AgCart($sl_cart_id);
-        session([$this->key => $sl_cart_id]);
-        
-        Cart::checkLogged($sl_cart_id, $this->cart);
+        $cart_id = Str::random(8);
+        $this->cart = new AgCart($cart_id);
+        session([$this->key => $cart_id]);
+
+        Cart::checkLogged($this->cart, $cart_id);
     }
 
 

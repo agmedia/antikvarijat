@@ -15,6 +15,8 @@ use App\Models\TagManager;
 use Darryldecode\Cart\CartCondition;
 use Darryldecode\Cart\Facades\CartFacade as Cart;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -64,12 +66,28 @@ class AgCart extends Model
             'eur'        => $eur,
             'secondary_price' => $eur
         ];
-        //$response['tax'] = $this->getTax($response);
-        //$response['total'] = $this->cart->getTotal() + $response['tax'][0]['value'];
 
-        //$response['totals'] = $this->getTotals();
+        return $response;
+    }
 
-        //Log::info($response);
+
+    /**
+     * @param bool $just_basic
+     *
+     * @return Collection
+     */
+    public function getCartItems(bool $just_basic = false): Collection
+    {
+        $response = collect();
+
+        foreach ($this->cart->getContent() as $item) {
+            if ($just_basic) {
+                $data = ['id' => $item->id, 'quantity' => $item->quantity];
+                $response->push($data);
+            } else {
+                $response->push($item);
+            }
+        }
 
         return $response;
     }
@@ -187,7 +205,11 @@ class AgCart extends Model
      */
     public function flush()
     {
-        return $this->cart->clear();
+        $this->cart->clear();
+
+        Helper::flushCache('cart', $this->cart_id);
+
+        return $this;
     }
     
     
@@ -200,10 +222,31 @@ class AgCart extends Model
     {
         return [
             'item' => [
-                'id'       => $item->id,
-                'quantity' => $item->quantity
+                'id'       => $item['id'],
+                'quantity' => $item['quantity']
             ]
         ];
+    }
+
+
+    /**
+     * If user is logged store or update the DB session.
+     *
+     * @param $response
+     */
+    public function resolveDB(): void
+    {
+        $cart = $this->get();
+
+        if (Auth::user()) {
+            $has_cart = \App\Models\Cart::where('user_id', Auth::user()->id)->first();
+
+            if ($has_cart) {
+                \App\Models\Cart::edit($cart);
+            } else {
+                \App\Models\Cart::store($cart);
+            }
+        }
     }
 
 

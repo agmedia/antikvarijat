@@ -395,6 +395,22 @@ class Helper
 
 
     /**
+     * @param string $tag
+     * @param string $key
+     *
+     * @return object|bool|mixed|null
+     */
+    public static function flushCache(string $tag, string $key)
+    {
+        if (env('APP_ENV') == 'local') {
+            return Cache::getFacadeRoot();
+        }
+
+        return Cache::tags([$tag])->forget($key);
+    }
+
+
+    /**
      * @return null
      */
     public static function getEur()

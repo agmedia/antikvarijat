@@ -138,7 +138,9 @@ class CheckoutController extends Controller
             $order->decreaseCartItems($order->products)
                   ->forgetSession();
 
-            $this->shoppingCart()->flush();
+            $this->shoppingCart()
+                 ->flush()
+                 ->resolveDB();
 
             $data['google_tag_manager'] = TagManager::getGoogleSuccessDataLayer($order);
 
