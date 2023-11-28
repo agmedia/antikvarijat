@@ -26,7 +26,7 @@
                            IBAN RAČUN: HR3123600001101595832<br>
                            MODEL: 00 POZIV NA BROJ: {{ $data['order']['id'] }}-{{date('ym')}}</p>
                         <p>ILI JEDNOSTAVNO POSKENIRAJTE 2D BARKOD</p>
-                        <p><img src="{{ asset('media/img/qr/'.$data['order']['id']) }}.png"></p>
+                        <p><img src="{{ asset('media/img/qr/'.$data['order']['id']) }}.jpg"></p>
                     @else
                         <p class="fs-sm mb-2">Vaša je narudžba poslana i bit će obrađena u najkraćem mogućem roku.</p>
                         <p class="fs-sm">Uskoro ćete primiti e-poštu s potvrdom narudžbe.</p>
