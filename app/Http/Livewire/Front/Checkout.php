@@ -179,6 +179,8 @@ class Checkout extends Component
             return redirect()->route('kosarica');
         }*/
 
+        $this->checkCart();
+
         if (in_array($step, ['', 'podaci']) && $this->cart) {
             $this->gdl = TagManager::getGoogleCartDataLayer($this->cart->get());
             $this->gdl_event = 'begin_checkout';
@@ -195,7 +197,7 @@ class Checkout extends Component
         }
 
         // Dostava
-        if (in_array($step, ['dostava', 'placanje'])) {
+        if (in_array($step, ['dostava', 'placanje']) && $this->cart) {
             $this->setAddress($this->address);
             $this->validate($this->address_rules);
 
@@ -279,6 +281,17 @@ class Checkout extends Component
             'paymentMethods' => (new PaymentMethod())->findGeo($geo->id)->checkShipping($this->shipping)->resolve(),
             'countries' => Country::list()
         ]);
+    }
+
+
+    /**
+     * @return void
+     */
+    private function checkCart(): void
+    {
+        if (session()->has(config('session.cart'))) {
+            $this->cart = new AgCart(session(config('session.cart')));
+        }
     }
 
 
