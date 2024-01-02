@@ -98,7 +98,9 @@ class AgCart extends Model
      */
     public function getEur()
     {
-        return Currency::secondary()->value;
+        if (isset(Currency::secondary()->value)) {
+            return Currency::secondary()->value;
+        }
 
         if (isset($eur->status) && $eur->status) {
             return $eur->value;
