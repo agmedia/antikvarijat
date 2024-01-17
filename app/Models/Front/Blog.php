@@ -2,6 +2,7 @@
 
 namespace App\Models\Front;
 
+use App\Helpers\Helper;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -42,6 +43,17 @@ class Blog extends Model
     public function getImageAttribute($value)
     {
         return config('settings.images_domain') . str_replace('.jpg', '.webp', $value);
+    }
+
+
+    /**
+     * @param $value
+     *
+     * @return array|string|string[]
+     */
+    public function getDescriptionAttribute($value)
+    {
+        return Helper::resolveYouTubeFrame($value);
     }
 
 
