@@ -441,8 +441,11 @@ class Helper
         $has = [$text, $matches[0]];
 
 
+if($has[1][0]){
+    $text = str_replace('<figure class="media"></figure>', '<iframe width="100%" height="450" src="https://' . $has[1][0] . '" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>', $text);
 
-        $text = str_replace('<figure class="media"></figure>', '<iframe width="100%" height="450" src="https://' . $has[1][0] . '" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>', $text);
+
+}
 
         return $text;
     }
