@@ -432,17 +432,19 @@ class Helper
      */
     public static function resolveYouTubeFrame(string $text): string
     {
-        preg_match_all('/(\bhttps?:)?\/\/[^,\s()<>]+(?:\(\w+\)|(?:[^,[:punct:]\s]|\/))/s', $text, $matches);
+       // preg_match_all('/(\bhttps?:)?\/\/[^,\s()<>]+(?:\(\w+\)|(?:[^,[:punct:]\s]|\/))/s', $text, $matches);
 
-       // preg_match_all('/(?:youtube(?:-nocookie)?\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})\W/',  $text, $matches);
+        preg_match_all('/(?:youtube(?:-nocookie)?\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})\W/',  $text, $matches);
 
 
         $text = preg_replace('/<oembed.*?<\/oembed>/i','', $text);
         $has = [$text, $matches[0]];
 
-
-
+if(isset($has[1][0])){
     $text = str_replace('<figure class="media"></figure>', '<iframe width="100%" height="450" src="https://' . $has[1][0] . '" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>', $text);
+}
+
+
 
 
 
