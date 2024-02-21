@@ -18,8 +18,19 @@ class Country
     public static function list(): Collection
     {
         $countries = Storage::disk('assets')->get('country.json');
+        $countries = json_decode($countries, true);
+        $response = [];
 
-        return collect(json_decode($countries, true));
+        foreach ($countries as $key => $country) {
+            if ($country['iso_code_2'] == 'HR') {
+                array_push($response, $country);
+                unset($countries[$key]);
+            }
+        }
+
+        $response = $response + $countries;
+
+        return collect($response);
     }
 
 
