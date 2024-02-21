@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Back\Settings\App;
 
 use App\Http\Controllers\Controller;
-use App\Models\Back\Settings\Faq;
 use App\Models\Back\Settings\Settings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -11,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
+
     /**
      * Display a listing of the resource.
      *
@@ -20,10 +20,8 @@ class PaymentController extends Controller
     {
         $this->checkForNewFiles();
 
-        $payments = Settings::getList('payment', 'list.%', false)->sortBy('title');
+        $payments  = Settings::getList('payment', 'list.%', false)->sortBy('title');
         $geo_zones = Settings::getList('geo_zone', 'list', false);
-
-        //dd($payments);
 
         return view('back.settings.app.payment.payment', compact('payments', 'geo_zones'));
     }
@@ -56,31 +54,37 @@ class PaymentController extends Controller
      */
     private function checkForNewFiles(): void
     {
-        $files    = new \DirectoryIterator('./../resources/views/back/settings/app/payment/modals');
+        $files              = new \DirectoryIterator('./../resources/views/back/settings/app/payment/modals');
+        $accepted_providers = collect(config('settings.payment.providers'))->keys()->toArray();
 
         foreach ($files as $file) {
             if (strpos($file, 'blade.php') !== false) {
                 $filename = str_replace('.blade.php', '', $file);
-                $exist = false;
+                $exist    = false;
 
-                $payment = collect(Settings::get('payment', 'list.' . $filename));
+                if ( ! in_array($filename, $accepted_providers)) {
+                    Settings::erase('payment', 'list.' . $filename);
 
-                if ($payment) {
-                    $exist = $payment->where('code', $filename)->first();
-                }
+                } else {
+                    $payment = collect(Settings::get('payment', 'list.' . $filename));
 
-                if ( ! $exist) {
-                    $default_value = [
-                        'title' => $filename,
-                        'code' => $filename,
-                        'data' => [
-                            'description' => ''
-                        ],
-                        'sort_order' => 0,
-                        'status' => 0
-                    ];
+                    if ($payment) {
+                        $exist = $payment->where('code', $filename)->first();
+                    }
 
-                    Settings::set('payment', 'list.' . $filename, $default_value);
+                    if ( ! $exist) {
+                        $default_value = [
+                            'title'      => $filename,
+                            'code'       => $filename,
+                            'data'       => [
+                                'description' => ''
+                            ],
+                            'sort_order' => 0,
+                            'status'     => 0
+                        ];
+
+                        Settings::set('payment', 'list.' . $filename, $default_value);
+                    }
                 }
 
             }
