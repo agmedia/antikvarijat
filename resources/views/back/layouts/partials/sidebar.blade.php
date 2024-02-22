@@ -147,6 +147,11 @@
                     </a>
                     <ul class="nav-main-submenu">
                         <li class="nav-main-item">
+                            <a class="nav-main-link{{ request()->routeIs(['api', 'api.*']) ? ' active' : '' }}" href="{{ route('api.index') }}">
+                                <span class="nav-main-link-name">API</span>
+                            </a>
+                        </li>
+                        <li class="nav-main-item">
                             <a class="nav-main-link{{ request()->routeIs(['pages', 'pages.*']) ? ' active' : '' }}" href="{{ route('pages') }}">
                                 <span class="nav-main-link-name">Info Stranice</span>
                             </a>
