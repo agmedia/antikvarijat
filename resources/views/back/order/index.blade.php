@@ -128,11 +128,11 @@
                                     <a class="btn btn-sm btn-alt-info" href="{{ route('orders.edit', ['order' => $order]) }}">
                                         <i class="fa fa-fw fa-edit"></i>
                                     </a>
-                                    @if($order->printed)
-                                        <button type="button" class="btn btn-light btn-sm disabled" disabled><i class="fa fa-fw fa-check text-success ml-1"></i></button>
-                                    @else
-                                        <button type="button" class="btn btn-alt-warning btn-sm" onclick="sendGLS({{ $order->id }})"><i class="fa fa-shipping-fast ml-1"></i></button>
-                                    @endif
+{{--                                    @if($order->printed)--}}
+{{--                                        <button type="button" class="btn btn-light btn-sm disabled" disabled><i class="fa fa-fw fa-check text-success ml-1"></i></button>--}}
+{{--                                    @else--}}
+{{--                                        <button type="button" class="btn btn-alt-warning btn-sm" onclick="sendGLS({{ $order->id }})"><i class="fa fa-shipping-fast ml-1"></i></button>--}}
+{{--                                    @endif--}}
                                 </td>
                             </tr>
                         @empty
