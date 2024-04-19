@@ -30,10 +30,10 @@ class Njuskalo
                                     ->with(['categories' => function ($query) {
                                         return $query->select('id', 'slug');
                                     }])
-                                    ->get();
+                                    ->offset(2000)->take(20)->get();
 
         foreach ($products as $product) {
-            $category = (isset($this->categories[0]['slug'])) ? $this->categories[0]['slug'] : 'ostala-literatura';
+            $category = (isset($product->categories[0]['slug'])) ? $product->categories[0]['slug'] : 'ostala-literatura';
 
             $this->response[] = [
                 'id' => $product->id,
