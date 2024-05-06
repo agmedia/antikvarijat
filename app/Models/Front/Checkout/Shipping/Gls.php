@@ -38,11 +38,11 @@ class Gls
             ini_set('max_execution_time', 600);
 
             //Test ClientNumber:
-            $clientNumber = 383013700; //!!!NOT FOR CUSTOMER TESTING, USE YOUR OWN, USE YOUR OWN!!!
+            $clientNumber = 380006286; //!!!NOT FOR CUSTOMER TESTING, USE YOUR OWN, USE YOUR OWN!!!
             //Test username:
-            $username = "marko@plavakrava.hr"; //!!!NOT FOR CUSTOMER TESTING, USE YOUR OWN, USE YOUR OWN!!!
+            $username = "info@antikvarijat-biblos.hr"; //!!!NOT FOR CUSTOMER TESTING, USE YOUR OWN, USE YOUR OWN!!!
             //Test password:
-            $pwd      = "Pringles99@"; //!!!NOT FOR CUSTOMER TESTING, USE YOUR OWN, USE YOUR OWN!!!
+            $pwd      = "Frankrsto2013"; //!!!NOT FOR CUSTOMER TESTING, USE YOUR OWN, USE YOUR OWN!!!
             $password = hash('sha512', $pwd, true);
 
             $brojracuna = $this->order['id'];
@@ -68,12 +68,12 @@ class Gls
             $deliveryAddress->HouseNumberInfo = "";
             $parcel->DeliveryAddress          = $deliveryAddress;
             $pickupAddress                    = new StdClass();
-            $pickupAddress->ContactName       = "Ines Draganić";
-            $pickupAddress->ContactPhone      = "+38512132487";
-            $pickupAddress->ContactEmail      = "webshop@plavakrava.hr";
-            $pickupAddress->Name              = "Plava krava izdavaštvo";
-            $pickupAddress->Street            = "Nova cesta";
-            $pickupAddress->HouseNumber       = "150";
+            $pickupAddress->ContactName       = "Antikvarijat Biblos";
+            $pickupAddress->ContactPhone      = "+385981629 74";
+            $pickupAddress->ContactEmail      = "info@antikvarijat-biblos.hr";
+            $pickupAddress->Name              = "Antikvarijat Biblos";
+            $pickupAddress->Street            = "Palmotićeva";
+            $pickupAddress->HouseNumber       = "28";
             $pickupAddress->City              = "Zagreb";
             $pickupAddress->ZipCode           = "10000";
             $pickupAddress->CountryIsoCode    = "HR";
