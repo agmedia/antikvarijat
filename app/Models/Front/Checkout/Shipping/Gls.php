@@ -53,7 +53,7 @@ class Gls
             $parcel->ClientReference = $brojracuna;
             $parcel->CODAmount       = $this->getTotal();
             $parcel->CODReference    = $brojracuna;
-            // $parcel->Content = "CONTENT";
+             $parcel->Content = $brojracuna;
             $parcel->Count                    = 1;
             $deliveryAddress                  = new StdClass();
             $deliveryAddress->ContactEmail    = $this->order['payment_email'];
