@@ -48,7 +48,7 @@ class Gls
             $password = hash('sha512', $pwd, true);
 
 
-            Log::info(Country::list();
+            Log::info(Country::list());
             foreach (Country::list() as $country) {
                 if ($country['iso_code_2'] == $this->order['payment_state']) {
                   $state = $country['iso_code_2'];
