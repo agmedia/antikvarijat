@@ -51,6 +51,7 @@ class Gls
 
 
             Log::info(Country::list());
+            $state='';
             foreach (Country::list() as $country) {
                 if ($country['iso_code_2'] == $this->order['payment_state']) {
                   $state = $country['iso_code_2'];
