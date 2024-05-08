@@ -2,9 +2,11 @@
 
 namespace App\Models\Front\Checkout\Shipping;
 
+use App\Helpers\Country;
 use App\Models\Back\Orders\Order;
 use SoapClient;
 use \stdClass;
+
 
 /**
  * Class Cod
@@ -45,6 +47,14 @@ class Gls
             $pwd      = "Frankrsto2013"; //!!!NOT FOR CUSTOMER TESTING, USE YOUR OWN, USE YOUR OWN!!!
             $password = hash('sha512', $pwd, true);
 
+
+
+            foreach (Country::list() as $country) {
+                if ($country['iso_code_2'] == $this->order['payment_country']) {
+                  $state = $country['iso_code_2'];
+                }
+            }
+
             $brojracuna = $this->order['id'];
 
             $parcels                 = [];
@@ -64,7 +74,7 @@ class Gls
             $deliveryAddress->HouseNumber     = "";
             $deliveryAddress->City            = $this->order['payment_city'];
             $deliveryAddress->ZipCode         = $this->order['payment_zip'];
-            $deliveryAddress->CountryIsoCode  = "HR";
+            $deliveryAddress->CountryIsoCode  = $state;
             $deliveryAddress->HouseNumberInfo = "";
             $parcel->DeliveryAddress          = $deliveryAddress;
             $pickupAddress                    = new StdClass();
