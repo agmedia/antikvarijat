@@ -50,15 +50,15 @@ class Gls
             $password = hash('sha512', $pwd, true);
 
 
-            Log::info(Country::list());
+
             $state='';
             foreach (Country::list() as $country) {
-                if ($country['iso_code_2'] == $this->order['payment_state']) {
+                if ($country['name'] == $this->order['payment_state']) {
                   $state = $country['iso_code_2'];
                 }
             }
 
-            Log::info($state);
+
 
             $brojracuna = $this->order['id'];
 
@@ -106,7 +106,7 @@ class Gls
 
             $parcels[] = $parcel;
 
-            Log::info($parcels);
+
 
             //The service URL:
             $wsdl = "https://api.mygls.hr/SERVICE_NAME.svc?singleWsdl";
