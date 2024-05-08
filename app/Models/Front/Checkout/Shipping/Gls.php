@@ -55,6 +55,8 @@ class Gls
                 }
             }
 
+            Log::info($state);
+
             $brojracuna = $this->order['id'];
 
             $parcels                 = [];
@@ -100,6 +102,8 @@ class Gls
              $parcel->ServiceList = $services;*/
 
             $parcels[] = $parcel;
+
+            Log::info($parcels);
 
             //The service URL:
             $wsdl = "https://api.mygls.hr/SERVICE_NAME.svc?singleWsdl";
