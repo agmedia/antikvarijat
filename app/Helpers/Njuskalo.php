@@ -30,7 +30,7 @@ class Njuskalo
                                     ->with(['categories' => function ($query) {
                                         return $query->select('id', 'slug');
                                     }])
-                                    ->offset(2000)->take(20)->get();
+                                    ->get();
 
         foreach ($products as $product) {
             $category = (isset($product->categories[0]['slug'])) ? $product->categories[0]['slug'] : 'ostala-literatura';
@@ -39,7 +39,7 @@ class Njuskalo
                 'id' => $product->id,
                 'name' => $product->name,
                 'description' => $this->getDescription($product),
-                'group' => config('settings.njuskalo.sync.' . $category),
+                'group' => config('settings.njuskalo.sync.' . $category) ?: 9760,
                 'price' => $product->price,
                 'slug' => $product->url,
                 'image' => asset($product->image),
