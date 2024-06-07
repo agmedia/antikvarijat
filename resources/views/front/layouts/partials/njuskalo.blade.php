@@ -13,8 +13,8 @@
             <phone_list>
                 <phone>
                     <calling_code>385</calling_code>
-                    <area_code>91</area_code>
-                    <phone_number>7627441</phone_number>
+                    <area_code>01</area_code>
+                    <phone_number>4816574</phone_number>
                 </phone>
             </phone_list>
             <youtubeUrl></youtubeUrl>
