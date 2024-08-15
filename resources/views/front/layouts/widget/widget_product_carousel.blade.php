@@ -4,7 +4,7 @@
         <div class="card px-lg-2 border-0 shadow-lg">
             <div class="card-body px-4 pt-4 pb-4">
 
-                <img src="media/img/interliber.png" class="mt-3 mb-5 p-3 shadow-lg">
+              <!--  <img src="media/img/interliber.png" class="mt-3 mb-5 p-3 shadow-lg">-->
 
                 <h2 class="h3 text-center">{{ $data['title'] }}</h2>
                 <p class="text-muted-light text-center ">{{ $data['subtitle'] }}</p>

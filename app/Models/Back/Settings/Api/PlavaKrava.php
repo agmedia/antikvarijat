@@ -132,10 +132,10 @@ class PlavaKrava
                             Log::info($e->getMessage());
                         }*/
 
-                     /*   $categories = $import->resolveStringCategories($item[9]);
+                      $categories = $import->resolveStringCategories($item[9]);
 
 
-                        ProductCategory::storeDataImport($categories, $id);*/
+                        ProductCategory::storeDataImport($categories, $id);
 
                         $product = Product::query()->find($id);
 

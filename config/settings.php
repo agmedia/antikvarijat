@@ -25,7 +25,7 @@ return [
     'author_path' => 'autor',
     'publisher_path' => 'nakladnik',
     'default_category'  => 40,
-
+    'group_path'           => 'Knjige',
     'images_domain' => 'https://www.antikvarijat-biblos.hr/',
 
     'image_default'        => 'media/avatars/blank.png',

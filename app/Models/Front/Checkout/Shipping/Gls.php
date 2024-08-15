@@ -50,6 +50,11 @@ class Gls
             $password = hash('sha512', $pwd, true);
 
 
+            $komentar = $this->order['comment'];
+
+            $idmjesta = substr($komentar, strpos($komentar, "_") + 1);
+
+
 
             $state='';
             foreach (Country::list() as $country) {
@@ -95,14 +100,16 @@ class Gls
             $pickupAddress->HouseNumberInfo   = "";
             $parcel->PickupAddress            = $pickupAddress;
             $parcel->PickupDate               = date('Y-m-d');
-            /* $service1 = new StdClass();
-             $service1->Code = "PSD";
-             $parameter1 = new StdClass();
-             $parameter1->StringValue = "2351-CSOMAGPONT";
-             $service1->PSDParameter = $parameter1;
-             $services = [];
-             $services[] = $service1;
-             $parcel->ServiceList = $services;*/
+            if( $this->order['shipping_code']=='gls_eu'){
+                $service1 = new StdClass();
+                $service1->Code = "PSD";
+                $parameter1 = new StdClass();
+                $parameter1->StringValue = $idmjesta;
+                $service1->PSDParameter = $parameter1;
+                $services = [];
+                $services[] = $service1;
+                $parcel->ServiceList = $services;
+            }
 
             $parcels[] = $parcel;
 
