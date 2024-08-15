@@ -24,11 +24,14 @@ return [
     'search_keyword' => 'pojam',
     'author_path' => 'autor',
     'publisher_path' => 'nakladnik',
+    'default_category'  => 40,
 
     'images_domain' => 'https://www.antikvarijat-biblos.hr/',
 
-    'eur_divide_amount' => 0.13272280,
+    'image_default'        => 'media/avatars/blank.png',
 
+    'eur_divide_amount' => 0.13272280,
+    'default_tax_id'       => 1,
     'sorting_list' => [
         0 => [
             'title' => 'Najnovije',

@@ -62,6 +62,85 @@ class Import
 
 
     /**
+     * @param array  $images
+     * @param string $name
+     * @param int    $id
+     *
+     * @return array
+     */
+    public function resolveImagesImport(array $images, string $name, int $id): array
+    {
+        $response = [];
+
+        foreach ($images as $key => $image) {
+            if ($image) {
+                $time = time() . Str::random(9);
+
+                $image_saved = Storage::disk('local')->put('temp/' . $key . '.jpg', file_get_contents($image));
+
+                if ($image_saved) {
+                    try {
+                        $image = Storage::disk('local')->get('temp/' . $key . '.jpg');
+                        $img = Image::make($image);
+                    } catch (\Exception $e) {
+                        Log::info('Error downloading image: ' . $image);
+                        Log::info($e->getMessage());
+                    }
+
+                    $str = $id . '/' . Str::limit(Str::slug($name)) . '-' . $time . '.';
+
+                    $path = $str . 'jpg';
+                    Storage::disk('products')->put($path, $img->encode('jpg'));
+
+                    $path_webp = $str . 'webp';
+                    Storage::disk('products')->put($path_webp, $img->encode('webp'));
+
+                    // Thumb creation
+                    $str_thumb = $id . '/' . Str::limit(Str::slug($name)) . '-' . $time . '-thumb.';
+
+                    $img = $img->resize(null, 300, function ($constraint) {
+                        $constraint->aspectRatio();
+                    })->fit(250, 300);
+
+                    $path_webp_thumb = $str_thumb . 'webp';
+                    Storage::disk('products')->put($path_webp_thumb, $img->encode('webp'));
+
+                    $response[] = config('filesystems.disks.products.url') . $path;
+
+                    Storage::disk('local')->delete('temp/' . $key . '.jpg');
+                }
+            }
+        }
+
+        return $response;
+    }
+
+
+    /**
+     * @param array $categories
+     *
+     * @return int|mixed
+     */
+    public function resolveStringCategories(string $categories)
+    {
+        $default = config('settings.default_category');
+        $response[] = $default;
+
+        $categories = explode(', ', $categories);
+
+        if ( ! isset($categories[1])) {
+            $response[] = $this->saveCategory($categories[0]);
+        } else {
+            $response[] = $this->saveCategory($categories[0]);
+            $response[] = $this->saveCategory($categories[1]);
+        }
+
+        return $response;
+    }
+
+
+
+    /**
      * @param array $categories
      *
      * @return int|mixed
@@ -119,6 +198,36 @@ class Import
 
         return $response;
     }
+
+    /**
+     * @param string $name
+     * @param int    $parent
+     *
+     * @return mixed
+     */
+    private function saveCategory(string $name, int $parent = 0)
+    {
+        $exist = Category::where('title', $name)->first();
+
+        if ( ! $exist) {
+            return Category::insertGetId([
+                'parent_id'        => $parent,
+                'title'            => $name,
+                'description'      => '',
+                'meta_title'       => $name,
+                'meta_description' => $name,
+                'group'            => Helper::categoryGroupPath(true),
+                'lang'             => 'hr',
+                'status'           => 1,
+                'slug'             => Str::slug($name),
+                'created_at'       => Carbon::now(),
+                'updated_at'       => Carbon::now()
+            ]);
+        }
+
+        return $exist->id;
+    }
+
 
 
     /**

@@ -15,6 +15,8 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use phpDocumentor\Reflection\Types\False_;
 
 class Helper
 {
@@ -422,6 +424,56 @@ class Helper
         }
 
         return null;
+    }
+
+
+    /**
+     * @param bool $slug
+     *
+     * @return string
+     */
+    public static function categoryGroupPath(bool $slug = false): string
+    {
+        if ($slug) {
+            return Str::slug(config('settings.group_path'));
+        }
+
+        return config('settings.group_path');
+    }
+
+    /**
+     * @param array  $data
+     * @param string $tag
+     * @param        $target
+     *
+     * @return string
+     */
+    public static function resolveSlug(array $data, string $tag = 'title', $target = null): string
+    {
+        $slug = null;
+
+        if ($target) {
+            $product = Product::where('id', $target)->first();
+
+            if ($product) {
+                $slug = $product->slug;
+            }
+        }
+
+        $slug  = $slug ?: Str::slug($data[$tag]);
+        $exist = Product::where('slug', $slug)->count();
+
+        $cat_exist = Category::where('slug', $slug)->count();
+
+        if (($cat_exist || $exist > 1) && $target) {
+            return $slug . '-' . time();
+        }
+
+        if (($cat_exist || $exist) && ! $target) {
+            return $slug . '-' . time();
+        }
+
+        return $slug;
     }
 
 

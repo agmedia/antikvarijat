@@ -50,4 +50,31 @@ class ProductCategory extends Model
 
         return $created;
     }
+
+
+    public static function storeDataImport(array $categories, int $product_id): array
+    {
+        $created = [];
+        self::where('product_id', $product_id)->delete();
+
+        foreach ($categories as $category) {
+            $cat = Category::find($category);
+
+            if ($cat) {
+                if ($cat->parent_id) {
+                    $created[] = self::insert([
+                        'product_id'  => $product_id,
+                        'category_id' => $cat->parent_id
+                    ]);
+                }
+
+                $created[] = self::insert([
+                    'product_id'  => $product_id,
+                    'category_id' => $category
+                ]);
+            }
+        }
+
+        return $created;
+    }
 }
