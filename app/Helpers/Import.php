@@ -131,8 +131,9 @@ class Import
         if ( ! isset($categories[1])) {
             $response[] = $this->saveCategory($categories[0]);
         } else {
-            $response[] = $this->saveCategory($categories[0]);
-            $response[] = $this->saveCategory($categories[1]);
+            $parent = $this->saveCategory($categories[0]);
+            $response[] = $parent;
+            $response[] = $this->saveCategory($categories[1], $parent);
         }
 
         return $response;
