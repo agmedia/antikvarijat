@@ -266,6 +266,23 @@
                 </tbody>
             </table>
         </div>
+        @foreach ($shippingMethods as $s_method)
+            @if ($s_method->code == 'gls_eu' && $view_comment)
+
+                <div style="height: 600px">
+                    <gls-dpm country="hr" id="test-map"></gls-dpm>
+                </div>
+
+                <input class="form-control mt-2" type="text" id="comment"  wire:model="comment" placeholder="" readonly required>
+
+                @error('comment') <small class="text-danger">Obavezan odabir gls paketomata </small> @enderror
+
+
+            @endif
+
+
+
+        @endforeach
         @error('shipping') <small class="text-danger">Način dostave je obvezan</small> @enderror
         <div class=" d-flex pt-4 mt-3">
             <div class="w-50 pe-3"><a class="btn btn-secondary d-block w-100" wire:click="changeStep('podaci')" href="javascript:void(0);"><i class="ci-arrow-left mt-sm-0 me-1"></i><span class="d-none d-sm-inline">Povratak na unos podataka</span><span class="d-inline d-sm-none">Povratak</span></a></div>
@@ -307,11 +324,30 @@
 {{--    <link rel="stylesheet" href="{{ asset('js/plugins/select2/css/select2.min.css') }}">--}}
 {{--    <script src="{{ asset('js/plugins/select2/js/select2.full.min.js') }}"></script>--}}
 
-    <script>
-        $( document ).ready(function() {
-            /*$('#state-select').select2();*/
-            $('input').attr('autocomplete','off');
-        });
-    </script>
+
+<script>
+    var el = document.getElementById('test-map');
+    el.addEventListener('change', (e) => {
+       // console.log(e.detail);
+        alert('Odabrali ste:' + e.detail.name);
+
+        document.getElementById('comment').value = e.detail.contact.address + ', ' + e.detail.contact.city + '_' + e.detail.id;
+        document.getElementById("comment").dispatchEvent(new Event('input'));
+    });
+</script>
+
+<!--
+Javascript to initialize the custom element, it can be placed anywhere.
+-->
+<script type="module"
+        src="https://map.gls-croatia.com/widget/gls-dpm.js"></script>
+
+<script>
+    $( document ).ready(function() {
+        /*$('#state-select').select2();*/
+        $('input').attr('autocomplete','off');
+    });
+</script>
+
 
 @endpush

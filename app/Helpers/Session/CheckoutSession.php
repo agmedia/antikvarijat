@@ -103,6 +103,46 @@ class CheckoutSession
     *                              email: filip@agmedia.hr                         *
     *******************************************************************************/
 
+
+    /**
+     * SHIPPING
+     *
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Session\SessionManager|\Illuminate\Session\Store|mixed
+     */
+    public static function getComment()
+    {
+        return session(static::$session_string . '.comment');
+    }
+
+
+    /**
+     * @return bool
+     */
+    public static function hasComment()
+    {
+        return session()->has(static::$session_string . '.comment');
+    }
+
+
+    /**
+     * @param array|string $value
+     *
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Session\SessionManager|\Illuminate\Session\Store|mixed
+     */
+    public static function setComment($value)
+    {
+        return session([static::$session_string . '.comment' => $value]);
+    }
+
+
+    /**
+     * @return bool
+     */
+    public static function forgetComment()
+    {
+        return session()->forget(static::$session_string . '.comment');
+    }
+
     /**
      * PAYMENT
      *
@@ -264,5 +304,23 @@ class CheckoutSession
     public static function forgetOrder()
     {
         return session()->forget(static::$session_string . '.order');
+    }
+
+
+    /*******************************************************************************
+     *                                Copyright : AGmedia                           *
+     *                              email: filip@agmedia.hr                         *
+     *******************************************************************************/
+
+    /**
+     * @return void
+     */
+    public static function forgetCheckout(): void
+    {
+        CheckoutSession::forgetOrder();
+        CheckoutSession::forgetStep();
+        CheckoutSession::forgetPayment();
+        CheckoutSession::forgetShipping();
+        CheckoutSession::forgetComment();
     }
 }

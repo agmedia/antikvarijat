@@ -430,6 +430,7 @@ class Order extends Model
         CheckoutSession::forgetStep();
         CheckoutSession::forgetPayment();
         CheckoutSession::forgetShipping();
+        CheckoutSession::forgetComment();
 
         return $this;
     }
