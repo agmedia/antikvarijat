@@ -176,19 +176,22 @@ class AgService {
      * @returns {string}
      */
     formatMainPrice(price) {
-        let list = store.state.settings['currency.list'];
-        let main_currency = {};
 
-        list.forEach((item) => {
-            if (item.main) {
-                main_currency = item;
-            }
-        });
+        if(store.state.settings) {
+            let list = store.state.settings['currency.list'];
+            let main_currency = {};
 
-        let left = main_currency.symbol_left ? main_currency.symbol_left + ' ' : '';
-        let right = main_currency.symbol_right ? ' ' + main_currency.symbol_right : '';
+            list.forEach((item) => {
+                if (item.main) {
+                    main_currency = item;
+                }
+            });
 
-        return left + Number(price * main_currency.value).toFixed(main_currency.decimal_places) + right;
+            let left = main_currency.symbol_left ? main_currency.symbol_left + ' ' : '';
+            let right = main_currency.symbol_right ? ' ' + main_currency.symbol_right : '';
+
+            return left + Number(price * main_currency.value).toFixed(main_currency.decimal_places) + right;
+        }
     }
 
     /**
@@ -198,6 +201,7 @@ class AgService {
      * @returns {string}
      */
     formatSecondaryPrice(price) {
+        if(store.state.settings) {
         let list = store.state.settings['currency.list'];
         let main_currency = {};
 
@@ -212,6 +216,7 @@ class AgService {
         let right = main_currency.symbol_right ? ' ' + main_currency.symbol_right : '';
 
         return left + Number(price * main_currency.value).toFixed(main_currency.decimal_places) + right;
+        }
     }
 
     /**

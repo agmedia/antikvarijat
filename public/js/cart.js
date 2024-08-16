@@ -4758,16 +4758,18 @@ var AgService = /*#__PURE__*/function () {
   }, {
     key: "formatMainPrice",
     value: function formatMainPrice(price) {
-      var list = store.state.settings['currency.list'];
-      var main_currency = {};
-      list.forEach(function (item) {
-        if (item.main) {
-          main_currency = item;
-        }
-      });
-      var left = main_currency.symbol_left ? main_currency.symbol_left + ' ' : '';
-      var right = main_currency.symbol_right ? ' ' + main_currency.symbol_right : '';
-      return left + Number(price * main_currency.value).toFixed(main_currency.decimal_places) + right;
+      if (store.state.settings) {
+        var list = store.state.settings['currency.list'];
+        var main_currency = {};
+        list.forEach(function (item) {
+          if (item.main) {
+            main_currency = item;
+          }
+        });
+        var left = main_currency.symbol_left ? main_currency.symbol_left + ' ' : '';
+        var right = main_currency.symbol_right ? ' ' + main_currency.symbol_right : '';
+        return left + Number(price * main_currency.value).toFixed(main_currency.decimal_places) + right;
+      }
     }
 
     /**
@@ -4779,17 +4781,19 @@ var AgService = /*#__PURE__*/function () {
   }, {
     key: "formatSecondaryPrice",
     value: function formatSecondaryPrice(price) {
-      var list = store.state.settings['currency.list'];
-      var main_currency = {};
-      list.forEach(function (item) {
-        if (!item.main) {
-          main_currency = item;
-          return;
-        }
-      });
-      var left = main_currency.symbol_left ? main_currency.symbol_left + ' ' : '';
-      var right = main_currency.symbol_right ? ' ' + main_currency.symbol_right : '';
-      return left + Number(price * main_currency.value).toFixed(main_currency.decimal_places) + right;
+      if (store.state.settings) {
+        var list = store.state.settings['currency.list'];
+        var main_currency = {};
+        list.forEach(function (item) {
+          if (!item.main) {
+            main_currency = item;
+            return;
+          }
+        });
+        var left = main_currency.symbol_left ? main_currency.symbol_left + ' ' : '';
+        var right = main_currency.symbol_right ? ' ' + main_currency.symbol_right : '';
+        return left + Number(price * main_currency.value).toFixed(main_currency.decimal_places) + right;
+      }
     }
 
     /**
