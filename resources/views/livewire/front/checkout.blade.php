@@ -268,15 +268,15 @@
         </div>
         @foreach ($shippingMethods as $s_method)
             @if ($s_method->code == 'gls_eu' && $view_comment)
-                <div id="glsmap" >
-                <div  style="height: 600px">
+
+                <div style="height: 600px">
                     <gls-dpm country="hr" id="test-map"></gls-dpm>
                 </div>
-                </div>
+
 
                 <input class="form-control mt-2" type="text" id="comment"  wire:model="comment" placeholder="" readonly required>
 
-                @error('comment')             <script>$( "#glsmap" ).load(window.location.href + " #glsmap" );</script>         @enderror
+                @error('comment')             <script>location.reload();</script>         @enderror
                 @error('comment') <small class="text-danger">Obavezan odabir gls paketomata </small>
 
                 @enderror
