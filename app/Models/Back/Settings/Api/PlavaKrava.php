@@ -33,7 +33,7 @@ class PlavaKrava
      */
     public function upload(Request $request)
     {
-        $saved = Storage::disk('assets')->putFileAs('xls/', $request->file('file'), 'plava-krava.xlsx');
+        $saved = Storage::disk('assets')->putFileAs('xls/', $request->file('file'), 'biblos-import.xlsx');
 
         if ($saved) {
             return public_path('assets/xls/biblos-import.xlsx');
@@ -132,8 +132,13 @@ class PlavaKrava
                             Log::info($e->getMessage());
                         }*/
 
+                        Log::info('item9');
+                        Log::info($item[9]);
+
                       $categories = $import->resolveStringCategories($item[9]);
 
+                        Log::info('categories 1');
+                        Log::info($categories);
 
                         ProductCategory::storeDataImport($categories, $id);
 
@@ -141,8 +146,8 @@ class PlavaKrava
 
                         $product->update([
                             'image'           => $image,
-                            'url'             => ProductHelper::url($product) /*,
-                           'category_string' => ProductHelper::categoryString($product)*/
+                            'url'             => ProductHelper::url($product) ,
+                           'category_string' => ProductHelper::categoryString($product)
                         ]);
 
                         $count++;

@@ -123,10 +123,13 @@ class Import
      */
     public function resolveStringCategories(string $categories)
     {
-        $default = config('settings.default_category');
-        $response[] = $default;
+       // $default = config('settings.default_category');
+        $response[]= '';
 
         $categories = explode(', ', $categories);
+
+        Log::info('categories 2');
+        Log::info($categories);
 
         if ( ! isset($categories[1])) {
             $response[] = $this->saveCategory($categories[0]);
