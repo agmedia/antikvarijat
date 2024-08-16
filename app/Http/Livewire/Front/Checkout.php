@@ -107,16 +107,17 @@ class Checkout extends Component
         'shipping' => 'required',
     ];
 
+
+    protected $comment_rules = [
+
+        'comment'=> 'required',
+    ];
+
     /**
      * @var string[]
      */
     protected $payment_rules = [
         'payment' => 'required',
-    ];
-
-    protected $comment_rules = [
-
-        'comment'=> 'required',
     ];
 
     /**

@@ -268,14 +268,18 @@
         </div>
         @foreach ($shippingMethods as $s_method)
             @if ($s_method->code == 'gls_eu' && $view_comment)
-
-                <div style="height: 600px">
+                <div id="glsmap" >
+                <div  style="height: 600px">
                     <gls-dpm country="hr" id="test-map"></gls-dpm>
+                </div>
                 </div>
 
                 <input class="form-control mt-2" type="text" id="comment"  wire:model="comment" placeholder="" readonly required>
 
-                @error('comment') <small class="text-danger">Obavezan odabir gls paketomata </small> @enderror
+                @error('comment')             <script>$( "#glsmap" ).load(window.location.href + " #glsmap" );</script>         @enderror
+                @error('comment') <small class="text-danger">Obavezan odabir gls paketomata </small>
+
+                @enderror
 
 
             @endif
@@ -326,9 +330,10 @@
 
 
 <script>
+
     var el = document.getElementById('test-map');
     el.addEventListener('change', (e) => {
-       // console.log(e.detail);
+        console.log(e.detail);
         alert('Odabrali ste:' + e.detail.name);
 
         document.getElementById('comment').value = e.detail.contact.address + ', ' + e.detail.contact.city + '_' + e.detail.id;
@@ -339,8 +344,7 @@
 <!--
 Javascript to initialize the custom element, it can be placed anywhere.
 -->
-<script type="module"
-        src="https://map.gls-croatia.com/widget/gls-dpm.js"></script>
+<script type="module" src="https://map.gls-croatia.com/widget/gls-dpm.js"></script>
 
 <script>
     $( document ).ready(function() {
