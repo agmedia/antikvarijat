@@ -126,7 +126,7 @@
 
 <!-- Main theme script-->
 
-<script src="{{ asset('js/cart.js?v=2.1.9') }}"></script>
+<script src="{{ asset('js/cart.js?v=2.1.11') }}"></script>
 
 <script src="{{ asset('js/theme.min.js') }}"></script>
 
