@@ -17,9 +17,11 @@ use App\Models\Back\Catalog\Product\Product;
 use App\Models\Back\Catalog\Product\ProductCategory;
 use App\Models\Back\Catalog\Product\ProductImage;
 use App\Models\Back\Catalog\Publisher;
+
 use App\Models\Back\Orders\Order;
 use App\Models\Back\Orders\OrderProduct;
 use App\Models\User;
+use App\Models\UserDetail;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Bouncer;
@@ -40,14 +42,33 @@ class DashboardController extends Controller
         $data['today']      = Order::whereDate('created_at', Carbon::today())->count();
         $data['proccess']   = Order::whereIn('order_status_id', [1, 2, 3])->count();
         $data['finished']   = Order::whereIn('order_status_id', [4, 5, 6, 7])->count();
-        $data['this_month'] = Order::whereMonth('created_at', '=', Carbon::now()->month)->count();
+        $data['this_month'] = Order::whereYear('created_at', '=', Carbon::now()->year)->whereMonth('created_at', '=', Carbon::now()->month)->count();
+        $data['this_month_total'] = Order::whereMonth('created_at', '=', Carbon::now()->month)->whereYear('created_at', '=', Carbon::now()->year)->whereIn('order_status_id', [4, 1, 2, 3])->sum('total');
+        $data['this_month_total'] =  number_format($data['this_month_total'], 2,'.','');
+
+        $data['users']   = UserDetail::whereIn('role', ['customer'])->count();
+
+
+        $data['zeroproducts']   = Product::whereIn('quantity', ['0'])->count();
 
         $orders   = Order::last()->with('products')->get();
-        $products = $orders->map(function ($item) {
-            return $item->products()->get();
-        })->flatten();
 
-        //dd($products);
+        $ordersfinished   = Order::finished()->with('products')->get();
+        $products = $ordersfinished->map(function ($item) {
+            return $item->products()->get();
+        })->take(9)->flatten();
+
+
+        $bestsellers = DB::table('order_products')
+            ->leftJoin('orders','orders.id','=','order_products.order_id')
+            ->select('order_products.name','order_products.product_id',
+                DB::raw('SUM(order_products.quantity) as total'))
+            ->groupBy('order_products.product_id')
+            ->whereIn('orders.order_status_id', [1, 2, 3, 4])
+            ->orderBy('total','desc')
+            ->limit(10)
+            ->get();
+
 
         $chart     = new Chart();
         $this_year = json_encode($chart->setDataByYear(
@@ -57,7 +78,10 @@ class DashboardController extends Controller
             Order::chartData($chart->setQueryParams(true))
         ));
 
-        return view('back.dashboard', compact('data', 'orders', 'products', 'this_year', 'last_year'));
+
+        // dd($data['users']);
+
+        return view('back.dashboard', compact('data', 'orders', 'bestsellers', 'products', 'this_year', 'last_year'));
     }
 
 

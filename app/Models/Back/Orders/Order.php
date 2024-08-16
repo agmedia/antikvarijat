@@ -106,10 +106,16 @@ class Order extends Model
      *
      * @return mixed
      */
-    public function scopeLast($query, $count = 9)
+    public function scopeLast($query, $count = 10)
     {
-        return $query->whereIn('order_status_id', [4, 5, 6, 7])->orderBy('created_at', 'desc')->limit($count);
+        return $query->whereIn('order_status_id', [1,2,3,4, 5, 6, 7,8])->orderBy('created_at', 'desc')->limit($count);
     }
+
+    public function scopeFinished($query, $count = 9)
+    {
+        return $query->whereIn('order_status_id', [1, 2, 3, 4 ])->orderBy('created_at', 'desc')->limit($count);
+    }
+
 
 
     /**
@@ -121,7 +127,7 @@ class Order extends Model
     public function scopeChartData($query, array $params)
     {
         return $query
-            ->whereBetween('created_at', [$params['from'], $params['to']])
+            ->whereBetween('created_at', [$params['from'], $params['to']])->whereIn('order_status_id', [4, 1, 2, 3])
             ->orderBy('created_at')
             ->get()
             ->groupBy(function ($val) use ($params) {

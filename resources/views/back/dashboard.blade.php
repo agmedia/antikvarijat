@@ -36,46 +36,78 @@
     <!-- Page Content -->
     <div class="content">
         <!-- Quick Overview -->
-        <div class="row row-deck">
-            <div class="col-6 col-lg-3">
-                <a class="block block-rounded block-link-shadow text-center" href="{{ route('orders') }}">
-                    <div class="block-content py-5">
-                        <div class="font-size-h3 font-w600 text-warning mb-1">{{ $data['proccess'] }}</div>
-                        <p class="font-w600 font-size-sm text-muted text-uppercase mb-0">
-                            Narudžbi u obradi
-                        </p>
+        <div class="row items-push">
+            <div class="col-sm-6 col-xl-3">
+                <div class="block block-rounded text-center d-flex flex-column h-100 mb-0">
+                    <div class="block-content block-content-full">
+                        <div class="item rounded-circle bg-body mx-auto my-3">
+                            <i class="fa fa-wallet fa-lg text-blue"></i>
+                        </div>
+                        <div class="font-size-h3 text-black font-w600 mb-1">{{ $data['this_month_total'] }}€</div>
+                        <div class="text-muted ">{{ __('back/dashboard.mjesecni_promet') }}</div>
+
                     </div>
-                </a>
+                    <div class="block-content block-content-full block-content-sm bg-body-light fs-sm">
+                        <a class="font-size-sm" href="{{ route('orders') }}">
+                            {{ __('back/dashboard.pregled_narudzbi') }}
+                            <i class="fa fa-arrow-right ms-1 opacity-25"></i>
+                        </a>
+                    </div>
+                </div>
             </div>
-            <div class="col-6 col-lg-3">
-                <a class="block block-rounded block-link-shadow text-center" href="{{ route('orders') }}">
-                    <div class="block-content py-5">
-                        <div class="font-size-h3 font-w600 text-success mb-1">{{ $data['finished'] }}</div>
-                        <p class="font-w600 font-size-sm text-muted text-uppercase mb-0">
-                            Dovršenih narudžbi
-                        </p>
+            <div class="col-sm-6 col-xl-3">
+                <div class="block block-rounded text-center d-flex flex-column h-100 mb-0">
+                    <div class="block-content block-content-full flex-grow-1">
+                        <div class="item rounded-circle bg-body mx-auto my-3">
+                            <i class="fa fa-chart-line fa-lg text-blue"></i>
+                        </div>
+                        <div class="font-size-h3 text-black font-w600 mb-1">{{ $data['this_month'] }}</div>
+                        <div class="text-muted ">{{ __('back/dashboard.narudzbi_mjesec') }}</div>
+
                     </div>
-                </a>
+                    <div class="block-content block-content-full block-content-sm bg-body-light fs-sm">
+                        <a class="font-size-sm" href="{{ route('orders') }}">
+                            {{ __('back/dashboard.pregled_narudzbi') }}
+                            <i class="fa fa-arrow-right ms-1 opacity-25"></i>
+                        </a>
+                    </div>
+                </div>
             </div>
-            <div class="col-6 col-lg-3">
-                <a class="block block-rounded block-link-shadow text-center" href="{{ route('orders') }}">
-                    <div class="block-content py-5">
-                        <div class="font-size-h3 text-success font-w600 mb-1">{{ $data['today'] }}</div>
-                        <p class="font-w600 font-size-sm text-muted text-uppercase mb-0">
-                            Narudžbi danas
-                        </p>
+            <div class="col-sm-6 col-xl-3">
+                <div class="block block-rounded text-center d-flex flex-column h-100 mb-0">
+                    <div class="block-content block-content-full flex-grow-1">
+                        <div class="item rounded-circle bg-body mx-auto my-3">
+                            <i class="fa fa-chart-line fa-lg text-blue"></i>
+                        </div>
+                        <div class="font-size-h3 text-black font-w600 mb-1">{{ $data['today'] }}</div>
+                        <div class="text-muted ">{{ __('back/dashboard.narudzbi_danas') }}</div>
+
                     </div>
-                </a>
+                    <div class="block-content block-content-full block-content-sm bg-body-light fs-sm">
+                        <a class="font-size-sm" href="{{ route('orders') }}">
+                            {{ __('back/dashboard.pregled_narudzbi') }}
+                            <i class="fa fa-arrow-right ms-1 opacity-25"></i>
+                        </a>
+                    </div>
+                </div>
             </div>
-            <div class="col-6 col-lg-3">
-                <a class="block block-rounded block-link-shadow text-center" href="{{ route('orders') }}">
-                    <div class="block-content py-5">
-                        <div class="font-size-h3 text-success font-w600 mb-1">{{ $data['this_month'] }}</div>
-                        <p class="font-w600 font-size-sm text-muted text-uppercase mb-0">
-                            Narudžbi ovaj mjesec
-                        </p>
+            <div class="col-sm-6 col-xl-3">
+                <div class="block block-rounded text-center d-flex flex-column h-100 mb-0">
+                    <div class="block-content block-content-full flex-grow-1">
+                        <div class="item rounded-circle bg-body mx-auto my-3">
+                            <i class="fa fa-users fa-lg text-blue"></i>
+                        </div>
+                        <div class="font-size-h3 text-black font-w600 mb-1">{{ $data['users'] }}</div>
+                        <div class="text-muted ">{{ __('back/dashboard.registriranih_korisnika') }}</div>
+
                     </div>
-                </a>
+                    <div class="block-content block-content-full block-content-sm bg-body-light fs-sm">
+                        <a class="font-size-sm" href="{{ route('users') }}">
+                            {{ __('back/dashboard.pregled_korisnika') }}
+                            <i class="fa fa-arrow-right ms-1 opacity-25"></i>
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
         <!-- END Quick Overview -->
@@ -114,7 +146,7 @@
                     <div class="block-content">
                         <table class="table table-borderless table-striped table-vcenter font-size-sm">
                             <tbody>
-                            @foreach ($products as $product)
+                            @foreach ($products->take(10) as $product)
                                 <tr>
                                     <td class="text-center" style="width: 5%;">
                                         <a class="font-w600" href="{{ route('products.edit', ['product' => $product->product_id]) }}">{{ $product->id }}</a>
@@ -199,9 +231,9 @@
             Chart.defaults.scale.gridLines.color                = 'transparent';
             Chart.defaults.scale.gridLines.zeroLineColor        = 'transparent';
             Chart.defaults.scale.ticks.beginAtZero              = true;
-            Chart.defaults.global.elements.line.borderWidth     = 0;
-            Chart.defaults.global.elements.point.radius         = 0;
-            Chart.defaults.global.elements.point.hoverRadius    = 0;
+            Chart.defaults.global.elements.line.borderWidth     = 2;
+            Chart.defaults.global.elements.point.radius         = 5;
+            Chart.defaults.global.elements.point.hoverRadius    = 7;
             Chart.defaults.global.tooltips.cornerRadius         = 3;
             Chart.defaults.global.legend.labels.boxWidth        = 12;
 
@@ -212,12 +244,14 @@
             let chartOverview, chartOverviewOptions, chartOverviewData;
 
             // Overview Chart Options
+            // Overview Chart Options
             chartOverviewOptions = {
                 maintainAspectRatio: false,
+                tension: .4,
                 scales: {
                     yAxes: [{
                         ticks: {
-                            suggestedMax: this_year.top
+                            suggestedMax: this_year.top + ( this_year.top * 0.1)
                         }
                     }]
                 },
@@ -225,7 +259,7 @@
                     intersect: false,
                     callbacks: {
                         label: function(tooltipItems, data) {
-                            return  tooltipItems.yLabel + 'kn';
+                            return  tooltipItems.yLabel + '€';
                         }
                     }
                 }
