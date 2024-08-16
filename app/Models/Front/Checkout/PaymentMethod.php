@@ -134,20 +134,39 @@ class PaymentMethod
     {
         foreach ($this->methods as $method) {
             if ($method->code == 'pickup') {
-                if ($shipping == 'pickup') {
+                if ($shipping == 'pickup' ) {
                     $this->response_methods = collect();
                     $this->response_methods->put($method->code, $method);
                 } else {
                     $this->response_methods->forget($method->code);
                 }
             }
+
+            if ($method->code == 'payway' || $method->code == 'bank') {
+                if ($shipping == 'gls_eu' ) {
+                    $this->response_methods = collect();
+                    $this->response_methods->put($method->code, $method);
+                } else {
+                    $this->response_methods->forget($method->code);
+                }
+            }
+
         }
 
         foreach ($this->methods as $method) {
-            if ($method->code == 'payway' && $shipping == 'pickup') {
+            if ($method->code == 'payway' && $shipping == 'pickup' || $method->code == 'payway' && $shipping == 'gls_eu' || $method->code == 'bank' && $shipping == 'gls' || $method->code == 'payway' && $shipping == 'gls') {
                 $this->response_methods->put($method->code, $method);
             }
+
+
         }
+
+
+        /*   */
+
+
+
+
 
         return $this;
     }
