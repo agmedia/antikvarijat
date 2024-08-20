@@ -154,7 +154,7 @@ class PaymentMethod
         }
 
         foreach ($this->methods as $method) {
-            if ($method->code == 'payway' && $shipping == 'pickup' || $method->code == 'payway' && $shipping == 'gls_eu' || $method->code == 'bank' && $shipping == 'gls' || $method->code == 'payway' && $shipping == 'gls') {
+            if ($method->code == 'payway' && $shipping == 'pickup' || $method->code == 'payway' && $shipping == 'gls_eu' || $method->code == 'bank' && $shipping == 'gls' || $method->code == 'payway' && $shipping == 'gls' ||  $method->code == 'payway' && $shipping == 'gls_world' ||  $method->code == 'bank' && $shipping == 'gls_world') {
                 $this->response_methods->put($method->code, $method);
             }
 
