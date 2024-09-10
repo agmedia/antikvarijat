@@ -44,7 +44,7 @@
                 @elseif ($order->payment_code == 'cod')
                     <b>{{ __('Gotovinom prilikom pouzeća') }}</b>
                     <p style="font-size:12px">Uredno smo zaprimili Vašu narudžbu broj {{ $order->id }} i zahvaljujemo Vam.</p>
-                @elseif ($order->payment_code == 'payway')
+                @elseif ($order->payment_code == 'corvus')
                     <b>{{ __('T-Com Payway') }}</b>
                     <p style="font-size:12px">Uredno smo zaprimili Vašu narudžbu broj {{ $order->id }} i zahvaljujemo Vam.</p>
                 @else

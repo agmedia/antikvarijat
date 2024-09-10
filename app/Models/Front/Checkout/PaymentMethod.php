@@ -142,7 +142,7 @@ class PaymentMethod
                 }
             }
 
-            if ($method->code == 'payway' || $method->code == 'bank') {
+            if ($method->code == 'corvus' || $method->code == 'bank') {
                 if ($shipping == 'gls_eu' ) {
                     $this->response_methods = collect();
                     $this->response_methods->put($method->code, $method);
@@ -154,7 +154,7 @@ class PaymentMethod
         }
 
         foreach ($this->methods as $method) {
-            if ($method->code == 'payway' && $shipping == 'pickup' || $method->code == 'payway' && $shipping == 'gls_eu' || $method->code == 'bank' && $shipping == 'gls' || $method->code == 'payway' && $shipping == 'gls' ||  $method->code == 'payway' && $shipping == 'gls_world' ||  $method->code == 'bank' && $shipping == 'gls_world') {
+            if ($method->code == 'corvus' && $shipping == 'pickup' || $method->code == 'corvus' && $shipping == 'gls_eu' || $method->code == 'bank' && $shipping == 'gls' || $method->code == 'corvus' && $shipping == 'gls' ||  $method->code == 'corvus' && $shipping == 'gls_world' ||  $method->code == 'bank' && $shipping == 'gls_world') {
                 $this->response_methods->put($method->code, $method);
             }
 

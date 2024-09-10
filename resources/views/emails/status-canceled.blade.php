@@ -29,7 +29,7 @@
                     <b>{{ __('Općom uplatnicom / Virmanom / Internet bankarstvom') }}</b>
                 @elseif ($order->payment_code == 'cod')
                     <b>{{ __('Gotovinom prilikom pouzeća') }}</b>
-                @elseif ($order->payment_code == 'payway')
+                @elseif ($order->payment_code == 'corvus')
                     <b>{{ __('T-Com Payway') }}</b>
                 @else
                     <b>{{ __('Plaćanje prilikom preuzimanja') }}</b>
