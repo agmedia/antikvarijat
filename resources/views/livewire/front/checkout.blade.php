@@ -270,7 +270,7 @@
             @if ($s_method->code == 'gls_eu' && $view_comment)
 
                 <div style="height: 600px">
-                    <gls-dpm country="hr" id="test-map"></gls-dpm>
+                    <gls-dpm country="hr" id="test-map" filter-type="parcel-locker"></gls-dpm>
                 </div>
 
 
