@@ -104,8 +104,12 @@ class CheckoutController extends Controller
             $order->setData($request->input('provjera'));
         }
 
-        if ($request->has('ShoppingCartID')) {
+       /* if ($request->has('ShoppingCartID')) {
             $order->setData($request->input('ShoppingCartID'));
+        }*/
+
+        if ($request->has('order_number')) {
+            $order->setData($request->input('order_number'));
         }
 
         if ($order->finish($request)) {
