@@ -213,8 +213,8 @@ class AgCart extends Model
 
         return $this;
     }
-    
-    
+
+
     /**
      * @param $item
      *
@@ -266,7 +266,7 @@ class AgCart extends Model
 
         if ($payment_method) {
             $str = str_replace('+', '', $payment_method->getValue());
-            if (number_format($str) > 0) {
+            if (number_format((float) $str) > 0) {
                 $this->cart->condition($payment_method);
             }
         }
