@@ -70,7 +70,7 @@ return [
     'payment' => [
         'providers' => [
             //'wspay' => \App\Models\Front\Checkout\Payment\Wspay::class,
-            'payway' => \App\Models\Front\Checkout\Payment\Payway::class,
+            //'payway' => \App\Models\Front\Checkout\Payment\Payway::class,
             'cod' => \App\Models\Front\Checkout\Payment\Cod::class,
             'bank' => \App\Models\Front\Checkout\Payment\Bank::class,
             'pickup' => \App\Models\Front\Checkout\Payment\Pickup::class,
