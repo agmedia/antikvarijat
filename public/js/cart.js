@@ -3222,6 +3222,8 @@ var render = function render() {
     _c = _vm._self._c;
   return _vm.show_buy ? _c("div", {
     staticClass: "cart mb-5 d-flex align-items-center"
+  }, [_c("div", {
+    staticClass: "d-flex flex-wrap align-items-center pt-4 pb-2 mb-3"
   }, [_vm.show_quantity ? _c("input", {
     directives: [{
       name: "model",
@@ -3229,7 +3231,7 @@ var render = function render() {
       value: _vm.quantity,
       expression: "quantity"
     }],
-    staticClass: "form-control me-3 mb-1",
+    staticClass: "form-control me-3",
     staticStyle: {
       width: "5rem"
     },
@@ -3250,13 +3252,13 @@ var render = function render() {
       }
     }
   }) : _vm._e(), _vm._v(" "), _c("button", {
-    staticClass: "btn btn-primary btn-shadow d-block w-100",
+    staticClass: "btn btn-primary btn-shadow w-auto",
     on: {
       click: function click($event) {
         return _vm.addToCart();
       }
     }
-  }, [_vm._v("Dodaj u Košaricu")])]) : _c("div", {
+  }, [_vm._v("Dodaj u Košaricu")])])]) : _c("div", {
     staticClass: "cart mb-5 d-flex align-items-center"
   }, [_c("a", {
     staticClass: "btn btn-primary btn-shadow d-block w-100",
