@@ -149,13 +149,26 @@ class AgCart extends Model
         // Updejtaj artikl sa apsolutnom količinom.
         foreach ($this->cart->getContent() as $item) {
             if ($item->id == $request['item']['id']) {
-                $product = Product::where('id', $request['item']['id'])->first();
+                $quantity = $request['item']['quantity'];
+                $product  = Product::where('id', $request['item']['id'])->first();
 
-                if (($request['item']['quantity'] + $item->quantity) > $product->quantity) {
+                if (($quantity + $item->quantity) > $product->quantity) {
                     return ['error' => 'Nažalost nema dovoljnih količina artikla..!'];
                 }
 
-                return $this->updateCartItem($item->id, $request);
+                if ($quantity == 1 && ($item->quantity == 1 || $item->quantity > $quantity)) {
+                    if ( ! $id) {
+                        $quantity = $item->quantity + 1;
+                    }
+                }
+
+                $relative = false;
+
+                if (isset($request['item']['relative']) && $request['item']['relative']) {
+                    $relative = true;
+                }
+
+                return $this->updateCartItem($item->id, $quantity, $relative);
             }
         }
 
@@ -308,17 +321,18 @@ class AgCart extends Model
 
 
     /**
-     * @param $id
-     * @param $request
+     * @param      $id
+     * @param      $quantity
+     * @param bool $relative
      *
      * @return array
      */
-    private function updateCartItem($id, $request): array
+    private function updateCartItem($id, $quantity, bool $relative): array
     {
         $this->cart->update($id, [
             'quantity' => [
-                'relative' => false,
-                'value'    => $request['item']['quantity']
+                'relative' => $relative,
+                'value'    => $quantity
             ],
         ]);
 
