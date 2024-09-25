@@ -149,7 +149,7 @@
                                 </div>
                             @endif
 
-                            <add-to-cart-btn id="{{ $prod->id }}" wishlist="{{ $prod->quantity }}"></add-to-cart-btn>
+                            <add-to-cart-btn id="{{ $prod->id }}" product="{{ json_encode($prod->toArray()) }}" wishlist="{{ $prod->quantity }}"></add-to-cart-btn>
 
                             <!-- Product panels-->
                             <ul class="list-unstyled fs-sm spec">
