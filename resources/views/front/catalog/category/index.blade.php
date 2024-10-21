@@ -14,8 +14,13 @@
 @endif
 
 @if (isset($author) && $author)
-    @section ('title',  $seo['title'])
-    @section ('description', $seo['description'])
+    @if (isset($seo['title']) && isset($seo['description']))
+        @section ('title',  $seo['title'])
+        @section ('description', $seo['description'])
+    @endif
+    @if (isset($seo['name']) && isset($seo['content']))
+        <meta name={{ $seo['name'] }} content={{ $seo['content'] }}>
+    @endif
 @endif
 
 @if (isset($publisher) && $publisher)
