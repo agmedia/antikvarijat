@@ -38,14 +38,8 @@ class Seo
         $description = 'Knjige autora ' . $author->title . ' danas su jako popularne u svijetu. Bogati izbor knjiga autora ' . $author->title . ' uz brzu dostavu i sigurnu kupovinu.';
 
         // Check if there is meta title or description and set vars.
-        if ($cat) {
-            if ($cat->meta_title) { $title = $cat->meta_title; }
-            //if ($cat->meta_description) { $description = $cat->meta_description; }
-        }
-
-        if ($subcat) {
-            if ($subcat->meta_title) { $title = $subcat->meta_title; }
-            //if ($subcat->meta_description) { $description = $subcat->meta_description; }
+        if ($cat || $subcat) {
+            return Metatags::noFollow();
         }
 
         return [
