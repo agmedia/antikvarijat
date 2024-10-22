@@ -349,6 +349,7 @@ class Product extends Model
 
         if ($request->has('search') && ! empty($request->input('search'))) {
             $query->where('name', 'like', '%' . $request->input('search') . '%')
+                ->orWhere('description', 'like', '%' . $request->input('search') . '%')
                   ->orWhere('sku', 'like', '%' . $request->input('search') . '%')
                   ->orWhere('polica', 'like', '%' . $request->input('search') . '%')
                   ->orWhere('year', 'like', '' . $request->input('search') . '');
