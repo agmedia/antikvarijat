@@ -6,7 +6,10 @@ namespace App\Helpers;
 class Metatags
 {
 
-    public static function noFollow()
+    /**
+     * @return string[]
+     */
+    public static function noFollow(): array
     {
         return [
             'name' => 'robots',
