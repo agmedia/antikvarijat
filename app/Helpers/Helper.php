@@ -101,6 +101,7 @@ class Helper
 
             $products = Product::active()->where('name', 'like', '%' . $target . '%')
                 ->orWhere('meta_description', 'like', '%' . $target . '%')
+                ->orWhere('description', 'like', '%' . $target . '%')
                 ->orWhere('sku', 'like', '%' . $target . '%')
                 ->pluck('id');
 
