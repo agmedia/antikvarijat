@@ -19,8 +19,11 @@
             </phone_list>
             <youtubeUrl></youtubeUrl>
             <location_id>2656</location_id>
-            <gmap_lng></gmap_lng>
-            <gmap_lat></gmap_lat>
+            <gmap_lng>15.981685342328417</gmap_lng>
+            <gmap_lat>45.810734053389915</gmap_lat>
+            <isOnlinePaymentEnabled>1</isOnlinePaymentEnabled>
+            <availableParcelShops>boxNow</availableParcelShops>
+            <deliveryPackageWeight>1</deliveryPackageWeight>
             <videoCallOption>0</videoCallOption>
             <webshopLink>{{ url($item['slug']) }}</webshopLink>
             <image_list>
