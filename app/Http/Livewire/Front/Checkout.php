@@ -200,6 +200,9 @@ class Checkout extends Component
             return redirect()->route('kosarica');
         }*/
 
+        Log::info('public function changeStep(string $step = )');
+        Log::info($step);
+
         $this->checkCart();
 
         if (in_array($step, ['', 'podaci']) && $this->cart) {
@@ -278,6 +281,9 @@ class Checkout extends Component
         $this->checkShipping($shipping);
 
         CheckoutSession::setShipping($shipping);
+
+        CheckoutSession::forgetPayment();
+        $this->payment = '';
 
         return redirect()->route('naplata', ['step' => 'dostava']);
     }
@@ -406,6 +412,9 @@ class Checkout extends Component
      */
     private function checkPayment(string $payment): void
     {
+        Log::info('$payment');
+        Log::info($payment);
+
         if ($payment == 'bank') {
             $this->gdl_payment = 'uplatnica';
         } elseif ($payment == 'cod') {
