@@ -137,7 +137,7 @@ class CheckoutController extends Controller
             /*dispatch(function () use ($order) {
                 Mail::to(config('mail.admin'))->send(new OrderReceived($order));
             })->afterResponse();*/
-            Mail::to(config('mail.admin'))->send(new OrderReceived($order));
+            Mail::to('info@antikvarijat-biblos.hr')->send(new OrderReceived($order));
 
             dispatch(function () use ($order) {
                 Mail::to($order->payment_email)->send(new OrderSent($order));
