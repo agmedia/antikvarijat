@@ -134,9 +134,11 @@ class CheckoutController extends Controller
         $order = \App\Models\Back\Orders\Order::where('id', $data['order']['id'])->first();
 
         if ($order) {
-            dispatch(function () use ($order) {
+            /*dispatch(function () use ($order) {
                 Mail::to(config('mail.admin'))->send(new OrderReceived($order));
-            })->afterResponse();
+            })->afterResponse();*/
+            Mail::to(config('mail.admin'))->send(new OrderReceived($order));
+
             dispatch(function () use ($order) {
                 Mail::to($order->payment_email)->send(new OrderSent($order));
             })->afterResponse();
