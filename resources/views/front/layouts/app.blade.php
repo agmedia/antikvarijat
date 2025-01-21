@@ -25,7 +25,9 @@
     <!-- Vendor Styles including: Font Icons, Plugins, etc.-->
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <!-- Main Theme Styles + Bootstrap-->
-    <link rel="stylesheet" media="screen" href="{{ config('settings.images_domain') . 'css/theme.min.css?v=1.3' }}">
+    <link rel="stylesheet" media="screen" href="{{ config('settings.images_domain') . 'css/theme.min.css?v=1.4' }}">
+
+
 
     @if (config('app.env') == 'production')
         @yield('google_data_layer')
@@ -117,6 +119,7 @@
 <link rel="stylesheet" media="screen" href="{{ config('settings.images_domain') . 'css/tiny-slider.css?v=1.2' }}"/>
 <!-- Vendor scrits: js libraries and plugins-->
 <script src="{{ asset('js/jquery/jquery-2.1.1.min.js?v=1.3') }}"></script>
+<script src="{{ asset('js/jquery.ihavecookies.js?v=1.32') }}"></script>
 <script src="{{ asset('js/bootstrap.bundle.min.js?v=1.3') }}"></script>
 <script src="{{ asset('js/tiny-slider.js?v=1.2') }}"></script>
 <script src="{{ asset('js/smooth-scroll.polyfills.min.js?v=1.3') }}"></script>
@@ -129,6 +132,22 @@
 <script src="{{ asset('js/cart.js?v=2.2.0') }}"></script>
 
 <script src="{{ asset('js/theme.min.js') }}"></script>
+<script type="text/javascript">
+    $(document).ready(function() {
+        $('body').ihavecookies({
+
+            delay: 600,
+            expires: 90,
+
+            onAccept: function(){
+                var myPreferences = $.fn.ihavecookies.cookie();
+
+            },
+            uncheckBoxes: false
+        });
+
+    });
+</script>
 
 <script>
     $(() => {
