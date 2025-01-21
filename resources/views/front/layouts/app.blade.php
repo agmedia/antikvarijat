@@ -26,6 +26,107 @@
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <!-- Main Theme Styles + Bootstrap-->
     <link rel="stylesheet" media="screen" href="{{ config('settings.images_domain') . 'css/theme.min.css?v=1.4' }}">
+    <style>
+        #gdpr-cookie-message {
+            position: fixed;
+            left: 30px;
+            bottom: 30px;
+            max-width: 375px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0px 0px 20px rgba(0,0,0,.2);
+            margin-left: 0px;
+            z-index:10000;
+
+        }
+        #gdpr-cookie-message h4 {
+            color: #373f50;
+
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+        #gdpr-cookie-message h5 {
+            color: #373f50;
+
+            font-size: 15px;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+        #gdpr-cookie-message p, #gdpr-cookie-message ul {
+            color: #373f50;
+            font-size: 13px;
+            line-height: 1.5em;
+            margin-bottom: 20px;
+        }
+        #gdpr-cookie-message p:last-child {
+            margin-bottom: 0;
+            text-align: right;
+        }
+        #gdpr-cookie-message li {
+            width: 49%;
+            display: inline-block;
+        }
+        #gdpr-cookie-message a {
+            color: #bf9f4c;
+            text-decoration: none;
+            font-size: 13px;
+            padding-bottom: 2px;
+            border-bottom: 1px dotted rgba(255,255,255,0.75);
+            transition: all 0.3s ease-in;
+        }
+        #gdpr-cookie-message a:hover {
+            color: #bf9f4c;
+            border-bottom-color: #D90700;
+            transition: all 0.3s ease-in;
+        }
+        #gdpr-cookie-message button {
+            border: none;
+            background: #bf9f4c;
+            color: white;
+
+            font-size: 14px;
+            padding: 7px;
+            border-radius: 3px;
+            margin-left: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease-in;
+        }
+        #gdpr-cookie-message button:hover {
+            background: white;
+            color: #bf9f4c;
+            transition: all 0.3s ease-in;
+        }
+        button#gdpr-cookie-advanced {
+            background: white;
+            color:#bf9f4c;
+        }
+        #gdpr-cookie-message button:disabled {
+            opacity: 0.3;
+        }
+        #gdpr-cookie-message input[type="checkbox"] {
+            float: none;
+            margin-top: 0;
+            margin-right: 5px;
+        }
+
+        @media(max-width:400px) {
+            #gdpr-cookie-message {
+                position: fixed;
+                left: 10px;
+                bottom: 10px;
+                max-width: 95vw;
+                background: #f6f9fc;
+                padding: 20px;
+                border-radius: 5px;
+                margin-left: 0px;
+                z-index: 10000;
+                box-shadow: 0px 0px 20px rgba(0,0,0,.2);
+            }
+        }
+
+    </style>
 
 
 
