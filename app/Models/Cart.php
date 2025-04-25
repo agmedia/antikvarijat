@@ -3,6 +3,8 @@
 namespace App\Models;
 
 
+use App\Models\Front\AgCart;
+use App\Models\Front\Catalog\Product;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -100,7 +102,7 @@ class Cart extends Model
     }
 
 
-    public static function checkLogged($cart, $session_id = null)
+    /*public static function checkLogged($cart, $session_id = null)
     {
         if (Auth::user()) {
             $has_cart = Cart::where('user_id', Auth::user()->id)->first();
@@ -115,6 +117,46 @@ class Cart extends Model
 
                         if ( ! $has_item_in_cart) {
                             $cart->add($cart->resolveItemRequest($item));
+                        }
+                    }
+                }
+
+                if (isset($cart_data['coupon']) && ! empty($cart_data['coupon'])) {
+                    $cart->coupon($cart_data['coupon']);
+                }
+
+                $has_cart->update(['session_id' => $session_id]);
+
+                return $session_id;
+            }
+        }
+
+        return Str::random(8);
+    }*/
+
+    public static function checkLogged(AgCart $cart, $session_id = null): string
+    {
+        if (Auth::user()) {
+            $has_cart = Cart::where('user_id', Auth::user()->id)->first();
+
+            if ($has_cart) {
+                $cart_items = $cart->getCartItems(true);
+                $cart_data = json_decode($has_cart->cart_data, true);
+
+                if (isset($cart_data['items'])) {
+                    foreach ($cart_data['items'] as $item) {
+                        $has_item_in_cart = $cart_items->where('id', $item['id'])->first();
+
+                        if ( ! $has_item_in_cart) {
+                            $cart_item = $cart->resolveItemRequest($item);
+
+                            if (isset($cart_item['item']['id']) && isset($cart_item['item']['quantity'])) {
+                                $product = Product::where('id', $cart_item['item']['id'])->first();
+
+                                if ($product && $cart_item['item']['quantity'] < $product->quantity) {
+                                    $cart->add($cart_item);
+                                }
+                            }
                         }
                     }
                 }
