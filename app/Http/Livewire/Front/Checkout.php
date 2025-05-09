@@ -92,7 +92,7 @@ class Checkout extends Component
     protected $address_rules = [
         'address.fname' => 'required',
         'address.lname' => 'required',
-        'address.email' => 'required|email',
+        'address.email' => 'required|string|regex:/^([a-z0-9+-]+)(.[a-z0-9+-]+)*@([a-z0-9-]+.)+[a-z]{2,6}$/ix',
         'address.phone' => 'required',
         'address.address' => 'required',
         'address.city' => 'required',
