@@ -111,10 +111,10 @@ class AgService {
         }
         return axios.get('cart/coupon/' + coupon)
         .then(response => {
-            this.returnSuccess(messages.couponSuccess);
+            //this.returnSuccess(messages.couponSuccess);
             return response.data
         })
-        .catch(error => { return this.returnError(messages.error) })
+        .catch(error => { return 1/*this.returnError(messages.error)*/ })
     }
 
     /**
@@ -355,7 +355,7 @@ let store = {
                 state.storage.setCart(response.cart);
 
                 if (response.message && window.location.pathname != '/uspjeh') {
-                    window.ToastWarningLong.fire(response.message)
+                    //window.ToastWarningLong.fire(response.message)
 
                     if (window.location.pathname != '/kosarica') {
                         window.setTimeout(() => {
