@@ -127,7 +127,7 @@ class AgCart extends Model
 
                 $product = Product::where('id', intval($id))->first();
 
-                $message = 'Nažalost, knjiga ' . substr($product->name, 0, 150) . ' više nije dostupna.';
+               // $message = 'Nažalost, knjiga ' . substr($product->name, 0, 150) . ' više nije dostupna.';
             }
         }
 
