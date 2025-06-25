@@ -98,6 +98,8 @@ class CheckoutController extends Controller
      */
     public function order(Request $request)
     {
+
+        Log::info($request->toArray());
         $order = new Order();
 
         if ($request->has('provjera')) {
@@ -125,6 +127,9 @@ class CheckoutController extends Controller
      */
     public function success(Request $request)
     {
+
+        Log::info($request->toArray());
+
         $data['order'] = CheckoutSession::getOrder();
 
         if ( ! $data['order']) {
@@ -134,10 +139,6 @@ class CheckoutController extends Controller
         $order = \App\Models\Back\Orders\Order::where('id', $data['order']['id'])->first();
 
         if ($order) {
-            dispatch(function () use ($order) {
-                Mail::to(config('mail.admin'))->send(new OrderReceived($order));
-                Mail::to($order->payment_email)->send(new OrderSent($order));
-            })->afterResponse();
 
             $order->decreaseCartItems($order->products)
                   ->forgetSession();
@@ -147,6 +148,11 @@ class CheckoutController extends Controller
                  ->resolveDB();
 
             $data['google_tag_manager'] = TagManager::getGoogleSuccessDataLayer($order);
+
+            dispatch(function () use ($order) {
+                Mail::to(config('mail.admin'))->send(new OrderReceived($order));
+                Mail::to($order->payment_email)->send(new OrderSent($order));
+            })->afterResponse();
 
             return view('front.checkout.success', compact('data'));
         }
