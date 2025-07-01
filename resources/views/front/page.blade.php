@@ -104,7 +104,7 @@
                                 <h3 class="h6 mb-3">Telefoni</h3>
                                 <ul class="list-unstyled fs-sm mb-0">
                                     <li><a class="nav-link-style text-primary" href="tel:+38514816574"> +385 1 48 16 574</a></li>
-                                    <li><a class="nav-link-style text-primary" href="tel:++385981629674"> +385 98 16 29 674</a></li>
+                                    <li><a class="nav-link-style text-primary" href="tel:+385981629674"> +385 98 16 29 674</a></li>
                                 </ul>
                             </div>
                         </div>
