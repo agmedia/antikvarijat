@@ -90,6 +90,7 @@ return [
     //
     'njuskalo' => [
         'user_id' => '3162806',
+        'forbidden' => ['20902', '11130'],
         'sync' => [
             'fantasy' => 15360, //*// Literatura / Znanstveno fantastični romani
             'djecje-knjige' => 15348,
