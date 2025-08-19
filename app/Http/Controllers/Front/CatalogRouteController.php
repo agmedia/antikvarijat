@@ -233,7 +233,7 @@ class CatalogRouteController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function search(Request $request)
+   /* public function search(Request $request)
     {
         if ($request->has(config('settings.search_keyword'))) {
             if ( ! $request->input(config('settings.search_keyword'))) {
@@ -260,7 +260,124 @@ class CatalogRouteController extends Controller
         }
 
         return response()->json(['error' => 'Greška kod pretrage..! Molimo pokušajte ponovo ili nas kotaktirajte! HVALA...']);
+    }*/
+
+
+
+    public function search(Request $request)
+    {
+        // web stranica s rezultatima (ne diramo)
+        if ($request->has(config('settings.search_keyword'))) {
+            if (!$request->input(config('settings.search_keyword'))) {
+                return redirect()->back()->with(['error' => 'Oops..! Zaboravili ste upisati pojam za pretraživanje..!']);
+            }
+
+            $group = null; $cat = null; $subcat = null;
+
+            $ids = Helper::search(
+                $request->input(config('settings.search_keyword'))
+            );
+
+            $crumbs = null;
+
+            return view('front.catalog.category.index', compact('group', 'cat', 'subcat', 'ids', 'crumbs'));
+        }
+
+        // API autocomplete – structured JSON: counts + products + categories
+        // API autocomplete – structured JSON: counts + products + categories
+        if ($request->has(config('settings.search_keyword') . '_api')) {
+
+            $q = (string) $request->input(config('settings.search_keyword') . '_api', '');
+
+            // >>> UZMI $group IZ REQUESTA ILI STAVI DEFAULT
+            $group = trim((string) $request->input('group', 'kategorija'), '/');
+
+            // --- PROIZVODI ---
+            $search = Helper::search($q, true, true);
+            $totalProducts = (int) ($search['total'] ?? 0);
+            $productIds    = $search['products'];
+
+            $items = Product::query()
+                ->with(['author'])
+                ->whereIn('id', $productIds)
+                ->get()
+                ->keyBy('id');
+
+            $productsPayload = [];
+            foreach ($productIds as $id) {
+                $p = $items->get($id);
+                if (!$p) continue;
+
+                $productsPayload[] = [
+                    'id'                 => $p->id,
+                    'sku'                => $p->sku,
+                    'name'               => $p->name,
+                    'url'                => url($p->url),
+                    'main_price'         => $p->main_price,
+                    'main_price_text'    => $p->main_price_text,
+                    'main_special'       => $p->main_special,
+                    'main_special_text'  => $p->main_special_text,
+                    'image'              => $p->thumb,
+                    'author_title'       => optional($p->author)->title,
+                ];
+            }
+
+            // --- KATEGORIJE ---
+            $catsBase = Category::query()
+                ->when(method_exists(Category::class, 'scopeActive'), fn ($q2) => $q2->active())
+                ->where(function ($w) use ($q) {
+                    $w->where('title', 'like', '%' . $q . '%');
+                    // dodaj druge kolone samo ako postoje
+                    if (\Illuminate\Support\Facades\Schema::hasColumn('categories', 'description')) {
+                        $w->orWhere('description', 'like', '%' . $q . '%');
+                    } elseif (\Illuminate\Support\Facades\Schema::hasColumn('categories', 'meta_description')) {
+                        $w->orWhere('meta_description', 'like', '%' . $q . '%');
+                    } elseif (\Illuminate\Support\Facades\Schema::hasColumn('categories', 'content')) {
+                        $w->orWhere('content', 'like', '%' . $q . '%');
+                    }
+                });
+
+            $totalCategories = (clone $catsBase)->count();
+
+            $categories = $catsBase
+                ->orderBy('title')
+                ->limit(10)
+                ->get();
+
+            $categoriesPayload = $categories->map(function ($c) use ($group) {
+                // NE koristiti $c->url accessor (imaš metodu url())
+                $slug = $c->slug ?: $c->id;
+                $path = '/' . $group . '/' . $slug;   // <<— koristi $group
+                return [
+                    'id'   => $c->id,
+                    'name' => $c->title,               // JS očekuje "name"
+                    'url'  => url($path),
+                ];
+            })->values()->all();
+
+            // --- STRUCTURED PAYLOAD + X-Total-Count ---
+            $payload = [
+                'counts'     => [
+                    'products'   => $totalProducts,
+                    'authors'    => 0,
+                    'categories' => $totalCategories,
+                ],
+                'products'   => $productsPayload,
+                'categories' => $categoriesPayload,
+            ];
+
+            $totalAll = $payload['counts']['products']
+                + $payload['counts']['authors']
+                + $payload['counts']['categories'];
+
+            return response()->json($payload)
+                ->header('X-Total-Count', $totalAll);
+        }
+
+
+        return response()->json(['error' => 'Greška kod pretrage..! Molimo pokušajte ponovo ili nas kotaktirajte! HVALA...']);
     }
+
 
 
     /**

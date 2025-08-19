@@ -1,47 +1,28 @@
-<!-- {"title": "Product Carousel", "description": "Some description of a Product Carousel."} -->
-<section class="container {{ $data['css'] }}" style="z-index: 10;">
-    @if ($data['container'])
-        <div class="card px-lg-2 border-0 shadow-lg">
-            <div class="card-body px-4 pt-4 pb-4">
-
-              <!--  <img src="media/img/interliber.png" class="mt-3 mb-5 p-3 shadow-lg">-->
-
-                <h2 class="h3 text-center">{{ $data['title'] }}</h2>
-                <p class="text-muted-light text-center ">{{ $data['subtitle'] }}</p>
-                @if($data['url'] !='/')
-                    <p class=" text-center">  <a class="btn btn-primary btn-shadow " href="{{ url($data['url']) }}">Pogledajte ponudu <i class="ci-arrow-right "></i></a></p>
-                @endif
-
-                <div class="tns-carousel pt-4">
-                    <div class="tns-carousel-inner" data-carousel-options='{"items": 2, "controls": true, "nav": true, "autoHeight": true, "responsive": {"0":{"items":2, "gutter": 10},"500":{"items":2, "gutter": 18},"768":{"items":3, "gutter": 20}, "1100":{"items":4, "gutter": 30}}}'>
-                    @foreach ($data['items'] as $product)
-                        <!-- Product-->
-                            <div>
-                                @include('front.catalog.category.product')
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-            </div>
+<!-- {"title": "Carousel", "description": "Widget za product carousel"} -->
+<section class="pt-2 pb-lg-2">
+<div class="container">
+    <div class="d-flex flex-wrap justify-content-between align-items-center pt-1   pb-2 mb-2">
+        <div>
+            <h2 class="h3 mb-0 pt-3 font-title me-3"><span class="border-color">{{ $data['title'] }}</span></h2>
+            @if($data['subtitle'])  <p class=" text-ph fs-md mb-0">{{ $data['subtitle'] }}</p> @endif
         </div>
-
-
-    @else
-        <h2 class="h3 text-center">{{ $data['title'] }}</h2>
-        <p class="text-muted-light text-center">{{ $data['subtitle'] }}</p>
         @if($data['url'] !='/')
-            <p class=" text-center">  <a class="btn btn-primary btn-shadow " href="{{ url($data['url']) }}">Pogledajte ponudu <i class="ci-arrow-right "></i></a></p>
+         <a class="btn btn-outline-primary btn-sm btn-shadow mt-3" href="{{ url($data['url']) }}"><span class="d-none d-sm-inline-block">Pogledajte ponudu</span> <i class="ci-arrow-right fs-xs "></i></a>
         @endif
 
-        <div class="tns-carousel pt-4">
-            <div class="tns-carousel-inner" data-carousel-options='{"items": 2, "controls": true, "nav": true, "autoHeight": true, "responsive": {"0":{"items":2, "gutter": 10},"500":{"items":2, "gutter": 18},"768":{"items":3, "gutter": 20}, "1100":{"items":4, "gutter": 30}}}'>
+    </div>
+    <div class="tns-carousel pt-2 pb-3">
+        <div class="tns-carousel-inner tns-nav-enabled" data-carousel-options='{"items": 2, "controls": false, "nav": true, "responsive": {"0":{"items":2, "gutter": 5},"500":{"items":2, "gutter": 10},"768":{"items":3, "gutter": 10}, "1100":{"items":4, "controls": true, "gutter": 10}, "1500":{"items":5, "controls": true, "gutter": 10}, "1600":{"items":5, "controls": true, "gutter": 10}}}'>
+
+
             @foreach ($data['items'] as $product)
                 <!-- Product-->
-                    <div>
-                        @include('front.catalog.category.product')
-                    </div>
-                @endforeach
-            </div>
+                <div>
+                    @include('front.catalog.category.product')
+                </div>
+            @endforeach
         </div>
-    @endif
+    </div>
+</div>
+
 </section>

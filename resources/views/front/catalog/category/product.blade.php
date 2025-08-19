@@ -1,14 +1,12 @@
-<div class="card product-card-alt">
+<div class="card product-card shadow mb-2 pb-4">
     @if ($product->main_price > $product->main_special)
         <span class="badge rounded-pill bg-primary mt-3 ms-1 badge-shadow">-{{ number_format(floatval(\App\Helpers\Helper::calculateDiscount($product->price, $product->special())), 0) }}%</span>
     @endif
     <div class="product-thumb">
-        <div class="product-card-actions">
-            <a class="btn btn-light btn-icon btn-shadow fs-base mx-2" href="{{ url($product->url) }}"><i class="ci-eye"></i></a>
-            <add-to-cart-btn-simple id="{{ $product->id }}"></add-to-cart-btn-simple>
-        </div>
-        <a class="product-thumb-overlay" href="{{ url($product->url) }}"></a>
-        <img load="lazy" src="{{ $product->thumb }}" width="250" height="300" alt="{{ $product->name }}">
+
+        <a  href="{{ url($product->url) }}">
+        <img loading="lazy" src="{{ $product->thumb }}" width="250" height="300" alt="{{ $product->name }}">
+        </a>
     </div>
     <div class="card-body pt-2">
         <div class="d-flex flex-wrap justify-content-between align-items-start pb-2">
@@ -24,7 +22,7 @@
         <h3 class="product-title fs-sm mb-0"><a href="{{ url($product->url) }}">{{ $product->name }}</a></h3>
         @if ($product->category_string)
             <div class="d-flex flex-wrap justify-content-between align-items-center">
-                <div class="fs-sm me-2"><i class="ci-book text-muted" style="font-size: 11px;"></i> {!! $product->category_string !!}</div>
+                <div class="fs-sm me-2 one-line"><i class="ci-book text-muted" style="font-size: 11px;"></i> {!! $product->category_string !!}</div>
             </div>
         @endif
         <div class="d-flex flex-wrap justify-content-between align-items-center price-box mt-2">
@@ -45,6 +43,14 @@
                 @endif
             </div>
         @endif
+
+
     </div>
+
+        <div class="product-floating-btn">
+
+
+        <add-to-cart-btn-simple id="{{ $product->id }}"></add-to-cart-btn-simple>
+        </div>
 </div>
 <hr class="d-sm-none">

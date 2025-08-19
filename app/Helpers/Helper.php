@@ -94,56 +94,72 @@ class Helper
      *
      * @return array|false|Collection
      */
-    public static function search(string $target = '', bool $builder = false)
+    public static function search(string $target = '', bool $builder = false, bool $api = false)
     {
-        if ($target != '') {
-            $response = collect();
-
-            $products = Product::active()->where('name', 'like', '%' . $target . '%')
-                ->orWhere('meta_description', 'like', '%' . $target . '%')
-                ->orWhere('description', 'like', '%' . $target . '%')
-                ->orWhere('sku', 'like', '%' . $target . '%')
-                ->pluck('id');
-
-            if ( ! $products->count()) {
-                $products = collect();
-            }
-
-            $preg = explode(' ', $target, 3);
-
-            if (isset ($preg[1]) && in_array($preg[1], $preg) && ! isset($preg[2])) {
-                $authors = Author::active()->where('title', 'like', '%' . $preg[0] . '%' . $preg[1] . '%')
-                                 ->orWhere('title', 'like', '%' . $preg[1] . '% ' . $preg[0] . '%')
-                                 ->with('products')->get();
-
-            } elseif (isset ($preg[2]) && in_array($preg[2], $preg)) {
-                $authors = Author::active()->where('title', 'like', $preg[0] . '%' . $preg[1] . '%' . $preg[2] . '%')
-                                 ->orWhere('title', 'like', $preg[2] . '%' . $preg[1] . '% ' . $preg[0] . '%')
-                                 ->orWhere('title', 'like', $preg[0] . '%' . $preg[2] . '% ' . $preg[1] . '%')
-                                 ->orWhere('title', 'like', $preg[1] . '%' . $preg[0] . '% ' . $preg[2] . '%')
-                                 ->orWhere('title', 'like', $preg[1] . '%' . $preg[2] . '% ' . $preg[0] . '%')
-                                 ->with('products')->get();
-
-            } else {
-                $authors = Author::active()->where('title', 'like', '%' . $preg[0] . '%')
-                                 ->with('products')->get();
-            }
-
-            foreach ($authors as $author) {
-                $products = $products->merge($author->products->pluck('id'));
-            }
-
-            $response->put('products', $products->unique()->flatten());
-
-            if ($builder) {
-                return $response;
-            }
-
-            return $response['products']->toJson();
+        if ($target === '') {
+            return false;
         }
 
-        return false;
+        $response = collect();
+
+        // proizvodi po nazivu/sku/opisu
+        $products = Product::active()
+            ->where('name', 'like', '%' . $target . '%')
+            ->orWhere('meta_description', 'like', '%' . $target . '%')
+            ->orWhere('description', 'like', '%' . $target . '%')
+            ->orWhere('sku', 'like', '%' . $target . '%')
+            ->pluck('id');
+
+        if (! $products->count()) {
+            $products = collect();
+        }
+
+        // autori -> merge njihovih proizvoda
+        $preg = explode(' ', $target, 3);
+
+        if (isset($preg[1]) && in_array($preg[1], $preg) && !isset($preg[2])) {
+            $authors = Author::active()
+                ->where('title', 'like', '%' . $preg[0] . '%' . $preg[1] . '%')
+                ->orWhere('title', 'like', '%' . $preg[1] . '% ' . $preg[0] . '%')
+                ->with('products')->get();
+        } elseif (isset($preg[2]) && in_array($preg[2], $preg)) {
+            $authors = Author::active()
+                ->where('title', 'like', $preg[0] . '%' . $preg[1] . '%' . $preg[2] . '%')
+                ->orWhere('title', 'like', $preg[2] . '%' . $preg[1] . '% ' . $preg[0] . '%')
+                ->orWhere('title', 'like', $preg[0] . '%' . $preg[2] . '% ' . $preg[1] . '%')
+                ->orWhere('title', 'like', $preg[1] . '%' . $preg[0] . '% ' . $preg[2] . '%')
+                ->orWhere('title', 'like', $preg[1] . '%' . $preg[2] . '% ' . $preg[0] . '%')
+                ->with('products')->get();
+        } else {
+            $authors = Author::active()
+                ->where('title', 'like', '%' . $preg[0] . '%')
+                ->with('products')->get();
+        }
+
+        foreach ($authors as $author) {
+            $products = $products->merge($author->products->pluck('id'));
+        }
+
+        // jedinstveni popis i ukupno
+        $uniqueIds = $products->unique()->values();
+        $totalAll  = $uniqueIds->count();
+
+        // ako je API – ograniči na 15, ali zadrži totalAll
+        $limitedIds = $api ? $uniqueIds->take(15) : $uniqueIds;
+
+        $response->put('products', $limitedIds->flatten());
+        $response->put('total', $totalAll);
+
+        Log::info($response);
+
+        if ($builder) {
+            return $response;
+        }
+
+        // Back-compat: kad se ne traži builder, vrati samo niz ID-eva kao JSON
+        return $response['products']->toJson();
     }
+
 
 
     /**
@@ -229,41 +245,72 @@ class Helper
             $data = unserialize($widget->data);
 
             if (static::isDescriptionTarget($data, 'product')) {
-                $items = static::products($data)->get();
+                $items     = static::products($data)->get();
+                $tablename = 'product';
             }
 
             if (static::isDescriptionTarget($data, 'blog')) {
-                $items = static::blogs($data)->get();
+                $items     = static::blogs($data)->get();
+                $tablename = 'blog';
+
+
             }
 
             if (static::isDescriptionTarget($data, 'category')) {
-                $items = static::categories($data)->get();
+                $items     = static::category($data)->get();
+
+
+                $tablename = 'category';
+            }
+
+            if (static::isDescriptionTarget($data, 'product_category')) {
+                $items     = static::product_category($data)->get();
+
+
+                $tablename = 'product_category';
+            }
+
+
+            if (static::isDescriptionTarget($data, 'author')) {
+                $items     = static::author($data)->get();
+                $tablename = 'author';
+            }
+
+            if (static::isDescriptionTarget($data, 'reviews')) {
+                $items     = static::dummyReviews();
+                $tablename = 'reviews';
             }
 
             $widgets = [
-                'title' => $widget->title,
-                'subtitle' => $widget->subtitle,
-                'url' => $widget->url,
-                'css' => $data['css'],
-                'container' => (isset($data['container']) && $data['container'] == 'on') ? 1 : null,
+                'title'      => $widget->title,
+                'subtitle'   => $widget->subtitle,
+                'url'        => $widget->url,
+                'tablename'  => $tablename,
+                'css'        => $data['css'],
+                'container'  => (isset($data['container']) && $data['container'] == 'on') ? 1 : null,
                 'background' => (isset($data['background']) && $data['background'] == 'on') ? 1 : null,
-                'items' => $items
+                'items'      => $items
             ];
 
         } else {
             foreach ($wg->widgets()->orderBy('sort_order')->get() as $widget) {
                 $data = unserialize($widget->data);
 
+
+
                 $widgets[] = [
-                    'title' => $widget->title,
+                    'title'    => $widget->title,
                     'subtitle' => $widget->subtitle,
-                    'url' => $widget->url,
-                    'image' => str_replace('.jpg', '.webp', $widget->image),
-                    'width' => $widget->width,
-                    'right' => (isset($data['right']) && $data['right'] == 'on') ? 1 : null,
+                    'color'    => $widget->badge,
+                    'url'      => $widget->url,
+                    'image'    => $widget->thumb,
+                    'width'    => $widget->width,
+                    'right'    => (isset($data['right']) && $data['right'] == 'on') ? 1 : null,
                 ];
             }
         }
+
+
 
         return str_replace(
             '++' . $id . '++',

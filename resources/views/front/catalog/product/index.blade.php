@@ -45,11 +45,11 @@
 @section('content')
 
     <!-- Page Title-->
-    <div class="page-title-overlap bg-dark pt-4" style="background-image: url({{ config('settings.images_domain') . 'media/img/indexslika.jpg' }});-webkit-background-size: cover;-moz-background-size: cover;-o-background-size: cover;background-size: cover;">
+    <div class="page-title-overlap bg-light pt-4" style="background-image: url({{ asset('media/img/farmer.png') }});background-repeat: repeat;">
         <div class="container d-lg-block justify-content-end py-2 py-lg-3">
             <div class="order-lg-2 mb-3 mb-lg-0 pb-lg-2">
                 <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb breadcrumb-light flex-lg-nowrap justify-content-center justify-content-lg-start">
+                    <ol class="breadcrumb breadcrumb-dark flex-lg-nowrap justify-content-center justify-content-lg-start">
                         <li class="breadcrumb-item"><a class="text-nowrap" href="{{ route('index') }}"><i class="ci-home"></i>Naslovnica</a></li>
 
                         @if ($group)
@@ -82,7 +82,7 @@
                 </nav>
             </div>
             <div class="order-lg-1 pe-lg-4 text-center text-lg-start">
-                <h1 class="h3 text-light mb-0"><span style="font-weight: lighter;">{{ $prod->author ? $prod->author->title : '' }}:</span> {{ $prod->name }}</h1>
+                <h1 class="h3 text-dark mb-0"><span style="font-weight: lighter;">{{ $prod->author ? $prod->author->title : '' }}:</span> {{ $prod->name }}</h1>
             </div>
         </div>
     </div>
@@ -198,8 +198,8 @@
     <div class="container py-5 my-md-3">
         <h2 class="h3 text-center pb-4">Preporučamo</h2>
         <div class="tns-carousel tns-controls-static tns-controls-outside">
-            <div class="tns-carousel-inner" data-carousel-options='{"items": 2, "controls": true, "nav": true, "autoHeight": true, "responsive": {"0":{"items":2, "gutter": 10},"500":{"items":2, "gutter": 18},"768":{"items":3, "gutter": 20}, "1100":{"items":4, "gutter": 30}}}'>
-                @foreach ($cat->products()->get()->take(5) as $cat_product)
+            <div class="tns-carousel-inner" data-carousel-options='{"items": 2, "controls": true, "nav": true, "autoHeight": true, "responsive": {"0":{"items":2, "gutter": 10},"500":{"items":2, "gutter": 18},"768":{"items":3, "gutter": 20}, "1100":{"items":5, "gutter": 30}}}'>
+                @foreach ($cat->products()->get()->take(10) as $cat_product)
                     @if ($cat_product->id  != $prod->id)
                         <div>
                             @include('front.catalog.category.product', ['product' => $cat_product])

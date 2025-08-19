@@ -1,5 +1,5 @@
 <template>
-    <section class="col-lg-8">
+    <section class="col-lg-9">
         <!-- Toolbar-->
         <div class="d-flex justify-content-center justify-content-sm-between align-items-center pt-2 pb-4 pb-sm-5">
             <div class="d-flex flex-wrap">
@@ -20,29 +20,29 @@
         </div>
 
         <!-- Products grid-->
-        <div class="row mx-n2 mb-3" v-if="products.total">
-            <div class="col-md-4 col-6 px-2 mb-4" v-for="product in products.data">
-                <div class="card product-card-alt">
+
+        <div class="row row-cols-2 row-cols-sm-3 row-cols-md-3 row-cols-lg-3 row-cols-xl-4 row-cols-xxl-4  mb-3 px-2" v-if="products.total">
+
+
+
+            <div class="col px-2 mb-4" v-for="product in products.data">
+                <div class="card product-card shadow mb-2">
                     <span class="badge rounded-pill bg-primary mt-3 ms-1 badge-shadow" v-if="product.special">-{{ ($store.state.service.getDiscountAmount(product.price, product.special)) }}%</span>
                     <div class="product-thumb">
-                        <div class="product-card-actions">
-                            <a class="btn btn-light btn-icon btn-shadow fs-base mx-2" :href="origin + product.url"><i class="ci-eye"></i></a>
-                            <button type="button" class="btn btn-light btn-icon btn-shadow fs-base mx-2" v-on:click="add(product.id)"><i class="ci-cart"></i></button>
-<!--                            <add-to-cart-btn-simple :id="(product.id).toString()"></add-to-cart-btn-simple>-->
-                        </div>
-                        <a class="product-thumb-overlay" :href="origin + product.url"></a>
-                        <img load="lazy" :src="product.image.replace('.webp', '-thumb.webp')" width="250" height="300" :alt="product.name">
+                        <a :href="origin + product.url">
+                        <img loading="lazy" :src="product.image.replace('.webp', '-thumb.webp')" width="250" height="300" :alt="product.name">
+                        </a>
                     </div>
                     <div class="card-body pt-2">
                         <div class="d-flex flex-wrap justify-content-between align-items-start pb-2">
                             <div class="text-muted fs-xs me-1">
-                                <a class="product-meta fw-medium" :href="product.author ? (origin + product.author.url) : '#'">{{ product.author ? product.author.title : '' }}</a>
+                                <a class="product-meta fw-medium" :href="product.author ? (origin + product.author.url) : '#'">{{ product.author ? product.author.title : '...' }}</a>
                             </div>
 
                         </div>
                         <h3 class="product-title fs-sm mb-0"><a :href="origin + product.url">{{ product.name }}</a></h3>
                         <div class="d-flex flex-wrap justify-content-between align-items-center" v-if="product.category_string">
-                            <div class="fs-sm me-2"><i class="ci-book text-muted" style="font-size: 11px;"></i> <span v-html="product.category_string"></span></div>
+                            <div class="fs-sm me-2 one-line"><i class="ci-book text-muted" style="font-size: 11px;"></i> <span v-html="product.category_string"></span></div>
                         </div>
 
                         <div class="d-flex flex-wrap justify-content-between align-items-center price-box mt-2">
@@ -57,12 +57,15 @@
                             <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2" v-if="!product.special">{{ product.secondary_price_text }}</div>
                         </div>
                     </div>
+                    <div class="product-floating-btn">
+                       <button type="button" class="btn btn-primary  btn-sm" v-on:click="add(product.id)">+<i class="ci-cart"></i></button>
+                    </div>
                 </div>
-                <hr class="d-sm-none">
+
             </div>
         </div>
 
-        <pagination :data="products" align="center" :show-disabled="true" :limit="4" @pagination-change-page="getProductsPage"></pagination>
+        <pagination :data="products" align="center" :show-disabled="true" :limit="5" @pagination-change-page="getProductsPage"></pagination>
 
         <div class="row" v-if="!products_loaded">
             <div class="col-md-12 d-flex justify-content-center mt-4">
@@ -99,7 +102,7 @@
             <hr class="d-sm-none">
         </div>
 
-        <hr class="my-3">
+
     </section>
 </template>
 

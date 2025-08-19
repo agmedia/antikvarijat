@@ -133,7 +133,7 @@ class WidgetGroupController extends Controller
         if ($request->has('type')) {
             /*if ($request->input('type') == 'category') {
                 return response()->json(Category::getList());
-            }
+            }*/
             if ($request->input('type') == 'manufacturer') {
                 return response()->json(Manufacturer::list());
             }
@@ -142,7 +142,7 @@ class WidgetGroupController extends Controller
             }
             if ($request->input('type') == 'page') {
                 return response()->json(Blog::published()->pluck('title', 'id'));
-            }*/
+            }
         }
 
         return response()->json([
