@@ -73,16 +73,16 @@ class ProductImage extends Model
             }
 
             foreach ($existing as $key => $image) {
-                if (isset($image['image']) && $image['image']) {
-                    $data = json_decode($image['image']);
+                if (isset($image->image) && $image->image) {
+                    $data = json_decode($image->image);
 
                     if ($data) {
-                        $this->replace($key, $data->output, $image['title']);
+                        $this->replace($key, $data->output, $image->title ?? '');
                     }
                 }
 
                 if ( ! $key) {
-                    $this->saveMainTitle($image['title']);
+                    $this->saveMainTitle((string)($data['title'] ?? $request->input('title') ?? ''));
                     //$this->saveMainTitle($image['title'], $image['alt']);
                     // zamjeni title na glavnoj
                 }

@@ -175,6 +175,16 @@ h1, .h1, .h1, h2, .h2, .h2, h3, .h3, .h3, h4, .h4, .h4, h5, .h5, .h5, h6, .h6, .
     padding: 0;
 }
 
+#st-1 .st-btn > img {
+    display: inline-block;
+    height: 20px;
+    width: 20px;
+    position: relative;
+    top: 10px;
+    vertical-align: top;
+    filter: grayscale()!important;
+}
+
 #search_result.live-search.show { display: block; }
 
 /* estetika tvoje tablice rezultata */
@@ -8587,7 +8597,7 @@ textarea.form-control-lg {
 }
 
 .bg-success {
-    background-color:#42d697 !important
+    background-color:#2f7e44 !important;
 }
 
 .bg-info {
@@ -19360,6 +19370,11 @@ html:not([dir=rtl]) .range-slider-ui.noUi-horizontal .noUi-handle {
     transition:color 0.25s ease-in-out;
     color:#7d879c;
     text-decoration:none !important
+    white-space: nowrap;       /* onemogućava prelamanje teksta */
+    overflow: hidden;          /* skriva višak teksta */
+    text-overflow: ellipsis;   /* dodaje ... ako je predugačko */
+    display: block;            /* ili inline-block ako želiš u liniji */
+    max-width: 100%;           /* ili određena širina, npr. 200px */
 }
 
 .product-meta:hover {

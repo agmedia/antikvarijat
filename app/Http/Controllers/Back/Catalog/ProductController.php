@@ -77,7 +77,17 @@ class ProductController extends Controller
         $data = $product->getRelationsData();
         $active_actions = ProductAction::active()->get();
 
-        return view('back.catalog.product.edit', compact('data', 'active_actions'));
+        $allTags = Product::query()
+            ->whereNotNull('tags')
+            ->pluck('tags')
+            ->flatten()
+            ->map(fn($t) => mb_strtolower(trim((string) $t)))
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values();
+
+        return view('back.catalog.product.edit', compact('data', 'active_actions', 'allTags'));
     }
 
 
@@ -116,7 +126,18 @@ class ProductController extends Controller
     {
         $data = $product->getRelationsData();
 
-        return view('back.catalog.product.edit', compact('product', 'data'));
+        // NOVO:
+        $allTags = Product::query()
+            ->whereNotNull('tags')
+            ->pluck('tags')
+            ->flatten()
+            ->map(fn($t) => mb_strtolower(trim((string) $t)))
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values();
+
+        return view('back.catalog.product.edit', compact('product', 'data', 'allTags'));
     }
 
 
@@ -180,7 +201,7 @@ class ProductController extends Controller
     {
         if ($request->has('id')) {
             $id = $request->input('id');
-            
+
             ProductImage::where('product_id', $id)->delete();
             ProductCategory::where('product_id', $id)->delete();
 

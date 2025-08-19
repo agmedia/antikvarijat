@@ -33,7 +33,11 @@
                     </div>
 
 
-                    <button class="btn btn-sm btn-outline-primary mt-3" onclick="history.back()" v-if="category || subcategory"> <i class="ci-arrow-left fs-xs me-1"></i> Povratak</button>
+                    <button class="btn btn-sm btn-outline-primary mt-3"
+                            @click="goToParentCategory"
+                            v-if="category || subcategory">
+                        <i class="ci-arrow-left fs-xs me-1"></i> Povratak
+                    </button>
 
                     <div class=" mt-3" v-if="categories.length > 16">
                         <button class="btn btn-primary btn-sm" @click="expanded = !expanded">
@@ -194,6 +198,42 @@
                 axios.post('filter/getCategories', { params }).then(response => {
                     this.categories = response.data;
                 });
+            },
+
+            _joinUrl(base, path='') {
+                if (!base) return path || '/';
+                if (/^https?:\/\//i.test(path)) return path;         // već apsolutni
+                const b = base.replace(/\/+$/,'');                   // skini završne /
+                const p = (path||'').toString().replace(/^\/+/, ''); // skini početne /
+                return p ? `${b}/${p}` : `${b}/`;
+            },
+
+            _slugify(s) {
+                return (s||'')
+                    .toString().trim().toLowerCase()
+                    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                    .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+            },
+
+            goToParentCategory() {
+                const origin = (this.origin || (location.origin + '/'));
+
+                if (this.subcategory && this.category) {
+                    // prioritet: subcategory.parent_url → category.url → /{group}/{category.slug}
+                    const parentUrl =
+                        this.subcategory.parent_url
+                        || this.category.url
+                        || `/${this._slugify(this.group)}/${this.category.slug}`;
+
+                    window.location.href = this._joinUrl(origin, parentUrl);
+                    return;
+                }
+
+                if (this.category) {
+                    // root grupe: backend-proslijeđen group_url → /{group}
+                    const groupUrl = this.group_url || `/${this._slugify(this.group)}`;
+                    window.location.href = this._joinUrl(origin, groupUrl);
+                }
             },
 
             /**

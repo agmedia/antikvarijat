@@ -2169,6 +2169,31 @@ function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
         _this.categories = response.data;
       });
     },
+    _joinUrl: function _joinUrl(base) {
+      var path = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
+      if (!base) return path || '/';
+      if (/^https?:\/\//i.test(path)) return path; // već apsolutni
+      var b = base.replace(/\/+$/, ''); // skini završne /
+      var p = (path || '').toString().replace(/^\/+/, ''); // skini početne /
+      return p ? "".concat(b, "/").concat(p) : "".concat(b, "/");
+    },
+    _slugify: function _slugify(s) {
+      return (s || '').toString().trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    },
+    goToParentCategory: function goToParentCategory() {
+      var origin = this.origin || location.origin + '/';
+      if (this.subcategory && this.category) {
+        // prioritet: subcategory.parent_url → category.url → /{group}/{category.slug}
+        var parentUrl = this.subcategory.parent_url || this.category.url || "/".concat(this._slugify(this.group), "/").concat(this.category.slug);
+        window.location.href = this._joinUrl(origin, parentUrl);
+        return;
+      }
+      if (this.category) {
+        // root grupe: backend-proslijeđen group_url → /{group}
+        var groupUrl = this.group_url || "/".concat(this._slugify(this.group));
+        window.location.href = this._joinUrl(origin, groupUrl);
+      }
+    },
     /**
      *
      **/
@@ -2851,7 +2876,7 @@ var render = function render() {
   })]), _vm._v(" "), _c("div", {
     staticClass: "offcanvas-body py-grid-gutter px-lg-grid-gutter"
   }, [_vm.categories ? _c("div", {
-    staticClass: "widget widget-categories mb-4 pb-4 border-bottom"
+    staticClass: "widget widget-categories mb-3 pb-4"
   }, [!_vm.category && !_vm.subcategory ? _c("h3", {
     staticClass: "widget-title"
   }, [_vm._v("Kategorije")]) : _vm._e(), _vm._v(" "), _vm.category && !_vm.subcategory ? _c("h3", {
@@ -2885,8 +2910,15 @@ var render = function render() {
       }
     }, [_vm._v("\n                                " + _vm._s(category.title) + "\n                                "), _c("span", {
       staticClass: "badge bg-secondary ms-2 position-absolute end-0"
-    }, [_vm._v("\n                " + _vm._s(Number(category.count).toLocaleString("hr-HR")) + "\n            ")])])]);
-  }), 0), _vm._v(" "), _vm.categories.length > 16 ? _c("div", {
+    }, [_vm._v("\n                                   " + _vm._s(Number(category.count).toLocaleString("hr-HR")) + "\n                                ")])])]);
+  }), 0), _vm._v(" "), _vm.category || _vm.subcategory ? _c("button", {
+    staticClass: "btn btn-sm btn-outline-primary mt-3",
+    on: {
+      click: _vm.goToParentCategory
+    }
+  }, [_c("i", {
+    staticClass: "ci-arrow-left fs-xs me-1"
+  }), _vm._v(" Povratak\n                    ")]) : _vm._e(), _vm._v(" "), _vm.categories.length > 16 ? _c("div", {
     staticClass: "mt-3"
   }, [_c("button", {
     staticClass: "btn btn-primary btn-sm",
@@ -2896,7 +2928,7 @@ var render = function render() {
       }
     }
   }, [_vm._v("\n                            " + _vm._s(_vm.expanded ? "Prikaži manje" : "Prikaži sve kategorije") + "\n                        ")])]) : _vm._e()]) : _vm._e(), _vm._v(" "), _c("div", {
-    staticClass: "widget mb-4 pb-4 border-bottom"
+    staticClass: "widget mb-3 pb-4"
   }, [_c("h3", {
     staticClass: "widget-title"
   }, [_vm._v("Godina izdanja")]), _vm._v(" "), _c("div", [_c("div", {
@@ -2956,7 +2988,7 @@ var render = function render() {
   }), _vm._v(" "), _c("span", {
     staticClass: "input-group-text"
   }, [_vm._v("g")])])])])])]), _vm._v(" "), _vm.show_authors ? _c("div", {
-    staticClass: "widget widget-filter mb-4 pb-4 border-bottom"
+    staticClass: "widget widget-filter mb-3 pb-4"
   }, [_c("h3", {
     staticClass: "widget-title"
   }, [_vm._v("Autori"), !_vm.authors_loaded ? _c("span", {
@@ -3050,7 +3082,7 @@ var render = function render() {
       }
     }, [_vm._v(_vm._s(Number(author.products_count).toLocaleString("hr-HR")))])])]);
   }), 0)]) : _vm._e(), _vm._v(" "), _vm.show_publishers ? _c("div", {
-    staticClass: "widget widget-filter mb-4 pb-4 border-bottom"
+    staticClass: "widget widget-filter mb-3 pb-4"
   }, [_c("h3", {
     staticClass: "widget-title"
   }, [_vm._v("Nakladnici"), !_vm.publishers_loaded ? _c("span", {
@@ -3437,15 +3469,13 @@ var render = function render() {
       }
     }, [_vm._v("+"), _c("i", {
       staticClass: "ci-cart"
-    })])])]), _vm._v(" "), _c("hr", {
-      staticClass: "d-sm-none"
-    })]);
+    })])])])]);
   }), 0) : _vm._e(), _vm._v(" "), _c("pagination", {
     attrs: {
       data: _vm.products,
       align: "center",
       "show-disabled": true,
-      limit: 4
+      limit: 5
     },
     on: {
       "pagination-change-page": _vm.getProductsPage
@@ -3472,9 +3502,7 @@ var render = function render() {
     staticClass: "col-md-12 px-2 mb-4"
   }, [_c("h2", [_vm._v("Trenutno nema proizvoda")]), _vm._v(" "), _c("p", [_vm._v(" Pogledajte u nekoj drugoj kategoriji ili probajte sa tražilicom :-)")]), _vm._v(" "), _c("hr", {
     staticClass: "d-sm-none"
-  })]) : _vm._e(), _vm._v(" "), _c("hr", {
-    staticClass: "my-3"
-  })], 1);
+  })]) : _vm._e()], 1);
 };
 var staticRenderFns = [function () {
   var _vm = this,

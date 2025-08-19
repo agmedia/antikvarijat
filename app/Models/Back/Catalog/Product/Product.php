@@ -40,6 +40,10 @@ class Product extends Model
      */
     protected $request;
 
+    protected $casts = [
+        'tags' => 'array',
+    ];
+
     /**
      * @var null
      */
@@ -153,7 +157,8 @@ class Product extends Model
             'name'     => 'required',
             'sku'      => 'required',
             'price'    => 'required',
-            'category' => 'required'
+            'category' => 'required',
+            'tags'     => 'nullable|string', // prima "a,b,c"
         ]);
 
         // Set Product Model request variable
@@ -185,6 +190,7 @@ class Product extends Model
             'polica'           => $this->request->polica,
             'description'      => $this->cleanHTML($this->request->description),
             'slug'             => $slug,
+            'tags'             => $this->request->tags,
             'price'            => $this->request->price,
             'quantity'         => $this->request->quantity ?: 0,
             'tax_id'           => $this->request->tax_id ?: 1,
@@ -245,6 +251,7 @@ class Product extends Model
             'polica'           => $this->request->polica,
             'description'      => $this->cleanHTML($this->request->description),
             'slug'             => $slug,
+            'tags'             => $this->request->tags,
             'price'            => isset($this->request->price) ? $this->request->price : 0,
             'quantity'         => $this->request->quantity ?: 0,
             'tax_id'           => $this->request->tax_id ?: 1,
@@ -461,6 +468,37 @@ class Product extends Model
 
         return preg_replace('/ face=("|\')(.*?)("|\')/', '', $clean);
     }
+
+    /**
+     * Pretvara ulaz (string "a,b,c" ili array) u normalizirani array i sprema u JSON.
+     */
+    public function setTagsAttribute($value): void
+    {
+        $arr = is_array($value)
+            ? $value
+            : explode(',', (string)$value);
+
+        $arr = collect($arr)
+            ->map(fn($t) => trim(mb_strtolower($t)))
+            ->filter()     // ukloni praznine
+            ->unique()     // jedinstveni
+            ->values()
+            ->all();
+
+        // prazno -> null (čistiji JSON u bazi)
+        $this->attributes['tags'] = empty($arr) ? null : json_encode($arr, JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
+     * Helper za prikaz u formi (comma-separated string iz JSON-a).
+     * Primjer u Bladeu: value="{{ old('tags', $product->tags_string) }}"
+     */
+    public function getTagsStringAttribute(): string
+    {
+        $arr = $this->tags ?? [];
+        return implode(',', $arr);
+    }
+
 
 
     /**

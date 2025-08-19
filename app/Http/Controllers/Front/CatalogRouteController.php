@@ -6,6 +6,7 @@ use App\Helpers\Breadcrumb;
 use App\Helpers\Helper;
 use App\Http\Controllers\Controller;
 use App\Imports\ProductImport;
+use App\Models\Back\Settings\Settings;
 use App\Models\Front\Blog;
 use App\Models\Front\Page;
 use App\Models\Front\Faq;
@@ -58,11 +59,42 @@ class CatalogRouteController extends Controller
             $seo = Seo::getProductData($prod);
             $gdl = TagManager::getGoogleProductDataLayer($prod);
 
+            // --- Recently viewed (session) ---
+            $recent = collect(session('recent_products', []));
+
+        // Uvijek stavi trenutni proizvod na početak, bez duplikata
+            $recent = $recent->prepend($prod->id)->unique()->values();
+
+        // (Opcionalno) ne čuvaj beskonačno – npr. do 50 posljednjih
+            $recent = $recent->take(50);
+            session(['recent_products' => $recent->all()]);
+
+            // Za prikaz: uzmi do 15 posljednjih, isključi trenutni proizvod
+            $recentIds = $recent->filter(fn ($id) => (int)$id !== (int)$prod->id)
+                ->take(15)
+                ->values()
+                ->all();
+
+            // Dohvati proizvode tim redoslijedom
+            $recentProducts = collect();
+            if (!empty($recentIds)) {
+                $recentProducts = Product::whereIn('id', $recentIds)
+                    ->where('status', 1)
+                    ->get()
+                    // sortBy prema redoslijedu u $recentIds
+                    ->sortBy(fn ($p) => array_search($p->id, $recentIds))
+                    ->values();
+            }
+
+
             $bc = new Breadcrumb();
             $crumbs = $bc->product($group, $cat, $subcat, $prod)->resolve();
             $bookscheme = $bc->productBookSchema($prod);
 
-            return view('front.catalog.product.index', compact('prod', 'group', 'cat', 'subcat', 'seo', 'crumbs', 'bookscheme', 'gdl'));
+            $shipping_methods = Settings::getList('shipping', 'list.%', true);
+            $payment_methods = Settings::getList('payment', 'list.%', true);
+
+            return view('front.catalog.product.index', compact('prod', 'group', 'cat', 'subcat', 'seo', 'crumbs', 'bookscheme','shipping_methods','payment_methods', 'gdl', 'recentProducts'));
         }
 
         // If only group...

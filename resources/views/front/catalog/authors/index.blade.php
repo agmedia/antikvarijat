@@ -11,11 +11,11 @@
 @section('content')
 
     <!-- Hero section with search-->
-    <section class="position-relative  bg-size-cover bg-position-center-x position-relative py-3 mb-3" style="background-image: url({{ config('settings.images_domain') . 'media/img/indexslika.jpg' }});-webkit-background-size: cover;-moz-background-size: cover;-o-background-size: cover;background-size: cover">
+    <section class="position-relative   py-3 mb-3" style="background-image: url({{ asset('media/img/farmer.png')  }});background-repeat: repeat">
         <div class="container position-relative zindex-5 py-4 my-3">
             <div class="row justify-content-center">
                 <div class="col-lg-8">
-                    <h1 class="text-light text-center">Lista autora</h1>
+                    <h1 class="text-dark text-center">Lista autora</h1>
 
 
                     <form action="{{ route('pretrazi', ['tip' => 'author']) }}" method="get" style="max-width:500px; margin: 0 auto;margin-top:30px">

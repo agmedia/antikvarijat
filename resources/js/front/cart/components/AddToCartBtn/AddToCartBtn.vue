@@ -2,7 +2,7 @@
     <div class="cart mb-5 d-flex align-items-center" v-cloak v-if="show_buy">
         <div class="d-flex flex-wrap align-items-center pt-4 pb-2 mb-3">
             <input class="form-control me-3 "  type="number" inputmode="numeric" pattern="[0-9]*" v-model="quantity" min="1" :max="is_available" v-if="show_quantity" style="width: 5rem;">
-            <button class="btn btn-primary btn-shadow  w-auto" @click="addToCart()">Dodaj u Košaricu</button>
+            <button class="btn btn-primary btn-shadow  w-auto" @click="addToCart()"><i class="ci-cart fs-base me-1"></i> Dodaj u Košaricu</button>
         </div>
     </div>
     <div class="cart mb-5 d-flex align-items-center" v-cloak v-else>
@@ -13,9 +13,9 @@
 <script>
 export default {
     props: {
-        id: String,
-        product: String,
-        wishlist: String
+        id: [String, Number],
+        product: { type: Object, required: true },
+        wishlist: [String, Number]
     },
 
     data() {
@@ -29,8 +29,10 @@ export default {
         }
     },
     //
+
+
     beforeMount() {
-        this.context_product = JSON.parse(this.product);
+        this.context_product = this.product;      // ✅ već je object
         this.is_available = this.context_product.quantity;
 
         if (this.wishlist == '0') {

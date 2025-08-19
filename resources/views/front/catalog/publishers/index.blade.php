@@ -10,12 +10,12 @@
 
 @section('content')
 
-    <section class="position-relative  bg-size-cover bg-position-center-x position-relative py-3 mb-3" style="background-image: url({{ config('settings.images_domain') . 'media/img/indexslika.jpg' }});-webkit-background-size: cover;-moz-background-size: cover;-o-background-size: cover;background-size: cover;">
+    <section class="position-relative   py-3 mb-3" style="background-image: url({{ asset('media/img/farmer.png')  }});background-repeat: repeat">
         <div class="container position-relative zindex-5 py-4 my-3">
             <div class="row justify-content-center">
                 <div class="col-lg-8">
-                    <h1 class="text-light text-center">Lista nakladnika</h1>
-                    <p class="pb-0 text-light text-center mb-0">Pretraživanje prema početnom slovu imena nakladnika</p>
+                    <h1 class="text-dark text-center">Lista nakladnika</h1>
+                    <p class="pb-0 text-dark text-center mb-0">Pretraživanje prema početnom slovu imena nakladnika</p>
                 </div>
             </div>
         </div>

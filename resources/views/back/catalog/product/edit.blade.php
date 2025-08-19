@@ -152,6 +152,37 @@
                                 </div>
                             </div>
 
+
+                            <div class="form-group row mb-4">
+                                <div class="col-md-12">
+                                    <label for="tagInput">Tagovi</label>
+
+                                    {{-- Skriveni input koji šaljemo u formi (comma-separated) --}}
+                                    <input type="hidden" name="tags" id="tagsHidden"
+                                           value="{{ old('tags', isset($product) ? $product->tags_string : '') }}">
+
+                                    {{-- Vidljivi input za unos tagova (nema name, da ne pregazi hidden) --}}
+                                    <input type="text" id="tagInput" class="form-control" placeholder="Upiši tag i pritisni Enter ili odaberi postojeći ,">
+
+                                    {{-- Prikaz odabranih tagova kao badge-ova --}}
+
+                                    <div id="tagBadges" class="mt-2"></div>
+
+                                    {{-- Ponuda/sugestije postojećih tagova --}}
+                                    <small>Ponuda/sugestije postojećih tagova</small>
+                                    <div id="tagSuggestions" class="mt-2"></div>
+
+                                    @error('tags')
+                                    <small class="text-danger">{{ $message }}</small>
+                                    @enderror
+                                </div>
+                            </div>
+
+
+
+
+
+
                             <div class="form-group row items-push mb-4">
                                 <div class="col-md-4">
                                     <label for="dm-post-edit-slug">Kategorija <span class="text-danger">*</span></label>
@@ -369,6 +400,143 @@
 
             });
         })
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const input   = document.getElementById('tagInput');
+            const hidden  = document.getElementById('tagsHidden');
+            const badges  = document.getElementById('tagBadges');
+            const sugg    = document.getElementById('tagSuggestions');
+
+            // Svi postojeći tagovi iz baze (controller)
+            const ALL_TAGS = {!! json_encode($allTags ?? []) !!};
+
+            // --- Helpers ---
+            const parseHidden = () => (hidden.value ? hidden.value.split(',').map(t => t.trim()).filter(Boolean) : []);
+            const saveHidden  = (arr) => hidden.value = arr.join(',');
+            const uniqLower   = (arr) => Array.from(new Set(arr.map(t => t.toLowerCase())));
+            const escapeHtml  = (s) => s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+            const escapeAttr  = escapeHtml;
+
+            const normalized = (s) => s.trim().toLowerCase();
+
+            const addTags = (parts) => {
+                const current = parseHidden();
+                const merged = uniqLower([...current, ...parts.map(normalized)]).sort((a,b)=>a.localeCompare(b));
+                saveHidden(merged);
+                input.value = '';
+                renderBadges();
+                renderSuggestions(''); // refresh ponude
+            };
+
+            const removeTag = (t) => {
+                const next = parseHidden().filter(x => normalized(x) !== normalized(t));
+                saveHidden(next);
+                renderBadges();
+                renderSuggestions(input.value); // refresh
+            };
+
+            const renderBadges = () => {
+                badges.innerHTML = '';
+                parseHidden().forEach(tag => {
+                    const badge = document.createElement('span');
+                    badge.className = 'badge badge-pill badge-secondary mr-1 mb-1 d-inline-flex align-items-center';
+                    badge.style.fontSize = '90%';
+                    badge.innerHTML = `
+                                                <span class="pr-1">${escapeHtml(tag)}</span>
+                                                <button type="button" class="close ml-1" aria-label="Remove" data-tag="${escapeAttr(tag)}">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            `;
+                    badges.appendChild(badge);
+                });
+            };
+
+            // Sugestije: prikaz postojećih tagova koje još nismo odabrali, filtrirano prema inputu
+            const renderSuggestions = (filterText) => {
+                const selected = parseHidden().map(normalized);
+                const f = normalized(filterText || '');
+                let list = ALL_TAGS
+                    .map(normalized)
+                    .filter(t => !selected.includes(t))
+                    .filter(t => f ? t.includes(f) : true);
+
+                // ograniči na 30 da ne zatrpamo
+                list = Array.from(new Set(list)).slice(0, 30);
+
+                if (!list.length) {
+                    sugg.innerHTML = '';
+                    return;
+                }
+
+                // tip: koristimo male "btn" badge-ove koji se mogu kliknuti
+                sugg.innerHTML = '';
+                const wrap = document.createElement('div');
+                list.forEach(t => {
+                    const b = document.createElement('button');
+                    b.type = 'button';
+                    b.className = 'btn btn-sm btn-outline-secondary mr-1 mb-1';
+                    b.setAttribute('data-add', t);
+                    b.textContent = t;
+                    wrap.appendChild(b);
+                });
+                sugg.appendChild(wrap);
+            };
+
+            const addFromInput = () => {
+                let val = input.value.trim().replace(/\s+/g, ' ');
+                if (!val) return;
+                // podrži paste "laravel, php, vue"
+                const parts = val.split(',').map(s => s.trim()).filter(Boolean);
+                addTags(parts);
+            };
+
+            // --- Init ---
+            renderBadges();
+            renderSuggestions(''); // prikaži sve dostupne tagove odmah
+
+            // --- Events ---
+            // Enter ili , potvrđuju tag
+            input.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' || e.key === ',') {
+                    e.preventDefault();
+                    addFromInput();
+                } else if (e.key === 'Backspace' && input.value === '') {
+                    // Backspace na prazno briše zadnji tag
+                    const arr = parseHidden();
+                    if (arr.length) {
+                        arr.pop();
+                        saveHidden(arr);
+                        renderBadges();
+                        renderSuggestions(input.value);
+                    }
+                }
+            });
+
+            // Dok tipkaš, filtriraj sugestije
+            input.addEventListener('input', function () {
+                renderSuggestions(input.value);
+            });
+
+            // Blur potvrđuje ono što je upisano
+            input.addEventListener('blur', addFromInput);
+
+            // Klik na X uklanja tag
+            badges.addEventListener('click', function (e) {
+                const btn = e.target.closest('button[data-tag]');
+                if (!btn) return;
+                removeTag(btn.getAttribute('data-tag'));
+            });
+
+            // Klik na sugestiju dodaje tag
+            sugg.addEventListener('click', function (e) {
+                const btn = e.target.closest('button[data-add]');
+                if (!btn) return;
+                addTags([btn.getAttribute('data-add')]);
+                input.focus();
+            });
+        });
     </script>
 
     <script>

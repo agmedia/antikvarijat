@@ -228,7 +228,11 @@
 
 <!-- Main theme script-->
 
-<script src="{{ asset('js/cart.js') }}"></script>
+<script src="{{ asset('js/cart.js?v=100.2') }}"></script>
+
+<script src="{{ asset('vendor/lightgallery/lightgallery.min.js') }}"></script>
+<script src="{{ asset('vendor/lightgallery/plugins/fullscreen/lg-fullscreen.min.js') }}"></script>
+<script src="{{ asset('vendor/lightgallery/plugins/zoom/lg-zoom.min.js') }}"></script>
 
 <script src="{{ asset('js/theme.min.js') }}"></script>
 <script type="text/javascript">
