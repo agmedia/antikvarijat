@@ -256,7 +256,7 @@
                                 json.products.forEach(function (item) {
                                     html += '<tr>'
                                         +   '<td class="image"><a href="'+item.url+'"><img width="80" alt="'+escapeHtml(item.name)+'" src="'+item.image+'"></a></td>'
-                                        +   '<td class="main"><a href="'+item.url+'">'+escapeHtml(item.name)+'<br><small>'+escapeHtml(item.sku||'')+'</small></a></td>'
+                                        +   '<td class="main"><a href="'+item.url+'">'+escapeHtml(item.name)+'<br><small>'+escapeHtml(item.author_title||'')+'</small></a></td>'
                                         +   '<td class="price text-end"><a href="'+item.url+'"><div class="price"><span class="price">'+(item.main_price_text||'')+'</span></div></a></td>'
                                         + '</tr>';
                                 });
