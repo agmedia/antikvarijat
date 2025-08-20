@@ -30,7 +30,7 @@
                 @elseif ($order->payment_code == 'cod')
                     <b>{{ __('Gotovinom prilikom pouzeća') }}</b>
                 @elseif ($order->payment_code == 'corvus')
-                    <b>{{ __('T-Com Payway') }}</b>
+                    <b>{{ __('Corvus Pay') }}</b>
                 @else
                     <b>{{ __('Plaćanje prilikom preuzimanja') }}</b>
                 @endif
