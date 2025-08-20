@@ -45,9 +45,7 @@
                                     <select class="form-control" id="target-select" name="target">
                                         <option></option>
                                         <option value="product" {{ (isset($widget->target) and $widget->target == 'product') ? 'selected="selected"' : '' }}>Artikli</option>
-                                        {{--@foreach ($targets as $target)
-                                            <option value="{{ $target->id }}" {{ (isset($widget) and $target->id == $widget->target) ? 'selected="selected"' : '' }}>{{ $target->title }}</option>
-                                        @endforeach--}}
+                                        <option value="product_category" {{ (isset($widget->target) and $widget->target == 'product_category') ? 'selected="selected"' : '' }}>Group</option>
                                     </select>
                                 </div>
                             </div>

@@ -214,6 +214,8 @@ Route::prefix('api/v2')->group(function () {
     // SEARCH
     Route::get('pretrazi/autocomplete', [CatalogRouteController::class, 'search'])->name('api.front.autocomplete');
     Route::get('pretrazi', [CatalogRouteController::class, 'search'])->name('api.front.search');
+
+
     // CART
     Route::prefix('cart')->group(function () {
         Route::get('/get', [CartController::class, 'get']);
@@ -325,6 +327,7 @@ Route::get('/uspjeh', [CheckoutController::class, 'success'])->name('checkout.su
 Route::get('/greska', [CheckoutController::class, 'error'])->name('checkout.error');
 //
 Route::get('pretrazi', [CatalogRouteController::class, 'search'])->name('pretrazi');
+Route::get('tag', [CatalogRouteController::class, 'tag'])->name('tag');
 //
 Route::get('info/{page}', [CatalogRouteController::class, 'page'])->name('catalog.route.page');
 Route::get('blog/{blog?}', [CatalogRouteController::class, 'blog'])->name('catalog.route.blog');

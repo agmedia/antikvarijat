@@ -62,9 +62,9 @@ class CartController extends Controller
     public function get()
     {
         $response = $this->cart->get();
-        
+
         $this->resolveDB($response);
-        
+
         return response()->json($response);
     }
 
@@ -76,11 +76,17 @@ class CartController extends Controller
      */
     public function check(Request $request)
     {
-        $response = $this->cart->check($request);
+        $message = $this->cart->check($request->all());
 
-        $this->resolveDB($response);
+        // uvijek pošalji i aktualni cart
+        $cart = $this->cart->get();
 
-        return response()->json($response);
+        $this->cart->resolveDB();
+
+        return response()->json([
+            'message' => $message,
+            'cart'    => $cart,
+        ]);
     }
 
 
@@ -108,9 +114,9 @@ class CartController extends Controller
     public function update(Request $request, $id)
     {
         $response = $this->cart->add($request, $id);
-    
+
         $this->resolveDB($response);
-    
+
         return response()->json($response);
     }
 
@@ -123,9 +129,9 @@ class CartController extends Controller
     public function remove($id)
     {
         $response = $this->cart->remove($id);
-    
+
         $this->resolveDB($response);
-    
+
         return response()->json($response);
     }
 
@@ -141,8 +147,20 @@ class CartController extends Controller
 
         return response()->json($this->cart->coupon($coupon));
     }
-    
-    
+
+
+    /**
+     * @param $loyalty
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function loyalty($loyalty)
+    {
+        session([$this->key . '_loyalty' => $loyalty]);
+
+        return response()->json($this->cart->hasLoyalty());
+    }
+
     /**
      * Resolve new cart session.
      * If user is logged, check the DB for cart session entries.
@@ -168,7 +186,7 @@ class CartController extends Controller
             // Queue the storage of cart data.
             dispatch(function () use ($response) {
                 $has_cart = Cart::where('user_id', Auth::user()->id)->first();
-    
+
                 if ($has_cart) {
                     Cart::edit($response);
                 } else {

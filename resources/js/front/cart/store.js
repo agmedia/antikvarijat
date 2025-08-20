@@ -357,11 +357,11 @@ let store = {
                 if (response.message && window.location.pathname != '/uspjeh') {
                     //window.ToastWarningLong.fire(response.message)
 
-                    if (window.location.pathname != '/kosarica') {
+                   /* if (window.location.pathname != '/kosarica') {
                         window.setTimeout(() => {
                             window.location.href = '/kosarica';
                         }, 5000);
-                    }
+                    }*/
                 }
 
             })

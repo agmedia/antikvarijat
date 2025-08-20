@@ -41,6 +41,8 @@ class ActionGroupList extends Component
      */
     public $list = [];
 
+    public $dropdown_limit = 15;
+
 
     public function mount()
     {
@@ -73,6 +75,9 @@ class ActionGroupList extends Component
                 case 'category':
                     $this->search_results = Category::where('title', 'like', '%' . $this->search . '%')->limit(5)->get();
                     break;
+                case 'product_category':
+                    $this->search_results = Category::where('title', 'like', '%' . $this->search . '%')->limit($this->dropdown_limit)->get();
+                    break;
                 case 'publisher':
                     $this->search_results = Publisher::where('title', 'like', '%' . $this->search . '%')->limit(5)->get();
                     break;
@@ -104,6 +109,11 @@ class ActionGroupList extends Component
                 break;
             case 'publisher':
                 $this->list[$id] = Publisher::where('id', $id)->first();
+                break;
+
+
+            case 'product_category':
+                $this->list[$id] = Category::where('id', $id)->first();
                 break;
             case 'author':
                 $this->list[$id] = Author::where('id', $id)->first();

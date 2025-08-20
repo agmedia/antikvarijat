@@ -1,30 +1,69 @@
 <template>
-    <div class="navbar-tool dropdown ms-1"><a class="navbar-tool-icon-box bg-secondary dropdown-toggle" :href="carturl"><span class="navbar-tool-label">{{ $store.state.cart ? $store.state.cart.count : 0 }}</span><i class="navbar-tool-icon ci-cart"></i></a>
-        <!-- Cart dropdown-->
+    <div class="navbar-tool dropdown ms-1">
+        <a class="navbar-tool-icon-box dropdown-toggle" :href="carturl">
+            <span class="navbar-tool-label">{{ count }}</span>
+            <i class="navbar-tool-icon ci-bag"></i>
+        </a>
+
+        <!-- Cart dropdown -->
         <div class="dropdown-menu dropdown-menu-end">
-            <div class="widget widget-cart px-3 pt-2 pb-3" style="width: 24rem;" v-if="$store.state.cart.count">
-                <div data-simplebar-auto-hide="false" v-for="item in $store.state.cart.items">
+            <div class="widget widget-cart px-3 pt-2 pb-3" style="width: 24rem;" v-if="count > 0">
+                <div data-simplebar-auto-hide="false" v-for="item in cartItems" :key="itemKey(item)">
                     <div class="widget-cart-item pb-2 border-bottom">
-                        <button class="btn-close text-danger" type="button" @click.prevent="removeFromCart(item)" aria-label="Remove"><span aria-hidden="true">&times;</span></button>
+                        <button class="btn-close text-danger" type="button" @click.prevent="removeFromCart(item)" aria-label="Remove">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
                         <div class="d-flex align-items-center">
-                            <a class="d-block flex-shrink-0 pt-2" href="#"><img :src="item.associatedModel.image" :alt="item.name" :title="item.name" style="width: 5rem;"></a>
+                            <a class="d-block flex-shrink-0 pt-2" :href="productUrl(item)">
+                                <img
+                                    :src="(item.associatedModel && item.associatedModel.image) ? item.associatedModel.image : ''"
+                                    :alt="item.name"
+                                    :title="item.name"
+                                    style="width: 5rem;"
+                                >
+                            </a>
                             <div class="ps-2">
-                                <h6 class="widget-product-title"><a :href="base_path + item.attributes.path">{{ item.name }}</a></h6>
-                                <div class="widget-product-meta"><span class="text-accent me-2">{{ Object.keys(item.conditions).length ? item.associatedModel.main_special_text : item.associatedModel.main_price_text }}</span><span class="text-muted">x {{ item.quantity }}</span></div>
-                                <div class="widget-product-meta"><span class="text-accent me-2" v-if="item.associatedModel.secondary_price">{{ Object.keys(item.conditions).length ? item.associatedModel.secondary_special_text : item.associatedModel.secondary_price_text }}</span><span class="text-muted">x {{ item.quantity }}</span></div>
+                                <h6 class="widget-product-title">
+                                    <a :href="productUrl(item)">{{ item.name }}</a>
+                                </h6>
+
+                                <div class="widget-product-meta">
+                  <span class="text-primary me-2">
+                    {{ hasConditions(item)
+                      ? (item.associatedModel && item.associatedModel.main_special_text ? item.associatedModel.main_special_text : '')
+                      : (item.associatedModel && item.associatedModel.main_price_text ? item.associatedModel.main_price_text : '')
+                      }}
+                  </span>
+                                    <span class="text-muted">x {{ item.quantity }}</span>
+                                </div>
+
+                                <div class="widget-product-meta" v-if="item.associatedModel && item.associatedModel.secondary_price">
+                  <span class="text-dark fs-sm me-2">
+                    {{ hasConditions(item)
+                      ? (item.associatedModel.secondary_special_text || '')
+                      : (item.associatedModel.secondary_price_text || '')
+                      }}
+                  </span>
+                                    <span class="text-muted">x {{ item.quantity }}</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+
                 <div class="d-flex flex-wrap justify-content-between align-items-center py-3">
                     <div class="fs-sm me-2 py-2">
-                        <span class="text-muted">Ukupno:</span><span class="text-accent fs-base ms-1">{{ $store.state.service.formatMainPrice($store.state.cart.total) }}</span>
-<!--                        <br v-if="$store.state.cart.secondary_price">
-                        <span v-if="$store.state.cart.secondary_price" class="text-muted">&nbsp;</span><span v-if="$store.state.cart.secondary_price" class="text-accent fs-base ms-1">{{ $store.state.service.formatSecondaryPrice($store.state.cart.total) }}</span>-->
+                        <span class="text-muted">Ukupno:</span>
+                        <span class="text-primary fs-base ms-1">{{ formattedTotal }}</span>
+                        <span v-if="hasSecondary" class="text-muted">{{ formattedTotalSecondary }}</span>
                     </div>
-                    <a class="btn btn-outline-secondary btn-sm" :href="carturl">Košarica<i class="ci-arrow-right ms-1 me-n1"></i></a>
-                </div><a class="btn btn-primary btn-sm d-block w-100" :href="carturl"><i class="ci-card me-2 fs-base align-middle"></i>Dovrši kupnju</a>
+                </div>
+
+                <a class="btn btn-primary btn-sm d-block w-100" :href="carturl">
+                    <i class="ci-card me-2 fs-base align-middle"></i>Dovrši kupnju
+                </a>
             </div>
+
             <div class="widget widget-cart px-3 pt-2 pb-3" style="width: 20rem;" v-else>
                 <i class="fa fa-cart-arrow-down fa-2x" style="color: #aaaaaa"></i>
                 <p>Vaša košarica je prazna!</p>
@@ -34,66 +73,130 @@
 </template>
 
 <script>
-    export default {
-        props: {
-            carturl: String,
-            checkouturl: String
+export default {
+    props: {
+        carturl: String,
+        checkouturl: String
+    },
+
+    data() {
+        return {
+            base_path: window.location.origin + '/',
+            success_path: window.location.origin + '/kosarica/success',
+            mobile: false
+        };
+    },
+
+    computed: {
+        cart() {
+            const s = (this.$store && this.$store.state) ? this.$store.state : {};
+            const c = s.cart || {};
+            const count = Number(c.count || 0);
+            const rawItems = c.items;
+            const items = Array.isArray(rawItems) ? rawItems : (rawItems ? Object.values(rawItems) : []);
+            return Object.assign({}, c, {count, items});
         },
-        //
-        data() {
-            return {
-                base_path: window.location.origin + '/',
-                success_path: window.location.origin + '/kosarica/success',
-                mobile: false
-            }
+
+        count() {
+            return Number(this.cart.count || 0);
         },
-        //
-        mounted() {
-            this.checkCart();
 
-            if (window.location.pathname == '/kosarica/success') {
-                this.$store.dispatch('flushCart');
-            }
-
-            if (window.innerWidth < 800) {
-                this.mobile = true;
-            }
-
-            if (window.location.pathname == '/pregled') {
-                window.setInterval(this.checkCart, 15000);
-            }
+        cartItems() {
+            return this.cart.items || [];
         },
-        //
-        methods: {
-            /**
-             *
-             */
-            checkCart() {
-                let kos = [];
-                let cart = this.$store.state.storage.getCart();
 
-                console.log(cart)
+        formattedTotal() {
+            const svc = (this.$store && this.$store.state) ? this.$store.state.service : null;
+            const total = (this.$store && this.$store.state && this.$store.state.cart) ? (this.$store.state.cart.total || 0) : 0;
+            return (svc && typeof svc.formatMainPrice === 'function')
+                ? svc.formatMainPrice(total)
+                : Number(total).toFixed(2);
+        },
 
-                this.$store.dispatch('getSettings');
+        hasSecondary() {
+            return !!(this.$store && this.$store.state && this.$store.state.cart && this.$store.state.cart.secondary_price);
+        },
 
-                if ( ! cart) {
-                    return this.$store.dispatch('getCart');
+        formattedTotalSecondary() {
+            const svc = (this.$store && this.$store.state) ? this.$store.state.service : null;
+            const total = (this.$store && this.$store.state && this.$store.state.cart) ? (this.$store.state.cart.total || 0) : 0;
+            return (svc && typeof svc.formatSecondaryPrice === 'function')
+                ? svc.formatSecondaryPrice(total)
+                : '';
+        }
+    },
+
+    mounted() {
+        this.checkCart();
+
+        if (window.location.pathname === '/kosarica/success') {
+            this.$store.dispatch('flushCart');
+        }
+
+        if (window.innerWidth < 800) {
+            this.mobile = true;
+        }
+
+        if (window.location.pathname === '/pregled') {
+            window.setInterval(this.checkCart, 15000);
+        }
+    },
+
+    methods: {
+        itemKey(item) {
+            const optId = (item && item.options && item.options.option_id) ? item.options.option_id : '';
+            return (item && item.id ? item.id : 'x') + '-' + optId;
+        },
+
+        hasConditions(item) {
+            const c = (item && item.conditions) ? item.conditions : null;
+            return c ? Object.keys(c).length > 0 : false;
+        },
+
+        productUrl(item) {
+            const path = (item && item.attributes && item.attributes.path)
+                ? item.attributes.path
+                : ((item && item.associatedModel && item.associatedModel.url) ? item.associatedModel.url : '');
+            return this.base_path + path;
+        },
+
+        checkCart() {
+            try {
+                const storage = (this.$store && this.$store.state && this.$store.state.storage && this.$store.state.storage.getCart)
+                    ? this.$store.state.storage.getCart()
+                    : null;
+
+                if (this.$store && this.$store.dispatch) {
+                    this.$store.dispatch('getSettings');
                 }
 
-                Object.keys(cart.items).forEach(function(key) {
-                    kos.push(cart.items[key].id)
-                });
+                if (!storage) {
+                    if (this.$store && this.$store.dispatch) {
+                        this.$store.dispatch('getCart');
+                    }
+                    return;
+                }
 
-                this.$store.dispatch('checkCart', kos);
-            },
+                const raw = storage.items;
+                const items = Array.isArray(raw) ? raw : (raw ? Object.values(raw) : []);
+                const kos = items.map(i => i.id).filter(Boolean);
 
-            /**
-             *
-             * @param item
-             */
-            removeFromCart(item) {
+                if (this.$store && this.$store.dispatch) {
+                    this.$store.dispatch('checkCart', kos);
+                }
+            } catch (e) {
+                if (this.$store && this.$store.dispatch) {
+                    this.$store.dispatch('getCart');
+                }
+            }
+        },
+
+        removeFromCart(item) {
+            if (this.$store && this.$store.dispatch) {
                 this.$store.dispatch('removeFromCart', item);
             }
+            window.location.reload();
         }
-    };
+    }
+};
 </script>

@@ -41,10 +41,11 @@
                     <!-- Slider     -->
                     <div class="col-xl-9 pt-0 order-xl-2">
                         <div class="tns-carousel">
-                            <div class="tns-carousel-inner" data-carousel-options="{&quot;items&quot;: 1, &quot;controls&quot;: false, &quot;autoplay&quot;: true, &quot;loop&quot;: true}">
-                                <div>
+                            <div class="tns-carousel-inner"
+                                 data-carousel-options="{&quot;items&quot;:1,&quot;controls&quot;:false,&quot;autoplay&quot;:true,&quot;autoplayTimeout&quot;:3500,&quot;autoplayHoverPause&quot;:true,&quot;speed&quot;:800,&quot;mode&quot;:&quot;carousel&quot;,&quot;loop&quot;:true,&quot;nav&quot;:false,&quot;mouseDrag&quot;:true,&quot;autoplayButtonOutput&quot;:false}">
+                                 <div>
                                     <div class="row align-items-center">
-                                        <div class="col-md-6 order-md-2"><img class="d-block mx-auto" src="{{ asset('media/img/hrvatska_rara_shape_matched.png') }}" alt="Hrvatska RARA"></div>
+                                        <div class="col-md-6 order-md-2"><img class="d-block mx-auto" src="{{ asset('media/img/knjige_rara_shape_left.png') }}" alt="Hrvatska RARA"></div>
                                         <div class="col-lg-5 col-md-6 offset-lg-1 order-md-1 pt-4 pb-md-4 text-center text-md-start">
                                             <p class="fw-light h4 pb-1 from-top delay-1">Za istinske kolekcionare</p>
                                             <h2 class="display-6 from-bottom ">Hrvatska RARA</h2>

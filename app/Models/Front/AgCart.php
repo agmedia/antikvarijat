@@ -127,7 +127,7 @@ class AgCart extends Model
 
                 $product = Product::where('id', intval($id))->first();
 
-               // $message = 'Nažalost, knjiga ' . substr($product->name, 0, 150) . ' više nije dostupna.';
+                // $message = 'Nažalost, knjiga ' . substr($product->name, 0, 150) . ' više nije dostupna.';
             }
         }
 
@@ -196,20 +196,20 @@ class AgCart extends Model
      */
     public function coupon($coupon)
     {
-        $items = $this->cart->getContent();
-
-        // Refreshaj košaricu sa upisanim kuponom.
-        foreach ($items as $item) {
+        // refresh košarice…
+        foreach ($this->cart->getContent() as $item) {
             $this->remove($item->id);
             $this->addToCart($this->resolveItemRequest($item));
         }
 
-        /*$has_coupon = ProductAction::active()->where('coupon', $coupon)->get();
+        $has_coupon = ProductAction::active()->where('coupon', $coupon)->exists();
 
-        if ($has_coupon->count()) {
+        if ($has_coupon) {
+            session(['sl_cart_coupon' => (string)$coupon]); // <-- spremi kao string
             return 1;
-        }*/
+        }
 
+        session()->forget('sl_cart_coupon');
         return 0;
     }
 
@@ -266,20 +266,26 @@ class AgCart extends Model
 
 
     /*******************************************************************************
-    *                                Copyright : AGmedia                           *
-    *                              email: filip@agmedia.hr                         *
-    *******************************************************************************/
+     *                                Copyright : AGmedia                           *
+     *                              email: filip@agmedia.hr                         *
+     *******************************************************************************/
 
     public function setCartConditions()
     {
         $this->cart->clearCartConditions();
 
-        $shipping_method = ShippingMethod::condition($this->cart);
-        $payment_method = PaymentMethod::condition($this->cart);
+        $shipping_method    = ShippingMethod::condition($this->cart);
+        $payment_method     = PaymentMethod::condition($this->cart);
+        $special_condition  = Helper::hasSpecialCartCondition($this->cart);
+        $loyalty_conditions = Helper::hasLoyaltyCartConditions($this->cart, intval($this->loyalty));
 
+        // UZMI kupon iz sessiona i osiguraj string
+        $coupon_code = (string) (session('sl_cart_coupon') ?? '');
+
+        // --- apply conditions ---
         if ($payment_method) {
             $str = str_replace('+', '', $payment_method->getValue());
-            if (number_format((float) $str) > 0) {
+            if (number_format((float)$str) > 0) {
                 $this->cart->condition($payment_method);
             }
         }
@@ -288,23 +294,35 @@ class AgCart extends Model
             $this->cart->condition($shipping_method);
         }
 
-        // Style response array
+        if ($special_condition) {
+            $this->cart->condition($special_condition);
+        }
+
+        if ($coupon_code !== '') {
+            if ($coupon_conditions = Helper::hasCouponCartConditions($this->cart, $coupon_code)) {
+                $this->cart->condition($coupon_conditions);
+            }
+        }
+
+        if ($loyalty_conditions) {
+            $this->cart->condition($loyalty_conditions);
+        }
+
+        // Style response array …
         $response = [];
-
         foreach ($this->cart->getConditions() as $condition) {
-            $value = $condition->getValue();
-
             $response[] = [
-                'name' => $condition->getName(),
-                'type' => $condition->getType(),
-                'target' => 'total', // this condition will be applied to cart's subtotal when getSubTotal() is called.
-                'value' => $value,
-                'attributes' => $condition->getAttributes()
+                'name'       => $condition->getName(),
+                'type'       => $condition->getType(),
+                'target'     => 'total',
+                'value'      => $condition->getValue(),
+                'attributes' => $condition->getAttributes(),
             ];
         }
 
         return $response;
     }
+
 
 
     /**

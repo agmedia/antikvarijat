@@ -27,7 +27,7 @@
 
             <div class="col px-2 mb-4" v-for="product in products.data">
                 <div class="card product-card shadow mb-2">
-                    <span class="badge rounded-pill bg-primary mt-3 ms-1 badge-shadow" v-if="product.special">-{{ ($store.state.service.getDiscountAmount(product.price, product.special)) }}%</span>
+                    <span class="badge  bg-dark mt-1 ms-1 badge-shadow" v-if="product.special">-{{ ($store.state.service.getDiscountAmount(product.price, product.special)) }}%</span>
                     <div class="product-thumb">
                         <a :href="origin + product.url">
                         <img loading="lazy" :src="product.image.replace('.webp', '-thumb.webp')" width="250" height="300" :alt="product.name">

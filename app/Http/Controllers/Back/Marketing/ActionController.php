@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Back\Marketing;
 
+use App\Helpers\Currency;
 use App\Http\Controllers\Controller;
 use App\Models\Back\Catalog\Product\Product;
 use App\Models\Back\Marketing\Action;
@@ -11,6 +12,7 @@ use Illuminate\Support\Facades\Log;
 
 class ActionController extends Controller
 {
+
     /**
      * Display a listing of the resource.
      *
@@ -18,9 +20,29 @@ class ActionController extends Controller
      */
     public function index(Request $request)
     {
-        $actions = Action::paginate(12);
+        $groups = Settings::get('action', 'group_list');
+        $query  = Action::query();
 
-        return view('back.marketing.action.index', compact('actions'));
+        if ($request->has('lock')) {
+            $query->where('lock', $request->input('lock') == 'da' ? 1 : 0);
+        }
+        if ($request->has('coupon')) {
+            if ($request->input('coupon') == 'da') {
+                $query->where('coupon', '!=', '');
+            } else {
+                $query->where('coupon', null);
+            }
+        }
+        if ($request->has('status')) {
+            $query->where('status', $request->input('status') == 'da' ? 1 : 0);
+        }
+        if ($request->has('group')) {
+            $query->where('group', $request->input('group'));
+        }
+
+        $actions = $query->paginate(config('settings.pagination.back'))->appends(request()->query());
+
+        return view('back.marketing.action.index', compact('actions', 'groups'));
     }
 
 
@@ -32,7 +54,7 @@ class ActionController extends Controller
     public function create()
     {
         $groups = Settings::get('action', 'group_list');
-        $types = Settings::get('action', 'type_list');
+        $types  = Settings::get('action', 'type_list');
 
         return view('back.marketing.action.edit', compact('groups', 'types'));
     }
@@ -69,7 +91,7 @@ class ActionController extends Controller
     public function edit(Action $action)
     {
         $groups = Settings::get('action', 'group_list');
-        $types = Settings::get('action', 'type_list');
+        $types  = Settings::get('action', 'type_list');
 
         return view('back.marketing.action.edit', compact('action', 'groups', 'types'));
     }
@@ -85,6 +107,7 @@ class ActionController extends Controller
      */
     public function update(Request $request, Action $action)
     {
+        //dd($request->toArray());
         $updated = $action->validateRequest($request)->edit();
 
         if ($updated) {
@@ -104,7 +127,8 @@ class ActionController extends Controller
      */
     public function destroy(Request $request, Action $action)
     {
-        $destroyed = Action::destroy($action->id);
+        $action->deleteProductActions();
+        $destroyed = $action->delete();
 
         if ($destroyed) {
             return redirect()->route('actions')->with(['success' => 'Akcija je uspjšeno izbrisana!']);
@@ -124,11 +148,14 @@ class ActionController extends Controller
     public function destroyApi(Request $request)
     {
         if ($request->has('id')) {
-            $action = Action::find($request->input('id'));
-            $action->truncateProducts();
+            $action    = Action::query()->find($request->input('id'));
             $destroyed = $action->delete();
 
+            Log::info($destroyed);
+
             if ($destroyed) {
+                $action->deleteProductActions($request->input('id'));
+
                 return response()->json(['success' => 200]);
             }
         }

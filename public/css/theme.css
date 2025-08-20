@@ -28,7 +28,16 @@
     background-repeat: repeat
 }
 
+.ag-added-popup{max-width:520px!important}
+.ag-added-modal{text-align:left}
+.ag-added-body{display:flex;gap:14px;align-items:flex-start;margin-bottom:12px}
+.ag-added-img{width:96px;height:96px;object-fit:cover;border-radius:8px}
+.ag-added-info{flex:1}
+.ag-added-title{font-weight:600;margin-bottom:6px}
+.ag-added-price{font-size:1.05rem;opacity:.9}
+.ag-added-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:6px}
 
+ul.info-list li{padding:3px 0}
 
 .icon-gold { color:#bfa76a!important; }
 .nav img, .nav svg { width:18px; height:18px; }
@@ -5083,7 +5092,7 @@ textarea.form-control-lg {
     font-size:1rem;
     color:#373f50;
     background-color:rgba(0, 0, 0, 0);
-    border:1px solid #dde4eb;
+    border:1px solid #f0e6c9;
     border-radius:0;
     overflow-anchor:none;
     transition:color 0.25s ease-in-out, background-color 0.25s ease-in-out, border-color 0.25s ease-in-out, box-shadow 0.2s ease-in-out, border-radius 0.15s ease
@@ -5135,7 +5144,7 @@ textarea.form-control-lg {
 
 .accordion-button:focus {
     z-index:3;
-    border-color:#dde4eb;
+    border-color:#f0e6c9;
     outline:0;
     box-shadow:unset
 }
@@ -5162,7 +5171,7 @@ textarea.form-control-lg {
 }
 
 .accordion-collapse {
-    border:solid #dde4eb;
+    border:solid #f0e6c9;
     border-width:0 1px
 }
 
@@ -5317,15 +5326,15 @@ textarea.form-control-lg {
 
 .badge {
     display:inline-block;
-    padding:.25em .625em;
-    font-size:.75em;
+    padding:.25em .625em 0.35em;
+    font-size:.9375em;
     font-weight:normal;
-    line-height:1;
+    line-height:1.1;
     color:#fff;
     text-align:center;
     white-space:nowrap;
     vertical-align:baseline;
-    border-radius:.175rem
+    border-radius:.175rem;
 }
 
 .badge:empty {
@@ -5339,7 +5348,7 @@ textarea.form-control-lg {
 
 .alert {
     position:relative;
-    padding:.75rem 1.125rem;
+    padding:.50rem 1.125rem;
     margin-bottom:1rem;
     border:1px solid transparent;
     border-radius:.4375rem
@@ -7334,7 +7343,7 @@ textarea.form-control-lg {
 }
 
 .border-bottom {
-    border-bottom:1px solid #e3e9ef !important
+    border-bottom:1px solid #f0e6c9 !important;
 }
 
 .border-bottom-0 {
@@ -17917,7 +17926,7 @@ a.nav-link:hover .media-tab-media {
     height:2.125rem;
     border-radius:50%;
     background-position:center;
-    background-color:#f3f5f9
+    background-color:#f7f4ec;
 }
 
 .breadcrumb-item::before {
@@ -18102,8 +18111,8 @@ a.nav-link:hover .media-tab-media {
 }
 
 .alert-secondary {
-    border-color:#e3e9ef;
-    background-color:#f6f9fc
+    border-color:#f0e6c9;
+    background-color:#fffdf8;
 }
 
 .alert-secondary, .alert-light {
@@ -18143,11 +18152,11 @@ a.nav-link:hover .media-tab-media {
 .alert-icon {
     display:flex;
     align-items:center;
-    margin-top:-.75rem;
+    margin-top:-.50rem;
     margin-right:1.125rem;
-    margin-bottom:-.75rem;
+    margin-bottom:-.50rem;
     margin-left:-1.125rem;
-    padding:.75em;
+    padding:.50em;
     border-top-left-radius:.4375rem;
     border-bottom-left-radius:.4375rem;
     font-size:1.125rem
@@ -18194,7 +18203,7 @@ a.nav-link:hover .media-tab-media {
 }
 
 .alert-secondary .alert-icon {
-    background-color:#e3e9ef
+    background-color:#f7f4ec;
 }
 
 .alert-light .alert-icon {
@@ -18791,7 +18800,7 @@ a.nav-link:hover .media-tab-media {
 }
 
 .steps-dark .step-item {
-    color:#7d879c
+    color:#314837;
 }
 
 .steps-dark .step-count, .steps-dark .step-progress {
@@ -19369,12 +19378,12 @@ html:not([dir=rtl]) .range-slider-ui.noUi-horizontal .noUi-handle {
 .product-meta {
     transition:color 0.25s ease-in-out;
     color:#7d879c;
-    text-decoration:none !important
+    text-decoration:none !important;
     white-space: nowrap;       /* onemogućava prelamanje teksta */
     overflow: hidden;          /* skriva višak teksta */
     text-overflow: ellipsis;   /* dodaje ... ako je predugačko */
     display: block;            /* ili inline-block ako želiš u liniji */
-    max-width: 100%;           /* ili određena širina, npr. 200px */
+    max-width: 220px;         /* ili određena širina, npr. 200px */
 }
 
 .product-meta:hover {

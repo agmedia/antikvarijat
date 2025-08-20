@@ -3388,7 +3388,7 @@ var render = function render() {
     }, [_c("div", {
       staticClass: "card product-card shadow mb-2"
     }, [product.special ? _c("span", {
-      staticClass: "badge rounded-pill bg-primary mt-3 ms-1 badge-shadow"
+      staticClass: "badge bg-dark mt-1 ms-1 badge-shadow"
     }, [_vm._v("-" + _vm._s(_vm.$store.state.service.getDiscountAmount(product.price, product.special)) + "%")]) : _vm._e(), _vm._v(" "), _c("div", {
       staticClass: "product-thumb"
     }, [_c("a", {

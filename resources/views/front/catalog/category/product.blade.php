@@ -1,6 +1,6 @@
 <div class="card product-card shadow mb-2 pb-4">
     @if ($product->main_price > $product->main_special)
-        <span class="badge rounded-pill bg-primary mt-3 ms-1 badge-shadow">-{{ number_format(floatval(\App\Helpers\Helper::calculateDiscount($product->price, $product->special())), 0) }}%</span>
+        <span class="badge  bg-dark mt-1 ms-1 badge-shadow">-{{ number_format(floatval(\App\Helpers\Helper::calculateDiscount($product->price, $product->special())), 0) }}%</span>
     @endif
     <div class="product-thumb">
 

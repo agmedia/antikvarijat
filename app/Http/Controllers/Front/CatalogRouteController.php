@@ -296,6 +296,27 @@ class CatalogRouteController extends Controller
 
 
 
+        public function tag(Request $request)
+    {
+        $key = config('settings.search_keyword', 'pojam'); // default to 'pojam'
+        $query = $request->input($key);
+
+        if ($query === null) {
+            return redirect()->back()->with(['error' => 'Nedostaje parametar pretrage.']);
+        }
+        if ($query === '') {
+            return redirect()->back()->with(['error' => 'Oops..! Zaboravili ste upisati pojam za pretraživanje..!']);
+        }
+
+        $ids = Helper::getTags($query);
+        $group = $cat = $subcat = $crumbs = null;
+
+        return view('front.catalog.category.index', compact('group','cat','subcat','ids','crumbs'));
+
+    }
+
+
+
     public function search(Request $request)
     {
         // web stranica s rezultatima (ne diramo)

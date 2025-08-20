@@ -3,11 +3,11 @@
 
 @section('content')
 
-<div class="page-title-overlap bg-accent pt-4" >
+<div class="page-title-overlap bg-accent pt-4"  style="background-image: url({{ asset('media/img/farmer.png')  }});background-repeat: repeat">
     <div class="container d-lg-flex justify-content-between py-2 py-lg-3">
         <div class="order-lg-2 mb-3 mb-lg-0 pt-lg-2">
             <nav aria-label="breadcrumb">
-                <ol class="breadcrumb breadcrumb-light flex-lg-nowrap justify-content-center justify-content-lg-start">
+                <ol class="breadcrumb breadcrumb-dark flex-lg-nowrap justify-content-center justify-content-lg-start">
                     <li class="breadcrumb-item"><a class="text-nowrap" href="{{ route('index') }}"><i class="ci-home"></i>Naslovnica</a></li>
 
                     <li class="breadcrumb-item text-nowrap active" aria-current="page">Potvrdite narudžbu</li>
@@ -15,7 +15,7 @@
             </nav>
         </div>
         <div class="order-lg-1 pe-lg-4 text-center text-lg-start">
-            <h1 class="h3 text-light mb-0">Način plaćanja</h1>
+            <h1 class="h3 text-dark mb-0">Način plaćanja</h1>
         </div>
     </div>
 </div>
@@ -24,7 +24,7 @@
     <div class="row">
         <section class="col-lg-8">
 
-            <div class="steps steps-light pt-2 pb-3 mb-5">
+            <div class="steps steps-dark pt-2 pb-3 mb-5">
                 <a class="step-item active" href="{{ route('kosarica') }}">
                     <div class="step-progress"><span class="step-count">1</span></div>
                     <div class="step-label"><i class="ci-cart"></i>Košarica</div>
@@ -46,7 +46,7 @@
                     <div class="step-label"><i class="ci-check-circle"></i>Pregledaj</div>
                 </a>
             </div>
-
+            <div class="bg-white rounded-3 shadow-lg p-4">
             <h2 class="h6 pt-1 pb-3 mb-3">Pregled košarice</h2>
             <cart-view continueurl="{{ route('index') }}" checkouturl="{{ route('naplata') }}" buttons="false"></cart-view>
 
@@ -56,22 +56,22 @@
                         <h4 class="h6">Platitelj:</h4>
                         <ul class="list-unstyled fs-sm">
                             @if (auth()->guest())
-                                <li><span class="text-muted">Korisnik:&nbsp;</span>{{ $data['address']['fname'] }} {{ $data['address']['lname'] }}</li>
-                                <li><span class="text-muted">Adresa:&nbsp;</span>{{ $data['address']['address'] }}, {{ $data['address']['zip'] }} {{ $data['address']['city'] }}, {{ $data['address']['state'] }}</li>
-                                <li><span class="text-muted">Email:&nbsp;</span>{{ $data['address']['email'] }}</li>
+                                <li><span class="">Korisnik:&nbsp;</span>{{ $data['address']['fname'] }} {{ $data['address']['lname'] }}</li>
+                                <li><span class="">Adresa:&nbsp;</span>{{ $data['address']['address'] }}, {{ $data['address']['zip'] }} {{ $data['address']['city'] }}, {{ $data['address']['state'] }}</li>
+                                <li><span class="">Email:&nbsp;</span>{{ $data['address']['email'] }}</li>
                             @else
-                                <li><span class="text-muted">Korisnik:&nbsp;</span>{{ auth()->user()->details->fname }} {{ auth()->user()->details->lname }}</li>
-                                <li><span class="text-muted">Adresa:&nbsp;</span>{{ auth()->user()->details->address }}, {{ auth()->user()->details->zip }} {{ auth()->user()->details->city }}, {{ $data['address']['state'] }}</li>
-                                <li><span class="text-muted">Email:&nbsp;</span>{{ auth()->user()->email }}</li>
+                                <li><span class="">Korisnik:&nbsp;</span>{{ auth()->user()->details->fname }} {{ auth()->user()->details->lname }}</li>
+                                <li><span class="">Adresa:&nbsp;</span>{{ auth()->user()->details->address }}, {{ auth()->user()->details->zip }} {{ auth()->user()->details->city }}, {{ $data['address']['state'] }}</li>
+                                <li><span class="">Email:&nbsp;</span>{{ auth()->user()->email }}</li>
                             @endif
                         </ul>
                     </div>
                     <div class="col-sm-6">
                         <h4 class="h6">Dostaviti na:</h4>
                         <ul class="list-unstyled fs-sm">
-                            <li><span class="text-muted">Korisnik:&nbsp;</span>{{ $data['address']['fname'] }} {{ $data['address']['lname'] }}</li>
-                            <li><span class="text-muted">Adresa:&nbsp;</span>{{ $data['address']['address'] }}, {{ $data['address']['zip'] }} {{ $data['address']['city'] }}, {{ $data['address']['state'] }}</li>
-                            <li><span class="text-muted">Email:&nbsp;</span>{{ $data['address']['email'] }}</li>
+                            <li><span class="">Korisnik:&nbsp;</span>{{ $data['address']['fname'] }} {{ $data['address']['lname'] }}</li>
+                            <li><span class="">Adresa:&nbsp;</span>{{ $data['address']['address'] }}, {{ $data['address']['zip'] }} {{ $data['address']['city'] }}, {{ $data['address']['state'] }}</li>
+                            <li><span class="">Email:&nbsp;</span>{{ $data['address']['email'] }}</li>
                         </ul>
                     </div>
                     <div class="col-sm-6">
@@ -98,7 +98,7 @@
             <div class="d-none d-lg-flex pt-0 mt-3">
                 {!! $data['payment_form'] !!}
             </div>
-
+            </div>
         </section>
 
         <aside class="col-lg-4 pt-4 pt-lg-0 mb-3 ps-xl-5 d-block">

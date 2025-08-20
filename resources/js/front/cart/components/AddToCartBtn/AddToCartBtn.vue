@@ -1,11 +1,11 @@
 <template>
-    <div class="cart mb-5 d-flex align-items-center" v-cloak v-if="show_buy">
+    <div class="cart mb-3 d-flex align-items-center" v-cloak v-if="show_buy">
         <div class="d-flex flex-wrap align-items-center pt-4 pb-2 mb-3">
             <input class="form-control me-3 "  type="number" inputmode="numeric" pattern="[0-9]*" v-model="quantity" min="1" :max="is_available" v-if="show_quantity" style="width: 5rem;">
             <button class="btn btn-primary btn-shadow  w-auto" @click="addToCart()"><i class="ci-cart fs-base me-1"></i> Dodaj u Košaricu</button>
         </div>
     </div>
-    <div class="cart mb-5 d-flex align-items-center" v-cloak v-else>
+    <div class="cart mb-3 d-flex align-items-center" v-cloak v-else>
         <a class="btn btn-primary btn-shadow d-block w-100" href="#wishlist-modal" data-bs-toggle="modal">Obavjesti me o dostupnosti</a>
     </div>
 </template>

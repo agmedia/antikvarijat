@@ -1,24 +1,29 @@
 <template>
     <div>
-        <div class="d-flex pt-3 pb-2 mt-1">
-            <h2 class="h6 text-dark mb-0">Artikli</h2>
-        </div>
-        <div class="d-flex pt-3 pb-2 mt-1" v-if="!$store.state.cart.count">
-            <p class="text-dark mb-0">Vaša košarica je prazna!</p>
-        </div>
 
-        <div class="d-flex border p-2" style="background-color: rgba(245,245,245,0.96);" v-if="$store.state.cart.total < freeship && $store.state.cart.count">
-            <p class="small mb-0">Još € {{ $store.state.service.formatMainPrice(freeship - $store.state.cart.total) }} <span v-if="$store.state.cart.secondary_price">({{ $store.state.service.formatSecondaryPrice(freeship - $store.state.cart.total) }})</span> do besplatne dostave!</p>
-        </div>
-        <div class="d-flex border p-2" style="background-color: rgba(245,245,245,0.96);" v-if="$store.state.cart.total > freeship && $store.state.cart.count">
-            <p class="small mb-0">Ostvarili ste pravo na besplatnu dostavu!</p>
-        </div>
+
+
+
+
+
+            <div role="alert" class="alert alert-secondary d-flex fs-sm" v-if="$store.state.cart.total < freeship && $store.state.cart.count"><div class="alert-icon"><i class="ci-gift"></i></div> <div> Još  {{ $store.state.service.formatMainPrice(freeship - $store.state.cart.total) }} <span v-if="$store.state.cart.secondary_price">({{ $store.state.service.formatSecondaryPrice(freeship - $store.state.cart.total) }})</span> do besplatne dostave!</div></div>
+
+            <div role="alert" class="alert alert-secondary d-flex fs-sm" v-if="$store.state.cart.total > freeship && $store.state.cart.count"><div class="alert-icon"><i class="ci-gift"></i></div> <div> Ostvarili ste pravo na besplatnu dostavu!</div></div>
+
+            <div class="d-flex pt-3 pb-2 mt-1">
+                <h2 class="h6 text-dark mb-0">Artikli</h2>
+            </div>
+            <div class="d-flex pt-3 pb-2 mt-1" v-if="!$store.state.cart.count">
+                <p class="text-dark mb-0">Vaša košarica je prazna!</p>
+            </div>
+
+
 
         <!-- Item-->
         <div class="d-sm-flex justify-content-between align-items-center my-2 pb-3 border-bottom" v-for="item in $store.state.cart.items">
             <div class="d-block d-sm-flex align-items-center text-center text-sm-start">
                 <a class="d-inline-block flex-shrink-0 mx-auto me-sm-4" :href="base_path + item.attributes.path">
-                    <img :src="item.associatedModel.image" width="120" :alt="item.name" :title="item.name">
+                    <img :src="item.associatedModel.image" width="80" :alt="item.name" :title="item.name">
                 </a>
                 <div class="pt-2">
                     <h3 class="product-title fs-base mb-2"><a :href="base_path + item.attributes.path">{{ item.name }}</a></h3>
@@ -34,9 +39,10 @@
             </div>
         </div>
 
-        <div class="d-flex pt-3 pb-4 pb-sm-5 mt-1" v-if="show_buttons">
-            <a class="btn btn-secondary btn-sm ps-2" :href="continueurl"><i class="ci-arrow-left me-2"></i>Natrag na trgovinu</a>
+        <div class="d-flex pt-3 pb-2 mt-1" v-if="show_buttons">
+            <a class="btn btn-outline-primary btn-sm btn-shadow mt-3" :href="continueurl"><i class="ci-arrow-left me-2"></i>Natrag na trgovinu</a>
         </div>
+
     </div>
 </template>
 

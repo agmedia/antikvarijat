@@ -1,5 +1,5 @@
 <div>
-    <div class="steps steps-light pt-2 pb-3 mb-5">
+    <div class="steps steps-dark pt-2 pb-3 mb-5">
         <a class="step-item active" href="{{ route('kosarica') }}">
             <div class="step-progress"><span class="step-count">1</span></div>
             <div class="step-label"><i class="ci-cart"></i>Košarica</div>
@@ -65,7 +65,7 @@
             </script>
         @endsection
     @endif
-
+    <div class="bg-white rounded-3 shadow-lg p-4">
     @if ($step == 'podaci')
         <h2 class="h6 pt-1 pb-3 mb-3 border-bottom">Adresa dostave</h2>
 
@@ -321,6 +321,7 @@
         </div>
     @endif
 
+    </div>
 </div>
 
 

@@ -9,8 +9,12 @@ use App\Models\Front\Blog;
 use App\Models\Front\Catalog\Author;
 use App\Models\Front\Catalog\Category;
 use App\Models\Front\Catalog\Product;
+use App\Models\Back\Marketing\Action;
 use App\Models\Front\Catalog\Publisher;
+use App\Models\Front\Loyalty;
+use Darryldecode\Cart\CartCondition;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -85,6 +89,79 @@ class Helper
         }
 
         return number_format($price, 0, '', '.') . ',<small>' . substr($set[1], 0, 2) . 'kn</small>';
+    }
+
+    /**
+     * Filter products by JSON tags column.
+     *
+     * @param string|array $tags      One tag ("avantura") ili niz tagova (['avantura','pustolovina'])
+     * @param bool         $builder   Ako true -> vrati Collection ('products','total'); inače JSON niz ID-eva
+     * @param bool         $api       Ako true -> ograniči rezultate na 15, ali zadrži total
+     * @param string       $operator  'and' (svi tagovi) ili 'or' (bilo koji tag)
+     *
+     * @return \Illuminate\Support\Collection|string|false
+     */
+    public static function getTags($tags, bool $builder = false, bool $api = false, string $operator = 'and')
+    {
+        // Normalizacija ulaza
+        if (is_string($tags)) {
+            $tags = trim($tags);
+            if ($tags === '') {
+                return false;
+            }
+            // dozvoli "tag1, tag2" kao string
+            $tags = str_contains($tags, ',')
+                ? array_values(array_filter(array_map('trim', explode(',', $tags))))
+                : [$tags];
+        } elseif (is_array($tags)) {
+            $tags = array_values(array_filter(array_map('trim', $tags)));
+            if (empty($tags)) {
+                return false;
+            }
+        } else {
+            return false;
+        }
+
+        // Query
+        $query = Product::query()->active();
+
+        // AND: svaki tag mora postojati u JSON polju
+        if (strtolower($operator) === 'and') {
+            foreach ($tags as $tag) {
+                $query->whereJsonContains('tags', $tag);
+            }
+        }
+        // OR: barem jedan od navedenih tagova
+        else {
+            $query->where(function ($q) use ($tags) {
+                foreach ($tags as $i => $tag) {
+                    $i === 0
+                        ? $q->whereJsonContains('tags', $tag)
+                        : $q->orWhereJsonContains('tags', $tag);
+                }
+            });
+        }
+
+        // Uzmemo samo ID-eve
+        $ids = $query->pluck('id');
+        $uniqueIds = $ids->unique()->values();
+        $totalAll  = $uniqueIds->count();
+
+        $limitedIds = $api ? $uniqueIds->take(15) : $uniqueIds;
+
+        $response = collect([
+            'products' => $limitedIds->flatten(),
+            'total'    => $totalAll,
+        ]);
+
+        \Log::info($response);
+
+        if ($builder) {
+            return $response;
+        }
+
+        // Back-compat: vrati samo JSON niz ID-eva
+        return $response['products']->toJson();
     }
 
 
@@ -428,6 +505,32 @@ class Helper
         return $categories;
     }
 
+    private static function product_category(array $data): Builder
+    {
+        $product = (new Product())->newQuery();
+
+        $product->where('status', 1);
+
+        // Filtriraj po kategorijama
+        if (!empty($data['list'])) {
+            $product->whereHas('categories', function (Builder $query) use ($data) {
+                $query->whereIn('categories.id', $data['list']);
+            });
+        }
+
+        // Novi proizvodi
+        if (!empty($data['new']) && $data['new'] === 'on') {
+            $product->orderBy('created_at', 'desc');
+        }
+
+        // Popularni proizvodi – ovo pretpostavlja da postoji kolona `views` ili slično
+        if (!empty($data['popular']) && $data['popular'] === 'on') {
+            $product->orderBy('viewed', 'desc'); // prilagodi prema tvojoj logici popularnosti
+        }
+        return $product->limit(15);
+    }
+
+
 
     /**
      * @param string $tag
@@ -522,6 +625,160 @@ class Helper
         }
 
         return $slug;
+    }
+
+    /**
+     * @param $cart
+     *
+     * @return CartCondition|false
+     * @throws \Darryldecode\Cart\Exceptions\InvalidConditionException
+     */
+    public static function hasSpecialCartCondition($cart = null)
+    {
+        $condition     = false;
+        $has_condition = false;
+
+        if ($cart->getTotal() > 50) {
+            $has_condition = 10;
+        }
+        if ($cart->getTotal() > 100) {
+            $has_condition = 15;
+        }
+        if ($cart->getTotal() > 200) {
+            $has_condition = 20;
+        }
+
+        if ($has_condition && self::isDateBetween()) {
+            $value    = self::calculateDiscountPrice($cart->getTotal(), $has_condition, 'P');
+            $discount = $cart->getTotal() - $value;
+
+            $condition = new CartCondition(array(
+                'name'       => config('settings.special_action.title'),
+                'type'       => 'special',
+                'target'     => 'total', // this condition will be applied to cart's subtotal when getSubTotal() is called.
+                'value'      => '-' . $discount,
+                'attributes' => [
+                    'description' => '',
+                    'geo_zone'    => ''
+                ]
+            ));
+        }
+
+        return $condition;
+    }
+
+
+    /**
+     * @param        $cart
+     * @param string $coupon
+     *
+     * @return CartCondition|false
+     * @throws \Darryldecode\Cart\Exceptions\InvalidConditionException
+     */
+    public static function hasCouponCartConditions($cart, string $coupon = '')
+    {
+        $condition = false;
+        $actions   = Action::query()->where('group', 'total')->get();
+
+        if ($actions->count()) {
+            foreach ($actions as $action) {
+                if ($action->isValid($coupon)) {
+                    $value    = self::calculateDiscountPrice($cart->getTotal(), $action->discount, $action->type);
+                    $discount = $cart->getTotal() - $value;
+
+                    $condition = new CartCondition(array(
+                        'name'       => $action->title,
+                        'type'       => 'special',
+                        'target'     => 'total', // this condition will be applied to cart's subtotal when getSubTotal() is called.
+                        'value'      => '-' . $discount,
+                        'attributes' => $action->setConditionAttributes($coupon)
+                    ));
+                }
+            }
+        }
+
+        return $condition;
+    }
+
+    /**
+     * @param        $cart
+     * @param string $coupon
+     *
+     * @return CartCondition|false
+     * @throws \Darryldecode\Cart\Exceptions\InvalidConditionException
+     */
+    public static function hasLoyaltyCartConditions($cart, int $loyalty = 0)
+    {
+        $condition = false;
+        $has_loyalty   = Loyalty::hasLoyalty();
+
+        if ($has_loyalty) {
+            $discount = Loyalty::calculateLoyalty($loyalty);
+
+            if ($cart->getTotal() > $discount) {
+                $condition = new CartCondition(array(
+                    'name'       => 'Loyalty',
+                    'type'       => 'special',
+                    'target'     => 'total', // this condition will be applied to cart's subtotal when getSubTotal() is called.
+                    'value'      => '-' . $discount,
+                    'attributes' => [
+                        'type'        => 'loyalty',
+                        'description' => 'Loyalty Program'
+                    ]
+                ));
+            }
+        }
+
+        return $condition;
+    }
+
+
+    /**
+     * @param $cart
+     *
+     * @return false|mixed
+     */
+    public static function isCouponUsed($cart)
+    {
+        $coupon = false;
+        $items = $cart->getContent();
+
+        foreach ($items as $item) {
+            if ($item->getConditions()->getType() == 'coupon') {
+                $coupon = $item->getConditions()->getTarget();
+            }
+        }
+
+        foreach ($cart->getConditions() as $condition) {
+            if (isset($condition->getAttributes()['type']) && $condition->getAttributes()['type'] == 'coupon' && floatval($condition->getValue()) < 0) {
+                $coupon = $condition->getAttributes()['description'];
+            }
+        }
+
+
+
+        return $coupon;
+    }
+
+
+    /**
+     * @param $date
+     *
+     * @return bool
+     */
+    public static function isDateBetween($date = null): bool
+    {
+        if (config('settings.special_action.start')) {
+            $now   = $date ?: Carbon::now();
+            $start = Carbon::createFromFormat('d/m/Y H:i:s', config('settings.special_action.start'));
+            $end   = Carbon::createFromFormat('d/m/Y H:i:s', config('settings.special_action.end'));
+
+            if ($now->isBetween($start, $end)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
 

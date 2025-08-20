@@ -81,6 +81,13 @@
                 </div>
             @endif
 
+
+                @if (Route::currentRouteName() == 'tag')
+                    <div class="order-lg-1 pe-lg-4 text-center text-lg-start">
+                        <h1 class="h3 text-dark mb-0"><span class="small fw-light me-2">Rezultati pretrage za tag:</span> {{ request()->input('pojam') }}</h1>
+                    </div>
+                @endif
+
             @if (isset($author) && $author)
                 <div class="order-lg-2 mb-3 mb-lg-0 pt-lg-2">
                     <nav aria-label="breadcrumb">

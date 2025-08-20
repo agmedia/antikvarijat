@@ -1,5 +1,7 @@
 <!-- {"title": "Page Carousel", "description": "Category, Publisher, Reviews."} -->
 <section class=" py-0 " >
+
+    <div class="container">
     <div class="d-flex flex-wrap justify-content-between align-items-center pt-1  pb-3 mb-2">
         <h2 class="h3 mb-0 pt-0 font-title me-3 "><span class="border-color"> {{ $data['title'] }}</span></h2>
         @if ($data['tablename'] == 'blog')
@@ -79,7 +81,7 @@
 
     @else
         <div class="tns-carousel pb-5">
-            <div class="tns-carousel-inner" data-carousel-options="{&quot;items&quot;: 2, &quot;gutter&quot;: 15, &quot;controls&quot;: true, &quot;nav&quot;: false, &quot;responsive&quot;: {&quot;0&quot;:{&quot;items&quot;:1},&quot;500&quot;:{&quot;items&quot;:2},&quot;768&quot;:{&quot;items&quot;:2}, &quot;992&quot;:{&quot;items&quot;:3, &quot;gutter&quot;: 30}}}">
+            <div class="tns-carousel-inner" data-carousel-options="{&quot;items&quot;: 2, &quot;gutter&quot;: 15, &quot;controls&quot;: true, &quot;nav&quot;: true, &quot;responsive&quot;: {&quot;0&quot;:{&quot;items&quot;:1},&quot;500&quot;:{&quot;items&quot;:2},&quot;768&quot;:{&quot;items&quot;:2}, &quot;992&quot;:{&quot;items&quot;:3, &quot;gutter&quot;: 30}}}">
                 @foreach ($data['items'] as $item)
 
                     <!-- Product-->
@@ -97,7 +99,6 @@
         </div>
 
     @endif
-
-
+    </div>
 
 </section>
