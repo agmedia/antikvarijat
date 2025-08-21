@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Back;
 
+use App\Exports\OrdersExport;
 use App\Helpers\Country;
 use App\Http\Controllers\Controller;
 use App\Mail\StatusCanceled;
@@ -13,6 +14,7 @@ use App\Models\Front\Checkout\Shipping\Gls;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Maatwebsite\Excel\Facades\Excel;
 
 class OrderController extends Controller
 {
@@ -23,14 +25,20 @@ class OrderController extends Controller
      */
     public function index(Request $request, Order $order)
     {
-        $orders = $order->filter($request)->paginate(config('settings.pagination.back'));
+        $orders = $order->filter($request)
+            ->paginate(config('settings.pagination.back'))
+            ->appends($request->query());
 
         $statuses = Settings::get('order', 'statuses');
 
         return view('back.order.index', compact('orders', 'statuses'));
     }
-    
-    
+
+    public function export(Request $request, Order $order)
+    {
+        $fileName = 'orders_' . now()->format('Ymd_His') . '.xlsx';
+        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\OrdersExport($request, $order), $fileName);
+    }
     /**
      * Show the form for creating a new resource.
      *
@@ -40,8 +48,8 @@ class OrderController extends Controller
     {
         return view('back.order.edit');
     }
-    
-    
+
+
     /**
      * Store a newly created resource in storage.
      *
@@ -94,8 +102,8 @@ class OrderController extends Controller
 
         return view('back.order.edit', compact('order', 'countries', 'statuses', 'shippings', 'payments'));
     }
-    
-    
+
+
     /**
      * Update the specified resource in storage.
      *
@@ -114,8 +122,8 @@ class OrderController extends Controller
 
         return redirect()->back()->with(['error' => 'Oops..! Dogodila se greška prilikom snimanja.']);
     }
-    
-    
+
+
     /**
      * Remove the specified resource from storage.
      *

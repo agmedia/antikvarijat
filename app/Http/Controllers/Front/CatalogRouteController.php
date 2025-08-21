@@ -25,67 +25,48 @@ use Illuminate\Support\Str;
 
 class CatalogRouteController extends Controller
 {
-
-    /**
-     * Resolver for the Groups, categories and products routes.
-     * Route::get('{group}/{cat?}/{subcat?}/{prod?}', 'Front\GCP_RouteController::resolve()')->name('gcp_route');
-     *
-     * @param               $group
-     * @param Category|null $cat
-     * @param Category|null $subcat
-     * @param Product|null  $prod
-     *
-     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\View\View
-     */
     public function resolve(Request $request, $group, Category $cat = null, $subcat = null, Product $prod = null)
     {
-        //
         if ($subcat) {
             $sub_category = Category::where('slug', $subcat)->where('parent_id', $cat->id)->first();
 
-            if ( ! $sub_category) {
+            if (!$sub_category) {
                 $prod = Product::where('slug', $subcat)->first();
             }
 
             $subcat = $sub_category;
         }
 
-        // Check if there is Product set.
         if ($prod) {
-            if ( ! $prod->status) {
+            if (!$prod->status) {
                 abort(404);
             }
+
+            $prod->timestamps = false;
+            $prod->increment('viewed');
+            $prod->timestamps = true;
 
             $seo = Seo::getProductData($prod);
             $gdl = TagManager::getGoogleProductDataLayer($prod);
 
-            // --- Recently viewed (session) ---
             $recent = collect(session('recent_products', []));
-
-        // Uvijek stavi trenutni proizvod na početak, bez duplikata
             $recent = $recent->prepend($prod->id)->unique()->values();
-
-        // (Opcionalno) ne čuvaj beskonačno – npr. do 50 posljednjih
             $recent = $recent->take(50);
             session(['recent_products' => $recent->all()]);
 
-            // Za prikaz: uzmi do 15 posljednjih, isključi trenutni proizvod
             $recentIds = $recent->filter(fn ($id) => (int)$id !== (int)$prod->id)
                 ->take(15)
                 ->values()
                 ->all();
 
-            // Dohvati proizvode tim redoslijedom
             $recentProducts = collect();
             if (!empty($recentIds)) {
                 $recentProducts = Product::whereIn('id', $recentIds)
                     ->where('status', 1)
                     ->get()
-                    // sortBy prema redoslijedu u $recentIds
                     ->sortBy(fn ($p) => array_search($p->id, $recentIds))
                     ->values();
             }
-
 
             $bc = new Breadcrumb();
             $crumbs = $bc->product($group, $cat, $subcat, $prod)->resolve();
@@ -94,42 +75,53 @@ class CatalogRouteController extends Controller
             $shipping_methods = Settings::getList('shipping', 'list.%', true);
             $payment_methods = Settings::getList('payment', 'list.%', true);
 
-            return view('front.catalog.product.index', compact('prod', 'group', 'cat', 'subcat', 'seo', 'crumbs', 'bookscheme','shipping_methods','payment_methods', 'gdl', 'recentProducts'));
+            return view('front.catalog.product.index', compact(
+                'prod',
+                'group',
+                'cat',
+                'subcat',
+                'seo',
+                'crumbs',
+                'bookscheme',
+                'shipping_methods',
+                'payment_methods',
+                'gdl',
+                'recentProducts'
+            ));
         }
 
-        // If only group...
-        if ($group && ! $cat && ! $subcat) {
+        if ($group && !$cat && !$subcat) {
             if ($group == 'zemljovidi-i-vedute') {
                 $group = 'Zemljovidi i vedute';
             }
 
             $categories = Category::where('group', $group)->first('id');
 
-            if ( ! $categories) {
+            if (!$categories) {
                 abort(404);
             }
         }
 
+        // FILTRIRANI COUNT ZA CAT I SUBCAT
         if ($cat) {
-            $cat->count = $cat->products()->count();
+            $cat->loadCount(['products as visible_products_count' => function ($q) {
+                $q->where('status', 1)->where('quantity', '>', 0);
+            }]);
+            $cat->setAttribute('count', (int)$cat->visible_products_count);
         }
         if ($subcat) {
-            $subcat->count = $subcat->products()->count();
+            $subcat->loadCount(['products as visible_products_count' => function ($q) {
+                $q->where('status', 1)->where('quantity', '>', 0);
+            }]);
+            $subcat->setAttribute('count', (int)$subcat->visible_products_count);
         }
 
         $meta_tags = Seo::getMetaTags($request, 'filter');
-
         $crumbs = (new Breadcrumb())->category($group, $cat, $subcat)->resolve();
 
         return view('front.catalog.category.index', compact('group', 'cat', 'subcat', 'prod', 'crumbs', 'meta_tags'));
     }
 
-
-    /**
-     * @param null $prod
-     *
-     * @return \Illuminate\Http\RedirectResponse
-     */
     public function resolveOldUrl($prod = null)
     {
         if ($prod) {
@@ -144,12 +136,6 @@ class CatalogRouteController extends Controller
         abort(404);
     }
 
-
-    /**
-     * @param null $prod
-     *
-     * @return \Illuminate\Http\RedirectResponse
-     */
     public function resolveOldCategoryUrl(string $group = null, $cat = null, $subcat = null)
     {
         if ($group) {
@@ -159,17 +145,9 @@ class CatalogRouteController extends Controller
         abort(404);
     }
 
-
-    /**
-     *
-     *
-     * @param Author $author
-     *
-     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
-     */
     public function author(Request $request, Author $author = null, Category $cat = null, Category $subcat = null)
     {
-        if ( ! $author) {
+        if (!$author) {
             $letters = Helper::resolveCache('authors')->remember('letters', config('cache.life'), function () {
                 return Author::letters();
             });
@@ -183,12 +161,12 @@ class CatalogRouteController extends Controller
 
             $authors = Helper::resolveCache('authors')->remember($letter . '.' . $currentPage, config('cache.life'), function () use ($letter) {
                 return Author::query()->select('id', 'title', 'url')
-                                      ->where('status',  1)
-                                      ->where('letter', $letter)
-                                      ->orderBy('title')
-                                      ->withCount('products')
-                                      ->paginate(36)
-                                      ->appends(request()->query());
+                    ->where('status', 1)
+                    ->where('letter', $letter)
+                    ->orderBy('title')
+                    ->withCount('products')
+                    ->paginate(36)
+                    ->appends(request()->query());
             });
 
             $meta_tags = Seo::getMetaTags($request, 'ap_filter');
@@ -198,27 +176,29 @@ class CatalogRouteController extends Controller
 
         $letter = null;
 
-        if ($cat) { $cat->count = $cat->products()->count(); }
-        if ($subcat) { $subcat->count = $subcat->products()->count(); }
+        // FILTRIRANI COUNT ZA CAT I SUBCAT
+        if ($cat) {
+            $cat->loadCount(['products as visible_products_count' => function ($q) {
+                $q->where('status', 1)->where('quantity', '>', 0);
+            }]);
+            $cat->setAttribute('count', (int)$cat->visible_products_count);
+        }
+        if ($subcat) {
+            $subcat->loadCount(['products as visible_products_count' => function ($q) {
+                $q->where('status', 1)->where('quantity', '>', 0);
+            }]);
+            $subcat->setAttribute('count', (int)$subcat->visible_products_count);
+        }
 
         $seo = Seo::getAuthorData($author, $cat, $subcat);
-
         $crumbs = null;
 
         return view('front.catalog.category.index', compact('author', 'letter', 'cat', 'subcat', 'seo', 'crumbs'));
     }
 
-
-    /**
-     *
-     *
-     * @param Publisher $publisher
-     *
-     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
-     */
     public function publisher(Request $request, Publisher $publisher = null, Category $cat = null, Category $subcat = null)
     {
-        if ( ! $publisher) {
+        if (!$publisher) {
             $letters = Helper::resolveCache('publishers')->remember('letters', config('cache.life'), function () {
                 return Publisher::letters();
             });
@@ -232,12 +212,12 @@ class CatalogRouteController extends Controller
 
             $publishers = Helper::resolveCache('publishers')->remember($letter . '.' . $currentPage, config('cache.life'), function () use ($letter) {
                 return Publisher::query()->select('id', 'title', 'url')
-                                         ->where('status',  1)
-                                         ->where('letter', $letter)
-                                         ->orderBy('title')
-                                         ->withCount('products')
-                                         ->paginate(36)
-                                         ->appends(request()->query());
+                    ->where('status', 1)
+                    ->where('letter', $letter)
+                    ->orderBy('title')
+                    ->withCount('products')
+                    ->paginate(36)
+                    ->appends(request()->query());
             });
 
             $meta_tags = Seo::getMetaTags($request, 'ap_filter');
@@ -247,58 +227,29 @@ class CatalogRouteController extends Controller
 
         $letter = null;
 
-        if ($cat) { $cat->count = $cat->products()->count(); }
-        if ($subcat) { $subcat->count = $subcat->products()->count(); }
+        // FILTRIRANI COUNT ZA CAT I SUBCAT
+        if ($cat) {
+            $cat->loadCount(['products as visible_products_count' => function ($q) {
+                $q->where('status', 1)->where('quantity', '>', 0);
+            }]);
+            $cat->setAttribute('count', (int)$cat->visible_products_count);
+        }
+        if ($subcat) {
+            $subcat->loadCount(['products as visible_products_count' => function ($q) {
+                $q->where('status', 1)->where('quantity', '>', 0);
+            }]);
+            $subcat->setAttribute('count', (int)$subcat->visible_products_count);
+        }
 
         $seo = Seo::getPublisherData($publisher, $cat, $subcat);
-
         $crumbs = null;
 
         return view('front.catalog.category.index', compact('publisher', 'letter', 'cat', 'subcat', 'seo', 'crumbs'));
     }
 
-
-    /**
-     *
-     *
-     * @param Request $request
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
-   /* public function search(Request $request)
+    public function tag(Request $request)
     {
-        if ($request->has(config('settings.search_keyword'))) {
-            if ( ! $request->input(config('settings.search_keyword'))) {
-                return redirect()->back()->with(['error' => 'Oops..! Zaboravili ste upisati pojam za pretraživanje..!']);
-            }
-
-            $group = null; $cat = null; $subcat = null;
-
-            $ids = Helper::search(
-                $request->input(config('settings.search_keyword'))
-            );
-
-            $crumbs = null;
-
-            return view('front.catalog.category.index', compact('group', 'cat', 'subcat', 'ids', 'crumbs'));
-        }
-
-        if ($request->has(config('settings.search_keyword') . '_api')) {
-            $search = Helper::search(
-                $request->input(config('settings.search_keyword') . '_api')
-            );
-
-            return response()->json($search);
-        }
-
-        return response()->json(['error' => 'Greška kod pretrage..! Molimo pokušajte ponovo ili nas kotaktirajte! HVALA...']);
-    }*/
-
-
-
-        public function tag(Request $request)
-    {
-        $key = config('settings.search_keyword', 'pojam'); // default to 'pojam'
+        $key = config('settings.search_keyword', 'pojam');
         $query = $request->input($key);
 
         if ($query === null) {
@@ -311,11 +262,8 @@ class CatalogRouteController extends Controller
         $ids = Helper::getTags($query);
         $group = $cat = $subcat = $crumbs = null;
 
-        return view('front.catalog.category.index', compact('group','cat','subcat','ids','crumbs'));
-
+        return view('front.catalog.category.index', compact('group', 'cat', 'subcat', 'ids', 'crumbs'));
     }
-
-
 
     public function search(Request $request)
     {
@@ -337,13 +285,12 @@ class CatalogRouteController extends Controller
         }
 
         // API autocomplete – structured JSON: counts + products + categories
-        // API autocomplete – structured JSON: counts + products + categories
         if ($request->has(config('settings.search_keyword') . '_api')) {
 
             $q = (string) $request->input(config('settings.search_keyword') . '_api', '');
 
             // >>> UZMI $group IZ REQUESTA ILI STAVI DEFAULT
-            $group = trim((string) $request->input('group', 'kategorija'), '/');
+            $group = trim((string) $request->input('group', 'knjige'), '/');
 
             // --- PROIZVODI ---
             $search = Helper::search($q, true, true);
@@ -408,15 +355,63 @@ class CatalogRouteController extends Controller
                 ];
             })->values()->all();
 
+            // --- AUTORI ---
+            // --- AUTORI ---
+            $rawQ = trim((string)$q);
+
+            // razbij na riječi (razmaci, točke, zarezi, crtice), očisti duplikate
+            $tokens = collect(preg_split('/[\s\.,\-_\|]+/u', $rawQ, -1, PREG_SPLIT_NO_EMPTY))
+                ->map(fn($t) => Str::lower($t))
+                ->unique()
+                ->take(5)               // sigurnosni limit da ne generiramo pretežak upit
+                ->values();
+
+            $authorsBase = Author::query()
+                ->select('id', 'title', 'url')
+                ->where('status', 1)
+                // pokaži samo autore koji imaju barem jedan vidljiv artikal; makni ako želiš sve autore
+                ->whereHas('products', function ($q2) {
+                    $q2->where('status', 1)->where('quantity', '>', 0);
+                })
+                // Kriterij: SVAKA riječ iz upita mora se pojaviti u title (redoslijed nebitan)
+                ->when($tokens->isNotEmpty(), function ($qA) use ($tokens) {
+                    $qA->where(function ($w) use ($tokens) {
+                        foreach ($tokens as $t) {
+                            $w->where('title', 'like', '%' . $t . '%');
+                        }
+                    });
+                });
+
+                // opcionalno: dodatni OR na slug ako ga koristiš za pretragu
+                // ->orWhere(function($w) use ($tokens){
+                //     foreach ($tokens as $t) { $w->where('slug', 'like', '%' . $t . '%'); }
+                // });
+
+            $totalAuthors = (clone $authorsBase)->count();
+
+            $authors = $authorsBase
+                ->orderBy('title')
+                ->limit(10)
+                ->get();
+
+            $authorsPayload = $authors->map(fn($a) => [
+                'id'   => $a->id,
+                'name' => $a->title,
+                'url'  => url($a->url),
+            ])->values()->all();
+
+
+
             // --- STRUCTURED PAYLOAD + X-Total-Count ---
             $payload = [
                 'counts'     => [
                     'products'   => $totalProducts,
-                    'authors'    => 0,
+                    'authors'    => $totalAuthors,
                     'categories' => $totalCategories,
                 ],
                 'products'   => $productsPayload,
                 'categories' => $categoriesPayload,
+                'authors'    => $authorsPayload,
             ];
 
             $totalAll = $payload['counts']['products']
@@ -427,75 +422,41 @@ class CatalogRouteController extends Controller
                 ->header('X-Total-Count', $totalAll);
         }
 
-
         return response()->json(['error' => 'Greška kod pretrage..! Molimo pokušajte ponovo ili nas kotaktirajte! HVALA...']);
     }
 
 
-
-    /**
-     * @param Request $request
-     *
-     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
-     */
     public function actions(Request $request, Category $cat = null, $subcat = null)
     {
         $ids = collect();
         $group = 'snizenja';
-
         $crumbs = null;
 
         return view('front.catalog.category.index', compact('group', 'cat', 'subcat', 'ids', 'crumbs'));
     }
 
-
-    /**
-     * @param Page $page
-     *
-     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
-     */
     public function page(Page $page)
     {
         return view('front.page', compact('page'));
     }
 
-
-    /**
-     * @param Blog $blog
-     *
-     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
-     */
     public function blog(Blog $blog)
     {
-        if (! $blog->exists) {
+        if (!$blog->exists) {
             $blogs = Blog::active()->paginate(9);
-
             return view('front.blog', compact('blogs'));
         }
 
         $gdl = TagManager::getGoogleBlogDataLayer($blog);
-
         return view('front.blog', compact('blog', 'gdl'));
     }
 
-
-    /**
-     * @param Faq $faq
-     *
-     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
-     */
     public function faq()
     {
         $faq = Faq::where('status', 1)->get();
         return view('front.faq', compact('faq'));
     }
 
-
-    /**
-     * @param array $letters
-     *
-     * @return string
-     */
     private function checkLetter(Collection $letters): string
     {
         foreach ($letters->all() as $letter) {
@@ -503,8 +464,6 @@ class CatalogRouteController extends Controller
                 return $letter['value'];
             }
         }
-
         return 'A';
     }
-
 }

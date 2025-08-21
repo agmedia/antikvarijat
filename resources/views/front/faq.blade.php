@@ -29,6 +29,8 @@
         <div class="mt-5 mb-5">
 
     <!-- Flush accordion. Use this when you need to render accordions edge-to-edge with their parent container -->
+
+            <div class="bg-white rounded-3 shadow-lg p-4">
     <div class="accordion accordion-flush" id="accordionFlushExample">
 
 
@@ -53,7 +55,7 @@
 
 
 
-
+    </div>
 
 
     </div>

@@ -143,7 +143,7 @@
             let image = location.origin + '/media/widget_sections/' + state.id + '.png';
 
             var $state = $(
-                '<div><img src="' + image + '" width="360" class="" /> ' + state.text + '\n - <small>' + state.title + '</small></div>'
+                '<div>' + state.text + '\n - <small>' + state.title + '</small></div>'
             );
             return $state;
         };

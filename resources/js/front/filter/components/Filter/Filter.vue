@@ -12,7 +12,7 @@
 
                     <h3 class="widget-title" v-if="!category && !subcategory">Kategorije</h3>
 
-                    <h3 class="widget-title" v-if="category && !subcategory">{{ category.title }}<span class="badge bg-secondary float-end">{{ Number(category.count).toLocaleString('hr-HR') }}</span></h3>
+                    <h3 class="widget-title" v-if="category && !subcategory">{{ category.title }}<span class="badge bg-secondary float-end">{{ Number(category.count).toLocaleString('hr-HR') }} </span></h3>
 <!--                    <p class="fs-xs text-muted" v-if="category && !subcategory">Podkategorije</p>-->
 
                     <h3 class="widget-title" v-if="category && subcategory">{{ subcategory.title }}<span class="badge bg-secondary float-end">{{ Number(subcategory.count).toLocaleString('hr-HR') }}</span></h3>

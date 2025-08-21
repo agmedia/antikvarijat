@@ -39,7 +39,15 @@ class FilterController extends Controller
             // Ako je normal kategorija
             if ($params['group']) {
                 $categories = Helper::resolveCache('categories')->remember($params['group'], config('cache.life'), function () use ($params) {
-                    return Category::active()->topList($params['group'])->sortByName()->withCount('products')->get()->toArray();
+                    return Category::active()
+                        ->topList($params['group'])
+                        ->sortByName()
+                        ->withCount(['products as products_count' => function ($query) {
+                            $query->where('status', 1)
+                                ->where('quantity', '>', 0);
+                        }])
+                        ->get()
+                        ->toArray();
                 });
 
                 $response = $this->resolveCategoryArray($categories, 'categories');
@@ -63,7 +71,15 @@ class FilterController extends Controller
 
             if ($params['group']) {
                 $item = Helper::resolveCache('categories')->remember($cat['id'], config('cache.life'), function () use ($cat) {
-                    return Category::active()->where('parent_id', $cat['id'])->sortByName()->withCount('products')->get()->toArray();
+                    return Category::active()
+                        ->where('parent_id', $cat['id'])
+                        ->sortByName()
+                        ->withCount(['products as products_count' => function ($query) {
+                            $query->where('status', 1)
+                                ->where('quantity', '>', 0);
+                        }])
+                        ->get()
+                        ->toArray();
                 });
 
                 $response = $this->resolveCategoryArray($item, 'categories', null, $cat['slug']);
@@ -85,9 +101,19 @@ class FilterController extends Controller
         if ($params['ids'] && $params['ids'] != '[]') {
             $_ids = collect(explode(',', substr($params['ids'], 1, -1)))->unique();
 
-            $categories = Category::active()->whereHas('products', function ($query) use ($_ids) {
-                $query->active()->hasStock()->whereIn('id', $_ids);
-            })->sortByName()->withCount('products')->get()->toArray();
+            $categories = Category::active()
+                ->whereHas('products', function ($query) use ($_ids) {
+                    $query->active()->hasStock()->whereIn('id', $_ids);
+                })
+                ->sortByName()
+                ->withCount([
+                    // filtrirani count (status = 1 i quantity > 0 + whereIn)
+                    'products as products_count' => function ($query) use ($_ids) {
+                        $query->active()->hasStock()->whereIn('id', $_ids);
+                    }
+                ])
+                ->get()
+                ->toArray();
 
             $response = $this->resolveCategoryArray($categories, 'categories');
         }
@@ -287,24 +313,54 @@ class FilterController extends Controller
     public function authors(Request $request)
     {
         if ($request->has('params')) {
-            return response()->json(
-                (new Author())->filter($request->input('params'))
-                              ->get()
-                              ->toArray()
-            );
+            $params = $request->input('params');
+
+            // Bazni upit
+            $builder = (new Author())
+                ->filter($params)           // tvoja postojeća logika (status, search_author, itd.)
+                ->basicData()               // ako postoji; možeš maknuti ako nema
+                ->withCount(['products as products_count' => function ($q) use ($params) {
+                    $q->where('status', 1)->where('quantity', '>', 0);
+
+                    // Filtriraj na kontekst kategorije/podkategorije
+                    if (!empty($params['subcat'])) {
+                        $q->whereHas('categories', fn($w) => $w->where('id', $params['subcat']));
+                    } elseif (!empty($params['cat'])) {
+                        $q->whereHas('categories', fn($w) => $w->where('id', $params['cat']));
+                    }
+                }]);
+
+            // Ako NEMA pretrage po autoru -> limitiraj na 15, dosljedno publisherima
+            if (empty($params['search_author'])) {
+                $builder->orderBy('title')->limit(15);
+            } else {
+                // uz pretragu možeš i dalje limitirati (npr. 50) ako želiš:
+                // $builder->orderBy('title')->limit(50);
+                $builder->orderBy('title');
+            }
+
+            return response()->json($builder->get()->toArray());
         }
 
+        // Featured fallback (izvan konteksta) – također filtrirani count + limit 15
         return response()->json(
             Helper::resolveCache('authors')->remember('featured', config('cache.life'), function () {
                 return Author::query()->active()
-                             ->featured()
-                             ->basicData()
-                             ->withCount('products')
-                             ->get()
-                             ->toArray();
+                    ->featured()
+                    ->basicData()
+                    ->withCount(['products as products_count' => function ($q) {
+                        $q->where('status', 1)->where('quantity', '>', 0);
+                    }])
+                    ->orderBy('title')
+                    ->limit(15)
+                    ->get()
+                    ->toArray();
             })
         );
     }
+
+
+
 
 
     /**
@@ -315,25 +371,37 @@ class FilterController extends Controller
     public function publishers(Request $request)
     {
         if ($request->has('params')) {
-            return response()->json(
-                (new Publisher())->filter($request->input('params'))
-                                 ->basicData()
-                                 ->withCount('products')
-                                 ->get()
-                                 ->toArray()
-            );
+            $params = $request->input('params');
+
+            $query = (new Publisher())->filter($params)
+                ->basicData()
+                ->withCount(['products as products_count' => function ($q) use ($params) {
+                    $q->where('status', 1)->where('quantity', '>', 0);
+
+                    if (!empty($params['subcat'])) {
+                        $q->whereHas('categories', fn($w) => $w->where('id', $params['subcat']));
+                    } elseif (!empty($params['cat'])) {
+                        $q->whereHas('categories', fn($w) => $w->where('id', $params['cat']));
+                    }
+                }]);
+
+            return response()->json($query->get()->toArray());
         }
 
         return response()->json(
             Helper::resolveCache('publishers')->remember('featured', config('cache.life'), function () {
                 return Publisher::active()
-                                ->featured()
-                                ->basicData()
-                                ->withCount('products')
-                                ->get()
-                                ->toArray();
+                    ->featured()
+                    ->basicData()
+                    ->withCount(['products as products_count' => function ($q) {
+                        $q->where('status', 1)->where('quantity', '>', 0);
+                    }])
+                    ->get()
+                    ->toArray();
             })
         );
     }
+
+
 
 }

@@ -206,7 +206,7 @@
             }
         });
 
-        const CAT_GROUP = '{{ $group ?? "kategorija" }}'; // fallback ako nije definiran
+        const CAT_GROUP = '{{ $group ?? "knjige" }}'; // fallback ako nije definiran
 
         function load_data(query) {
             if (query.length > 2) {
@@ -235,8 +235,18 @@
                             // HEADER s countovima
                             html += '<div class="px-3 py-2 border-bottom fs-md text-dark">'
                                 + 'Pronađeno: <strong>' + total + '</strong> rezultata '
-                                + '(proizvodi ' + (c.products||0) + ', kategorije ' + (c.categories||0) + ')'
+                                + '(proizvodi ' + (c.products||0) + ', autori ' + (c.authors||0) + ', kategorije ' + (c.categories||0) + ')'
                                 + '</div>';
+
+                            // AUTORI
+                            if (json.authors && json.authors.length > 0) {
+                                html += '<div class="px-3  pt-2 pb-2 fw-medium  fs-md bg-secondary text-dark">Autori</div>';
+                                html += '<ul class="list-group list-group-flush">';
+                                json.authors.forEach(function(a){
+                                    html += '<li class="list-group-item py-2"><a class="text-dark fs-md" href="'+a.url+'">'+escapeHtml(a.name)+'</a></li>';
+                                });
+                                html += '</ul>';
+                            }
 
                             // KATEGORIJE
                             if (json.categories && json.categories.length > 0) {
@@ -251,7 +261,7 @@
 
                             // PROIZVODI (tvoj markup)
                             if (json.products && json.products.length > 0) {
-                                html += '<div class="px-3  pt-2 pb-2 fw-medium  fs-md bg-secondary  text-dark">Proizvodi</div>';
+                                html += '<div class="px-3  pt-2 pb-2 fw-medium  fs-md bg-secondary  text-dark">Artikli</div>';
                                 html += '<table class="px-3 table products"><tbody>';
                                 json.products.forEach(function (item) {
                                     html += '<tr>'
@@ -263,15 +273,7 @@
                                 html += '</tbody></table>';
                             }
 
-                            // AUTORI
-                            if (json.authors && json.authors.length > 0) {
-                                html += '<div class="px-3 pt-2 fw-semibold text-uppercase small">Autori</div>';
-                                html += '<ul class="list-group list-group-flush">';
-                                json.authors.forEach(function(a){
-                                    html += '<li class="list-group-item py-2"><a href="'+a.url+'">'+escapeHtml(a.name)+'</a></li>';
-                                });
-                                html += '</ul>';
-                            }
+
 
 
                             // FOOTER

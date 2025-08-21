@@ -13,6 +13,9 @@ use Illuminate\Http\Request;
 use Bouncer;
 use Illuminate\Support\Facades\Log;
 
+use App\Exports\OrdersExport;
+use Maatwebsite\Excel\Facades\Excel;
+
 class Order extends Model
 {
 
@@ -61,6 +64,7 @@ class Order extends Model
     {
         return $this->hasOne(User::class, 'id', 'user_id');
     }
+
 
 
     /**
@@ -385,25 +389,72 @@ class Order extends Model
      *
      * @return Builder
      */
-    public function filter(Request $request): Builder
+    public function filter(Request $request): \Illuminate\Database\Eloquent\Builder
     {
         $query = $this->newQuery();
 
-        if ($request->has('status')) {
-            $query->where('order_status_id', '=', $request->input('status'));
+        // STATUS
+        if ($request->filled('status')) {
+            $query->where('order_status_id', $request->input('status'));
         }
 
-        if ($request->has('search') && ! empty($request->input('search'))) {
-            $query->where(function ($query) use ($request) {
-                $query->where('id', 'like', '%' . $request->input('search') . '%')
-                      ->orWhere('payment_fname', 'like', '%' . $request->input('search'))
-                      ->orWhere('payment_lname', 'like', '%' . $request->input('search'))
-                      ->orWhere('payment_email', 'like', '%' . $request->input('search'));
+        // SEARCH (kupac, email, id narudžbe + kupljeni artikl)
+        if ($request->filled('search')) {
+            $s = trim($request->input('search'));
+
+            $query->where(function ($q) use ($s) {
+                // osnovna polja iz orders
+                $q->where('id', 'like', "%{$s}%")
+                    ->orWhere('payment_fname', 'like', "%{$s}%")
+                    ->orWhere('payment_lname', 'like', "%{$s}%")
+                    ->orWhere('payment_email', 'like', "%{$s}%");
+
+                // pretraga po kupljenom artiklu (order_products)
+                $q->orWhereExists(function ($sub) use ($s) {
+                    $sub->from('order_products as op')
+                        ->whereColumn('op.order_id', 'orders.id')
+                        ->where(function ($w) use ($s) {
+                            $w->where('op.name', 'like', "%{$s}%");
+                            if (ctype_digit($s)) {
+                                $w->orWhere('op.product_id', (int) $s);
+                            }
+                        });
+                });
+
+                // NOVO: pretraga preko products.category_string i products.tags
+                $q->orWhereExists(function ($sub) use ($s) {
+                    $sub->from('order_products as op')
+                        ->join('products as p', 'p.id', '=', 'op.product_id')
+                        ->whereColumn('op.order_id', 'orders.id')
+                        ->where(function ($w) use ($s) {
+                            $w->where('p.category_string', 'like', "%{$s}%")
+                                ->orWhere('p.tags', 'like', "%{$s}%");
+                            // opcionalno: ako želiš i po nazivu proizvoda iz products tablice
+                            //->orWhere('p.name', 'like', "%{$s}%");
+                        });
+                });
             });
         }
 
-        return $query->orderBy('created_at', 'desc');
+
+        // DATE RANGE (bootstrap-datepicker: dd.mm.yyyy)
+        if ($request->filled('date_from')) {
+            try {
+                $from = \Carbon\Carbon::createFromFormat('d.m.Y', $request->input('date_from'))->startOfDay();
+                $query->where('created_at', '>=', $from);
+            } catch (\Exception $e) {}
+        }
+        if ($request->filled('date_to')) {
+            try {
+                $to = \Carbon\Carbon::createFromFormat('d.m.Y', $request->input('date_to'))->endOfDay();
+                $query->where('created_at', '<=', $to);
+            } catch (\Exception $e) {}
+        }
+
+        // distinct da izbjegnemo duplikate u slučaju budućih joinova
+        return $query->distinct()->orderBy('created_at', 'desc');
     }
+
 
 
     /**

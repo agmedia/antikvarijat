@@ -1,5 +1,10 @@
 <!-- {"title": "Page Carousel", "description": "Category, Publisher, Reviews."} -->
-<section class=" py-0 " >
+ @if ($data['tablename'] == 'reviews')
+ <section class=" pt-5 py-3 " style="background-image: url({{ asset('media/img/farmer.png')  }});background-repeat: repeat;padding-top:30px">
+ @else
+
+         <section class=" py-0 ">
+@endif
 
     <div class="container">
     <div class="d-flex flex-wrap justify-content-between align-items-center pt-1  pb-3 mb-2">
@@ -9,7 +14,7 @@
         @endif
 
         @if ($data['tablename'] == 'reviews')
-            <a class="btn btn-outline-primary btn-sm btn-shadow mt-0" target="_blanks" href="https://search.google.com/local/reviews?placeid=ChIJq6MCBZjIZUcRxti_kumFAkA"><span class="d-none d-sm-inline-block">Google recenzije</span> <i class="ci-arrow-right fs-xs"></i></a>
+            <a class="btn btn-outline-primary btn-sm btn-shadow mt-0" target="_blanks" href="https://www.google.com/search?sca_esv=0a74b9f5a5d821da&si=AMgyJEuzsz2NflaaWzrzdpjxXXRaJ2hfdMsbe_mSWso6src8sypp-5CetgPBI0vwf0AeIVtJomeCeueKZqvh42JWVyfZbtudLrwN3Q3Pg_0VkMmG8Q15iQREGs_PaSOZFoKeKAtW2JSU&q=Biblos+Recenzije&sa=X&ved=2ahUKEwiNlo_I8pmPAxX1Q_EDHSMbBUEQ0bkNegQIJxAE&biw=1512&bih=832&dpr=2"><span class="d-none d-sm-inline-block">Google recenzije</span> <i class="ci-arrow-right fs-xs"></i></a>
         @endif
     </div>
 
@@ -49,7 +54,7 @@
             @foreach ($data['items'] as $review)
 
                     <blockquote class="mb-2">
-                        <div class="card card-body fs-md text-muted border-0 shadow-sm">
+                        <div class="card card-body fs-md text-muted border-0  p-4 shadow-sm">
                             <div class="mb-2">
                                 <div class="star-rating"> @for ($i = 0; $i < 5; $i++)
                                         @if (floor($review->stars) - $i >= 1)
@@ -81,7 +86,7 @@
 
     @else
         <div class="tns-carousel pb-5">
-            <div class="tns-carousel-inner" data-carousel-options="{&quot;items&quot;: 2, &quot;gutter&quot;: 15, &quot;controls&quot;: true, &quot;nav&quot;: true, &quot;responsive&quot;: {&quot;0&quot;:{&quot;items&quot;:1},&quot;500&quot;:{&quot;items&quot;:2},&quot;768&quot;:{&quot;items&quot;:2}, &quot;992&quot;:{&quot;items&quot;:3, &quot;gutter&quot;: 30}}}">
+            <div class="tns-carousel-inner" data-carousel-options="{&quot;items&quot;: 2, &quot;gutter&quot;: 15, &quot;controls&quot;: false, &quot;nav&quot;: true, &quot;responsive&quot;: {&quot;0&quot;:{&quot;items&quot;:1},&quot;500&quot;:{&quot;items&quot;:2},&quot;768&quot;:{&quot;items&quot;:2}, &quot;992&quot;:{&quot;items&quot;:3, &quot;gutter&quot;: 30}}}">
                 @foreach ($data['items'] as $item)
 
                     <!-- Product-->

@@ -2883,7 +2883,7 @@ var render = function render() {
     staticClass: "widget-title"
   }, [_vm._v(_vm._s(_vm.category.title)), _c("span", {
     staticClass: "badge bg-secondary float-end"
-  }, [_vm._v(_vm._s(Number(_vm.category.count).toLocaleString("hr-HR")))])]) : _vm._e(), _vm._v(" "), _vm.category && _vm.subcategory ? _c("h3", {
+  }, [_vm._v(_vm._s(Number(_vm.category.count).toLocaleString("hr-HR")) + " ")])]) : _vm._e(), _vm._v(" "), _vm.category && _vm.subcategory ? _c("h3", {
     staticClass: "widget-title"
   }, [_vm._v(_vm._s(_vm.subcategory.title)), _c("span", {
     staticClass: "badge bg-secondary float-end"

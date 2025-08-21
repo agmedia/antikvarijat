@@ -106,6 +106,8 @@ Route::middleware(['auth:sanctum', 'verified', 'no.customers'])->prefix('admin')
     Route::get('order/{order}/edit', [OrderController::class, 'edit'])->name('orders.edit');
     Route::patch('order/{order}', [OrderController::class, 'update'])->name('orders.update');
 
+    Route::get('/orders/export', [OrderController::class, 'export'])->name('orders.export');
+
     // MARKETING
     Route::prefix('marketing')->group(function () {
         // AKCIJE

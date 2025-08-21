@@ -55,18 +55,67 @@
             </div>
             <div class="block-content bg-body-dark">
                 <!-- Search Form -->
-                <form action="{{ route('orders') }}" method="GET">
-                    <div class="form-group">
-                        <div class="form-group">
-                            <div class="input-group flex-nowrap">
-                                <input type="text" class="form-control py-3 text-center" name="search" id="search-input" value="{{ request()->input('search') }}" placeholder="Pretraži po broju narudžbe, imenu, prezimenu ili emailu kupca...">
-                                <button type="submit" class="btn btn-primary fs-base" onclick="setURL('search', $('#search-input').val());"><i class="fa fa-search"></i> </button>
+                <form action="{{ route('orders') }}" method="GET" class="row">
+                    <div class="col-md-6 mb-2">
+                        <div class="input-group date" id="dateFromPicker">
+                            <input type="text" class="form-control py-3 text-center datepicker"
+                                   name="date_from"
+                                   value="{{ request('date_from') }}"
+                                   placeholder="Od datuma">
+                            <div class="input-group-append">
+                                <span class="input-group-text"><i class="fa fa-calendar"></i></span>
                             </div>
                         </div>
                     </div>
+
+                    <div class="col-md-6 mb-2">
+                        <div class="input-group date" id="dateToPicker">
+                            <input type="text" class="form-control py-3 text-center datepicker"
+                                   name="date_to"
+                                   value="{{ request('date_to') }}"
+                                   placeholder="Do datuma">
+                            <div class="input-group-append">
+                                <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-8 mb-2">
+                        <div class="input-group">
+                            <input type="text" class="form-control py-3 text-center"
+                                   name="search"
+                                   id="search-input"
+                                   value="{{ request('search') }}"
+                                   placeholder="Pretraži po narudžbi, kupcu, e-mailu, artiklu, kategoriji ili tagu">
+                            <div class="input-group-append">
+                                <button type="submit" class="btn btn-primary fs-base">
+                                    <i class="fa fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 mb-2 d-flex">
+                        <button type="submit" class="btn btn-success flex-fill mr-2">
+                            <i class="fa fa-filter"></i> Filtriraj
+                        </button>
+                        <a href="{{ route('orders') }}" class="btn btn-outline-danger flex-fill  mr-2">
+                            <i class="fa fa-times"></i> Resetiraj
+                        </a>
+
+
+                            <a href="{{ route('orders.export', request()->query()) }}"
+                               class="btn btn-outline-success">
+                                <i class="fa fa-file-excel"></i> Export u Excel
+                            </a>
+
+
+
+                    </div>
                 </form>
-                <!-- END Search Form -->
             </div>
+
+
             <div class="block-content">
                 <!-- All Orders Table -->
                 <div class="table-responsive">
@@ -146,7 +195,9 @@
                     </table>
                 </div>
                 <!-- Pagination -->
-                {{ $orders->links() }}
+
+                        {{ $orders->links() }}
+
             </div>
         </div>
         <!-- END All Orders -->
@@ -156,6 +207,17 @@
 
 @push('js_after')
     <script src="{{ asset('js/plugins/select2/js/select2.full.min.js') }}"></script>
+
+    <script src="{{ asset('js/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js') }}"></script>
+    <link rel="stylesheet" href="{{ asset('js/plugins/bootstrap-datepicker/css/bootstrap-datepicker.css') }}">
+    <script>
+        $('.datepicker').datepicker({
+            format: 'dd.mm.yyyy',
+            autoclose: true,
+            todayHighlight: true,
+            orientation: "bottom"
+        });
+    </script>
     <script>
         $(() => {
             $('#status-select').select2({

@@ -178,7 +178,7 @@ h1, .h1, .h1, h2, .h2, .h2, h3, .h3, .h3, h4, .h4, .h4, h5, .h5, .h5, h6, .h6, .
     border: 1px solid rgba(0,0,0,.15);
     border-radius: .25rem;
     box-shadow: 0 .5rem 1rem rgba(0,0,0,.15);
-    max-height: 420px; /* scroll */
+    max-height: 470px; /* scroll */
     overflow-y: auto;
     margin-top: .25rem;
     padding: 0;
@@ -225,6 +225,7 @@ h1, .h1, .h1, h2, .h2, .h2, h3, .h3, .h3, h4, .h4, .h4, h5, .h5, .h5, h6, .h6, .
 
 .live-search .table.products tr a {
     color:#373f50;
+    font-size: 1.1em;
 }
 
 .live-search ul.cat li a {
