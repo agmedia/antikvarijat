@@ -44,7 +44,7 @@
                     <h3 class="widget-title text-dark">Kontaktirajte nas</h3>
                     <ul class="widget-list  ">
                         <li class="widget-list-item"><a class="widget-list-link" href="tel:+38514816574">Tel:  +385 1 48 16 574</a></li>
-                        <li class="widget-list-item"><a class="widget-list-link" href="tel:+385981629674">Tel:  +385 98 16 29 674</a></li>
+
                         <li class="widget-list-item"><a class="widget-list-link" href="mailto:info@antikvarijat-biblos.hr">E-mail: info@antikvarijat-biblos.hr</a></li>
 
                         <li class="widget-list-item"><a class="widget-list-link"  href="https://www.google.com/maps/place/Biblos/@45.810942,15.9794894,17.53z/data=!4m5!3m4!1s0x4765d7aac4f8b023:0xb60bceb791b31ede!8m2!3d45.8106161!4d15.9816921?hl=hr" target="_blank" >Adresa: Palmotićeva 28, Zagreb</a></li>
