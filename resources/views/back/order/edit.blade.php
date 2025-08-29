@@ -107,11 +107,15 @@
                             <h3 class="block-title">Način dostave</h3>
                         </div>
                         <div class="block-content">
+
+
                             <div class="row mb-4">
                                 <div class="col-md-8">
                                     <label for="shipping-select">Dostava</label>
                                     <select class="js-select2 form-control" id="shipping-select" name="shipping" style="width: 100%;" data-placeholder="Odaberite način dostave...">
                                         <option></option>
+
+
                                         @foreach ($shippings as $shipping)
                                             <option value="{{ $shipping->code }}" {{ ((isset($order)) and ($order->shipping_code == $shipping->code)) ? 'selected' : '' }}>{{ $shipping->title }}</option>
                                         @endforeach
@@ -119,7 +123,14 @@
                                 </div>
                                 <div class="col-md-4">
                                     <label for="shipping-amount-input">Iznos</label>
-                                    <input type="text" class="form-control" id="shipping-amount-input" name="shipping_amount" placeholder="Upišite iznos" value="{{ isset($order) ? $order->totals()->where('code', 'shipping')->first()->value : old('shipping_amount') }}">
+                                    @php
+                                        $shippingRow = isset($order) ? $order->totals()->where('code', 'shipping')->first() : null;
+                                        $shippingValue = $shippingRow ? $shippingRow->value : old('shipping_amount');
+                                    @endphp
+
+                                    <input type="text" class="form-control" id="shipping-amount-input"
+                                           name="shipping_amount" placeholder="Upišite iznos"
+                                           value="{{ $shippingValue }}">
                                 </div>
                             </div>
                         </div>

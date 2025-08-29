@@ -159,6 +159,7 @@ class Order extends Model
             'email'           => 'required',
             'items'           => 'required',
             'sums'            => 'required',
+            'shipping_amount' => 'nullable|numeric'
         ]);
 
         $this->setRequest($request);
@@ -226,7 +227,7 @@ class Order extends Model
             'shipping_phone'   => $this->request->phone ?: null,
             'shipping_email'   => $this->request->email,
             'shipping_method'  => $this->request->shipping,
-            'shipping_code'    => '',
+            'shipping_code'    => $this->request->shipping,
             'company'          => isset($this->request->company) ? $this->request->company : null,
             'oib'              => isset($this->request->oib) ? $this->request->oib : null,
             'created_at'       => Carbon::now(),
@@ -255,15 +256,59 @@ class Order extends Model
     {
         $order = $id ? $this->updateData($id) : $this->storeData();
 
-        if ($order) {
-            OrderProduct::store(json_decode($this->request->items), $order->id);
-            OrderTotal::store(json_decode($this->request->sums), $order->id);
-
-            return $order;
+        if (!$order) {
+            return false;
         }
 
-        return false;
+        // 1) Artikli
+        OrderProduct::store(json_decode($this->request->items), $order->id);
+
+        // 2) Totals iz forme (ako je JSON razbijen, dobit ćemo null -> napravimo prazan niz)
+        $totals = json_decode($this->request->sums, true) ?: [];
+
+        // 3) Ako je poslan iznos dostave, resolve-aj title iz Settings i upiši/override-aj "shipping"
+        if ($this->request->filled('shipping_amount')) {
+            // title iz postavki za kod dostave
+            $shippingSetting = Settings::get('shipping', 'list.' . $this->request->shipping)->first();
+            $shippingTitle   = $shippingSetting ? $shippingSetting->title : 'Dostava';
+
+            // normalizacija broja (podržava i "55,00")
+            $shippingValue = (float) str_replace(',', '.', $this->request->shipping_amount);
+
+            $found = false;
+            foreach ($totals as &$t) {
+                // podrži i array i object
+                $code = is_array($t) ? ($t['code'] ?? null) : ($t['code'] ?? $t['code'] ?? null);
+                if ($code === 'shipping') {
+                    if (is_array($t)) {
+                        $t['value'] = $shippingValue;
+                        $t['title'] = $t['title'] ?? ($t['name'] ?? $shippingTitle);
+                    } else {
+                        $t->value = $shippingValue;
+                        $t->title = $t->title ?? ($t->name ?? $shippingTitle);
+                    }
+                    $found = true;
+                    break;
+                }
+            }
+            unset($t);
+
+            if (!$found) {
+                // dodaj shipping red
+                $totals[] = [
+                    'code'  => 'shipping',
+                    'title' => $shippingTitle,
+                    'value' => $shippingValue,
+                ];
+            }
+        }
+
+        // 4) Spremi totals
+        OrderTotal::store($totals, $order->id);
+
+        return $order;
     }
+
 
 
     /**
