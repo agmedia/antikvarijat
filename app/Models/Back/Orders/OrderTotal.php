@@ -56,6 +56,8 @@ class OrderTotal extends Model
                 Order::where('id', $order_id)->update(['total' => $value]);
             }
 
+
+
             $i++;
         }
 

@@ -282,6 +282,7 @@ export default {
 
                 this.sums.push({
                     name: item.title,
+                    title: item.title,
                     value: value,
                     code: item.code
                 });

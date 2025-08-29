@@ -17,6 +17,9 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 
+use App\Exports\ProductsZeroQuantityExport;
+use Maatwebsite\Excel\Facades\Excel;
+
 class ProductController extends Controller
 {
 
@@ -231,5 +234,11 @@ class ProductController extends Controller
         $page = $page ?: (Paginator::resolveCurrentPage() ?: 1);
         $items = $items instanceof Collection ? $items : Collection::make($items);
         return new LengthAwarePaginator($items->forPage($page, $perPage), $items->count(), $perPage, $page, $options);
+    }
+
+    public function exportZero()
+    {
+        $fileName = 'products_zero_' . now()->format('Ymd_His') . '.xlsx';
+        return Excel::download(new ProductsZeroQuantityExport(), $fileName);
     }
 }

@@ -2253,6 +2253,7 @@ __webpack_require__.r(__webpack_exports__);
         }
         _this2.sums.push({
           name: item.title,
+          title: item.title,
           value: value,
           code: item.code
         });

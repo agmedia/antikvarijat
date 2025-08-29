@@ -159,7 +159,8 @@ class Order extends Model
             'email'           => 'required',
             'items'           => 'required',
             'sums'            => 'required',
-            'shipping_amount' => 'nullable|numeric'
+            'shipping_amount'=> 'nullable|numeric',
+            'payment_amount' => 'nullable|numeric',   // DODANO
         ]);
 
         $this->setRequest($request);
@@ -278,7 +279,7 @@ class Order extends Model
             $found = false;
             foreach ($totals as &$t) {
                 // podrži i array i object
-                $code = is_array($t) ? ($t['code'] ?? null) : ($t['code'] ?? $t['code'] ?? null);
+                $code = is_array($t) ? ($t['code'] ?? null) : ($t->code ?? null);
                 if ($code === 'shipping') {
                     if (is_array($t)) {
                         $t['value'] = $shippingValue;
@@ -301,6 +302,43 @@ class Order extends Model
                     'value' => $shippingValue,
                 ];
             }
+        }
+
+        // 3b) Ako je payment COD i poslan iznos naknade, upiši/override-aj "payment"
+        if (strtolower($this->request->payment) === 'cod' && $this->request->filled('payment_amount')) {
+            $paymentTitle = 'Naknada za pouzeće'; // po potrebi promijeni ili povuci iz configa
+            $paymentValue = (float) str_replace(',', '.', $this->request->payment_amount);
+
+            $foundPayment = false;
+            foreach ($totals as &$t) {
+                $code = is_array($t) ? ($t['code'] ?? null) : ($t->code ?? null);
+                if ($code === 'payment') {
+                    if (is_array($t)) {
+                        $t['value'] = $paymentValue;
+                        $t['title'] = $t['title'] ?? ($t['name'] ?? $paymentTitle);
+                    } else {
+                        $t->value = $paymentValue;
+                        $t->title = $t->title ?? ($t->name ?? $paymentTitle);
+                    }
+                    $foundPayment = true;
+                    break;
+                }
+            }
+            unset($t);
+
+            if (!$foundPayment) {
+                $totals[] = [
+                    'code'  => 'payment',
+                    'title' => $paymentTitle,
+                    'value' => $paymentValue,
+                ];
+            }
+        } else {
+            // (Opcionalno) ako payment NIJE COD, ukloni eventualni 'payment' red iz totals
+            $totals = array_values(array_filter($totals, function ($t) {
+                $code = is_array($t) ? ($t['code'] ?? null) : ($t->code ?? null);
+                return $code !== 'payment';
+            }));
         }
 
         // 4) Spremi totals

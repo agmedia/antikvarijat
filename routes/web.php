@@ -98,6 +98,9 @@ Route::middleware(['auth:sanctum', 'verified', 'no.customers'])->prefix('admin')
         Route::delete('product/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
     });
 
+
+    Route::get('/back/catalog/products/export/zero', [ProductController::class, 'exportZero'])
+        ->name('products.export.zero');
     // NARUDŽBE
     Route::get('orders', [OrderController::class, 'index'])->name('orders');
     Route::get('order/create', [OrderController::class, 'create'])->name('orders.create');

@@ -29,6 +29,10 @@
                 <h3 class="block-title">Svi artikli {{ $products->total() }}</h3>
                 <div class="block-options">
                     <div class="dropdown">
+
+                        <a href="{{ route('products.export.zero') }}" class="btn btn-outline-primary mr-3">
+                            <i class="fa fa-file-excel"></i>  Export artikala s količinom 0
+                        </a>
                         <button class="btn btn-outline-primary mr-3" type="button" data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
                             <i class="fa fa-filter"></i> Filter
                         </button>
@@ -108,6 +112,7 @@
                             </div>
 
                         </div>
+
                     </form>
                 </div>
             </div>
