@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use App\Models\User;
 
 class ProductHistory extends Model
 {
@@ -61,12 +62,16 @@ class ProductHistory extends Model
      * @param array      $new
      * @param array|null $old
      */
-    public function __construct(array $new, array $old = null)
+    public function __construct(array $attributes = [], array $new = [], ?array $old = null)
     {
-        $this->new = $new;
-        $this->old = $old ?: null;
+        parent::__construct($attributes);
 
-        $this->changed = '<b>' . $this->new[$this->title_column] . '</b><br><ul class="small">';
+        // Ako ručno proslijediš $new (i eventualno $old), pripremi log
+        if (!empty($new)) {
+            $this->new = $new;
+            $this->old = $old ?: null;
+            $this->changed = '<b>' . $this->new[$this->title_column] . '</b><br><ul class="small">';
+        }
     }
 
 
@@ -84,6 +89,12 @@ class ProductHistory extends Model
         $this->changed .= '</ul>';
 
         return $this->saveResponse();
+    }
+
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 
 

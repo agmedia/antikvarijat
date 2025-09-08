@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Bouncer;
 use Illuminate\Validation\ValidationException;
+use App\Models\Back\Catalog\Product\ProductHistory;
 
 class Product extends Model
 {
@@ -110,7 +111,7 @@ class Product extends Model
 
     public function historyLogs()
     {
-        return $this->hasMany(\App\Models\Back\Catalog\Product\ProductHistory::class, 'target_id')
+        return $this->hasMany(ProductHistory::class, 'target_id')
             ->where('target', 'product')
             ->orderByDesc('created_at');
     }
@@ -333,7 +334,7 @@ class Product extends Model
      */
     public function storeImages(Product $product)
     {
-        return (new ProductImage())->store($product, $this->request);
+      // return (new ProductImage())->store($product, $this->request);
     }
 
 
@@ -347,7 +348,7 @@ class Product extends Model
     {
         $new = $this->setHistoryProduct();
 
-        $history = new ProductHistory($new, $this->old_product);
+        $history = new ProductHistory([],$new, $this->old_product);
 
         return $history->addData($type);
     }

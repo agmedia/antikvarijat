@@ -131,6 +131,8 @@ class ProductController extends Controller
 
         $logs = $product->historyLogs()->with('user')->get();
 
+
+
         // NOVO:
         $allTags = Product::query()
             ->whereNotNull('tags')
