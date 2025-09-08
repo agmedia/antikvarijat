@@ -291,6 +291,42 @@
                 </div>
             </div>
 
+            <div class="block block-rounded mt-4">
+                <div class="block-header block-header-default">
+                    <h3 class="block-title">Povijest promjena</h3>
+                </div>
+                <div class="block-content">
+                    @if($logs->isEmpty())
+                        <p class="text-muted">Za ovaj artikl nema zabilježenih promjena.</p>
+                    @else
+                        <div class="table-responsive">
+                            <table class="table table-striped table-sm">
+                                <thead>
+                                <tr>
+                                    <th>Korisnik</th>
+                                    <th>Promjena</th>
+                                    <th>Datum</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                @foreach($logs as $log)
+                                    <tr>
+                                        <td>{{ optional($log->user)->name ?? 'N/A' }}</td>
+                                        <td>
+                                            {!! $log->title !!}<br>
+                                            {!! $log->changes !!}
+                                        </td>
+                                        <td>{{ $log->created_at?->format('d.m.Y H:i') }}</td>
+                                    </tr>
+                                @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+
             <div class="block">
                 <div class="block-header block-header-default">
                     <h3 class="block-title">Meta Data - SEO</h3>

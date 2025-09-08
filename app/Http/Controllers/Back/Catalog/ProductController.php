@@ -129,6 +129,8 @@ class ProductController extends Controller
     {
         $data = $product->getRelationsData();
 
+        $logs = $product->historyLogs()->with('user')->get();
+
         // NOVO:
         $allTags = Product::query()
             ->whereNotNull('tags')
@@ -140,7 +142,7 @@ class ProductController extends Controller
             ->sort()
             ->values();
 
-        return view('back.catalog.product.edit', compact('product', 'data', 'allTags'));
+        return view('back.catalog.product.edit', compact('product', 'data', 'logs', 'allTags'));
     }
 
 

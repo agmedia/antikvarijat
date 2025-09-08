@@ -108,6 +108,14 @@ class Product extends Model
     }
 
 
+    public function historyLogs()
+    {
+        return $this->hasMany(\App\Models\Back\Catalog\Product\ProductHistory::class, 'target_id')
+            ->where('target', 'product')
+            ->orderByDesc('created_at');
+    }
+
+
     /**
      * @return false|mixed
      */
