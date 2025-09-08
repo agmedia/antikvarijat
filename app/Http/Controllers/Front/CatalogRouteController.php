@@ -319,6 +319,7 @@ class CatalogRouteController extends Controller
                     'main_special_text'  => $p->main_special_text,
                     'image'              => $p->thumb,
                     'author_title'       => optional($p->author)->title,
+                    'quantity'           => $p->quantity,          // dodano!
                 ];
             }
 

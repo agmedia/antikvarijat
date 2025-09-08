@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use App\Helpers\Recaptcha;
 
 class Wishlist extends Model
 {
@@ -84,6 +85,12 @@ class Wishlist extends Model
         return $query->select('product_id', 'email');
     }
 
+    public function product()
+    {
+        return $this->belongsTo(\App\Models\Front\Catalog\Product::class, 'product_id');
+    }
+
+
 
     /**
      * Validate new category Request.
@@ -96,7 +103,8 @@ class Wishlist extends Model
     {
         $request->validate([
             'email'      => 'required',
-            'product_id' => 'required'
+            'product_id' => 'required',
+            'recaptcha'  => 'required'
         ]);
 
         $this->request = $request;
@@ -112,21 +120,27 @@ class Wishlist extends Model
      */
     public function create()
     {
+        // Provjeri postoji li već zapis za ovaj email i product_id
+        $exists = static::where('email', $this->request->email)
+            ->where('product_id', $this->request->product_id)
+            ->exists();
+
+        if ($exists) {
+            // po želji vrati poruku da je korisnik već prijavljen na obavijest za taj artikl
+            return false;
+        }
+
         $id = $this->insertGetId([
             'user_id'    => auth()->guest() ? 0 : auth()->user()->id,
             'email'      => $this->request->email,
             'product_id' => $this->request->product_id,
             'sent'       => 0,
             'status'     => 1,
-            'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now()
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
-        if ($id) {
-            return $this->find($id);
-        }
-
-        return false;
+        return $id ? $this->find($id) : false;
     }
 
 

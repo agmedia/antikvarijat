@@ -264,11 +264,21 @@
                                 html += '<div class="px-3  pt-2 pb-2 fw-medium  fs-md bg-secondary  text-dark">Artikli</div>';
                                 html += '<table class="px-3 table products"><tbody>';
                                 json.products.forEach(function (item) {
-                                    html += '<tr>'
-                                        +   '<td class="image"><a href="'+item.url+'"><img width="80" alt="'+escapeHtml(item.name)+'" src="'+item.image+'"></a></td>'
-                                        +   '<td class="main"><a href="'+item.url+'">'+escapeHtml(item.name)+'<br><small>'+escapeHtml(item.author_title||'')+'</small></a></td>'
-                                        +   '<td class="price text-end"><a href="'+item.url+'"><div class="price"><span class="price">'+(item.main_price_text||'')+'</span></div></a></td>'
-                                        + '</tr>';
+                                    html += '<tr>';
+
+                                    html += '<td class="image"><a href="'+item.url+'"><img width="80" alt="'+escapeHtml(item.name)+'" src="'+item.image+'"></a></td>';
+
+                                    // naziv + eventualno rasprodano
+                                    html += '<td class="main"><a href="'+item.url+'">'+escapeHtml(item.name)+'<br>';
+                                    html += '<small>'+escapeHtml(item.author_title || '')+'</small>';
+                                    if (parseInt(item.quantity, 10) <= 0) {
+                                        html += '<br><span class="badge badge-xs bg-warning">Rasprodano</span>';
+                                    }
+                                    html += '</a></td>';
+
+                                    html += '<td class="price text-end"><a href="'+item.url+'"><div class="price"><span class="price">'+(item.main_price_text || '')+'</span></div></a></td>';
+
+                                    html += '</tr>';
                                 });
                                 html += '</tbody></table>';
                             }

@@ -97,7 +97,7 @@
                     <!-- Tab 1: Mjesečni pregled (po danima) -->
                     <div class="tab-pane fade show active" id="tab-sales" role="tabpanel" aria-labelledby="sales-tab">
                         <div class="row mb-4 mt-3">
-                            <div class="col-md-3">
+                            <div class="col-md-4">
                                 <div class="row">
                                     <div class="col-md-6">
                                         <label>Godina</label>
@@ -135,7 +135,7 @@
                                 </div>
                             </div>
                             <!-- KPI boxevi -->
-                            <div class="col-md-9">
+                            <div class="col-md-8">
                                 <div class="row">
                                     <!-- Mjesečni promet -->
                                     <div class="col-12 col-md-4 mb-3">

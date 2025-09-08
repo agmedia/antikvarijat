@@ -5338,6 +5338,18 @@ textarea.form-control-lg {
     border-radius:.175rem;
 }
 
+.badge-xs {
+    display: inline-block;
+    padding: .15em .25em .25em .25em;
+    font-size: .7375em;
+    font-weight: normal;
+    line-height: 1;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
 .badge:empty {
     display:none
 }

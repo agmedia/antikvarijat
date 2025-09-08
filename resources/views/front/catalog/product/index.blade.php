@@ -526,4 +526,7 @@
     </script>
 
     @include('front.layouts.modal.wishlist-email')
+    @include('front.layouts.partials.recaptcha-js')
 @endpush
+
+

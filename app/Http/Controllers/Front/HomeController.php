@@ -57,6 +57,13 @@ class HomeController extends Controller
         $wish = new Wishlist();
         $wish->validateRequest($request);
 
+        // recaptcha verifikacija – moraš imati site & secret key postavljen
+        $recaptcha = (new Recaptcha())->check($request->toArray());
+        if (! $recaptcha->ok()) {
+            return back()->withErrors(['error' => 'ReCaptcha Error! Kontaktirajte administratora!'])
+                ->withInput();
+        }
+
         if ($wish->create()) {
             return back()->with(['success' => 'Vaš Email je upisan u listu želja za ovaj artikl..!']);
         }
