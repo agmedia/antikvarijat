@@ -355,7 +355,7 @@
                                                     {!! $log->title !!}<br>
                                                     {!! $log->changes !!}
                                                 </td>
-                                                <td>{{ $log->created_at?->format('d.m.Y H:i') }}</td>
+                                                <td>{{ $log->created_at->format('d.m.Y H:i') }}</td>
                                             </tr>
                                         @endforeach
                                         </tbody>
