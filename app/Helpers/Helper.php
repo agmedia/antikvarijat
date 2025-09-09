@@ -486,6 +486,32 @@ class Helper
         return $blogs;
     }
 
+    /**
+     * @param array $data
+     *
+     * @return Builder
+     */
+    private static function category(array $data): Builder
+    {
+        $category = (new \App\Models\Back\Catalog\Category())->newQuery();
+
+        $category->active();
+
+        if (isset($data['new']) && $data['new'] == 'on') {
+            $category->latest();
+        }
+
+        if (isset($data['popular']) && $data['popular'] == 'on') {
+            $category->latest();
+        }
+
+        if (isset($data['list']) && $data['list']) {
+            $category->whereIn('id', $data['list']);
+        }
+
+        return $category;
+    }
+
 
     /**
      * @param array $data
