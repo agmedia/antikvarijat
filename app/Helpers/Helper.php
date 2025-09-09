@@ -317,7 +317,7 @@ class Helper
 
         $widgets = [];
 
-        if ($wg->template == 'product_carousel' || $wg->template == 'page_carousel' || $wg->template == 'categories_carousel') {
+        if ($wg->template == 'product_carousel' || $wg->template == 'page_carousel' ) {
             $widget = $wg->widgets()->first();
             $data = unserialize($widget->data);
 
