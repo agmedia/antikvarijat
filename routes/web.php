@@ -240,7 +240,9 @@ Route::prefix('api/v2')->group(function () {
         Route::post('/add', [CartController::class, 'add']);
         Route::post('/update/{id}', [CartController::class, 'update']);
         Route::get('/remove/{id}', [CartController::class, 'remove']);
-        Route::get('/coupon/{coupon}', [CartController::class, 'coupon']);;
+        Route::get('/coupon/{coupon}', [CartController::class, 'coupon']);
+        //
+        Route::post('/provjeri-stanje-artikala', [CartController::class, 'provjeriStanje']);
     });
 
     Route::get('/products/autocomplete', [\App\Http\Controllers\Api\v2\ProductController::class, 'autocomplete'])->name('products.autocomplete');

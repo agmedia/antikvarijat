@@ -134,3 +134,43 @@
 </div>
 
 @endsection
+
+@push('js_after')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const submitButton = document.querySelector('form[name="pay"] button[type="submit"]');
+            const form = document.querySelector('form[name="pay"]');
+
+            submitButton.addEventListener('click', function(event) {
+                event.preventDefault(); // Zaustavi automatski submit forme
+
+                // PUTANJA NA BACKEND KOJA PROVJERAVA STANJE ARTIKALA
+                fetch('api/v2/cart/provjeri-stanje-artikala', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        order_id: '{{ $data['id'] }}'
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'ok') {
+                        // Sve je u redu, šaljemo formu
+                        form.submit();
+                    } else {
+                        // Prikaz greške korisniku
+                        alert('Nažalost, neki proizvodi više nisu dostupni ili je količina manja od naručene.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Greška:', error);
+                    alert('Došlo je do greške prilikom provjere zaliha. Pokušajte ponovo.');
+                });
+            });
+        });
+    </script>
+
+@endpush

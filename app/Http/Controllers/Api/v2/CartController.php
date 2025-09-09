@@ -5,7 +5,8 @@ namespace App\Http\Controllers\Api\v2;
 use App\Http\Controllers\Controller;
 use App\Models\Cart;
 use App\Models\Front\AgCart;
-use App\Models\Front\Product;
+use App\Models\Front\Catalog\Product;
+use App\Models\Front\Checkout\Order;
 use App\Models\Product\ProductAction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -146,6 +147,32 @@ class CartController extends Controller
         session([$this->key . '_coupon' => $coupon]);
 
         return response()->json($this->cart->coupon($coupon));
+    }
+
+
+    /**
+     * @param Request $request
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function provjeriStanje(Request $request)
+    {
+        $orderId = $request->input('order_id');
+
+        // Ovdje provjeriš artikle i količine
+        $order = Order::query()->where('id', $orderId)->with('products')->first();
+
+        if ($order->count() && $order->products()->count()) {
+            foreach ($order->products()->get() as $item) {
+                $product = Product::query()->where('id', $item->product_id)->first();
+
+                if ($product->count() && ($product->quantity < $item->quantity)) {
+                    return response()->json(['status' => 'error']);
+                }
+            }
+        }
+
+        return response()->json(['status' => 'ok']);
     }
 
 
