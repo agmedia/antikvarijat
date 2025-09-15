@@ -101,7 +101,7 @@ class CheckoutController extends Controller
     public function order(Request $request)
     {
 
-        Log::info($request->toArray());
+
         $order = new Order();
 
         if ($request->has('provjera')) {
@@ -130,7 +130,7 @@ class CheckoutController extends Controller
     public function success(Request $request)
     {
 
-        Log::info($request->toArray());
+
 
         $data['order'] = CheckoutSession::getOrder();
 
@@ -161,7 +161,7 @@ class CheckoutController extends Controller
                     Mail::to(config('mail.admin'))->send(new OrderReceived($order));
                     Mail::to($order->payment_email)->send(new OrderSent($order));
                 } catch (\Throwable $e) {
-                    Log::error('Mail sending failed', [
+                    Log::info('Mail sending failed', [
                         'order_id' => $order->id,
                         'error' => $e->getMessage(),
                     ]);
