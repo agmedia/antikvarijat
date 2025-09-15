@@ -363,75 +363,81 @@ class Product extends Model
     {
         $query = (new Product())->newQuery();
 
-        if ($request->has('search') && ! empty($request->input('search'))) {
-            $query->where('name', 'like', '%' . $request->input('search') . '%')
-                ->orWhere('description', 'like', '%' . $request->input('search') . '%')
-                  ->orWhere('sku', 'like', '%' . $request->input('search') . '%')
-                  ->orWhere('polica', 'like', '%' . $request->input('search') . '%')
-                  ->orWhere('year', 'like', '' . $request->input('search') . '');
-        }
+        // Pretraga po nazivu, opisu, sku, polici, godini
+        if ($request->has('search') && !empty($request->input('search'))) {
+            $searchTerm = $request->input('search');
 
-        if ($request->has('category') && ! empty($request->input('category'))) {
-            $query->whereHas('categories', function ($query) use ($request) {
-                $query->where('id', $request->input('category'));
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('name', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('description', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('sku', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('polica', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('year', 'like', '%' . $searchTerm . '%');
             });
         }
 
-        if ($request->has('author') && ! empty($request->input('author'))) {
+        // Filter po kategoriji
+        if ($request->has('category') && !empty($request->input('category'))) {
+            $query->whereHas('categories', function ($q) use ($request) {
+                $q->where('id', $request->input('category'));
+            });
+        }
+
+        // Filter po autoru
+        if ($request->has('author') && !empty($request->input('author'))) {
             $query->where('author_id', $request->input('author'));
         }
 
-        if ($request->has('publisher') && ! empty($request->input('publisher'))) {
+        // Filter po izdavaču
+        if ($request->has('publisher') && !empty($request->input('publisher'))) {
             $query->where('publisher_id', $request->input('publisher'));
         }
 
+        // Filter po statusu
         if ($request->has('status')) {
-            /*if ($request->input('status') == 'active') {
-                $query->where('status', 1);
-            }
-            if ($request->input('status') == 'inactive') {
-                $query->where('status', 0);
-            }*/
             if ($request->input('status') == 'available') {
                 $query->where('quantity', '>', 0);
             }
             if ($request->input('status') == 'unavailable') {
-                $query->where('quantity', 0)->orWhere('quantity', '<', 0);
+                $query->where('quantity', '<=', 0);
             }
         }
 
+        // Sortiranje
         if ($request->has('sort')) {
-            if ($request->input('sort') == 'new') {
-                $query->orderBy('created_at', 'desc');
-            }
-            if ($request->input('sort') == 'old') {
-                $query->orderBy('created_at', 'asc');
-            }
-            if ($request->input('sort') == 'price_up') {
-                $query->orderBy('price', 'asc');
-            }
-            if ($request->input('sort') == 'price_down') {
-                $query->orderBy('price', 'desc');
-            }
-            if ($request->input('sort') == 'az') {
-                $query->orderBy('name', 'asc');
-            }
-            if ($request->input('sort') == 'za') {
-                $query->orderBy('name', 'desc');
-            }
-            if ($request->input('sort') == 'qty_up') {
-                $query->orderBy('quantity', 'asc');
-            }
-            if ($request->input('sort') == 'qty_down') {
-                $query->orderBy('quantity', 'desc');
+            switch ($request->input('sort')) {
+                case 'new':
+                    $query->orderBy('created_at', 'desc');
+                    break;
+                case 'old':
+                    $query->orderBy('created_at', 'asc');
+                    break;
+                case 'price_up':
+                    $query->orderBy('price', 'asc');
+                    break;
+                case 'price_down':
+                    $query->orderBy('price', 'desc');
+                    break;
+                case 'az':
+                    $query->orderBy('name', 'asc');
+                    break;
+                case 'za':
+                    $query->orderBy('name', 'desc');
+                    break;
+                case 'qty_up':
+                    $query->orderBy('quantity', 'asc');
+                    break;
+                case 'qty_down':
+                    $query->orderBy('quantity', 'desc');
+                    break;
             }
         } else {
             $query->orderBy('updated_at', 'desc');
-
         }
 
         return $query;
     }
+
 
 
     /**
