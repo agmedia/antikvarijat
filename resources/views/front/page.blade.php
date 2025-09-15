@@ -51,7 +51,7 @@
                                             <h2 class="display-6 from-bottom ">Hrvatska RARA</h2>
                                             <p class="h5 fw-light pb-3 from-bottom delay-2">Jedinstvena izdanja za Vašu biblioteku</p>
 
-                                            <div class="d-table scale-up delay-4 mx-auto mx-md-0"><a class="btn btn-primary btn-shadow" href="shop-grid-ls.html">Pogledajte ponudu<i class="ci-arrow-right ms-2 me-n1"></i></a></div>
+                                            <div class="d-table scale-up delay-4 mx-auto mx-md-0"><a class="btn btn-primary btn-shadow" href="knjige/hrvatska-rara">Pogledajte ponudu<i class="ci-arrow-right ms-2 me-n1"></i></a></div>
                                         </div>
                                     </div>
                                 </div>
@@ -63,7 +63,7 @@
                                             <h2 class="display-6 from-bottom ">Zemljovidi i vedute</h2>
                                             <p class="h5 fw-light pb-3 from-bottom delay-2">Karte i grafike koje nose stoljeća</p>
 
-                                            <div class="d-table scale-up delay-4 mx-auto mx-md-0"><a class="btn btn-primary btn-shadow" href="shop-grid-ls.html">Pogledajte ponudu<i class="ci-arrow-right ms-2 me-n1"></i></a></div>
+                                            <div class="d-table scale-up delay-4 mx-auto mx-md-0"><a class="btn btn-primary btn-shadow" href="zemljovidi-i-vedute">Pogledajte ponudu<i class="ci-arrow-right ms-2 me-n1"></i></a></div>
                                         </div>
                                     </div>
                                 </div>
