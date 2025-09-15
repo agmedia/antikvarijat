@@ -115,6 +115,8 @@
             <div class="d-md-flex justify-content-between pt-4">
                 <div class="pt-2 pb-3 pb-lg-0 fs-sm text-dark  text-center text-md-start">© Sva prava pridržana. Web by <a class="text-dark" title="Izrada web shopa - B2C ili B2B web trgovina - AG media" href="https://www.agmedia.hr/usluge/izrada-web-shopa/" target="_blank" rel="noopener">AG media</a></div>
                 <div class="widget widget-links widget-light pb-4 text-center text-md-end">
+                    <img class="d-inline-block" style="width: 55px;margin-right:3px" src="{{ config('settings.images_domain') }}media/cards/apple_pay.svg" width="55" height="35" alt="ApplePay"/>
+                    <img class="d-inline-block" style="width: 55px;margin-right:3px" src="{{ config('settings.images_domain') }}media/cards/google_pay.svg" width="55" height="35" alt="GooglePay"/>
                     <img class="d-inline-block" style="width: 55px;margin-right:3px" src="{{ config('settings.images_domain') }}media/cards/visa.svg" width="55" height="35" alt="Visa"/>
                     <img class="d-inline-block" style="width: 55px;margin-right:3px" src="{{ config('settings.images_domain') }}media/cards/maestro.svg" width="55" height="35" alt="Maestro"/>
                     <img class="d-inline-block" style="width: 55px;margin-right:3px" src="{{ config('settings.images_domain') }}media/cards/mastercard.svg" width="55" height="35" alt="MasterCard"/>
