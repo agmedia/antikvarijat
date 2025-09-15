@@ -211,8 +211,12 @@
                                        @else
                                            <li><strong>Dostupnost:</strong> <span class="badge bg-danger align-middle ">Rasprodano</span></li>
                                        @endif
-
-                                       <li><strong>Stanje:</strong> Nova knjiga</li>
+                                           @if ($prod->condition)
+                                       <li><strong>Stanje:</strong> {{ $prod->condition }} </li>
+                                           @endif
+                                           @if ($prod->sku)
+                                               <li><strong>Šifra:</strong> {{ $prod->sku }} </li>
+                                           @endif
                                    </ul>
 
                                </div>
