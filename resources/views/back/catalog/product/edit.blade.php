@@ -397,23 +397,25 @@
                         </div>
                     </div>
                 </div>
+
+            </div>
+                    </div>
+                </div>
+
                 <div class="block-content bg-body-light">
                     <div class="row justify-content-center push">
-                        <div class="col-md-5">
+                        <div class="col-md-6">
                             <button type="submit" class="btn btn-hero-success my-2">
                                 <i class="fas fa-save mr-1"></i> Snimi
                             </button>
                         </div>
-                        <div class="col-md-5 text-right">
+                        <div class="col-md-6 text-right">
                             @if (isset($product))
                                 <a href="{{ route('products.destroy', ['product' => $product]) }}" type="submit" class="btn btn-hero-danger my-2 js-tooltip-enabled" data-toggle="tooltip" title="" data-original-title="Obriši" onclick="event.preventDefault(); document.getElementById('delete-product-form{{ $product->id }}').submit();">
                                     <i class="fa fa-trash-alt"></i> Obriši
                                 </a>
                             @endif
                         </div>
-                    </div>
-                </div>
-            </div>
                     </div>
                 </div>
             </div>
