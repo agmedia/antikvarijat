@@ -8,6 +8,7 @@ use App\Mail\OrderReceived;
 use App\Mail\OrderSent;
 use App\Models\Back\Settings\Settings;
 use App\Models\Front\AgCart;
+
 use App\Models\Front\Checkout\Order;
 use App\Models\TagManager;
 use Illuminate\Http\Request;
@@ -149,10 +150,22 @@ class CheckoutController extends Controller
 
             $data['google_tag_manager'] = TagManager::getGoogleSuccessDataLayer($order);
 
-            dispatch(function () use ($order) {
+          /*  dispatch(function () use ($order) {
                 Mail::to(config('mail.admin'))->send(new OrderReceived($order));
                 Mail::to($order->payment_email)->send(new OrderSent($order));
-            })->afterResponse();
+            })->afterResponse();*/
+
+            register_shutdown_function(function () use ($order) {
+                try {
+                    Mail::to(config('mail.admin'))->send(new OrderReceived($order));
+                    Mail::to($order->payment_email)->send(new OrderSent($order));
+                } catch (\Throwable $e) {
+                    Log::error('Mail sending failed', [
+                        'order_id' => $order->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            });
 
             return view('front.checkout.success', compact('data'));
         }
