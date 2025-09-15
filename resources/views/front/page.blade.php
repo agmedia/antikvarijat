@@ -77,18 +77,18 @@
                     <div class="col-xl-3 order-xl-1 pt-4 mt-3 mt-xl-0 pt-xl-0">
                         <div class="table-responsive" data-simplebar>
                             <div class="d-flex d-xl-block">
-                                <a class="d-flex align-items-center rounded-3 pt-2 ps-2 mb-4 me-3 me-xl-0 mbanner" href="#" ><img src="{{ asset('media/img/knjizevnost-ikona.png') }}" width="100" alt="Banner">
+                                <a class="d-flex align-items-center rounded-3 pt-2 ps-2 mb-4 me-3 me-xl-0 mbanner" href="knjige/knjizevnost" ><img src="{{ asset('media/img/knjizevnost-ikona.png') }}" width="100" alt="Banner">
                                     <div class="py-4 px-2">
                                         <h5 class="mb-2"><span class="fw-light">Kategorija:</span> <br> Književnost</h5>
                                         <div class="text-dark fs-sm">Istražite naslove<i class="ci-arrow-right fs-xs ms-1"></i></div>
                                     </div>
                                 </a>
-                                <a class="d-flex align-items-center rounded-3 pt-2 ps-2 mb-4 me-4 me-xl-0 mbanner" href="#" ><img src="{{ asset('media/img/umjetnost-ikona.png') }}" width="100" alt="Banner">
+                                <a class="d-flex align-items-center rounded-3 pt-2 ps-2 mb-4 me-4 me-xl-0 mbanner" href="knjige/filozofija" ><img src="{{ asset('media/img/umjetnost-ikona.png') }}" width="100" alt="Banner">
                                     <div class="py-4 px-2">
-                                        <h5 class="mb-2"><span class="fw-light">Kategorija:</span> <br> </span> Umjetnost</h5>
+                                        <h5 class="mb-2"><span class="fw-light">Kategorija:</span> <br> </span> Filozofija</h5>
                                         <div class="text-dark fs-sm">Istražite naslove<i class="ci-arrow-right fs-xs ms-1"></i></div>
                                     </div></a>
-                                <a class="d-flex align-items-center rounded-3 pt-2 ps-2 mb-4 me-3 me-xl-0 mbanner" href="#" ><img src="{{ asset('media/img/povijest-ikona.png') }}" width="100" alt="Banner">
+                                <a class="d-flex align-items-center rounded-3 pt-2 ps-2 mb-4 me-3 me-xl-0 mbanner" href="knjige/povijest" ><img src="{{ asset('media/img/povijest-ikona.png') }}" width="100" alt="Banner">
                                     <div class="py-4 px-2">
                                         <h5 class="mb-2"><span class="fw-light">Kategorija:</span> <br> </span> Povijest</h5>
                                         <div class="text-dark fs-sm">Istražite naslove<i class="ci-arrow-right fs-xs ms-1"></i></div>
