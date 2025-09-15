@@ -84,6 +84,7 @@ class CheckoutController extends Controller
 
         if ($order->isCreated()) {
             CheckoutSession::setOrder($order->getData());
+            $data['id'] = CheckoutSession::getOrder()['id'];
         }
 
         $data['payment_form'] = $order->resolvePaymentForm();
