@@ -182,7 +182,7 @@
                            <div class="alert-icon">
                                <i class="ci-gift"></i>
                            </div>
-                           <div> Besplatna dostava u RH za narudžbe veće od 70</div>
+                           <div> Besplatna dostava u RH za narudžbe veće od 70 €</div>
                        </div>
 
                    <!-- Product panels-->
@@ -355,11 +355,11 @@
                                            </li>
                                        @endif
 
-                                       @if ($prod->origin)
+                                       {{--@if ($prod->origin)
                                            <li class="d-flex justify-content-between pb-2 border-bottom">
                                                <span class="text-muted">Jezik:</span><span>{{ $prod->origin }}</span>
                                            </li>
-                                       @endif
+                                       @endif--}}
 
                                        @if ($prod->year)
                                            <li class="d-flex justify-content-between pb-2 border-bottom">
