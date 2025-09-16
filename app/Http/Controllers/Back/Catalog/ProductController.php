@@ -76,7 +76,7 @@ class ProductController extends Controller
     public function create()
     {
         $product = new Product();
-
+        $logs = collect();
         $data = $product->getRelationsData();
         $active_actions = ProductAction::active()->get();
 
@@ -90,7 +90,7 @@ class ProductController extends Controller
             ->sort()
             ->values();
 
-        return view('back.catalog.product.edit', compact('data', 'active_actions', 'allTags'));
+        return view('back.catalog.product.edit', compact('data', 'active_actions', 'allTags', 'logs'));
     }
 
 
