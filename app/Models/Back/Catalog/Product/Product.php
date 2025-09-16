@@ -14,10 +14,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-use Bouncer;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use App\Models\Back\Catalog\Product\ProductHistory;
 
@@ -54,7 +53,6 @@ class Product extends Model
      */
     public function categories()
     {
-        // ispravljeni operatori
         return $this->hasManyThrough(Category::class, ProductCategory::class, 'product_id', 'id', 'id', 'category_id')
             ->where('parent_id', '=', 0);
     }
@@ -64,7 +62,6 @@ class Product extends Model
      */
     public function subcategories()
     {
-        // ispravljeni operatori
         return $this->hasManyThrough(Category::class, ProductCategory::class, 'product_id', 'id', 'id', 'category_id')
             ->where('parent_id', '!=', 0);
     }
@@ -117,7 +114,6 @@ class Product extends Model
      */
     public function special()
     {
-        // If special is set, return special.
         if ($this->special) {
             $from = now()->subDay();
             $to   = now()->addDay();
@@ -147,43 +143,37 @@ class Product extends Model
 
     /**
      * Validate New Product Request.
-     *
-     * @param Request $request
-     *
-     * @return $this
      */
     public function validateRequest(Request $request)
     {
-        // Validate the request.
+        $currentId = $this->id
+            ?? $request->route('product')
+            ?? $request->route('id')
+            ?? $request->input('id');
+
         $request->validate([
-            'name'     => 'required',
-            'sku'      => 'required',
-            'price'    => 'required',
-            'category' => 'required',
-            // dozvoli i string i array; mutator će normalizirati
-            'tags'     => 'nullable',
+            'name'     => ['required'],
+            'sku'      => [
+                'required',
+                Rule::unique('products', 'sku')->ignore($currentId),
+            ],
+            'price'    => ['required'],
+            'category' => ['required'],
+            'tags'     => ['nullable'], // može biti string ili array
         ]);
 
-        // Set Product Model request variable
         $this->setRequest($request);
-
-        if ($this->isDuplicateSku()) {
-            throw ValidationException::withMessages(['sku_dupl' => $this->request->sku . ' - Šifra već postoji...']);
-        }
 
         return $this;
     }
 
     /**
      * Create and return new Product Model.
-     *
-     * @return mixed
      */
     public function create()
     {
         $slug = $this->resolveSlug();
 
-        // VAŽNO: koristimo Eloquent + save() da se pozovu mutatori (npr. setTagsAttribute)
         $product = new self();
 
         $product->author_id        = $this->request->author_id ?: 6;
@@ -195,7 +185,7 @@ class Product extends Model
         $product->description      = $this->cleanHTML($this->request->description);
         $product->slug             = $slug;
 
-        // Trigerira mutator i završava kao JSON array u bazi
+        // Mutator sprema kao JSON array
         $product->tags             = $this->request->tags;
 
         $product->price            = $this->request->price;
@@ -204,7 +194,7 @@ class Product extends Model
         $product->special          = $this->request->special;
         $product->special_from     = $this->request->special_from ? Carbon::make($this->request->special_from) : null;
         $product->special_to       = $this->request->special_to ? Carbon::make($this->request->special_to) : null;
-        $product->meta_title       = $this->request->meta_title ?: $this->request->name/* . ($author ? '-' . $author->title : '')*/;
+        $product->meta_title       = $this->request->meta_title ?: $this->request->name;
         $product->meta_description = $this->request->meta_description;
         $product->pages            = $this->request->pages;
         $product->dimensions       = $this->request->dimensions;
@@ -226,7 +216,7 @@ class Product extends Model
 
         $product->update([
             'url'             => ProductHelper::url($product),
-            'category_string' => ProductHelper::categoryString($product)
+            'category_string' => ProductHelper::categoryString($product),
         ]);
 
         return $product;
@@ -234,8 +224,6 @@ class Product extends Model
 
     /**
      * Update and return new Product Model.
-     *
-     * @return mixed
      */
     public function edit()
     {
@@ -243,7 +231,6 @@ class Product extends Model
 
         $slug = $this->resolveSlug('update');
 
-        // update() na Eloquent modelu prolazi kroz mutatore
         $updated = $this->update([
             'author_id'        => $this->request->author_id ?: 6,
             'publisher_id'     => $this->request->publisher_id ?: 2,
@@ -260,7 +247,7 @@ class Product extends Model
             'special'          => $this->request->special,
             'special_from'     => $this->request->special_from ? Carbon::make($this->request->special_from) : null,
             'special_to'       => $this->request->special_to ? Carbon::make($this->request->special_to) : null,
-            'meta_title'       => $this->request->meta_title ?: $this->request->name/* . '-' . ($author ? '-' . $author->title : '')*/,
+            'meta_title'       => $this->request->meta_title ?: $this->request->name,
             'meta_description' => $this->request->meta_description,
             'pages'            => $this->request->pages,
             'dimensions'       => $this->request->dimensions,
@@ -272,8 +259,8 @@ class Product extends Model
             'viewed'           => 0,
             'sort_order'       => 0,
             'push'             => 0,
-            'status'           => (isset($this->request->status) and $this->request->status == 'on') ? 1 : 0,
-            'updated_at'       => Carbon::now()
+            'status'           => (isset($this->request->status) && $this->request->status == 'on') ? 1 : 0,
+            'updated_at'       => Carbon::now(),
         ]);
 
         if ($updated) {
@@ -281,7 +268,7 @@ class Product extends Model
 
             $this->update([
                 'url'             => ProductHelper::url($this),
-                'category_string' => ProductHelper::categoryString($this)
+                'category_string' => ProductHelper::categoryString($this),
             ]);
 
             return $this;
@@ -301,13 +288,10 @@ class Product extends Model
             'letters'    => Settings::get('product', 'letter_styles'),
             'conditions' => Settings::get('product', 'condition_styles'),
             'bindings'   => Settings::get('product', 'binding_styles'),
-            'taxes'      => Settings::get('tax', 'list')
+            'taxes'      => Settings::get('tax', 'list'),
         ];
     }
 
-    /**
-     * @return $this
-     */
     public function checkSettings()
     {
         Settings::setProduct('letter_styles', $this->request->letter);
@@ -317,27 +301,16 @@ class Product extends Model
         return $this;
     }
 
-    /**
-     * @param Product $product
-     *
-     * @return mixed
-     */
     public function storeImages(Product $product)
     {
         return (new ProductImage())->store($product, $this->request);
     }
 
-    /**
-     * @param string  $type
-     * @param Product $product
-     *
-     * @return false
-     */
     public function addHistoryData(string $type)
     {
         $new = $this->setHistoryProduct();
 
-        $history = new ProductHistory([],$new, $this->old_product);
+        $history = new ProductHistory([], $new, $this->old_product);
 
         return $history->addData($type);
     }
@@ -426,19 +399,11 @@ class Product extends Model
         return $query;
     }
 
-    /**
-     * Set Product Model request variable.
-     *
-     * @param $request
-     */
     private function setRequest($request)
     {
         $this->request = $request;
     }
 
-    /**
-     * @return mixed
-     */
     private function setHistoryProduct()
     {
         $product = $this->where('id', $this->id)->first();
@@ -456,11 +421,6 @@ class Product extends Model
         return $response;
     }
 
-    /**
-     * @param null $description
-     *
-     * @return string
-     */
     private function cleanHTML($description = null): string
     {
         $clean = preg_replace('/ style=("|\')(.*?)("|\')/', '', $description ?: '');
@@ -469,28 +429,24 @@ class Product extends Model
     }
 
     /**
-     * Pretvara ulaz (string "a,b,c" ili array) u normalizirani array i sprema u JSON.
+     * Mutator za spremanje tags kao JSON.
      */
     public function setTagsAttribute($value): void
     {
-        $arr = is_array($value)
-            ? $value
-            : explode(',', (string)$value);
+        $arr = is_array($value) ? $value : explode(',', (string)$value);
 
         $arr = collect($arr)
             ->map(fn($t) => trim(mb_strtolower($t)))
-            ->filter()     // ukloni praznine
-            ->unique()     // jedinstveni
+            ->filter()
+            ->unique()
             ->values()
             ->all();
 
-        // prazno -> null (čistiji JSON u bazi)
         $this->attributes['tags'] = empty($arr) ? null : json_encode($arr, JSON_UNESCAPED_UNICODE);
     }
 
     /**
-     * Helper za prikaz u formi (comma-separated string iz JSON-a).
-     * Primjer u Bladeu: value="{{ old('tags', $product->tags_string) }}"
+     * Accessor za prikaz tagova kao comma-separated string.
      */
     public function getTagsStringAttribute(): string
     {
@@ -498,11 +454,6 @@ class Product extends Model
         return implode(',', $arr);
     }
 
-    /**
-     * @param int $product_id
-     *
-     * @return array|false
-     */
     private function resolveCategories(int $product_id)
     {
         if ($this->request->category) {
@@ -512,11 +463,6 @@ class Product extends Model
         return false;
     }
 
-    /**
-     * @param Request|null $request
-     *
-     * @return string
-     */
     private function resolveSlug(string $target = 'insert', Request $request = null): string
     {
         $slug = null;
@@ -527,7 +473,6 @@ class Product extends Model
 
         if ($target == 'update') {
             $product = Product::where('id', $this->id)->first();
-
             if ($product) {
                 $slug = $product->slug;
             }
@@ -535,7 +480,6 @@ class Product extends Model
 
         $slug  = $slug ?: Str::slug($this->request->name);
         $exist = $this->where('slug', $slug)->count();
-
         $cat_exist = Category::where('slug', $slug)->count();
 
         if (($cat_exist || $exist > 1) && $target == 'update') {
@@ -547,19 +491,5 @@ class Product extends Model
         }
 
         return $slug;
-    }
-
-    /**
-     * @return bool
-     */
-    private function isDuplicateSku(): bool
-    {
-        $exist = $this->where('sku', $this->request->sku)->first();
-
-        if (isset($this->id) && $exist && $exist->id != $this->id) {
-            return true;
-        }
-
-        return (bool) $exist;
     }
 }
