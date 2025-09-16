@@ -23,7 +23,6 @@ use App\Models\Back\Catalog\Product\ProductHistory;
 
 class Product extends Model
 {
-
     use HasFactory;
 
     /**
@@ -50,24 +49,25 @@ class Product extends Model
      */
     protected $old_product = null;
 
-
     /**
      * @return Relation
      */
     public function categories()
     {
-        return $this->hasManyThrough(Category::class, ProductCategory::class, 'product_id', 'id', 'id', 'category_id')->where('parent_id', '==', 0);
+        // ispravljeni operatori
+        return $this->hasManyThrough(Category::class, ProductCategory::class, 'product_id', 'id', 'id', 'category_id')
+            ->where('parent_id', '=', 0);
     }
-
 
     /**
      * @return Relation
      */
     public function subcategories()
     {
-        return $this->hasManyThrough(Category::class, ProductCategory::class, 'product_id', 'id', 'id', 'category_id')->where('parent_id', '=!', 0);
+        // ispravljeni operatori
+        return $this->hasManyThrough(Category::class, ProductCategory::class, 'product_id', 'id', 'id', 'category_id')
+            ->where('parent_id', '!=', 0);
     }
-
 
     /**
      * @return Model|\Illuminate\Database\Eloquent\Relations\HasOneThrough|\Illuminate\Database\Query\Builder|mixed|object|null
@@ -75,10 +75,9 @@ class Product extends Model
     public function category()
     {
         return $this->hasOneThrough(Category::class, ProductCategory::class, 'product_id', 'id', 'id', 'category_id')
-                    ->where('parent_id', '=', 0)
-                    ->first();
+            ->where('parent_id', '=', 0)
+            ->first();
     }
-
 
     /**
      * @return Model|\Illuminate\Database\Eloquent\Relations\HasOneThrough|\Illuminate\Database\Query\Builder|mixed|object|null
@@ -86,10 +85,9 @@ class Product extends Model
     public function subcategory()
     {
         return $this->hasOneThrough(Category::class, ProductCategory::class, 'product_id', 'id', 'id', 'category_id')
-                    ->where('parent_id', '!=', 0)
-                    ->first();
+            ->where('parent_id', '!=', 0)
+            ->first();
     }
-
 
     /**
      * @return Relation
@@ -99,7 +97,6 @@ class Product extends Model
         return $this->hasMany(ProductImage::class, 'product_id')->orderBy('sort_order');
     }
 
-
     /**
      * @return Relation
      */
@@ -108,14 +105,12 @@ class Product extends Model
         return $this->hasOne(ProductAction::class, 'product_id');
     }
 
-
     public function historyLogs()
     {
         return $this->hasMany(ProductHistory::class, 'target_id')
             ->where('target', 'product')
             ->orderByDesc('created_at');
     }
-
 
     /**
      * @return false|mixed
@@ -142,7 +137,6 @@ class Product extends Model
         return false;
     }
 
-
     public function imageName()
     {
         $from   = strrpos($this->image, '/') + 1;
@@ -150,7 +144,6 @@ class Product extends Model
 
         return substr($this->image, $from, $length);
     }
-
 
     /**
      * Validate New Product Request.
@@ -167,7 +160,8 @@ class Product extends Model
             'sku'      => 'required',
             'price'    => 'required',
             'category' => 'required',
-            'tags'     => 'nullable|string', // prima "a,b,c"
+            // dozvoli i string i array; mutator će normalizirati
+            'tags'     => 'nullable',
         ]);
 
         // Set Product Model request variable
@@ -180,7 +174,6 @@ class Product extends Model
         return $this;
     }
 
-
     /**
      * Create and return new Product Model.
      *
@@ -190,55 +183,54 @@ class Product extends Model
     {
         $slug = $this->resolveSlug();
 
-        $id = $this->insertGetId([
-            'author_id'        => $this->request->author_id ?: 6,
-            'publisher_id'     => $this->request->publisher_id ?: 2,
-            'action_id'        => $this->request->action ?: 0,
-            'name'             => $this->request->name,
-            'sku'              => $this->request->sku,
-            'polica'           => $this->request->polica,
-            'description'      => $this->cleanHTML($this->request->description),
-            'slug'             => $slug,
-            'tags'             => $this->request->tags,
-            'price'            => $this->request->price,
-            'quantity'         => $this->request->quantity ?: 0,
-            'tax_id'           => $this->request->tax_id ?: 1,
-            'special'          => $this->request->special,
-            'special_from'     => $this->request->special_from ? Carbon::make($this->request->special_from) : null,
-            'special_to'       => $this->request->special_to ? Carbon::make($this->request->special_to) : null,
-            'meta_title'       => $this->request->meta_title ?: $this->request->name/* . ($author ? '-' . $author->title : '')*/,
-            'meta_description' => $this->request->meta_description,
-            'pages'            => $this->request->pages,
-            'dimensions'       => $this->request->dimensions,
-            'origin'           => $this->request->origin,
-            'letter'           => $this->request->letter,
-            'condition'        => $this->request->condition,
-            'binding'          => $this->request->binding,
-            'year'             => $this->request->year,
-            'viewed'           => 0,
-            'sort_order'       => 0,
-            'push'             => 0,
-            'status'           => (isset($this->request->status) and $this->request->status == 'on') ? 1 : 0,
-            'created_at'       => Carbon::now(),
-            'updated_at'       => Carbon::now()
+        // VAŽNO: koristimo Eloquent + save() da se pozovu mutatori (npr. setTagsAttribute)
+        $product = new self();
+
+        $product->author_id        = $this->request->author_id ?: 6;
+        $product->publisher_id     = $this->request->publisher_id ?: 2;
+        $product->action_id        = $this->request->action ?: 0;
+        $product->name             = $this->request->name;
+        $product->sku              = $this->request->sku;
+        $product->polica           = $this->request->polica;
+        $product->description      = $this->cleanHTML($this->request->description);
+        $product->slug             = $slug;
+
+        // Trigerira mutator i završava kao JSON array u bazi
+        $product->tags             = $this->request->tags;
+
+        $product->price            = $this->request->price;
+        $product->quantity         = $this->request->quantity ?: 0;
+        $product->tax_id           = $this->request->tax_id ?: 1;
+        $product->special          = $this->request->special;
+        $product->special_from     = $this->request->special_from ? Carbon::make($this->request->special_from) : null;
+        $product->special_to       = $this->request->special_to ? Carbon::make($this->request->special_to) : null;
+        $product->meta_title       = $this->request->meta_title ?: $this->request->name/* . ($author ? '-' . $author->title : '')*/;
+        $product->meta_description = $this->request->meta_description;
+        $product->pages            = $this->request->pages;
+        $product->dimensions       = $this->request->dimensions;
+        $product->origin           = $this->request->origin;
+        $product->letter           = $this->request->letter;
+        $product->condition        = $this->request->condition;
+        $product->binding          = $this->request->binding;
+        $product->year             = $this->request->year;
+        $product->viewed           = 0;
+        $product->sort_order       = 0;
+        $product->push             = 0;
+        $product->status           = (isset($this->request->status) && $this->request->status == 'on') ? 1 : 0;
+        $product->created_at       = Carbon::now();
+        $product->updated_at       = Carbon::now();
+
+        $product->save();
+
+        $this->resolveCategories($product->id);
+
+        $product->update([
+            'url'             => ProductHelper::url($product),
+            'category_string' => ProductHelper::categoryString($product)
         ]);
 
-        if ($id) {
-            $this->resolveCategories($id);
-
-            $product = $this->find($id);
-
-            $product->update([
-                'url'             => ProductHelper::url($product),
-                'category_string' => ProductHelper::categoryString($product)
-            ]);
-
-            return $product;
-        }
-
-        return false;
+        return $product;
     }
-
 
     /**
      * Update and return new Product Model.
@@ -251,6 +243,7 @@ class Product extends Model
 
         $slug = $this->resolveSlug('update');
 
+        // update() na Eloquent modelu prolazi kroz mutatore
         $updated = $this->update([
             'author_id'        => $this->request->author_id ?: 6,
             'publisher_id'     => $this->request->publisher_id ?: 2,
@@ -297,7 +290,6 @@ class Product extends Model
         return false;
     }
 
-
     /**
      * @return array
      */
@@ -313,7 +305,6 @@ class Product extends Model
         ];
     }
 
-
     /**
      * @return $this
      */
@@ -326,7 +317,6 @@ class Product extends Model
         return $this;
     }
 
-
     /**
      * @param Product $product
      *
@@ -334,9 +324,8 @@ class Product extends Model
      */
     public function storeImages(Product $product)
     {
-       return (new ProductImage())->store($product, $this->request);
+        return (new ProductImage())->store($product, $this->request);
     }
-
 
     /**
      * @param string  $type
@@ -352,7 +341,6 @@ class Product extends Model
 
         return $history->addData($type);
     }
-
 
     /**
      * @param Request $request
@@ -438,8 +426,6 @@ class Product extends Model
         return $query;
     }
 
-
-
     /**
      * Set Product Model request variable.
      *
@@ -449,7 +435,6 @@ class Product extends Model
     {
         $this->request = $request;
     }
-
 
     /**
      * @return mixed
@@ -470,7 +455,6 @@ class Product extends Model
 
         return $response;
     }
-
 
     /**
      * @param null $description
@@ -514,12 +498,10 @@ class Product extends Model
         return implode(',', $arr);
     }
 
-
-
     /**
      * @param int $product_id
      *
-     * @return array
+     * @return array|false
      */
     private function resolveCategories(int $product_id)
     {
@@ -529,7 +511,6 @@ class Product extends Model
 
         return false;
     }
-
 
     /**
      * @param Request|null $request
@@ -568,7 +549,6 @@ class Product extends Model
         return $slug;
     }
 
-
     /**
      * @return bool
      */
@@ -580,7 +560,6 @@ class Product extends Model
             return true;
         }
 
-        return false;
+        return (bool) $exist;
     }
-
 }
