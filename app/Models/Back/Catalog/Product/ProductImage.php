@@ -13,7 +13,6 @@ use Intervention\Image\Facades\Image;
 
 class ProductImage extends Model
 {
-
     /**
      * @var string
      */
@@ -29,7 +28,6 @@ class ProductImage extends Model
      */
     protected $resource;
 
-
     /**
      * @param $resource
      * @param $request
@@ -39,64 +37,76 @@ class ProductImage extends Model
     public function store($resource, $request)
     {
         $this->resource = $resource;
-        $existing       = isset($request['slim']) ? $request['slim'] : null;
-        $new            = isset($request['files']) ? $request['files'] : null;
 
-        //dd($request, $resource, $existing, $new);
+        // Uvijek normaliziraj u asocijativne arraye da izbjegnemo mix objekt/array pristup
+        $existing = $request->input('slim', null);
+        $new      = $request->input('files', null);
+
+        if (is_object($existing)) { $existing = json_decode(json_encode($existing), true); }
+        if (is_object($new))      { $new      = json_decode(json_encode($new), true);   }
 
         // Ako ima novih slika
-        if ($new) {
+        if (!empty($new)) {
             foreach ($new as $new_image) {
                 if (isset($new_image['image']) && $new_image['image']) {
-                    $data = json_decode($new_image['image']);
+                    $data = json_decode($new_image['image']); // stdClass
+                    if ($data && isset($data->output)) {
+                        $saved = $this->saveNew($data->output, $new_image['sort_order'] ?? 0);
 
-                    $saved = $this->saveNew($data->output, $new_image['sort_order']);
-                    // Ako je novi default ujedno i novo uploadana fotka.
-                    // Također ako je ime novo uploadane slike isto kao $existing['default']
-                    if (
-                        isset($new['default']) &&
-                        strpos($new['default'], 'image/') !== false &&
-                        $data->output->name == str_replace('image/', '', $new['default'])
-                    ) {
-                        $this->switchDefault($saved);
+                        // Ako je default označen na novouploadanoj fotki
+                        if (
+                            isset($new['default']) &&
+                            strpos($new['default'], 'image/') !== false &&
+                            isset($data->output->name) &&
+                            $data->output->name == str_replace('image/', '', $new['default'])
+                        ) {
+                            $this->switchDefault($saved);
+                        }
                     }
                 }
             }
         }
 
-        if ($existing) {
-            // Ako se mijenja default i nismo ga već promjenili...
+        if (!empty($existing)) {
+            // Ako se mijenja default i nismo ga već promijenili...
             if (isset($existing['default']) && $existing['default'] != 'on') {
-                $this->switchDefault(
-                    $this->where('id', $existing['default'])->first()
-                );
+                $newDefault = $this->where('id', $existing['default'])->first();
+                if ($newDefault) {
+                    $this->switchDefault($newDefault);
+                }
             }
 
             foreach ($existing as $key => $image) {
-                if (isset($image->image) && $image->image) {
-                    $data = json_decode($image->image);
+                // preskoči specijalni ključ 'default'
+                if ($key === 'default') {
+                    continue;
+                }
 
-                    if ($data) {
-                        $this->replace($key, $data->output, $image->title ?? '');
+                // Ako je poslan novi crop za postojeću sliku
+                if (is_array($image) && isset($image['image']) && $image['image']) {
+                    $data = json_decode($image['image']); // stdClass
+                    if ($data && isset($data->output)) {
+                        $this->replace($key, $data->output, $image['title'] ?? '');
                     }
                 }
 
-                if ( ! $key) {
-                    $this->saveMainTitle((string)($data['title'] ?? $request->input('title') ?? ''));
-                    //$this->saveMainTitle($image['title'], $image['alt']);
-                    // zamjeni title na glavnoj
+                // Naslov glavne (key 0 ili falsy) – koristi title iz forme ili input('title')
+                if (!$key) {
+                    $mainTitle = (string)($image['title'] ?? $request->input('title') ?? '');
+                    $this->saveMainTitle($mainTitle);
                 }
 
-                if ($key && $key != 'default') {
-                    $published = (isset($image['published']) && $image['published'] == 'on') ? 1 : 0;
+                // Update metapodataka za svaku postojeću (osim 'default')
+                if ($key && $key !== 'default' && is_array($image)) {
+                    $published = (!empty($image['published']) && $image['published'] === 'on') ? 1 : 0;
 
                     $this->where('id', $key)->update([
-                        'alt'        => $image['alt'],
-                        'sort_order' => $image['sort_order'],
+                        'alt'        => $image['alt']        ?? null,
+                        'sort_order' => $image['sort_order'] ?? 0,
                         'published'  => $published
                     ]);
 
-                    $this->saveTitle($key, $image['title']);
+                    $this->saveTitle($key, (string)($image['title'] ?? ''));
                 }
             }
         }
@@ -104,10 +114,10 @@ class ProductImage extends Model
         return $this->where('product_id', $this->resource->id)->get();
     }
 
-
     /**
      * @param $id
      * @param $new
+     * @param string $title
      *
      * @return mixed
      */
@@ -133,7 +143,6 @@ class ProductImage extends Model
         ]);
     }
 
-
     /**
      * @param $new
      *
@@ -141,9 +150,7 @@ class ProductImage extends Model
      */
     public function switchDefault($new)
     {
-        //dd($new, $this->resource);
         if (isset($new->id)) {
-
             if ($this->resource->image) {
                 $this->where('id', $new->id)->update([
                     'image' => $this->resource->image
@@ -160,7 +167,6 @@ class ProductImage extends Model
         return $new;
     }
 
-
     /**
      * @param $new
      *
@@ -170,7 +176,7 @@ class ProductImage extends Model
     {
         $path = $this->saveImage($new->image);
 
-        // Store image in product_images DB
+        // Store image in product_images DB (query builder je ok ovdje)
         $id = $this->insertGetId([
             'product_id' => $this->resource->id,
             'image'      => config('filesystems.disks.products.url') . $path,
@@ -183,7 +189,6 @@ class ProductImage extends Model
 
         return $this->find($id);
     }
-
 
     /*******************************************************************************
      *                                Copyright : AGmedia                           *
@@ -216,7 +221,6 @@ class ProductImage extends Model
         ]);*/
     }
 
-
     /**
      * @param int    $id
      * @param string $title
@@ -244,15 +248,15 @@ class ProductImage extends Model
         }
     }
 
-
     /**
      * @param $image
+     * @param string|null $title
      *
      * @return string
      */
     private function saveImage($image, $title = null)
     {
-        if ( ! $title) {
+        if (!$title) {
             $title = $this->resource->name;
         }
 
@@ -279,7 +283,6 @@ class ProductImage extends Model
         return $path_jpg;
     }
 
-
     /**
      * @param string $base_64_string
      *
@@ -289,9 +292,8 @@ class ProductImage extends Model
     {
         $image_parts = explode(";base64,", $base_64_string);
 
-        return base64_decode($image_parts[1]);
+        return base64_decode($image_parts[1] ?? '');
     }
-
 
     /*******************************************************************************
      *                                Copyright : AGmedia                           *
@@ -308,7 +310,7 @@ class ProductImage extends Model
         $response = [];
 
         if ($product_id) {
-            $images   = self::where('product_id', $product_id)->orderBy('sort_order')->get();
+            $images = self::where('product_id', $product_id)->orderBy('sort_order')->get();
 
             foreach ($images as $image) {
                 $response[] = [
@@ -326,10 +328,8 @@ class ProductImage extends Model
         return collect($response);
     }
 
-
     /**
-     * Save stack of images to the
-     * product_images database.
+     * Save stack of images to the product_images database.
      *
      * @param array $paths
      * @param       $product_id
@@ -350,17 +350,11 @@ class ProductImage extends Model
             ]);
         }
 
-        if ( ! empty($images)) {
-            return $images;
-        }
-
-        return false;
+        return !empty($images) ? $images : false;
     }
 
-
     /**
-     * Save temporary stored images
-     * to newly saved product folder.
+     * Save temporary stored images to newly saved product folder.
      * The folder is based on product ID.
      *
      * @param array $paths
@@ -390,7 +384,6 @@ class ProductImage extends Model
         return self::saveStack($targets, $product_id);
     }
 
-
     /**
      * Set default product image.
      *
@@ -405,5 +398,4 @@ class ProductImage extends Model
             'image' => $path
         ]);
     }
-
 }
