@@ -334,7 +334,7 @@ class Product extends Model
      */
     public function storeImages(Product $product)
     {
-      // return (new ProductImage())->store($product, $this->request);
+       return (new ProductImage())->store($product, $this->request);
     }
 
 
