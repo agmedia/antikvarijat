@@ -41,19 +41,24 @@ class Recaptcha
      */
     public function check(array $data)
     {
-        if (isset($data['recaptcha'])) {
-            $_data   = $this->setContentData($data['recaptcha']);
-            $options = $this->setOptions($_data);
+        if (empty($data['recaptcha'])) {
+            return false;
+        }
 
-            $context = stream_context_create($options);
-            $result  = file_get_contents($this->verify_url, false, $context);
+        $_data   = $this->setContentData($data['recaptcha']);
+        $options = $this->setOptions($_data);
 
-            $this->result = json_decode($result);
+        $context = stream_context_create($options);
+        $result  = @file_get_contents($this->verify_url, false, $context);
 
+        if ($result === false) {
+            Log::error('reCAPTCHA stream failure', ['error' => error_get_last()]);
+            $this->result = (object)['success' => false, 'score' => 0.0, 'error-codes' => ['stream-failure']];
             return $this;
         }
 
-        return false;
+        $this->result = json_decode($result) ?: (object)['success' => false, 'score' => 0.0, 'error-codes' => ['invalid-json']];
+        return $this;
     }
 
 
@@ -90,14 +95,23 @@ class Recaptcha
      *
      * @return array[]
      */
-    private function setOptions(array $data)
+    private function setOptions(array $data): array
     {
         return [
             'http' => [
-                'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
-                'method'  => 'POST',
-                'content' => http_build_query($data)
-            ]
+                'method'           => 'POST',
+                'header'           => "Content-Type: application/x-www-form-urlencoded\r\nUser-Agent: AGMedia/RecaptchaVerifier\r\nConnection: close\r\n",
+                'content'          => http_build_query($data, '', '&'),
+                'timeout'          => 10,
+                'protocol_version' => 1.1, // izbjegni neke HTTP/2/TLS edge-caseove
+            ],
+            'ssl' => [
+                'verify_peer'      => true,
+                'verify_peer_name' => true,
+                'SNI_enabled'      => true,
+                // Ako PHP/host ne nalazi CA bundle, ručno postavi:
+                // 'cafile' => '/etc/ssl/certs/ca-certificates.crt',
+            ],
         ];
     }
 
