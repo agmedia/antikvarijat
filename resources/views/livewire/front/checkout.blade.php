@@ -200,15 +200,7 @@
         </div>
 
 
-            <h2 class="h6 pt-1 pb-3 mb-3 border-bottom">Dodatna napomena</h2>
-            <div class="row mt-3">
-                <div class="col-sm-12">
-                    <div class="mb-3">
-                        <label class="form-label" for="checkout-comment">Komentar</label>
-                        <textarea class="form-control" id="checkout-comment" rows="3" wire:model="comment"></textarea>
-                    </div>
-                </div>
-            </div>
+
 
         <h2 class="h6 pt-1 pb-3 mb-3 border-bottom">Trebate R1 račun?</h2>
         <div class="row mt-3">
