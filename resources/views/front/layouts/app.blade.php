@@ -230,7 +230,7 @@
 
 <!-- Main theme script-->
 
-<script src="{{ asset('js/cart.js?v=100.2') }}"></script>
+<script src="{{ asset('js/cart.js?v=100.3') }}"></script>
 
 
 
