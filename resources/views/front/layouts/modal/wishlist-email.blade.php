@@ -2,7 +2,7 @@
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header bg-secondary">
-                <span class="fs-lg fw-bolder">Obavjesti me o dostupnosti</span>
+                <span class="fs-lg fw-bolder">Obavijesti me o dostupnosti</span>
                 <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body tab-content py-4">

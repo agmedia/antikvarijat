@@ -6,7 +6,7 @@
         </div>
     </div>
     <div class="cart mb-3 d-flex align-items-center" v-cloak v-else>
-        <a class="btn btn-primary btn-shadow d-block w-100" href="#wishlist-modal" data-bs-toggle="modal">Obavjesti me o dostupnosti</a>
+        <a class="btn btn-primary btn-shadow d-block w-100" href="#wishlist-modal" data-bs-toggle="modal">Obavijesti me o dostupnosti</a>
     </div>
 </template>
 

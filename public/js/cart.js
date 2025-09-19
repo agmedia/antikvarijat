@@ -3404,7 +3404,7 @@ var render = function render() {
       href: "#wishlist-modal",
       "data-bs-toggle": "modal"
     }
-  }, [_vm._v("Obavjesti me o dostupnosti")])]);
+  }, [_vm._v("Obavijesti me o dostupnosti")])]);
 };
 var staticRenderFns = [];
 render._withStripped = true;
