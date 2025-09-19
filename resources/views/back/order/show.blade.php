@@ -105,6 +105,7 @@
                         <h3 class="block-title">Napomene</h3>
                     </div>
                     <div class="block-content">
+                        <p>{{ $order->napomena }}</p>
                         <p>{{ $order->comment }}</p>
                     </div>
                 </div>

@@ -143,6 +143,38 @@ class CheckoutSession
         return session()->forget(static::$session_string . '.comment');
     }
 
+
+    public static function getNapomena()
+    {
+        return session(static::$session_string . '.napomena');
+    }
+
+    /**
+     * @return bool
+     */
+    public static function hasNapomena()
+    {
+        return session()->has(static::$session_string . '.napomena');
+    }
+
+    /**
+     * @param array|string $value
+     *
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Session\SessionManager|\Illuminate\Session\Store|mixed
+     */
+    public static function setNapomena($value)
+    {
+        return session([static::$session_string . '.napomena' => $value]);
+    }
+
+    /**
+     * @return bool
+     */
+    public static function forgetNapomena()
+    {
+        return session()->forget(static::$session_string . '.napomena');
+    }
+
     /**
      * PAYMENT
      *

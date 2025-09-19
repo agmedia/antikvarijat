@@ -571,6 +571,7 @@ class Order extends Model
         CheckoutSession::forgetPayment();
         CheckoutSession::forgetShipping();
         CheckoutSession::forgetComment();
+        CheckoutSession::forgetNapomena();
 
         return $this;
     }

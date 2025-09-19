@@ -199,8 +199,9 @@ class CheckoutController extends Controller
                 'address'  => CheckoutSession::getAddress(),
                 'shipping' => CheckoutSession::getShipping(),
                 'payment'  => CheckoutSession::getPayment(),
-                'comment'  => CheckoutSession::getComment()
-            ];
+                'comment'  => CheckoutSession::getComment(),
+                'napomena'  => CheckoutSession::getNapomena()
+                ];
         }
 
         return [];
@@ -223,6 +224,7 @@ class CheckoutController extends Controller
         $response['shipping']        = $shipping;
         $response['payment']         = $payment;
         $response['comment']         = isset($data['comment']) ? $data['comment'] : '';
+        $response['napomena']         = isset($data['napomena']) ? $data['napomena'] : '';
         $response['cart']            = $this->shoppingCart()->get();
         $response['order_status_id'] = $order_status_id;
 

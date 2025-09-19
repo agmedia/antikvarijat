@@ -84,6 +84,9 @@ class Checkout extends Component
     protected $cart = false;
 
     public $comment = '';
+
+    public $napomena = '';
+
     public $view_comment = false;
 
     /**
@@ -149,6 +152,10 @@ class Checkout extends Component
             $this->comment = CheckoutSession::getComment();
         }
 
+        if (CheckoutSession::hasNapomena()) {
+            $this->napomena = CheckoutSession::getNapomena();
+        }
+
         $this->secondary_price = Currency::secondary() ? Currency::secondary()->value : false;
 
         if (session()->has(config('session.cart'))) {
@@ -164,6 +171,15 @@ class Checkout extends Component
 
         CheckoutSession::setComment($this->comment);
     }
+
+
+    public function updatingNapomena($value)
+    {
+        $this->napomena = $value;
+
+        CheckoutSession::setNapomena($this->napomena);
+    }
+
 
 
 

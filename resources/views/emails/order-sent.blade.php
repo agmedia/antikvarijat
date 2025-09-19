@@ -52,7 +52,7 @@
                     <p style="font-size:12px">Uredno smo zaprimili Vašu narudžbu broj {{ $order->id }} i zahvaljujemo Vam.</p>
                 @endif
                 <br>
-                {{ __('Način dostave') }}: {{ $order->shipping_method }}<br> {{ $order->comment }}
+                {{ __('Način dostave') }}: {{ $order->shipping_method }}<br> {{ $order->napomena }}
                 <br><br>
 
                 Lijep pozdrav,<br>Antikvarijat Biblos

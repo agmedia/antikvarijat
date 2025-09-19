@@ -31,7 +31,7 @@
                     <b>{{ __('Plaćanje prilikom preuzimanja') }}</b>
                 @endif
                 <br>
-                {{ __('Način dostave') }}: {{ $order->shipping_method }}<br> {{ $order->comment }}
+                {{ __('Način dostave') }}: {{ $order->shipping_method }}<br> {{ $order->napomena }}
                 <br><br>
 
                 Lijep pozdrav,<br>Antikvarijat Biblos
