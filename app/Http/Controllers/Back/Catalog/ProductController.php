@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Storage;
 
 use App\Exports\ProductsZeroQuantityExport;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\DB;
 
 class ProductController extends Controller
 {
@@ -28,44 +29,80 @@ class ProductController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+
+
     public function index(Request $request, Product $product)
     {
-        $query = $product->filter($request);
+        // osnovni upit + subselecti
+        $query = $product->filter($request)
+            ->select('products.*')
+            ->addSelect([
+                // ID zadnje narudžbe u kojoj se artikal pojavio (po datumu stavke)
+                'last_order_id' => DB::table('order_products')
+                    ->whereColumn('order_products.product_id', 'products.id')
+                    ->orderByDesc('order_products.created_at')
+                    ->limit(1)
+                    ->select('order_products.order_id'),
 
-        $products = $query->paginate(20)->appends(request()->query());
+                // Datum te zadnje stavke (može ti koristiti u listi/tooltipu)
+                'last_order_at' => DB::table('order_products')
+                    ->whereColumn('order_products.product_id', 'products.id')
+                    ->orderByDesc('order_products.created_at')
+                    ->limit(1)
+                    ->select('order_products.created_at'),
+            ]);
 
+        // Ako IMAŠ polje "number" na orders, možeš dodati i ovo:
+        // ->addSelect([
+        //     'last_order_number' => DB::table('order_products')
+        //         ->join('orders', 'orders.id', '=', 'order_products.order_id')
+        //         ->whereColumn('order_products.product_id', 'products.id')
+        //         ->orderByDesc('order_products.created_at') // ili orders.created_at
+        //         ->limit(1)
+        //         ->select('orders.number'),
+        // ])
+
+        $products = $query->paginate(20)->appends($request->query());
+
+        // postojeći filter with_action/without_action – idealno bi to prebacio u SQL,
+        // ali zadržavam tvoju logiku; ako želiš, možeš primijeniti WHERE uvjete umjesto collect().
         if ($request->has('status')) {
             if ($request->input('status') == 'with_action' || $request->input('status') == 'without_action') {
-                $products = collect();
-                $temps = Product::all();
 
-                if ($request->input('status') == 'with_action') {
-                    foreach ($temps as $product) {
-                        if ($product->special()) {
-                            $products->push($product);
-                        }
-                    }
+                // Napravi bazni upit opet sa subselectima (bez full-load u memoriju)
+                $base = Product::query()
+                    ->select('products.*')
+                    ->addSelect([
+                        'last_order_id' => DB::table('order_products')
+                            ->whereColumn('order_products.product_id', 'products.id')
+                            ->orderByDesc('order_products.created_at')
+                            ->limit(1)
+                            ->select('order_products.order_id'),
+                        'last_order_at' => DB::table('order_products')
+                            ->whereColumn('order_products.product_id', 'products.id')
+                            ->orderByDesc('order_products.created_at')
+                            ->limit(1)
+                            ->select('order_products.created_at'),
+                    ]);
+
+                if ($request->input('status') === 'with_action') {
+                    $base->whereNotNull('special')->where('special', '>', 0);
+                } else {
+                    $base->where(function ($q) {
+                        $q->whereNull('special')->orWhere('special', '<=', 0);
+                    });
                 }
 
-                if ($request->input('status') == 'without_action') {
-                    foreach ($temps as $product) {
-                        if ( ! $product->special()) {
-                            $products->push($product);
-                        }
-                    }
-                }
-
-                $products = $this->paginateColl($products);
+                $products = $base->paginate(20)->appends($request->query());
             }
         }
 
         $categories = (new Category())->getList(false);
-        /*$authors    = Author::all()->pluck('title', 'id');
-        $publishers = Publisher::all()->pluck('title', 'id');*/
-        $counts = [];//Product::setCounts($query);
+        $counts = [];
 
-        return view('back.catalog.product.index', compact('products', 'categories'/*, 'authors', 'publishers'*/, 'counts'));
+        return view('back.catalog.product.index', compact('products', 'categories', 'counts'));
     }
+
 
 
     /**

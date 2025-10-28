@@ -130,6 +130,7 @@
                             <th class="text-center">Dimenzija</th>
                             <th class="text-center">Kol.</th>
                             <th>Dodano</th>
+                            <th>Zadnja narudžba</th>
                             <th>Zadnja izmjena</th>
                             <th class="text-center">Status</th>
                             <th class="text-right" style="width: 12%;">Uredi</th>
@@ -164,7 +165,22 @@
                                 <td class="font-size-sm text-center">  <ag-input-field item="{{ $product }}" target="polica"></ag-input-field></td>
                                 <td class="font-size-sm text-center">  <ag-input-field item="{{ $product }}" target="dimensions"></ag-input-field></td>
                                 <td class="font-size-sm text-center">  <ag-input-field item="{{ $product }}" target="quantity"></ag-input-field></td>
+
+
                                 <td class="font-size-sm">{{ \Illuminate\Support\Carbon::make($product->created_at)->format('d.m.Y') }}</td>
+                                <td>
+                                    @if($product->last_order_id)
+                                        <a href="{{ route('orders.edit', ['order' => $product->last_order_id]) }}">
+                                            {{-- Ako imaš last_order_number, prikaži ga; inače ID --}}
+                                            #{{ $product->last_order_number ?? $product->last_order_id }}
+                                        </a>
+                                        <div class="text-muted small">
+                                            {{ optional($product->last_order_at)->format('d.m.Y H:i') }}
+                                        </div>
+                                    @else
+                                        <span class="text-muted">—</span>
+                                    @endif
+                                </td>
                                 <td class="font-size-sm">{{ \Illuminate\Support\Carbon::make($product->updated_at)->format('d.m.Y') }}</td>
                                 <td class="text-center font-size-sm">
                                     {{--@include('back.layouts.partials.status', ['status' => $product->status])--}}
