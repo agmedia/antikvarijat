@@ -496,6 +496,9 @@
             // Svi postojeći tagovi iz baze (controller)
             const ALL_TAGS = {!! json_encode($allTags ?? []) !!};
 
+            // --- Guard protiv blur-dodavanja dok biramo sugestiju ---
+            let suppressBlur = false;
+
             // --- Helpers ---
             const parseHidden = () => (hidden.value ? hidden.value.split(',').map(t => t.trim()).filter(Boolean) : []);
             const saveHidden  = (arr) => hidden.value = arr.join(',');
@@ -528,11 +531,11 @@
                     badge.className = 'badge badge-pill badge-secondary mr-1 mb-1 d-inline-flex align-items-center';
                     badge.style.fontSize = '90%';
                     badge.innerHTML = `
-                                                <span class="pr-1">${escapeHtml(tag)}</span>
-                                                <button type="button" class="close ml-1" aria-label="Remove" data-tag="${escapeAttr(tag)}">
-                                                    <span aria-hidden="true">&times;</span>
-                                                </button>
-                                            `;
+                    <span class="pr-1">${escapeHtml(tag)}</span>
+                    <button type="button" class="close ml-1" aria-label="Remove" data-tag="${escapeAttr(tag)}">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                `;
                     badges.appendChild(badge);
                 });
             };
@@ -554,7 +557,7 @@
                     return;
                 }
 
-                // tip: koristimo male "btn" badge-ove koji se mogu kliknuti
+                // male "btn" badge-ove koji se mogu kliknuti
                 sugg.innerHTML = '';
                 const wrap = document.createElement('div');
                 list.forEach(t => {
@@ -603,8 +606,11 @@
                 renderSuggestions(input.value);
             });
 
-            // Blur potvrđuje ono što je upisano
-            input.addEventListener('blur', addFromInput);
+            // Blur potvrđuje ono što je upisano, osim ako biramo sugestiju
+            input.addEventListener('blur', function () {
+                if (suppressBlur) return;
+                addFromInput();
+            });
 
             // Klik na X uklanja tag
             badges.addEventListener('click', function (e) {
@@ -613,12 +619,18 @@
                 removeTag(btn.getAttribute('data-tag'));
             });
 
-            // Klik na sugestiju dodaje tag
-            sugg.addEventListener('click', function (e) {
+            // Odabir sugestije: koristimo mousedown da spriječimo blur i dodamo puni tag
+            sugg.addEventListener('mousedown', function (e) {
                 const btn = e.target.closest('button[data-add]');
                 if (!btn) return;
+                e.preventDefault();       // spriječi gubitak fokusa inputa
+                suppressBlur = true;      // blokiraj blur-add dok ne završimo
                 addTags([btn.getAttribute('data-add')]);
-                input.focus();
+                // vrati fokus i makni guard nakon ciklusa event-loopa
+                setTimeout(() => {
+                    suppressBlur = false;
+                    input.focus();
+                }, 0);
             });
         });
     </script>
