@@ -43,7 +43,12 @@
                 </a>
                 <a class="step-item current active" href="{{ route('pregled') }}">
                     <div class="step-progress"><span class="step-count">5</span></div>
-                    <div class="step-label"><i class="ci-check-circle"></i>Pregledaj</div>
+                    <div class="step-label"><i class="ci-eye"></i>Pregledaj</div>
+                </a>
+
+                <a class="step-item current " href="{{ route('pregled') }}">
+                    <div class="step-progress"><span class="step-count">6</span></div>
+                    <div class="step-label"><i class="ci-check-circle"></i>Uspješno</div>
                 </a>
             </div>
             <div class="bg-white rounded-3 shadow-lg p-4">
