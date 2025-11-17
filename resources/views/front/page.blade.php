@@ -99,24 +99,7 @@
                 </div>
             </div>
         </section>
-        <section class=" pt-2 py-3 " style="background-image: url({{ asset('media/img/farmer.png')  }});background-repeat: repeat;padding-top:30px">
 
-            <div class="container">
-
-                <div class="row  mt-0 ">
-
-                    <div class="col-lg-12 col-xl-12 mb-grid-gutter">
-                        <div class="d-block d-sm-flex justify-content-between align-items-center  paper-white-bck  rounded-3">
-                            <a href="https://www.antikvarijat-biblos.hr/knjige">
-                            <img class="d-none d-sm-block mx-auto mx-sm-0 rounded" src="https://www.antikvarijat-biblos.hr/media/img/web-banner.jpg" width="1380" height="325" alt="Interliber - 20% popusta na sve">
-                            <img class="d-block d-sm-none mx-auto mx-sm-0 rounded" src="https://www.antikvarijat-biblos.hr/media/img/vertical-instagram.jpg"  alt="Interliber - 20% popusta na sve">
-                            </a>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-        </section>
 
         {!! $page->description !!}
 
