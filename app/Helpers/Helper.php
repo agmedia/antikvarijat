@@ -194,19 +194,22 @@ class Helper
         $cacheKey = 'search:v2:' . md5(Str::lower($target) . '|api=' . (int)$api);
         $ttlSeconds = $api ? 120 : 30;
 
-        $response = Cache::remember($cacheKey, $ttlSeconds, function () use ($target, $limit) {
+        $response = Cache::remember($cacheKey, $ttlSeconds, function () use ($target, $limit, $api) {
 
             // 1) PROIZVODI (OR grupiran -> active vrijedi za sve)
             $productBase = Product::query()
                 ->active()
                 ->select('id')
-                ->where(function ($q) use ($target) {
+                ->where(function ($q) use ($target, $api) {
                     $q->where('name', 'like', '%' . $target . '%')
-                        ->orWhere('sku', 'like', '%' . $target . '%')
-                        ->orWhere('meta_description', 'like', '%' . $target . '%')
-                        ->orWhere('description', 'like', '%' . $target . '%');
-                });
+                        ->orWhere('sku', 'like', '%' . $target . '%');
 
+                    // samo za full search (ne autocomplete)
+                    if (!$api) {
+                        $q->orWhere('meta_description', 'like', '%' . $target . '%')
+                            ->orWhere('description', 'like', '%' . $target . '%');
+                    }
+                });
             // 2) AUTORI (ID-evi, bez eager loada proizvoda)
             $rawTokens = preg_split('/[\s\.,\-_\|]+/u', $target, -1, PREG_SPLIT_NO_EMPTY);
             $tokens = collect($rawTokens)
