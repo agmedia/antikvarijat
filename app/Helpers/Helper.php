@@ -17,7 +17,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -172,104 +171,73 @@ class Helper
      *
      * @return array|false|Collection
      */
-
-
     public static function search(string $target = '', bool $builder = false, bool $api = false)
     {
-        $target = trim((string)$target);
-
         if ($target === '') {
             return false;
         }
 
-        // Autocomplete zaštita
-        if ($api && mb_strlen($target) < 2) {
-            $empty = collect(array('products' => collect(), 'total' => 0));
-            return $builder ? $empty : $empty['products']->toJson();
-        }
+        $response = collect();
 
-        $limit = $api ? 15 : null;
-
-        // Cache
-        $cacheKey = 'search:v2:' . md5(Str::lower($target) . '|api=' . (int)$api);
-        $ttlSeconds = $api ? 120 : 30;
-
-        $response = Cache::remember($cacheKey, $ttlSeconds, function () use ($target, $limit, $api) {
-
-            // 1) PROIZVODI (OR grupiran -> active vrijedi za sve)
-            $productBase = Product::query()
-                ->active()
-                ->select('id')
-                ->where(function ($q) use ($target, $api) {
-                    $q->where('name', 'like', '%' . $target . '%')
-                        ->orWhere('sku', 'like', '%' . $target . '%');
-
-                    // samo za full search (ne autocomplete)
-                    if (!$api) {
-                        $q->orWhere('meta_description', 'like', '%' . $target . '%')
-                            ->orWhere('description', 'like', '%' . $target . '%');
-                    }
-                });
-            // 2) AUTORI (ID-evi, bez eager loada proizvoda)
-            $rawTokens = preg_split('/[\s\.,\-_\|]+/u', $target, -1, PREG_SPLIT_NO_EMPTY);
-            $tokens = collect($rawTokens)
-                ->map(function ($t) {
-                    return Str::lower($t);
-                })
-                ->unique()
-                ->take(5)
-                ->values();
-
-            $authorIds = Author::query()
-                ->active()
-                ->select('id')
-                ->when($tokens->isNotEmpty(), function ($q) use ($tokens) {
-                    $q->where(function ($w) use ($tokens) {
-                        foreach ($tokens as $t) {
-                            $w->where('title', 'like', '%' . $t . '%');
-                        }
-                    });
-                })
+        // proizvodi po nazivu/sku/opisu
+        $products = Product::active()
+            ->where('name', 'like', '%' . $target . '%')
+            ->orWhere('meta_description', 'like', '%' . $target . '%')
+            ->orWhere('description', 'like', '%' . $target . '%')
+            ->orWhere('sku', 'like', '%' . $target . '%')
                 ->pluck('id');
 
-            // 3) PROIZVODI PREKO AUTORA (author_id)
-            $authorProductBase = Product::query()
-                ->active()
-                ->select('id')
-                ->when($authorIds->isNotEmpty(), function ($q) use ($authorIds) {
-                    $q->whereIn('author_id', $authorIds);
-                })
-                ->when($authorIds->isEmpty(), function ($q) {
-                    $q->whereRaw('1=0');
-                });
+        if (! $products->count()) {
+            $products = collect();
+        }
 
-            // 4) UNION + DISTINCT + COUNT/LIMIT
-            $union = $productBase->union($authorProductBase);
+        // autori -> merge njihovih proizvoda
+        $preg = explode(' ', $target, 3);
 
-            $sub = DB::query()->fromSub($union, 'u')->select('id');
+        if (isset($preg[1]) && in_array($preg[1], $preg) && !isset($preg[2])) {
+            $authors = Author::active()
+                ->where('title', 'like', '%' . $preg[0] . '%' . $preg[1] . '%')
+                ->orWhere('title', 'like', '%' . $preg[1] . '% ' . $preg[0] . '%')
+                ->with('products')->get();
+        } elseif (isset($preg[2]) && in_array($preg[2], $preg)) {
+            $authors = Author::active()
+                ->where('title', 'like', $preg[0] . '%' . $preg[1] . '%' . $preg[2] . '%')
+                ->orWhere('title', 'like', $preg[2] . '%' . $preg[1] . '% ' . $preg[0] . '%')
+                ->orWhere('title', 'like', $preg[0] . '%' . $preg[2] . '% ' . $preg[1] . '%')
+                ->orWhere('title', 'like', $preg[1] . '%' . $preg[0] . '% ' . $preg[2] . '%')
+                ->orWhere('title', 'like', $preg[1] . '%' . $preg[2] . '% ' . $preg[0] . '%')
+                ->with('products')->get();
+        } else {
+            $authors = Author::active()
+                ->where('title', 'like', '%' . $preg[0] . '%')
+                ->with('products')->get();
+        }
 
-            $totalAll = (clone $sub)->distinct()->count('id');
+        foreach ($authors as $author) {
+            $products = $products->merge($author->products->pluck('id'));
+        }
 
-            $idsQuery = (clone $sub)->distinct();
+        // jedinstveni popis i ukupno
+        $uniqueIds = $products->unique()->values();
+        $totalAll  = $uniqueIds->count();
 
-            if ($limit) {
-                $idsQuery->limit($limit);
-            }
+        // ako je API – ograniči na 15, ali zadrži totalAll
+        $limitedIds = $api ? $uniqueIds->take(15) : $uniqueIds;
 
-            $ids = $idsQuery->pluck('id')->values();
+        $response->put('products', $limitedIds->flatten());
+        $response->put('total', $totalAll);
 
-            return collect(array(
-                'products' => $ids,
-                'total'    => (int)$totalAll,
-            ));
-        });
+        Log::info($response);
 
         if ($builder) {
             return $response;
         }
 
+        // Back-compat: kad se ne traži builder, vrati samo niz ID-eva kao JSON
         return $response['products']->toJson();
     }
+
+
 
     /**
      * @param Builder $query

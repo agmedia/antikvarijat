@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Front;
 use App\Helpers\Breadcrumb;
 use App\Helpers\Helper;
 use App\Http\Controllers\Controller;
-
+use App\Imports\ProductImport;
 use App\Models\Back\Settings\Settings;
 use App\Models\Front\Blog;
 use App\Models\Front\Page;
@@ -22,8 +22,6 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-
-
 
 class CatalogRouteController extends Controller
 {
@@ -267,97 +265,79 @@ class CatalogRouteController extends Controller
         return view('front.catalog.category.index', compact('group', 'cat', 'subcat', 'ids', 'crumbs'));
     }
 
-
-
     public function search(Request $request)
     {
         // web stranica s rezultatima (ne diramo)
         if ($request->has(config('settings.search_keyword'))) {
-
             if (!$request->input(config('settings.search_keyword'))) {
-                return redirect()->back()->with(array('error' => 'Oops..! Zaboravili ste upisati pojam za pretraživanje..!'));
+                return redirect()->back()->with(['error' => 'Oops..! Zaboravili ste upisati pojam za pretraživanje..!']);
             }
 
             $group = null; $cat = null; $subcat = null;
 
-            $ids = Helper::search($request->input(config('settings.search_keyword')));
+            $ids = Helper::search(
+                $request->input(config('settings.search_keyword'))
+            );
 
             $crumbs = null;
 
             return view('front.catalog.category.index', compact('group', 'cat', 'subcat', 'ids', 'crumbs'));
         }
 
-        // API autocomplete – structured JSON
+        // API autocomplete – structured JSON: counts + products + categories
         if ($request->has(config('settings.search_keyword') . '_api')) {
 
-            $q = trim((string)$request->input(config('settings.search_keyword') . '_api', ''));
-            $group = trim((string)$request->input('group', 'knjige'), '/');
+            $q = (string) $request->input(config('settings.search_keyword') . '_api', '');
 
-            // min length zaštita (spasi server)
-            if (mb_strlen($q) < 2) {
-                $payload = array(
-                    'counts' => array('products' => 0, 'authors' => 0, 'categories' => 0),
-                    'products' => array(),
-                    'categories' => array(),
-                    'authors' => array(),
-                );
-
-                return response()->json($payload)->header('X-Total-Count', 0);
-            }
-
-            // Cache cijelog autocomplete odgovora
-            $cacheKey = 'ac:v2:' . md5(Str::lower($group . '|' . $q));
-            $ttl = 120; // sekundi
-
-            $payload = Cache::remember($cacheKey, $ttl, function () use ($q, $group) {
+            // >>> UZMI $group IZ REQUESTA ILI STAVI DEFAULT
+            $group = trim((string) $request->input('group', 'knjige'), '/');
 
                 // --- PROIZVODI ---
-                $search = Helper::search($q, true, true); // builder=true, api=true
-                $totalProducts = (int) (isset($search['total']) ? $search['total'] : 0);
-                $productIds = isset($search['products']) ? $search['products'] : collect();
-
-                // sigurnosno: limit (iako Helper::search u api modu već limitira)
-                if ($productIds instanceof \Illuminate\Support\Collection) {
-                    $productIds = $productIds->take(15)->values();
-                }
+            $search = Helper::search($q, true, true);
+            $totalProducts = (int) ($search['total'] ?? 0);
+            $productIds    = $search['products'];
 
                 $items = Product::query()
-                    ->with(array('author'))
+                ->with(['author'])
                     ->whereIn('id', $productIds)
                     ->get()
                     ->keyBy('id');
 
-                $productsPayload = array();
+            $productsPayload = [];
                 foreach ($productIds as $id) {
                     $p = $items->get($id);
                     if (!$p) continue;
 
-                    $productsPayload[] = array(
-                        'id'                => $p->id,
-                        'sku'               => $p->sku,
-                        'name'              => $p->name,
-                        'url'               => url($p->url),
-                        'main_price'        => $p->main_price,
-                        'main_price_text'   => $p->main_price_text,
-                        'main_special'      => $p->main_special,
-                        'main_special_text' => $p->main_special_text,
-                        'image'             => $p->thumb,
-                        'author_title'      => $p->author ? $p->author->title : null,
-                        'quantity'          => $p->quantity,
-                    );
+                $productsPayload[] = [
+                    'id'                 => $p->id,
+                    'sku'                => $p->sku,
+                    'name'               => $p->name,
+                    'url'                => url($p->url),
+                    'main_price'         => $p->main_price,
+                    'main_price_text'    => $p->main_price_text,
+                    'main_special'       => $p->main_special,
+                    'main_special_text'  => $p->main_special_text,
+                    'image'              => $p->thumb,
+                    'author_title'       => optional($p->author)->title,
+                    'quantity'           => $p->quantity,          // dodano!
+                ];
                 }
 
                 // --- KATEGORIJE ---
-                // NAPOMENA: bez Schema::hasColumn u requestu (to ubija performanse)
-                // Drži se title (ili dodaj fiksne kolone koje SIGURNO postoje).
                 $catsBase = Category::query()
-                    ->where('title', 'like', '%' . $q . '%');
-
-                if (method_exists(Category::class, 'scopeActive')) {
-                    $catsBase->active();
+                ->when(method_exists(Category::class, 'scopeActive'), fn ($q2) => $q2->active())
+                ->where(function ($w) use ($q) {
+                    $w->where('title', 'like', '%' . $q . '%');
+                    // dodaj druge kolone samo ako postoje
+                    if (\Illuminate\Support\Facades\Schema::hasColumn('categories', 'description')) {
+                        $w->orWhere('description', 'like', '%' . $q . '%');
+                    } elseif (\Illuminate\Support\Facades\Schema::hasColumn('categories', 'meta_description')) {
+                        $w->orWhere('meta_description', 'like', '%' . $q . '%');
+                    } elseif (\Illuminate\Support\Facades\Schema::hasColumn('categories', 'content')) {
+                        $w->orWhere('content', 'like', '%' . $q . '%');
                 }
+                });
 
-                // count je opcionalan; ako želiš brže, možeš vratiti count = count($categories)
                 $totalCategories = (clone $catsBase)->count();
 
                 $categories = $catsBase
@@ -365,37 +345,48 @@ class CatalogRouteController extends Controller
                     ->limit(10)
                     ->get();
 
-                $categoriesPayload = array();
-                foreach ($categories as $c) {
-                    $slug = $c->slug ? $c->slug : $c->id;
-                    $path = '/' . $group . '/' . $slug;
-
-                    $categoriesPayload[] = array(
+            $categoriesPayload = $categories->map(function ($c) use ($group) {
+                // NE koristiti $c->url accessor (imaš metodu url())
+                $slug = $c->slug ?: $c->id;
+                $path = '/' . $group . '/' . $slug;   // <<— koristi $group
+                return [
                         'id'   => $c->id,
-                        'name' => $c->title,
+                    'name' => $c->title,               // JS očekuje "name"
                         'url'  => url($path),
-                    );
-                }
+                ];
+            })->values()->all();
 
                 // --- AUTORI ---
-                // Za autocomplete: NE raditi whereHas(products) jer je skupo.
-                // Dovoljno je suggestion po title-u.
-                $rawTokens = preg_split('/[\s\.,\-_\|]+/u', $q, -1, PREG_SPLIT_NO_EMPTY);
+            // --- AUTORI ---
+            $rawQ = trim((string)$q);
 
-                $tokens = collect($rawTokens)
-                    ->map(function ($t) { return Str::lower($t); })
+            // razbij na riječi (razmaci, točke, zarezi, crtice), očisti duplikate
+            $tokens = collect(preg_split('/[\s\.,\-_\|]+/u', $rawQ, -1, PREG_SPLIT_NO_EMPTY))
+                ->map(fn($t) => Str::lower($t))
                     ->unique()
-                    ->take(5)
+                ->take(5)               // sigurnosni limit da ne generiramo pretežak upit
                     ->values();
 
                 $authorsBase = Author::query()
                     ->select('id', 'title', 'url')
                     ->where('status', 1)
-                    ->where(function ($w) use ($tokens) {
+                // pokaži samo autore koji imaju barem jedan vidljiv artikal; makni ako želiš sve autore
+                ->whereHas('products', function ($q2) {
+                    $q2->where('status', 1)->where('quantity', '>', 0);
+                })
+                // Kriterij: SVAKA riječ iz upita mora se pojaviti u title (redoslijed nebitan)
+                ->when($tokens->isNotEmpty(), function ($qA) use ($tokens) {
+                    $qA->where(function ($w) use ($tokens) {
                         foreach ($tokens as $t) {
                             $w->where('title', 'like', '%' . $t . '%');
                         }
                     });
+                });
+
+                // opcionalno: dodatni OR na slug ako ga koristiš za pretragu
+                // ->orWhere(function($w) use ($tokens){
+                //     foreach ($tokens as $t) { $w->where('slug', 'like', '%' . $t . '%'); }
+                // });
 
                 $totalAuthors = (clone $authorsBase)->count();
 
@@ -404,41 +395,36 @@ class CatalogRouteController extends Controller
                     ->limit(10)
                     ->get();
 
-                $authorsPayload = array();
-                foreach ($authors as $a) {
-                    $authorsPayload[] = array(
+            $authorsPayload = $authors->map(fn($a) => [
                         'id'   => $a->id,
                         'name' => $a->title,
                         'url'  => url($a->url),
-                    );
-                }
+            ])->values()->all();
 
-                $payload = array(
-                    'counts' => array(
+
+
+            // --- STRUCTURED PAYLOAD + X-Total-Count ---
+            $payload = [
+                'counts'     => [
                         'products'   => $totalProducts,
                         'authors'    => $totalAuthors,
                         'categories' => $totalCategories,
-                    ),
+                ],
                     'products'   => $productsPayload,
                     'categories' => $categoriesPayload,
                     'authors'    => $authorsPayload,
-                );
+            ];
 
-                return $payload;
-            });
+            $totalAll = $payload['counts']['products']
+                + $payload['counts']['authors']
+                + $payload['counts']['categories'];
 
-            $totalAll = (int)$payload['counts']['products']
-                + (int)$payload['counts']['authors']
-                + (int)$payload['counts']['categories'];
-
-            return response()->json($payload)->header('X-Total-Count', $totalAll);
+            return response()->json($payload)
+                ->header('X-Total-Count', $totalAll);
         }
 
-        return response()->json(array(
-            'error' => 'Greška kod pretrage..! Molimo pokušajte ponovo ili nas kotaktirajte! HVALA...'
-        ));
+        return response()->json(['error' => 'Greška kod pretrage..! Molimo pokušajte ponovo ili nas kotaktirajte! HVALA...']);
     }
-
 
 
     public function actions(Request $request, Category $cat = null, $subcat = null)
