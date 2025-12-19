@@ -231,7 +231,7 @@ Route::prefix('api/v2')->group(function () {
     // SEARCH
     Route::get('pretrazi/autocomplete', [CatalogRouteController::class, 'search'])->name('api.front.autocomplete');
     Route::get('pretrazi', [CatalogRouteController::class, 'search'])->name('api.front.search');
-    Route::get('pretrazi', [CatalogRouteController::class, 'search'])->name('front.search');
+
 
     // CART
     Route::prefix('cart')->group(function () {
@@ -381,7 +381,7 @@ Route::get(config('settings.publisher_path') . '/{publisher?}/{cat?}/{subcat?}',
 Route::get('snizenja/{cat?}/{subcat?}', [CatalogRouteController::class, 'actions'])->name('catalog.route.actions');
 //
 Route::get('{group}/{cat?}/{subcat?}/{prod?}', [CatalogRouteController::class, 'resolve'])->name('catalog.route');
-
+Route::get('pretrazi', [CatalogRouteController::class, 'search'])->name('front.search');
 
 Route::fallback(function () {
     return view('front.404');
