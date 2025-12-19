@@ -381,7 +381,7 @@ Route::get(config('settings.publisher_path') . '/{publisher?}/{cat?}/{subcat?}',
 Route::get('snizenja/{cat?}/{subcat?}', [CatalogRouteController::class, 'actions'])->name('catalog.route.actions');
 //
 Route::get('{group}/{cat?}/{subcat?}/{prod?}', [CatalogRouteController::class, 'resolve'])->name('catalog.route');
-Route::get('pretrazi', [CatalogRouteController::class, 'search'])->name('front.search');
+
 
 Route::fallback(function () {
     return view('front.404');
