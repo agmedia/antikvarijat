@@ -268,7 +268,8 @@ class Helper
             return $response;
         }
 
-        return $response['products']->toJson();
+        return $response['products'];
+
     }
 
     /**
