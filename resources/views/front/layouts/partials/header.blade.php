@@ -337,6 +337,15 @@
         document.getElementById('search_box')?.addEventListener('input', function(e){
             debouncedLoad(e.target.value);
         });
+
+        $(document).on('keydown', '#search_box', function(e){
+            if (e.key === 'Enter') {
+                e.preventDefault();          // ne radi ništa drugo na enter
+                closeSearch();               // zatvori dropdown/overlay
+                $('#search-form-first')[0].submit();  // full page search
+            }
+        });
+
     </script>
 @endpush
 
