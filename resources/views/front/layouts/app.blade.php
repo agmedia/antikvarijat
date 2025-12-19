@@ -25,7 +25,7 @@
     <!-- Vendor Styles including: Font Icons, Plugins, etc.-->
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <!-- Main Theme Styles + Bootstrap-->
-    <link rel="stylesheet" media="screen" href="{{ asset('css/theme.css?v=1.61')  }}">
+    <link rel="stylesheet" media="screen" href="{{ asset('css/theme.css?v=1.6')  }}">
     <style>
         #gdpr-cookie-message {
             position: fixed;
