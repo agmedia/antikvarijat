@@ -180,11 +180,15 @@ class Helper
         $response = collect();
 
         // proizvodi po nazivu/sku/opisu
-        $products = Product::active()
-            ->where('name', 'like', '%' . $target . '%')
-
-            ->orWhere('sku', 'like', '%' . $target . '%')
-                ->pluck('id');
+        $products = Product::query()
+            ->active()
+            ->where(function ($q) use ($target) {
+                $q->where('name', 'like', "%{$target}%")
+                    ->orWhere('sku', 'like', "%{$target}%");
+                // ako želiš i opis:
+                // ->orWhere('description', 'like', "%{$target}%");
+            })
+            ->pluck('id');
 
         if (! $products->count()) {
             $products = collect();
