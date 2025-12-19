@@ -182,8 +182,7 @@ class Helper
         // proizvodi po nazivu/sku/opisu
         $products = Product::active()
             ->where('name', 'like', '%' . $target . '%')
-            ->orWhere('meta_description', 'like', '%' . $target . '%')
-            ->orWhere('description', 'like', '%' . $target . '%')
+
             ->orWhere('sku', 'like', '%' . $target . '%')
                 ->pluck('id');
 
