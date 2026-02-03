@@ -68,7 +68,7 @@ class HomeController extends Controller
             return back()->with(['success' => 'Vaš Email je upisan u listu želja za ovaj artikl..!']);
         }
 
-        return back()->with(['error' => 'Wishlist Greška! Molimo vas kontaktirajte administratora!']);
+        return back()->with(['error' => 'Vaš Email je već upisan u listu želja za ovaj artikl!']);
     }
 
 
