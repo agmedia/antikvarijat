@@ -7,152 +7,242 @@ use App\Models\Back\Orders\Transaction;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-/**
- * Class Corvus
- * @package App\Models\Front\Checkout\Payment
- */
 class Corvus
 {
-
     /**
      * @var Order
      */
     private $order;
 
     /**
-     * @var string[]
+     * Wallet Form Service URLs
      */
-    private $url = [
+    private array $walletUrl = [
         'test' => 'https://test-wallet.corvuspay.com/checkout/',
-        'live' => 'https://wallet.corvuspay.com/checkout/'
+        'live' => 'https://wallet.corvuspay.com/checkout/',
     ];
 
-
     /**
-     * Corvus constructor.
-     *
-     * @param $order
+     * CPS API URLs (status)
      */
+    private array $cpsUrl = [
+        'test' => 'https://testcps.corvus.hr/status',
+        'live' => 'https://cps.corvus.hr/status',
+    ];
+
     public function __construct($order)
     {
         $this->order = $order;
     }
 
+    /**
+     * Parse "test" flag from settings (your JSON stores "0"/"1" as string)
+     */
+    private function isTestMode($paymentMethod): bool
+    {
+        return ((string) data_get($paymentMethod, 'data.test', '0')) === '1';
+    }
 
     /**
-     * @param Collection|null $payment_method
+     * Build wallet (checkout) signature (HMAC-SHA256) from the actual POST fields
+     * that you submit to Corvus.
      *
-     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+     * IMPORTANT: This must match exactly what you send in Blade.
+     */
+    private function buildWalletSignature(array $fields, string $secretKey): string
+    {
+        unset($fields['signature']);
+
+        ksort($fields);
+
+        $payload = '';
+        foreach ($fields as $k => $v) {
+            $payload .= $k . (string) $v;
+        }
+
+        return hash_hmac('sha256', $payload, $secretKey);
+    }
+
+    /**
+     * Create the checkout form data for Blade.
+     * Your Blade expects:
+     *  - $data['action'], $data['total'], $data['order_id'], $data['currency'], $data['lang'], $data['merchant'], $data['md5'] ...
      */
     public function resolveFormView(Collection $payment_method = null, array $options = null)
     {
-        if ( ! $payment_method) {
+        if (! $payment_method) {
             return '';
         }
 
-        $payment_method = $payment_method->first();
+        $pm = $payment_method->first();
 
-        $action = $this->url['live'];
-
-        if ($payment_method->data->test) {
-            $action = $this->url['test'];
-        }
+        $action = $this->isTestMode($pm) ? $this->walletUrl['test'] : $this->walletUrl['live'];
 
         $total = number_format($this->order->total, 2, '.', '');
 
-        $data['currency']  = isset($options['currency']) ? $options['currency'] : 'EUR';
+        $data = [];
+        $data['currency']  = $options['currency'] ?? 'EUR';
         $data['action']    = $action;
-        $data['merchant']  = $payment_method->data->shop_id;
-        $data['order_id']  = isset($options['order_number']) ? $options['order_number'] : $this->order->id;
-        $data['total']     = isset($options['total']) ? $options['total'] : $total;
+        $data['merchant']  = data_get($pm, 'data.shop_id');                // store_id in Corvus terms
+        $data['order_id']  = $options['order_number'] ?? $this->order->id; // order_number in Corvus terms
+        $data['total']     = $options['total'] ?? $total;
+
         $data['firstname'] = $this->order->payment_fname;
         $data['lastname']  = $this->order->payment_lname;
-        $data['address']   = '';
-        $data['city']      = '';
-        $data['country']   = '';
-        $data['postcode']  = '';
         $data['telephone'] = $this->order->payment_phone;
         $data['email']     = $this->order->payment_email;
+
         $data['lang']      = 'hr';
-        $data['plan']      = isset($options['plan']) ? $options['plan'] : '01';
-        $data['cc_name']   = isset($options['cc_name']) ? $options['cc_name'] : 'VISA';//...??
-        $data['rate']      = isset($options['rate']) ? $options['rate'] : 1;
-        $data['return']    = isset($options['return_url']) ? $options['return_url'] : $payment_method->data->callback;
-        $data['cancel']    = route('index');
+        $data['return']    = $options['return_url'] ?? data_get($pm, 'data.callback'); // success URL
+        $data['cancel']    = $options['cancel_url'] ?? route('kosarica');
         $data['method']    = 'POST';
 
         $data['number_of_installments'] = 'Y0299';
 
-        $string = 'amount' . $total . 'cardholder_email' . $data['email'] . 'cardholder_name' . $data['firstname'] . 'cardholder_phone' . $data['telephone'] . 'cardholder_surname' . $data['lastname'] . 'cartWeb shop kupnja ' . $data['order_id'] . 'currency' . $data['currency'] . 'language' . $data['lang'] . 'order_number' . $data['order_id'] . 'payment_all' . $data['number_of_installments'] . 'require_completefalsestore_id' . $data['merchant'] . 'version1.3';
+        // EXACTLY the same fields you POST in Blade:
+        $fields = [
+            'amount'             => $data['total'],
+            'cart'               => 'Web shop kupnja ' . $data['order_id'],
+            'currency'           => $data['currency'],
+            'language'           => $data['lang'],
+            'order_number'       => $data['order_id'],
+            'require_complete'   => 'false',
+            'store_id'           => $data['merchant'],
+            'signature'          => '', // placeholder, excluded in signature build
+            'cardholder_name'    => $data['firstname'],
+            'cardholder_surname' => $data['lastname'],
+            'cardholder_phone'   => $data['telephone'],
+            'cardholder_email'   => $data['email'],
+            'payment_all'        => $data['number_of_installments'],
+            'version'            => '1.3',
+        ];
 
-        $keym = $payment_method->data->secret_key;
-        $hash = hash_hmac('sha256', $string, $keym);
-
-        $data['md5'] = $hash;
+        $secretKey = (string) data_get($pm, 'data.secret_key');
+        $data['md5'] = $this->buildWalletSignature($fields, $secretKey);
 
         return view('front.checkout.payment.corvus', compact('data'));
     }
 
-
     /**
-     * @param Order $order
-     * @param null  $request
-     *
-     * @return bool
+     * Handle return (GET) from Corvus success_url.
+     * This MUST be tolerant, because Corvus can send keys in different casing depending on flow.
      */
     public function finishOrder(Order $order, Request $request): bool
     {
+        $orderNumber = $request->input('order_number') ?? $request->input('OrderNumber') ?? $order->id;
 
-        $status = ($request->has('approval_code') && $request->input('approval_code')!= null) ? config('settings.order.status.paid') : config('settings.order.status.declined');
+        // Prefer response_code when present
+        $responseCode = $request->input('response_code')
+            ?? $request->input('response-code')
+            ?? $request->input('ResponseCode');
 
+        $approvalCode = $request->input('approval_code')
+            ?? $request->input('ApprovalCode');
 
-        $order->update([
-            'order_status_id' => $status
+        $isSuccess = ($responseCode !== null)
+            ? ((string) $responseCode === '0')
+            : (! empty($approvalCode));
+
+        $statusId = $isSuccess
+            ? config('settings.order.status.paid')
+            : config('settings.order.status.declined');
+
+        $order->update(['order_status_id' => $statusId]);
+
+        // Idempotent transaction log (avoid duplicates on refresh)
+        // If you have a better unique key (pg id), add it.
+        Transaction::updateOrCreate(
+            ['order_id' => $orderNumber],
+            [
+                'success'    => $isSuccess ? 1 : 0,
+                'updated_at' => Carbon::now(),
+                'created_at' => Carbon::now(),
+            ]
+        );
+
+        Log::info('Corvus return', [
+            'order_number' => $orderNumber,
+            'success' => $isSuccess,
+            'response_code' => $responseCode,
+            'approval_code' => $approvalCode,
+            'query' => $request->query(),
         ]);
 
-        if ($request->has('approval_code')) {
-            Transaction::insert([
-                'order_id'        => $request->input('order_number'),
-                'success'         => 1,
-              /*  'amount'          => $request->input('Amount'),
-                'signature'       => $request->input('Signature'),
-                'payment_type'    => $request->input('PaymentType'),
-                'payment_plan'    => $request->input('PaymentPlan'),
-                'payment_partner' => $request->input('Partner'),
-                'datetime'        => $request->input('DateTime'),
-                'approval_code'   => $request->input('ApprovalCode'),
-                'pg_order_id'     => $request->input('CorvusOrderId'),
-                'lang'            => $request->input('Lang'),
-                'stan'            => $request->input('STAN'),
-                'error'           => $request->input('ErrorMessage'),*/
-                'created_at'      => Carbon::now(),
-                'updated_at'      => Carbon::now()
-            ]);
-
-            return true;
-        }
-
-        Transaction::insert([
-            'order_id'        => $request->input('order_number'),
-            'success'         => 0,
-          /*  'amount'          => $request->input('Amount'),
-            'signature'       => $request->input('Signature'),
-            'payment_type'    => $request->input('PaymentType'),
-            'payment_plan'    => $request->input('PaymentPlan'),
-            'payment_partner' => null,
-            'datetime'        => $request->input('DateTime'),
-            'approval_code'   => $request->input('ApprovalCode'),
-            'pg_order_id'     => null,
-            'lang'            => $request->input('Lang'),
-            'stan'            => null,
-            'error'           => $request->input('ErrorMessage'),*/
-            'created_at'      => Carbon::now(),
-            'updated_at'      => Carbon::now()
-        ]);
-
-        return false;
+        return $isSuccess;
     }
 
+    /**
+     * Fallback: check transaction status via CPS /status (for "missing" when customer doesn't return).
+     * Uses SHA1 hash with secret_key as "key" per your docs.
+     *
+     * Returns:
+     *  - ['ok' => true, 'xml' => SimpleXMLElement, 'raw' => string]
+     *  - or ['ok' => false, 'error' => '...']
+     */
+    public function checkStatus(string $orderNumber, Collection $payment_method): array
+    {
+        $pm = $payment_method->first();
+
+        $isTest = $this->isTestMode($pm);
+        $url = $isTest ? $this->cpsUrl['test'] : $this->cpsUrl['live'];
+
+        $storeId = (string) data_get($pm, 'data.shop_id');
+        $key     = (string) data_get($pm, 'data.secret_key'); // per your docs, this is the key used in sha1()
+
+        // EUR numeric currency_code
+        $currencyCode = '978';
+        $timestamp = (string) time();
+        $version = '1.0';
+
+        if (! $storeId || ! $key) {
+            return ['ok' => false, 'error' => 'Missing store_id or key'];
+        }
+
+        // hash = sha1(key + order_number + store_id + currency_code + timestamp + version)
+        $hash = sha1($key . $orderNumber . $storeId . $currencyCode . $timestamp . $version);
+
+        $payload = [
+            'store_id'      => $storeId,
+            'order_number'  => $orderNumber,
+            'currency_code' => $currencyCode,
+            'timestamp'     => $timestamp,
+            'version'       => $version,
+            'hash'          => $hash,
+        ];
+
+        try {
+            $resp = Http::asForm()->timeout(10)->post($url, $payload);
+
+            if (! $resp->ok()) {
+                Log::warning('Corvus status HTTP error', [
+                    'status' => $resp->status(),
+                    'body' => $resp->body(),
+                    'order_number' => $orderNumber,
+                ]);
+
+                return ['ok' => false, 'error' => 'HTTP ' . $resp->status()];
+            }
+
+            $raw = $resp->body();
+
+            // parse XML
+            $xml = @simplexml_load_string($raw);
+            if ($xml === false) {
+                Log::warning('Corvus status XML parse failed', ['raw' => $raw]);
+                return ['ok' => false, 'error' => 'Invalid XML'];
+            }
+
+            return ['ok' => true, 'xml' => $xml, 'raw' => $raw];
+        } catch (\Throwable $e) {
+            Log::error('Corvus status exception', [
+                'order_number' => $orderNumber,
+                'error' => $e->getMessage(),
+            ]);
+
+            return ['ok' => false, 'error' => $e->getMessage()];
+        }
+    }
 }

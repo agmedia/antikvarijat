@@ -100,28 +100,39 @@ class CheckoutController extends Controller
      */
     public function order(Request $request)
     {
+        Log::info('Payment return hit', [
+            'method' => $request->method(),
+            'query'  => $request->query(),
+            'all'    => $request->all(),
+        ]);
 
+        // Generic: try the common identifiers
+        $orderNumber = $request->input('order_number')
+            ?? $request->input('OrderNumber')
+            ?? $request->input('provjera');
+
+        if (! $orderNumber) {
+            // Ako neka druga metoda šalje drugi parametar, lako ga dodaš ovdje,
+            // ali bez orderNumber nema smisla dalje.
+            Log::warning('Payment return without order identifier', ['all' => $request->all()]);
+            return redirect()->route('checkout.error');
+        }
 
         $order = new Order();
+        $order->setData($orderNumber);
 
-        if ($request->has('provjera')) {
-            $order->setData($request->input('provjera'));
+        $ok = $order->finish($request);
+
+        // Fallback za success page (session zna puknuti nakon payment redirecta)
+        if ($ok && ! CheckoutSession::hasOrder()) {
+            CheckoutSession::setOrder(['id' => (int) $orderNumber]);
         }
 
-       /* if ($request->has('ShoppingCartID')) {
-            $order->setData($request->input('ShoppingCartID'));
-        }*/
-
-        if ($request->has('order_number')) {
-            $order->setData($request->input('order_number'));
-        }
-
-        if ($order->finish($request)) {
-            return redirect()->route('checkout.success');
-        }
-
-        return redirect()->route('checkout.error');
+        return $ok
+            ? redirect()->route('checkout.success', ['order_number' => $orderNumber])
+            : redirect()->route('checkout.error', ['order_number' => $orderNumber]);
     }
+
 
 
     /**
@@ -134,7 +145,12 @@ class CheckoutController extends Controller
 
         $data['order'] = CheckoutSession::getOrder();
 
-        if ( ! $data['order']) {
+        // Generic fallback if session died after payment redirect
+        if (! $data['order'] && $request->filled('order_number')) {
+            $data['order'] = ['id' => (int) $request->input('order_number')];
+        }
+
+        if (! $data['order']) {
             return redirect()->route('index');
         }
 
