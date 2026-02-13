@@ -18,7 +18,7 @@
                     </div>
 
                     <input type="hidden" name="recaptcha" id="recaptcha">
-                    <input type="hidden" name="product_id" value="{{ $prod->id }}">
+                    <input type="hidden" name="product_id" value="@if(isset($prod) && $prod->id){{ $prod->id }}@endif">
                     <button class="btn btn-primary btn-shadow d-block w-100" type="submit">Obavjesti me</button>
                 </form>
             </div>

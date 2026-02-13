@@ -17,7 +17,7 @@
                 <div class="dropdown w-100">
                 <div class="input-group ">
                     <i class="ci-search position-absolute top-50 start-0 translate-middle-y text-muted fs-base ms-3"></i>
-                    <input class="form-control rounded-start ps-5 js-search-box" type="text"
+                    <input class="form-control rounded-start ps-5" type="text"
                            name="{{ config('settings.search_keyword') }}"
                            value="{{ request()->query('pojam') ?: '' }}"
                            placeholder="Pretražite po nazivu ili autoru" id="search_box" data-toggle="dropdown" aria-haspopup="true" autocomplete="off" aria-expanded="false" onkeyup="javascript:load_data(this.value)">
@@ -65,7 +65,7 @@
                 <form action="{{ route('pretrazi') }}" id="search-form-mobile" method="get" class="w-100 d-lg-none my-3">
                     <div class="input-group">
                         <i class="ci-search position-absolute top-50 start-0 translate-middle-y text-muted fs-base ms-3"></i>
-                        <input class="form-control rounded-start ps-5 js-search-box" type="text"
+                        <input class="form-control rounded-start ps-5" type="text"
                                name="{{ config('settings.search_keyword') }}"
                                value="{{ request()->query('pojam') ?: '' }}"
                                placeholder="Pretražite po nazivu ili autoru">
@@ -337,18 +337,6 @@
         document.getElementById('search_box')?.addEventListener('input', function(e){
             debouncedLoad(e.target.value);
         });
-
-
-
-        $(document).on('keydown', '.js-search-box', function(e){
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                closeSearch();
-                $(this).closest('form')[0].submit();
-            }
-        });
-
-
     </script>
 @endpush
 

@@ -98,7 +98,11 @@
                     </div>
                 </div>
             </div>
+            
+            
         </section>
+        
+       
 
 
         {!! $page->description !!}

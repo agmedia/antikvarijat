@@ -175,7 +175,7 @@
                            </div>
                        @endif
 
-                <add-to-cart-btn :id="{{ $prod->id }}":product='@json($prod->toArray())':wishlist="{{ $prod->quantity }}"></add-to-cart-btn>
+                       <add-to-cart-btn :id="{{ $prod->id }}":product='@json($prod->toArray())':wishlist="{{ $prod->quantity }}"></add-to-cart-btn>
 
                        <!-- Light alert -->
                        <div class="alert alert-secondary d-flex fs-sm" role="alert">

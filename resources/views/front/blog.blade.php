@@ -8,6 +8,13 @@
 
 @endif
 
+@push('meta_tags')
+
+
+    <link rel="stylesheet" media="screen" href="{{ asset('vendor/lightgallery/css/lightgallery-bundle.min.css')}}"/>
+
+@endpush
+
 @if (isset($gdl))
     @section('google_data_layer')
         <script type="application/ld+json">
@@ -25,7 +32,13 @@
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb breadcrumb-dark flex-lg-nowrap justify-content-center ">
                         <li class="breadcrumb-item"><a class="text-nowrap" href="{{ route('index') }}"><i class="ci-home"></i>Naslovnica</a></li>
-                        <li class="breadcrumb-item text-nowrap active" aria-current="page">Iz medija</li>
+                           @if(isset($blogs))
+                     <li class="breadcrumb-item text-nowrap active" aria-current="page">Iz medija</li>
+                @else
+              
+                      <li class="breadcrumb-item text-nowrap active" aria-current="page"><a class="text-nowrap" href="https://www.antikvarijat-biblos.hr/blog">Iz medija</a></li>
+                @endif
+                        
                     </ol>
                 </nav>
 
@@ -86,3 +99,22 @@
     @endif
 
 @endsection
+
+@push('js_after')
+
+  
+    <link rel="stylesheet" media="screen" href="{{ asset('js/simple-lightbox.css?v2.14.0') }}">
+    <script src="{{ asset('js/simple-lightbox.js?v2.14.0') }}"></script>
+
+
+   
+    <script>
+        (function () {
+            var $gallery = new SimpleLightbox('.gallery a', {});
+        })();
+    </script>
+ 
+
+
+
+@endpush

@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Back\Catalog\Author;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 
 class CleanAuthors extends Command
 {

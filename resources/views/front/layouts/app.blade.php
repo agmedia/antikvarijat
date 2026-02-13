@@ -5,8 +5,7 @@
     <title> @yield('title') </title>
     <!-- SEO Meta Tags-->
     <meta name="description" content="@yield('description')">
-
-    <meta name="author" content="Antikvarijat Biblos">
+    <meta name="author" content="Biblos">
     @stack('meta_tags')
     <!-- Viewport-->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
@@ -25,7 +24,7 @@
     <!-- Vendor Styles including: Font Icons, Plugins, etc.-->
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <!-- Main Theme Styles + Bootstrap-->
-    <link rel="stylesheet" media="screen" href="{{ asset('css/theme.css?v=1.6')  }}">
+    <link rel="stylesheet" media="screen" href="{{ asset('css/theme.css?v=1.61')  }}">
     <style>
         #gdpr-cookie-message {
             position: fixed;
@@ -242,7 +241,7 @@
 
 <!-- Main theme script-->
 
-<script src="{{ asset('js/cart.js?v=100.3') }}"></script>
+<script src="{{ asset('js/cart.js?v=168') }}"></script>
 
 
 
