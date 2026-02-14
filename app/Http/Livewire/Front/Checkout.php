@@ -7,6 +7,7 @@ use App\Helpers\Currency;
 use App\Helpers\Helper;
 use App\Helpers\Session\CheckoutSession;
 use App\Models\Back\Settings\Settings;
+use App\Models\Back\Marketing\NewsletterSubscriber;
 use App\Models\Front\AgCart;
 use App\Models\Front\Checkout\GeoZone;
 use App\Models\Front\Checkout\PaymentMethod;
@@ -89,6 +90,8 @@ class Checkout extends Component
 
     public $view_comment = false;
 
+    public $newsletter = false;
+
     /**
      * @var string[]
      */
@@ -156,6 +159,10 @@ class Checkout extends Component
             $this->napomena = CheckoutSession::getNapomena();
         }
 
+        if (CheckoutSession::hasNewsletter()) {
+            $this->newsletter = (bool) CheckoutSession::getNewsletter();
+        }
+
         $this->secondary_price = Currency::secondary() ? Currency::secondary()->value : false;
 
         if (session()->has(config('session.cart'))) {
@@ -178,6 +185,13 @@ class Checkout extends Component
         $this->napomena = $value;
 
         CheckoutSession::setNapomena($this->napomena);
+    }
+
+    public function updatingNewsletter($value)
+    {
+        $this->newsletter = (bool) $value;
+
+        CheckoutSession::setNewsletter($this->newsletter);
     }
 
 
@@ -240,6 +254,7 @@ class Checkout extends Component
         if (in_array($step, ['dostava', 'placanje']) && $this->cart) {
             $this->setAddress($this->address);
             $this->validate($this->address_rules);
+            $this->syncNewsletterSubscription();
 
             if ($step == 'dostava' && $this->shipping != '') {
                 $this->checkShipping($this->shipping);
@@ -267,6 +282,29 @@ class Checkout extends Component
         $this->step = $step;
 
         CheckoutSession::setStep($step);
+    }
+
+    private function syncNewsletterSubscription(): void
+    {
+        if (! $this->newsletter || empty($this->address['email'])) {
+            return;
+        }
+
+        try {
+            NewsletterSubscriber::subscribe([
+                'email'      => $this->address['email'],
+                'first_name' => $this->address['fname'] ?? null,
+                'last_name'  => $this->address['lname'] ?? null,
+                'user_id'    => auth()->id() ?? 0,
+                'source'     => 'checkout',
+                'gdpr'       => true,
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('Newsletter subscribe failed during checkout', [
+                'email' => $this->address['email'],
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
 

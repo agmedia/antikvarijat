@@ -220,6 +220,8 @@
 
     @yield('content')
 
+    @include('front.layouts.partials.newsletter')
+
     @include('front.layouts.partials.footer')
 
     @include('front.layouts.partials.handheld')

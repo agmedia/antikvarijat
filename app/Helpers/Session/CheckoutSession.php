@@ -175,6 +175,37 @@ class CheckoutSession
         return session()->forget(static::$session_string . '.napomena');
     }
 
+    public static function getNewsletter()
+    {
+        return session(static::$session_string . '.newsletter');
+    }
+
+    /**
+     * @return bool
+     */
+    public static function hasNewsletter()
+    {
+        return session()->has(static::$session_string . '.newsletter');
+    }
+
+    /**
+     * @param bool|int|string $value
+     *
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Session\SessionManager|\Illuminate\Session\Store|mixed
+     */
+    public static function setNewsletter($value)
+    {
+        return session([static::$session_string . '.newsletter' => (bool) $value]);
+    }
+
+    /**
+     * @return bool
+     */
+    public static function forgetNewsletter()
+    {
+        return session()->forget(static::$session_string . '.newsletter');
+    }
+
     /**
      * PAYMENT
      *
@@ -354,5 +385,6 @@ class CheckoutSession
         CheckoutSession::forgetPayment();
         CheckoutSession::forgetShipping();
         CheckoutSession::forgetComment();
+        CheckoutSession::forgetNewsletter();
     }
 }

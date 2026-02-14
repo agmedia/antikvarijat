@@ -204,6 +204,16 @@
             </div>
         </div>
 
+            <div class="row mt-2 mb-3">
+                <div class="col-sm-12">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="checkout-newsletter" name="newsletter" wire:model="newsletter">
+                        <label class="form-check-label" for="checkout-newsletter">
+                            Želim primati newsletter s novim naslovima i posebnim ponudama.
+                        </label>
+                    </div>
+                </div>
+            </div>
 
             <h2 class="h6 pt-1 pb-3 mb-3 border-bottom">Dodatna napomena</h2>
             <div class="row mt-3">

@@ -119,6 +119,11 @@
                                 <span class="nav-main-link-name">Wishlist</span>
                             </a>
                         </li>
+                        <li class="nav-main-item">
+                            <a class="nav-main-link{{ request()->routeIs(['newsletter.subscribers']) ? ' active' : '' }}" href="{{ route('newsletter.subscribers') }}">
+                                <span class="nav-main-link-name">Newsletter</span>
+                            </a>
+                        </li>
                     </ul>
                 </li>
 

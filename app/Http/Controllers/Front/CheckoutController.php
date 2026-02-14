@@ -6,6 +6,7 @@ use App\Helpers\Session\CheckoutSession;
 use App\Http\Controllers\Controller;
 use App\Mail\OrderReceived;
 use App\Mail\OrderSent;
+use App\Models\Back\Marketing\NewsletterSubscriber;
 use App\Models\Back\Settings\Settings;
 use App\Models\Front\AgCart;
 
@@ -87,6 +88,22 @@ class CheckoutController extends Controller
             $data['id'] = CheckoutSession::getOrder()['id'];
         }
 
+        if (! empty($data['newsletter']) && ! empty($data['address']['email']) && ! empty($data['id'])) {
+            NewsletterSubscriber::subscribe([
+                'email'      => $data['address']['email'],
+                'first_name' => $data['address']['fname'] ?? null,
+                'last_name'  => $data['address']['lname'] ?? null,
+                'user_id'    => auth()->id() ?? 0,
+                'order_id'   => (int) $data['id'],
+                'source'     => 'checkout',
+                'gdpr'       => true,
+            ]);
+        }
+
+        if (! empty($data['address']['email']) && ! empty($data['id'])) {
+            NewsletterSubscriber::attachOrderToEmail($data['address']['email'], (int) $data['id']);
+        }
+
         $data['payment_form'] = $order->resolvePaymentForm();
 
         return view('front.checkout.view', compact('data'));
@@ -157,6 +174,7 @@ class CheckoutController extends Controller
         $order = \App\Models\Back\Orders\Order::where('id', $data['order']['id'])->first();
 
         if ($order) {
+            NewsletterSubscriber::attachOrderToEmail((string) $order->payment_email, (int) $order->id);
 
             $order->decreaseCartItems($order->products)
                   ->forgetSession();
@@ -216,7 +234,8 @@ class CheckoutController extends Controller
                 'shipping' => CheckoutSession::getShipping(),
                 'payment'  => CheckoutSession::getPayment(),
                 'comment'  => CheckoutSession::getComment(),
-                'napomena'  => CheckoutSession::getNapomena()
+                'napomena'  => CheckoutSession::getNapomena(),
+                'newsletter' => CheckoutSession::getNewsletter(),
                 ];
         }
 

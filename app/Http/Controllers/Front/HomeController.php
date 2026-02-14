@@ -8,6 +8,7 @@ use App\Helpers\Recaptcha;
 use App\Http\Controllers\Controller;
 use App\Imports\ProductImport;
 use App\Mail\ContactFormMessage;
+use App\Models\Back\Marketing\NewsletterSubscriber;
 use App\Models\Back\Marketing\Wishlist;
 use App\Models\Front\Page;
 use App\Models\Sitemap;
@@ -69,6 +70,35 @@ class HomeController extends Controller
         }
 
         return back()->with(['error' => 'Vaš Email je već upisan u listu želja za ovaj artikl!']);
+    }
+
+    /**
+     * @param Request $request
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function newsletter(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'gdpr' => 'required|accepted',
+        ]);
+
+        NewsletterSubscriber::subscribe([
+            'email' => $request->input('email'),
+            'user_id' => auth()->id() ?? 0,
+            'source' => 'footer',
+            'gdpr' => true,
+        ]);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Hvala! Uspješno ste prijavljeni na newsletter.',
+            ]);
+        }
+
+        return back()->with('newsletter_success', 'Hvala! Uspješno ste prijavljeni na newsletter.');
     }
 
 
