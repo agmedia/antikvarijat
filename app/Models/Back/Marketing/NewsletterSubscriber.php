@@ -17,6 +17,11 @@ class NewsletterSubscriber extends Model
      */
     protected $guarded = ['id', 'created_at', 'updated_at'];
 
+    protected $casts = [
+        'subscribed_at' => 'datetime',
+        'mailchimp_synced_at' => 'datetime',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');

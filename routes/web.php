@@ -139,6 +139,7 @@ Route::middleware(['auth:sanctum', 'verified', 'no.customers'])->prefix('admin')
 
         // NEWSLETTER
         Route::get('newsletter', [NewsletterSubscriberController::class, 'index'])->name('newsletter.subscribers');
+        Route::post('newsletter/sync-mailchimp', [NewsletterSubscriberController::class, 'syncMailchimp'])->name('newsletter.subscribers.sync');
     });
 
     // KORISNICI

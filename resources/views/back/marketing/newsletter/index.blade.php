@@ -14,6 +14,12 @@
             <div class="block-header block-header-default">
                 <h3 class="block-title">Pretplatnici</h3>
                 <div class="block-options">
+                    <form method="post" action="{{ route('newsletter.subscribers.sync') }}" class="d-inline-block mr-2">
+                        @csrf
+                        <button type="submit" class="btn btn-success">
+                            Import novih u Mailchimp ({{ $pendingSyncCount ?? 0 }})
+                        </button>
+                    </form>
                     <a class="btn btn-primary" href="{{ route('newsletter.subscribers') }}">
                         Očisti filter
                     </a>
@@ -21,6 +27,12 @@
             </div>
 
             <div class="block-content">
+                @if (session('status'))
+                    <div class="alert alert-info">
+                        {{ session('status') }}
+                    </div>
+                @endif
+
                 <div class="bg-body-dark p-3 mb-3">
                     <form method="get" action="{{ route('newsletter.subscribers') }}">
                         <div class="form-group row">
@@ -53,6 +65,7 @@
                             <th>Order ID</th>
                             <th>Izvor</th>
                             <th>GDPR</th>
+                            <th>Mailchimp</th>
                             <th>Prijavljen</th>
                         </tr>
                         </thead>
@@ -75,11 +88,20 @@
                                 <td>{{ $subscriber->order_id ?: '-' }}</td>
                                 <td>{{ $subscriber->source }}</td>
                                 <td>{{ $subscriber->gdpr ? 'DA' : 'NE' }}</td>
+                                <td>
+                                    @if ($subscriber->mailchimp_synced_at)
+                                        <span class="badge badge-success">Syncano {{ $subscriber->mailchimp_synced_at->format('d.m.Y H:i') }}</span>
+                                    @elseif ($subscriber->mailchimp_last_error)
+                                        <span class="badge badge-danger" title="{{ $subscriber->mailchimp_last_error }}">Greška</span>
+                                    @else
+                                        <span class="badge badge-secondary">Novo</span>
+                                    @endif
+                                </td>
                                 <td>{{ optional($subscriber->subscribed_at)->format('d.m.Y H:i') ?: optional($subscriber->created_at)->format('d.m.Y H:i') }}</td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8">Nema newsletter prijava.</td>
+                                <td colspan="9">Nema newsletter prijava.</td>
                             </tr>
                         @endforelse
                         </tbody>

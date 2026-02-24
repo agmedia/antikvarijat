@@ -9,11 +9,14 @@ CREATE TABLE `newsletter_subscribers` (
   `source` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'unknown',
   `gdpr` tinyint NOT NULL DEFAULT '1',
   `subscribed_at` timestamp NULL DEFAULT NULL,
+  `mailchimp_synced_at` timestamp NULL DEFAULT NULL,
+  `mailchimp_last_error` text COLLATE utf8mb4_unicode_ci,
   `status` tinyint NOT NULL DEFAULT '1',
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `newsletter_subscribers_email_unique` (`email`),
   KEY `newsletter_subscribers_status_source_index` (`status`,`source`),
-  KEY `newsletter_subscribers_order_id_index` (`order_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  KEY `newsletter_subscribers_order_id_index` (`order_id`),
+  KEY `newsletter_subscribers_mailchimp_synced_at_index` (`mailchimp_synced_at`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

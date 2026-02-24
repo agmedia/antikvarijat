@@ -44,8 +44,8 @@
                                 </div>
                             </form>
                             <div class="mb-2 text-center">
-                                @if (Route::has('password.request'))
-                                    <a class="link-fx font-size-sm" href="{{ route('password.request') }}">
+                                @if (Route::has('forget.password.get'))
+                                    <a class="link-fx font-size-sm" href="{{ route('forget.password.get') }}">
                                         {{ __('Zaboravili ste lozinku?') }}
                                     </a>
                                 @endif
