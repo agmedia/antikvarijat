@@ -1,0 +1,28 @@
+{
+    "full_name": "tomislav",
+    "postal_code": "10000",
+    "email": "tomislav@agmedia.hr",
+    "phone": "+385992153975",
+    "photos": [
+        {
+            "name": "demo-elder-care.jpg",
+            "size": 65976,
+            "url": "http:\/\/antlaravel.test\/uploads\/otkup-knjiga\/20260224_172837_7eoekq7y\/01_dcotapmgiq.jpg",
+            "path": "uploads\/otkup-knjiga\/20260224_172837_7eoekq7y\/01_dcotapmgiq.jpg"
+        },
+        {
+            "name": "demo-green-energy.jpg",
+            "size": 63604,
+            "url": "http:\/\/antlaravel.test\/uploads\/otkup-knjiga\/20260224_172837_7eoekq7y\/02_fpyb1cgqqj.jpg",
+            "path": "uploads\/otkup-knjiga\/20260224_172837_7eoekq7y\/02_fpyb1cgqqj.jpg"
+        },
+        {
+            "name": "demo-logistics.jpg",
+            "size": 70782,
+            "url": "http:\/\/antlaravel.test\/uploads\/otkup-knjiga\/20260224_172837_7eoekq7y\/03_am6kjwoper.jpg",
+            "path": "uploads\/otkup-knjiga\/20260224_172837_7eoekq7y\/03_am6kjwoper.jpg"
+        }
+    ],
+    "submitted_at": "24.02.2026 17:28",
+    "submission_id": "20260224_172837_7eoekq7y"
+}

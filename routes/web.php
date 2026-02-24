@@ -11,6 +11,7 @@ use App\Http\Controllers\Back\DashboardController;
 use App\Http\Controllers\Back\OrderController;
 use App\Http\Controllers\Back\Marketing\ActionController;
 use App\Http\Controllers\Back\Marketing\BlogController;
+use App\Http\Controllers\Back\Marketing\BookPurchaseController;
 use App\Http\Controllers\Back\Marketing\NewsletterSubscriberController;
 use App\Http\Controllers\Back\Settings\ApiController;
 use App\Http\Controllers\Back\Settings\App\CurrencyController;
@@ -140,6 +141,9 @@ Route::middleware(['auth:sanctum', 'verified', 'no.customers'])->prefix('admin')
         // NEWSLETTER
         Route::get('newsletter', [NewsletterSubscriberController::class, 'index'])->name('newsletter.subscribers');
         Route::post('newsletter/sync-mailchimp', [NewsletterSubscriberController::class, 'syncMailchimp'])->name('newsletter.subscribers.sync');
+        // OTKUP KNJIGA
+        Route::get('otkup-knjiga', [BookPurchaseController::class, 'index'])->name('book.purchases');
+        Route::get('otkup-knjiga/{purchase}', [BookPurchaseController::class, 'show'])->name('book.purchases.show');
     });
 
     // KORISNICI
@@ -339,6 +343,8 @@ Route::prefix('api/v2')->group(function () {
 Route::get('/', [HomeController::class, 'index'])->name('index');
 Route::get('/kontakt', [HomeController::class, 'contact'])->name('kontakt');
 Route::post('/kontakt/posalji', [HomeController::class, 'sendContactMessage'])->name('poruka');
+Route::get('/otkup-knjiga', [HomeController::class, 'bookPurchase'])->name('otkup.knjiga');
+Route::post('/otkup-knjiga/posalji', [HomeController::class, 'sendBookPurchaseMessage'])->name('otkup.knjiga.posalji');
 Route::post('/newsletter/prijava', [HomeController::class, 'newsletter'])->name('newsletter.subscribe');
 Route::get('/faq', [CatalogRouteController::class, 'faq'])->name('faq');
 //

@@ -10,6 +10,7 @@ use App\Models\Back\Marketing\NewsletterSubscriber;
 use App\Models\Back\Settings\Settings;
 use App\Models\Front\AgCart;
 use App\Services\MailchimpEcommerceService;
+use App\Services\MailchimpNewsletterService;
 
 use App\Models\Front\Checkout\Order;
 use App\Models\TagManager;
@@ -181,6 +182,7 @@ class CheckoutController extends Controller
                 $mailchimp = app(MailchimpEcommerceService::class);
                 $mailchimp->syncOrder($order);
                 $mailchimp->deleteCartById((string) session(config('session.cart')));
+                app(MailchimpNewsletterService::class)->markAsCustomer((string) $order->payment_email);
             } catch (\Throwable $e) {
                 Log::warning('Mailchimp order/cart sync failed on checkout success', [
                     'order_id' => $order->id,

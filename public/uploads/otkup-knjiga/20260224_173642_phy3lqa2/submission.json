@@ -1,0 +1,40 @@
+{
+    "full_name": "Tomislav Jureša",
+    "postal_code": "10000",
+    "email": "tomislav@agmedia.hr",
+    "phone": "0992153975",
+    "photos": [
+        {
+            "name": "demo-logistics-home-bg-01.jpg",
+            "size": 63700,
+            "url": "http:\/\/antlaravel.test\/uploads\/otkup-knjiga\/20260224_173642_phy3lqa2\/01_hxdlxijid4.jpg",
+            "path": "uploads\/otkup-knjiga\/20260224_173642_phy3lqa2\/01_hxdlxijid4.jpg"
+        },
+        {
+            "name": "demo-green-energy-logo-black@2x.png",
+            "size": 9933,
+            "url": "http:\/\/antlaravel.test\/uploads\/otkup-knjiga\/20260224_173642_phy3lqa2\/02_rna8hq6ujp.png",
+            "path": "uploads\/otkup-knjiga\/20260224_173642_phy3lqa2\/02_rna8hq6ujp.png"
+        },
+        {
+            "name": "demo-green-energy-logo-black.png",
+            "size": 5033,
+            "url": "http:\/\/antlaravel.test\/uploads\/otkup-knjiga\/20260224_173642_phy3lqa2\/03_lqwckpsrkb.png",
+            "path": "uploads\/otkup-knjiga\/20260224_173642_phy3lqa2\/03_lqwckpsrkb.png"
+        },
+        {
+            "name": "demo-green-energy-home-img-04.jpg",
+            "size": 67775,
+            "url": "http:\/\/antlaravel.test\/uploads\/otkup-knjiga\/20260224_173642_phy3lqa2\/04_9vuxnybtno.jpg",
+            "path": "uploads\/otkup-knjiga\/20260224_173642_phy3lqa2\/04_9vuxnybtno.jpg"
+        },
+        {
+            "name": "demo-green-energy-home-a-02.png",
+            "size": 26164,
+            "url": "http:\/\/antlaravel.test\/uploads\/otkup-knjiga\/20260224_173642_phy3lqa2\/05_u92dnc1oji.png",
+            "path": "uploads\/otkup-knjiga\/20260224_173642_phy3lqa2\/05_u92dnc1oji.png"
+        }
+    ],
+    "submitted_at": "24.02.2026 17:36",
+    "submission_id": "20260224_173642_phy3lqa2"
+}

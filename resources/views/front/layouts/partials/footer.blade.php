@@ -22,7 +22,8 @@
                         @foreach ($uvjeti_kupnje as $page)
                             <li><a class="dropdown-item" href="{{ route('catalog.route.page', ['page' => $page]) }}">{{ $page->title }}</a></li>
                         @endforeach
-                            <li><a class="dropdown-item" href="{{ route('kontakt') }}">Kontaktirajte nas</a></li>
+                        <li><a class="dropdown-item" href="{{ route('otkup.knjiga') }}">Otkup knjiga</a></li>
+                        <li><a class="dropdown-item" href="{{ route('kontakt') }}">Kontaktirajte nas</a></li>
 
                     </ul>
                 </div>
@@ -35,7 +36,8 @@
                         @foreach ($uvjeti_kupnje as $page)
                             <li class="widget-list-item"><a class="widget-list-link" href="{{ route('catalog.route.page', ['page' => $page]) }}">{{ $page->title }}</a></li>
                         @endforeach
-                            <li class="widget-list-item"><a class="widget-list-link" href="{{ route('kontakt') }}">Kontaktirajte nas</a></li>
+                        <li class="widget-list-item"><a class="widget-list-link" href="{{ route('otkup.knjiga') }}">Otkup knjiga</a></li>
+                        <li class="widget-list-item"><a class="widget-list-link" href="{{ route('kontakt') }}">Kontaktirajte nas</a></li>
                     </ul>
                 </div>
             </div>

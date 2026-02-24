@@ -5,6 +5,7 @@ namespace App\Models;
 
 use App\Models\Front\AgCart;
 use App\Models\Front\Catalog\Product;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -23,6 +24,15 @@ class Cart extends Model
      * @var array
      */
     protected $guarded = ['id', 'created_at', 'updated_at'];
+
+    protected $casts = [
+        'cart_data' => 'array',
+    ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 
 
     /**
@@ -78,7 +88,13 @@ class Cart extends Model
             $has_cart = Cart::where('user_id', Auth::user()->id)->first();
 
             if ($has_cart) {
-                $cart_data = json_decode(json_encode($has_cart->cart_data));
+                $cart_data = $has_cart->cart_data;
+
+                if (is_string($cart_data)) {
+                    $cart_data = json_decode($cart_data);
+                } elseif (is_array($cart_data)) {
+                    $cart_data = json_decode(json_encode($cart_data));
+                }
 
                 if (isset($cart_data->items)) {
                     foreach ($cart_data->items as $item) {
@@ -141,7 +157,15 @@ class Cart extends Model
 
             if ($has_cart) {
                 $cart_items = $cart->getCartItems(true);
-                $cart_data = json_decode($has_cart->cart_data, true);
+                $cart_data = $has_cart->cart_data;
+
+                if (is_string($cart_data)) {
+                    $cart_data = json_decode($cart_data, true);
+                }
+
+                if (! is_array($cart_data)) {
+                    $cart_data = [];
+                }
 
                 if (isset($cart_data['items'])) {
                     foreach ($cart_data['items'] as $item) {

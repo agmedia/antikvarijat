@@ -120,6 +120,11 @@
                             </a>
                         </li>
                         <li class="nav-main-item">
+                            <a class="nav-main-link{{ request()->routeIs(['book.purchases', 'book.purchases.*']) ? ' active' : '' }}" href="{{ route('book.purchases') }}">
+                                <span class="nav-main-link-name">Otkup knjiga</span>
+                            </a>
+                        </li>
+                        <li class="nav-main-item">
                             <a class="nav-main-link{{ request()->routeIs(['newsletter.subscribers']) ? ' active' : '' }}" href="{{ route('newsletter.subscribers') }}">
                                 <span class="nav-main-link-name">Newsletter</span>
                             </a>

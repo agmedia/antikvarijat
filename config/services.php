@@ -39,6 +39,7 @@ return [
         'sitekey'    => env('GOOGLE_RECAPTCHA_SITE_KEY'),
         'secret'     => env('GOOGLE_RECAPTCHA_SECRET_KEY'),
         'verify_url' => 'https://www.google.com/recaptcha/api/siteverify',
+        'bypass_local' => env('RECAPTCHA_BYPASS_LOCAL', true),
     ],
 
     'mailchimp' => [
@@ -49,6 +50,8 @@ return [
         'ecommerce_store_id' => env('MAILCHIMP_ECOMMERCE_STORE_ID', 'antikvarijat-biblos'),
         'ecommerce_store_name' => env('MAILCHIMP_ECOMMERCE_STORE_NAME', 'Antikvarijat Biblos'),
         'ecommerce_currency_code' => env('MAILCHIMP_ECOMMERCE_CURRENCY_CODE', 'EUR'),
+        'abandoned_cart_tag' => env('MAILCHIMP_TAG_ABANDONED_CART', 'abandoned_cart'),
+        'customer_tag' => env('MAILCHIMP_TAG_CUSTOMER', 'customer'),
     ],
 
     /*******************************************************************************

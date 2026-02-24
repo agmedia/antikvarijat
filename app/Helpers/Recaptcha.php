@@ -41,8 +41,14 @@ class Recaptcha
      */
     public function check(array $data)
     {
+        if (app()->environment('local') && config('services.recaptcha.bypass_local', true)) {
+            $this->result = (object)['success' => true, 'score' => 0.9, 'bypassed' => true];
+            return $this;
+        }
+
         if (empty($data['recaptcha'])) {
-            return false;
+            $this->result = (object)['success' => false, 'score' => 0.0, 'error-codes' => ['missing-token']];
+            return $this;
         }
 
         $_data   = $this->setContentData($data['recaptcha']);

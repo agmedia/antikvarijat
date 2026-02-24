@@ -13,7 +13,7 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        //
+        \App\Console\Commands\SyncAbandonedCartsToMailchimp::class,
     ];
 
     /**
@@ -28,6 +28,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('clean:publishers')->dailyAt('00:04');
         //
         $schedule->command('check:wishlist')->everySixHours();//->everyMinute();
+        $schedule->command('mailchimp:sync-abandoned-carts --minutes=60 --limit=200')->everyFifteenMinutes();
     }
 
     /**
