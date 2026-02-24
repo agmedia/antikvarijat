@@ -55,6 +55,7 @@ class NewsletterSubscriberController extends Controller
 
         $ok = 0;
         $failed = 0;
+        $errorSamples = [];
 
         foreach ($subscribers as $subscriber) {
             $result = $service->syncSubscriber($subscriber);
@@ -69,13 +70,21 @@ class NewsletterSubscriberController extends Controller
                 $subscriber->update([
                     'mailchimp_last_error' => $result['error'],
                 ]);
+                if (count($errorSamples) < 3 && ! empty($result['error'])) {
+                    $errorSamples[] = $result['error'];
+                }
                 $failed++;
             }
         }
 
+        $message = 'Mailchimp import završen. Uspješno: ' . $ok . ', neuspješno: ' . $failed . '.';
+        if (! empty($errorSamples)) {
+            $message .= ' Primjeri grešaka: ' . implode(' | ', array_unique($errorSamples));
+        }
+
         return back()->with(
             'status',
-            'Mailchimp import završen. Uspješno: ' . $ok . ', neuspješno: ' . $failed . '.'
+            $message
         );
     }
 }
