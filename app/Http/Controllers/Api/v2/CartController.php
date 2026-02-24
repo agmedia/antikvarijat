@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\Api\v2;
 
+use App\Helpers\Session\CheckoutSession;
 use App\Http\Controllers\Controller;
 use App\Models\Cart;
 use App\Models\Front\AgCart;
 use App\Models\Front\Catalog\Product;
 use App\Models\Front\Checkout\Order;
 use App\Models\Product\ProductAction;
+use App\Services\MailchimpEcommerceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -101,6 +103,7 @@ class CartController extends Controller
         $response = $this->cart->add($request);
 
         $this->resolveDB($response);
+        $this->syncMailchimpCart($response);
 
         return response()->json($response);
     }
@@ -117,6 +120,7 @@ class CartController extends Controller
         $response = $this->cart->add($request, $id);
 
         $this->resolveDB($response);
+        $this->syncMailchimpCart($response);
 
         return response()->json($response);
     }
@@ -132,6 +136,7 @@ class CartController extends Controller
         $response = $this->cart->remove($id);
 
         $this->resolveDB($response);
+        $this->syncMailchimpCart($response);
 
         return response()->json($response);
     }
@@ -220,6 +225,44 @@ class CartController extends Controller
                     Cart::store($response);
                 }
             });
+        }
+    }
+
+    private function syncMailchimpCart($response): void
+    {
+        if (! is_array($response) || empty($response['id']) || empty($response['items'])) {
+            return;
+        }
+
+        $address = CheckoutSession::getAddress();
+        $email = trim((string) data_get($address, 'email', ''));
+
+        if ($email === '') {
+            return;
+        }
+
+        try {
+            $result = app(MailchimpEcommerceService::class)->syncCart(
+                $response,
+                [
+                    'email' => $email,
+                    'first_name' => (string) data_get($address, 'fname', ''),
+                    'last_name' => (string) data_get($address, 'lname', ''),
+                ],
+                route('naplata')
+            );
+
+            if (! ($result['ok'] ?? false)) {
+                Log::warning('Mailchimp cart sync failed on cart API', [
+                    'cart_id' => $response['id'] ?? null,
+                    'error' => $result['error'] ?? 'Nepoznata greška',
+                ]);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Mailchimp cart sync exception on cart API', [
+                'cart_id' => $response['id'] ?? null,
+                'error' => $e->getMessage(),
+            ]);
         }
     }
 }

@@ -12,6 +12,7 @@ use App\Models\Front\AgCart;
 use App\Models\Front\Checkout\GeoZone;
 use App\Models\Front\Checkout\PaymentMethod;
 use App\Models\Front\Checkout\ShippingMethod;
+use App\Services\MailchimpEcommerceService;
 use App\Models\TagManager;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -255,6 +256,7 @@ class Checkout extends Component
             $this->setAddress($this->address);
             $this->validate($this->address_rules);
             $this->syncNewsletterSubscription();
+            $this->syncMailchimpCart();
 
             if ($step == 'dostava' && $this->shipping != '') {
                 $this->checkShipping($this->shipping);
@@ -302,6 +304,42 @@ class Checkout extends Component
         } catch (\Throwable $e) {
             Log::warning('Newsletter subscribe failed during checkout', [
                 'email' => $this->address['email'],
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    private function syncMailchimpCart(): void
+    {
+        if (! $this->cart) {
+            return;
+        }
+
+        $email = trim((string) ($this->address['email'] ?? ''));
+        if ($email === '') {
+            return;
+        }
+
+        try {
+            $result = app(MailchimpEcommerceService::class)->syncCart(
+                $this->cart->get(),
+                [
+                    'email' => $email,
+                    'first_name' => $this->address['fname'] ?? '',
+                    'last_name' => $this->address['lname'] ?? '',
+                ],
+                route('naplata')
+            );
+
+            if (! ($result['ok'] ?? false)) {
+                Log::warning('Mailchimp cart sync failed during checkout', [
+                    'email' => $email,
+                    'error' => $result['error'] ?? 'Nepoznata greška',
+                ]);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Mailchimp cart sync exception during checkout', [
+                'email' => $email,
                 'error' => $e->getMessage(),
             ]);
         }
