@@ -10,6 +10,15 @@
             <div class="d-flex flex-column flex-sm-row justify-content-sm-between align-items-sm-center">
                 <h1 class="flex-sm-fill font-size-h2 font-w400 mt-2 mb-0 mb-sm-2">Detalj prijave: {{ $purchase->submission_id }}</h1>
                 <div class="d-flex align-items-center">
+                    <form method="post"
+                          action="{{ route('book.purchases.destroy', ['purchase' => $purchase->id]) }}"
+                          class="mr-2"
+                          onsubmit="return confirm('Jeste li sigurni da želite obrisati prijavu i sve fotografije?');">
+                        @csrf
+                        @method('DELETE')
+                        <input type="hidden" name="redirect_to" value="{{ route('book.purchases') }}">
+                        <button type="submit" class="btn btn-danger">Obriši prijavu</button>
+                    </form>
                     @if($previous)
                         <a href="{{ route('book.purchases.show', ['purchase' => $previous->id]) }}" class="btn btn-alt-info mr-2">Prethodna</a>
                     @endif

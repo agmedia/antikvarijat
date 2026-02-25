@@ -20,6 +20,12 @@
                 </div>
             </div>
             <div class="block-content">
+                @if (session('status'))
+                    <div class="alert alert-info">
+                        {{ session('status') }}
+                    </div>
+                @endif
+
                 <div class="bg-body-dark p-3 mb-3">
                     <form method="get" action="{{ route('book.purchases') }}">
                         <div class="form-row">
@@ -88,6 +94,15 @@
                                     <a href="{{ route('book.purchases.show', ['purchase' => $item->id]) }}" class="btn btn-sm btn-alt-primary">
                                         Pregled
                                     </a>
+                                    <form method="post"
+                                          action="{{ route('book.purchases.destroy', ['purchase' => $item->id]) }}"
+                                          class="mt-2"
+                                          onsubmit="return confirm('Jeste li sigurni da želite obrisati prijavu i sve fotografije?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <input type="hidden" name="redirect_to" value="{{ url()->full() }}">
+                                        <button type="submit" class="btn btn-sm btn-alt-danger">Obriši</button>
+                                    </form>
                                 </td>
                             </tr>
                         @empty

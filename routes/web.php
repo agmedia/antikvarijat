@@ -144,6 +144,7 @@ Route::middleware(['auth:sanctum', 'verified', 'no.customers'])->prefix('admin')
         // OTKUP KNJIGA
         Route::get('otkup-knjiga', [BookPurchaseController::class, 'index'])->name('book.purchases');
         Route::get('otkup-knjiga/{purchase}', [BookPurchaseController::class, 'show'])->name('book.purchases.show');
+        Route::delete('otkup-knjiga/{purchase}', [BookPurchaseController::class, 'destroy'])->name('book.purchases.destroy');
     });
 
     // KORISNICI

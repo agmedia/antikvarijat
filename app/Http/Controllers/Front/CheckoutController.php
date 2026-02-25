@@ -176,45 +176,60 @@ class CheckoutController extends Controller
         $order = \App\Models\Back\Orders\Order::where('id', $data['order']['id'])->first();
 
         if ($order) {
-            NewsletterSubscriber::attachOrderToEmail((string) $order->payment_email, (int) $order->id);
-
-            try {
-                $mailchimp = app(MailchimpEcommerceService::class);
-                $mailchimp->syncOrder($order);
-                $mailchimp->deleteCartById((string) session(config('session.cart')));
-                app(MailchimpNewsletterService::class)->markAsCustomer((string) $order->payment_email);
-            } catch (\Throwable $e) {
-                Log::warning('Mailchimp order/cart sync failed on checkout success', [
-                    'order_id' => $order->id,
-                    'error' => $e->getMessage(),
+            $processedNow = \App\Models\Back\Orders\Order::query()
+                ->where('id', $order->id)
+                ->whereNull('checkout_processed_at')
+                ->update([
+                    'checkout_processed_at' => now(),
+                    'updated_at' => now(),
                 ]);
-            }
 
-            $order->decreaseCartItems($order->products)
-                  ->forgetSession();
+            if ($processedNow) {
+                NewsletterSubscriber::attachOrderToEmail((string) $order->payment_email, (int) $order->id);
 
-            $this->shoppingCart()
-                 ->flush()
-                 ->resolveDB();
-
-            $data['google_tag_manager'] = TagManager::getGoogleSuccessDataLayer($order);
-
-          /*  dispatch(function () use ($order) {
-                Mail::to(config('mail.admin'))->send(new OrderReceived($order));
-                Mail::to($order->payment_email)->send(new OrderSent($order));
-            })->afterResponse();*/
-
-            register_shutdown_function(function () use ($order) {
                 try {
-                    Mail::to(config('mail.admin'))->send(new OrderReceived($order));
-                    Mail::to($order->payment_email)->send(new OrderSent($order));
+                    $mailchimp = app(MailchimpEcommerceService::class);
+                    $mailchimp->syncOrder($order);
+                    $mailchimp->deleteCartById((string) session(config('session.cart')));
+                    app(MailchimpNewsletterService::class)->markAsCustomer((string) $order->payment_email);
                 } catch (\Throwable $e) {
-                    Log::info('Mail sending failed', [
+                    Log::warning('Mailchimp order/cart sync failed on checkout success', [
                         'order_id' => $order->id,
                         'error' => $e->getMessage(),
                     ]);
                 }
-            });
+
+                $order->decreaseCartItems($order->products)
+                      ->forgetSession();
+
+                $this->shoppingCart()
+                     ->flush()
+                     ->resolveDB();
+
+                /*  dispatch(function () use ($order) {
+                      Mail::to(config('mail.admin'))->send(new OrderReceived($order));
+                      Mail::to($order->payment_email)->send(new OrderSent($order));
+                  })->afterResponse();*/
+
+                register_shutdown_function(function () use ($order) {
+                    try {
+                        Mail::to(config('mail.admin'))->send(new OrderReceived($order));
+                        Mail::to($order->payment_email)->send(new OrderSent($order));
+                    } catch (\Throwable $e) {
+                        Log::info('Mail sending failed', [
+                            'order_id' => $order->id,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
+                });
+            } else {
+                Log::info('Checkout success already processed', [
+                    'order_id' => $order->id,
+                ]);
+            }
+
+            $data['order'] = $order->toArray();
+            $data['google_tag_manager'] = TagManager::getGoogleSuccessDataLayer($order);
 
             return view('front.checkout.success', compact('data'));
         }

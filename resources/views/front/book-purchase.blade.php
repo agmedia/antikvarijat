@@ -49,15 +49,6 @@
                 </div>
             </div>
 
-            <div class="col-md-4">
-                <img class="img-fluid rounded-3 shadow-sm" src="https://www.antikvarijat-biblos.hr/media/img/products/42499/u-potrazi-za-staklenim-gradom-Z8RD.webp" alt="Primjer fotografije artikla 1">
-            </div>
-            <div class="col-md-4">
-                <img class="img-fluid rounded-3 shadow-sm" src="https://www.antikvarijat-biblos.hr/media/img/products/39355/dervis-i-smrt-7ZryDJDos.webp" alt="Primjer fotografije artikla 2">
-            </div>
-            <div class="col-md-4">
-                <img class="img-fluid rounded-3 shadow-sm" src="https://www.antikvarijat-biblos.hr/media/img/products/47636/progonjena-1632305543.webp" alt="Primjer fotografije artikla 3">
-            </div>
         </div>
 
         <div class="card border-0 shadow-sm">

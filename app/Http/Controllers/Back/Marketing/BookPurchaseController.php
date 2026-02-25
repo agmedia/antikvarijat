@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Back\Marketing;
 use App\Http\Controllers\Controller;
 use App\Models\Back\Marketing\BookPurchaseRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
 
 class BookPurchaseController extends Controller
 {
@@ -60,5 +61,28 @@ class BookPurchaseController extends Controller
             ->first();
 
         return view('back.marketing.book-purchase.show', compact('purchase', 'previous', 'next'));
+    }
+
+    public function destroy(Request $request, BookPurchaseRequest $purchase)
+    {
+        $storagePath = $purchase->storage_path
+            ? public_path($purchase->storage_path)
+            : public_path('uploads/otkup-knjiga/' . $purchase->submission_id);
+
+        if (File::exists($storagePath)) {
+            File::deleteDirectory($storagePath);
+        }
+
+        $purchase->delete();
+
+        $redirectTo = (string) $request->input('redirect_to', '');
+
+        if ($redirectTo !== '' && str_starts_with($redirectTo, url('/'))) {
+            return redirect($redirectTo)
+                ->with('status', 'Prijava je obrisana, a fotografije su uklonjene sa servera.');
+        }
+
+        return redirect()->route('book.purchases')
+            ->with('status', 'Prijava je obrisana, a fotografije su uklonjene sa servera.');
     }
 }
