@@ -42,7 +42,7 @@
                     <div class="card-body">
                         <h2 class="h5">Kako pripremiti fotografije</h2>
                         <p class="mb-0 text-muted">
-                            Pošaljite nekoliko jasnih fotografija korica i unutrašnjosti knjiga/časopisa. Fotografije trebaju biti snimljene pri dobrom svjetlu,
+                            Pošaljite nekoliko jasnih fotografija korica i unutrašnjosti knjiga. Fotografije trebaju biti snimljene pri dobrom svjetlu,
                             bez zamućenja i s vidljivim oštećenjima ako postoje.
                         </p>
                     </div>
