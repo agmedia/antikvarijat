@@ -19,7 +19,7 @@
         @section ('description', $seo['description'])
     @endif
     @if (isset($seo['name']) && isset($seo['content']))
-        <meta name={{ $seo['name'] }} content={{ $seo['content'] }}>
+        <meta name="{{ $seo['name'] }}" content="{{ $seo['content'] }}">
     @endif
 @endif
 
@@ -31,7 +31,7 @@
 @if (isset($meta_tags))
     @push('meta_tags')
         @foreach ($meta_tags as $tag)
-            <meta name={{ $tag['name'] }} content={{ $tag['content'] }}>
+            <meta name="{{ $tag['name'] }}" content="{{ $tag['content'] }}">
         @endforeach
     @endpush
 @endif

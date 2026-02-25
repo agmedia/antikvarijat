@@ -1,25 +1,108 @@
 <!DOCTYPE html>
-<html lang="{{ config('app.locale') }}">
+<html lang="hr">
 <head>
+    @php
+        $defaultTitle = 'Antikvarijat Biblos - Knjige, vedute i zemljovidi';
+        $defaultDescription = 'Dobrodošli na stranice Antikvarijata Biblos, Palmotićeva 28, Zagreb. Radno vrijeme pon-pet 09-20h, sub 09-14h.';
+        $title = trim($__env->yieldContent('title')) ?: $defaultTitle;
+        $description = trim($__env->yieldContent('description')) ?: $defaultDescription;
+        $canonicalUrl = trim($__env->yieldContent('canonical')) ?: request()->url();
+        $defaultNoIndexRoutes = [
+            'kosarica',
+            'naplata',
+            'pregled',
+            'checkout',
+            'checkout.success',
+            'checkout.error',
+            'moj-racun',
+            'moje-narudzbe',
+            'login',
+            'register',
+            'verification.notice',
+            'password.request',
+            'password.reset',
+        ];
+        $robots = trim($__env->yieldContent('robots'));
+        if (! $robots) {
+            $robots = request()->routeIs($defaultNoIndexRoutes)
+                ? 'noindex,follow,noarchive'
+                : 'index,follow,max-image-preview:large';
+        }
+        $ogType = trim($__env->yieldContent('og_type')) ?: 'website';
+        $ogImage = trim($__env->yieldContent('og_image'));
+        $twitterCard = $ogImage ? 'summary_large_image' : 'summary';
+        $imagesDomain = config('settings.images_domain');
+        $organizationSchema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'Organization',
+            'name' => 'Antikvarijat Biblos',
+            'url' => $imagesDomain,
+            'logo' => $imagesDomain . 'apple-touch-icon.png',
+            'email' => 'info@antikvarijat-biblos.hr',
+            'telephone' => '+38514816574',
+            'sameAs' => [
+                'https://www.facebook.com/AntikvarijatBiblos/',
+                'https://www.instagram.com/antikvarijat_biblos/',
+            ],
+            'address' => [
+                '@type' => 'PostalAddress',
+                'streetAddress' => 'Palmoticeva 28',
+                'addressLocality' => 'Zagreb',
+                'postalCode' => '10000',
+                'addressCountry' => 'HR',
+            ],
+        ];
+        $webSiteSchema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'WebSite',
+            'name' => 'Antikvarijat Biblos',
+            'url' => $imagesDomain,
+            'potentialAction' => [
+                '@type' => 'SearchAction',
+                'target' => $imagesDomain . 'pretrazi?' . config('settings.search_keyword') . '={search_term_string}',
+                'query-input' => 'required name=search_term_string',
+            ],
+        ];
+    @endphp
     <meta charset="utf-8">
-    <title> @yield('title') </title>
+    <title>{{ $title }}</title>
     <!-- SEO Meta Tags-->
-    <meta name="description" content="@yield('description')">
+    <meta name="description" content="{{ $description }}">
+    <meta name="language" content="hr">
+    <meta name="robots" content="{{ $robots }}">
+    <link rel="canonical" href="{{ $canonicalUrl }}">
+    <meta property="og:locale" content="hr_HR">
+    <meta property="og:type" content="{{ $ogType }}">
+    <meta property="og:site_name" content="Antikvarijat Biblos">
+    <meta property="og:title" content="{{ $title }}">
+    <meta property="og:description" content="{{ $description }}">
+    <meta property="og:url" content="{{ $canonicalUrl }}">
+    @if ($ogImage)
+        <meta property="og:image" content="{{ $ogImage }}">
+        <meta property="og:image:secure_url" content="{{ $ogImage }}">
+    @endif
+    <meta name="twitter:card" content="{{ $twitterCard }}">
+    <meta name="twitter:title" content="{{ $title }}">
+    <meta name="twitter:description" content="{{ $description }}">
+    @if ($ogImage)
+        <meta name="twitter:image" content="{{ $ogImage }}">
+    @endif
     <meta name="author" content="Biblos">
     @stack('meta_tags')
     <!-- Viewport-->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta name="facebook-domain-verification" content="16b3jag78m5ywwi9xfdmmt7r4mmsws" />
     <!-- Favicon and Touch Icons-->
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ config('settings.images_domain') . 'media/img/favicon-32x32.png' }}">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ config('settings.images_domain') . 'media/img/favicon-32x32.png' }}">
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ config('settings.images_domain') . 'media/img/favicon-16x16.png' }}">
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ config('settings.images_domain') . 'apple-touch-icon.png' }}">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ config('settings.images_domain') . 'favicon-32x32.png' }}">
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ config('settings.images_domain') . 'favicon-16x16.png' }}">
-    <link rel="mask-icon" href="{{ config('settings.images_domain') . 'safari-pinned-tab.svg' }}" color="#314837">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ $imagesDomain . 'apple-touch-icon.png' }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ $imagesDomain . 'favicon-32x32.png' }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ $imagesDomain . 'favicon-16x16.png' }}">
+    <link rel="shortcut icon" href="{{ $imagesDomain . 'apple-touch-icon.png' }}">
+    <link rel="manifest" href="{{ $imagesDomain . 'site.webmanifest' }}">
+    <link rel="mask-icon" href="{{ $imagesDomain . 'safari-pinned-tab.svg' }}" color="#314837">
     <meta name="msapplication-TileColor" content="#314837">
     <meta name="theme-color" content="#ffffff">
+    <script type="application/ld+json">{!! json_encode($organizationSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+    <script type="application/ld+json">{!! json_encode($webSiteSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
 
     <!-- Vendor Styles including: Font Icons, Plugins, etc.-->
     <link rel="preconnect" href="https://fonts.gstatic.com">

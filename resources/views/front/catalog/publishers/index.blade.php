@@ -1,9 +1,11 @@
 @extends('front.layouts.app')
+@section('title', 'Nakladnici knjiga - Antikvarijat Biblos')
+@section('description', 'Pregled nakladnika i dostupnih naslova u Antikvarijatu Biblos. Pretražite nakladnike po početnom slovu i pronađite tražene knjige.')
 
 @if (isset($meta_tags))
     @push('meta_tags')
         @foreach ($meta_tags as $tag)
-            <meta name={{ $tag['name'] }} content={{ $tag['content'] }}>
+            <meta name="{{ $tag['name'] }}" content="{{ $tag['content'] }}">
         @endforeach
     @endpush
 @endif

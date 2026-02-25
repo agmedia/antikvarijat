@@ -1,18 +1,12 @@
 @extends('front.layouts.app')
 @section ('title', $seo['title'])
 @section ('description', $seo['description'])
+@section('og_type', 'product')
+@section('og_image', asset($prod->image))
+@section('canonical', url($prod->url))
 @push('meta_tags')
 
-    <link rel="canonical" href="{{ env('APP_URL')}}/{{ $prod->url }}" />
-    <meta property="og:locale" content="hr_HR" />
-    <meta property="og:type" content="product" />
-    <meta property="og:title" content="{{ $seo['title'] }}" />
-    <meta property="og:description" content="{{ $seo['description']  }}" />
-    <meta property="og:url" content="{{ env('APP_URL')}}/{{ $prod->url }}"  />
-    <meta property="og:site_name" content="Antikvarijat Biblos" />
     <meta property="og:updated_time" content="{{ $prod->updated_at  }}" />
-    <meta property="og:image" content="{{ asset($prod->image) }}" />
-    <meta property="og:image:secure_url" content="{{ asset($prod->image) }}" />
     <meta property="og:image:width" content="640" />
     <meta property="og:image:height" content="480" />
     <meta property="og:image:type" content="image/jpeg" />
@@ -21,10 +15,6 @@
     <meta property="product:price:currency" content="EUR" />
     <meta property="product:availability" content="instock" />
     <meta property="product:retailer_item_id" content="{{ $prod->sku }}" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="{{ $seo['title'] }}" />
-    <meta name="twitter:description" content="{{ $seo['description'] }}" />
-    <meta name="twitter:image" content="{{ asset($prod->image) }}" />
 
 @endpush
 

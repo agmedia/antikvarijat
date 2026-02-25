@@ -2,27 +2,16 @@
 @if (request()->routeIs(['index']))
     @section ( 'title', 'Antikvarijat Biblos - Knjige, vedute i zemljovidi' )
 @section ( 'description', 'Dobrodošli na stranice Antikvarijata Biblos, Palmotićeva 28, Zagreb. Radno vrijeme pon-pet 09-20h, sub 09-14h.' )
+@section('canonical', url('/'))
+@section('og_image', 'https://www.antikvarijat-biblos.hr/media/antikvarijat-biblos.jpg')
 
 
 @push('meta_tags')
 
-    <link rel="canonical" href="{{ env('APP_URL')}}" />
-    <meta property="og:locale" content="hr_HR" />
-    <meta property="og:type" content="product" />
-    <meta property="og:title" content="Antikvarijat Biblos - Knjige, vedute i zemljovidi" />
-    <meta property="og:description" content="Dobrodošli na stranice Antikvarijata Biblos, Palmotićeva 28, Zagreb. Radno vrijeme pon-pet 09-20h, sub 09-14h." />
-    <meta property="og:url" content="{{ env('APP_URL')}}"  />
-    <meta property="og:site_name" content="Antikvarijat Biblos" />
-    <meta property="og:image" content="https://www.antikvarijat-biblos.hr//media/antikvarijat-biblos.jpg" />
-    <meta property="og:image:secure_url" content="https://www.antikvarijat-biblos.hr//media/antikvarijat-biblos.jpg" />
     <meta property="og:image:width" content="1920" />
     <meta property="og:image:height" content="720" />
     <meta property="og:image:type" content="image/jpeg" />
     <meta property="og:image:alt" content="Antikvarijat Biblos - Knjige, vedute i zemljovidi" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Antikvarijat Biblos - Knjige, vedute i zemljovidi" />
-    <meta name="twitter:description" content="Antikvarijat Biblos - Knjige, vedute i zemljovidi" />
-    <meta name="twitter:image" content="https://www.antikvarijat-biblos.hr/media/antikvarijat-biblos.jpg" />
 
 @endpush
 
