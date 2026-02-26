@@ -40,15 +40,59 @@
             <div class="col-12">
                 <div class="card border-0 shadow-sm">
                     <div class="card-body">
-                        <h2 class="h5">Kako pripremiti fotografije</h2>
+                        <h2 class="h5">Donacije i otkupi</h2>
                         <p class="mb-0 text-muted">
-                            Pošaljite nekoliko jasnih fotografija korica i unutrašnjosti knjiga. Fotografije trebaju biti snimljene pri dobrom svjetlu,
-                            bez zamućenja i s vidljivim oštećenjima ako postoje.
+                            Antikvarijat Biblos uvijek prima donacije knjiga - bilo da je riječ o selidbi, preuređenju životnog prostora ili jednostavno nedostatku prostora - uvijek možete svoje knjige donijeti u antikvarijat jer - knjige se ne bacaju! Mi uvijek znamo kako knjige zbrinuti ili ih dati onima koji će za njih biti zahvalni, dok će Vama savjest biti čista i to - uz brigu manje!</p>
+                        <p class="mb-0 text-muted">
+                            Kada je riječ o naslovima za koje smatrate da bi mogli imati neku vrijednost, pošaljite nam svoje podatke kako bismo Vas mogli povratno kontaktirati i - naravno - fotografije knjiga koje nudite na otkup. Molimo, pripazite da fotografije budu snimljene pri dobrom svjetlu i da nisu mutne. U nastavku je par primjera dobro poslanih fotografija:
                         </p>
                     </div>
                 </div>
             </div>
 
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-3 p-md-4">
+                        <div class="row g-3 book-photos-lightbox">
+                            <div class="col-6 col-md-3">
+                                <a class="d-block ratio ratio-1x1" href="{{ asset('media/img/widget/11/otkup-knjiga-primjer-1.jpg') }}">
+                                    <img class="w-100 h-100 rounded-3 object-fit-cover"
+                                         src="{{ asset('media/img/widget/11/otkup-knjiga-primjer-1.jpg') }}"
+                                         alt="Primjer dobro fotografiranih knjiga - primjer 1"
+                                         loading="lazy">
+                                </a>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <a class="d-block ratio ratio-1x1" href="{{ asset('media/img/widget/11/otkup-knjiga-primjer-2.jpg') }}">
+                                    <img class="w-100 h-100 rounded-3 object-fit-cover"
+                                         src="{{ asset('media/img/widget/11/otkup-knjiga-primjer-2.jpg') }}"
+                                         alt="Primjer dobro fotografiranih knjiga - primjer 2"
+                                         loading="lazy">
+                                </a>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <a class="d-block ratio ratio-1x1" href="{{ asset('media/img/widget/11/otkup-knjiga-primjer-3.jpg') }}">
+                                    <img class="w-100 h-100 rounded-3 object-fit-cover"
+                                         src="{{ asset('media/img/widget/11/otkup-knjiga-primjer-3.jpg') }}"
+                                         alt="Primjer dobro fotografiranih knjiga - primjer 3"
+                                         loading="lazy">
+                                </a>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <a class="d-block ratio ratio-1x1" href="{{ asset('media/img/widget/11/otkup-knjiga-primjer-4.jpg') }}">
+                                    <img class="w-100 h-100 rounded-3 object-fit-cover"
+                                         src="{{ asset('media/img/widget/11/otkup-knjiga-primjer-4.jpg') }}"
+                                         alt="Primjer dobro fotografiranih knjiga - primjer 4"
+                                         loading="lazy">
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="card border-0 shadow-sm">
@@ -112,6 +156,8 @@
 
 @push('js_after')
     @include('front.layouts.partials.recaptcha-js')
+    <link rel="stylesheet" media="screen" href="{{ asset('js/simple-lightbox.css?v2.14.0') }}">
+    <script src="{{ asset('js/simple-lightbox.js?v2.14.0') }}"></script>
 
     <script>
         (() => {
@@ -248,6 +294,13 @@
                 setFileInputFromState();
                 renderFileList();
             });
+
+            if (window.SimpleLightbox) {
+                new SimpleLightbox('.book-photos-lightbox a', {
+                    captionsData: 'alt',
+                    captionDelay: 150,
+                });
+            }
 
             form.addEventListener('submit', (event) => {
                 event.preventDefault();
