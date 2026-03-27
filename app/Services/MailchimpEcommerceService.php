@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Helpers\ProductHelper;
+use App\Models\Back\Catalog\Product\Product as CatalogProduct;
 use App\Models\Back\Orders\Order;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Arr;
@@ -87,7 +89,7 @@ class MailchimpEcommerceService
             return ['ok' => false, 'error' => 'Mailchimp e-commerce nije konfiguriran.'];
         }
 
-        $order->loadMissing(['products', 'totals']);
+        $order->loadMissing(['products.product', 'totals']);
 
         $email = strtolower(trim((string) $order->payment_email));
         if ($email === '') {
@@ -158,6 +160,55 @@ class MailchimpEcommerceService
         return ['ok' => false, 'error' => $this->extractError($response)];
     }
 
+    public function syncCatalogProduct(CatalogProduct $product): array
+    {
+        if (! $this->isConfigured()) {
+            return ['ok' => false, 'error' => 'Mailchimp e-commerce nije konfiguriran.'];
+        }
+
+        if (! $this->shouldSyncCatalogProduct($product)) {
+            $this->deleteProductById((string) $product->id);
+
+            return ['ok' => true, 'error' => null];
+        }
+
+        $this->ensureStore();
+
+        $productId = (string) $product->id;
+        $price = (float) ($product->special() ?: $product->price);
+        $url = $this->resolveCatalogProductUrl($product);
+        $image = $this->absoluteUrl((string) $product->image);
+
+        $payload = [
+            'id' => $productId,
+            'title' => trim((string) $product->name) ?: ('Proizvod ' . $productId),
+            'description' => trim(strip_tags((string) $product->description)),
+            'url' => $url,
+            'variants' => [[
+                'id' => $productId,
+                'title' => trim((string) $product->name) ?: ('Proizvod ' . $productId),
+                'price' => $price,
+                'inventory_quantity' => max((int) $product->quantity, 0),
+            ]],
+        ];
+
+        if ($image !== '') {
+            $payload['image_url'] = $image;
+        }
+
+        $response = $this->request(
+            'put',
+            '/ecommerce/stores/' . rawurlencode($this->getStoreId()) . '/products/' . rawurlencode($productId),
+            $payload
+        );
+
+        if ($response->successful()) {
+            return ['ok' => true, 'error' => null];
+        }
+
+        return ['ok' => false, 'error' => $this->extractError($response)];
+    }
+
     public function deleteCartById(?string $cartId): void
     {
         $cartId = trim((string) $cartId);
@@ -175,6 +226,27 @@ class MailchimpEcommerceService
         if ($response->failed() && $response->status() !== 404) {
             Log::warning('Mailchimp cart delete failed', [
                 'cart_id' => $cartId,
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+        }
+    }
+
+    public function deleteProductById(?string $productId): void
+    {
+        $productId = trim((string) $productId);
+        if (! $this->isConfigured() || $productId === '') {
+            return;
+        }
+
+        $response = $this->request(
+            'delete',
+            '/ecommerce/stores/' . rawurlencode($this->getStoreId()) . '/products/' . rawurlencode($productId)
+        );
+
+        if ($response->failed() && $response->status() !== 404) {
+            Log::warning('Mailchimp product delete failed', [
+                'product_id' => $productId,
                 'status' => $response->status(),
                 'body' => $response->body(),
             ]);
@@ -247,12 +319,8 @@ class MailchimpEcommerceService
         }
 
         $price = (float) data_get($item, 'price', 0);
-        $url = (string) data_get($item, 'attributes.path', config('app.url'));
-        if ($url !== '' && str_starts_with($url, '/')) {
-            $url = rtrim((string) config('app.url'), '/') . $url;
-        }
-
-        $image = (string) data_get($item, 'associatedModel.image', '');
+        $url = $this->absoluteUrl((string) data_get($item, 'attributes.path', config('app.url')));
+        $image = $this->absoluteUrl((string) data_get($item, 'associatedModel.image', ''));
 
         $payload = [
             'id' => $productId,
@@ -270,51 +338,44 @@ class MailchimpEcommerceService
             $payload['image_url'] = $image;
         }
 
-        $response = $this->request(
-            'put',
-            '/ecommerce/stores/' . rawurlencode($this->getStoreId()) . '/products/' . rawurlencode($productId),
-            $payload
-        );
-
-        if ($response->failed()) {
-            Log::warning('Mailchimp product sync failed (cart)', [
-                'product_id' => $productId,
-                'status' => $response->status(),
-            ]);
-        }
+        $this->upsertProductPayload($productId, $payload, 'cart');
     }
 
     private function upsertProductFromOrderItem($item, string $productId): void
     {
-        $title = trim((string) $item->name);
+        $product = $item->product;
+        $title = trim((string) ($item->name ?: optional($product)->name));
         if ($title === '') {
             $title = 'Proizvod ' . $productId;
+        }
+
+        $url = trim((string) optional($product)->url);
+        if ($url === '') {
+            try {
+                $url = ProductHelper::url($product);
+            } catch (\Throwable $e) {
+                $url = '';
+            }
         }
 
         $payload = [
             'id' => $productId,
             'title' => $title,
-            'url' => rtrim((string) config('app.url'), '/') . '/proizvod/' . $productId,
+            'url' => $this->absoluteUrl($url),
             'variants' => [[
                 'id' => $productId,
                 'title' => $title,
                 'price' => (float) $item->price,
-                'inventory_quantity' => 1,
+                'inventory_quantity' => max((int) optional($product)->quantity, 0),
             ]],
         ];
 
-        $response = $this->request(
-            'put',
-            '/ecommerce/stores/' . rawurlencode($this->getStoreId()) . '/products/' . rawurlencode($productId),
-            $payload
-        );
-
-        if ($response->failed()) {
-            Log::warning('Mailchimp product sync failed (order)', [
-                'product_id' => $productId,
-                'status' => $response->status(),
-            ]);
+        $image = $this->absoluteUrl((string) optional($product)->image);
+        if ($image !== '') {
+            $payload['image_url'] = $image;
         }
+
+        $this->upsertProductPayload($productId, $payload, 'order');
     }
 
     private function mapLineFromCartItem($item): ?array
@@ -336,6 +397,63 @@ class MailchimpEcommerceService
     private function customerId(string $email): string
     {
         return md5(strtolower(trim($email)));
+    }
+
+    private function shouldSyncCatalogProduct(CatalogProduct $product): bool
+    {
+        return (int) $product->status === 1
+            && (float) $product->price > 0
+            && (int) $product->quantity > 0;
+    }
+
+    private function resolveCatalogProductUrl(CatalogProduct $product): string
+    {
+        $url = trim((string) $product->url);
+
+        if ($url === '' || $url === '/') {
+            try {
+                $url = ProductHelper::url($product);
+            } catch (\Throwable $e) {
+                $url = '';
+            }
+        }
+
+        return $this->absoluteUrl($url);
+    }
+
+    private function absoluteUrl(string $url): string
+    {
+        $url = trim($url);
+        if ($url === '') {
+            return '';
+        }
+
+        if (str_starts_with($url, 'http://') || str_starts_with($url, 'https://')) {
+            return $url;
+        }
+
+        if (str_starts_with($url, '//')) {
+            return 'https:' . $url;
+        }
+
+        return rtrim((string) config('app.url'), '/') . '/' . ltrim($url, '/');
+    }
+
+    private function upsertProductPayload(string $productId, array $payload, string $context): void
+    {
+        $response = $this->request(
+            'put',
+            '/ecommerce/stores/' . rawurlencode($this->getStoreId()) . '/products/' . rawurlencode($productId),
+            $payload
+        );
+
+        if ($response->failed()) {
+            Log::warning('Mailchimp product sync failed (' . $context . ')', [
+                'product_id' => $productId,
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+        }
     }
 
     private function request(string $method, string $path, ?array $payload = null): Response

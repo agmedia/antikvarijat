@@ -10,12 +10,14 @@ use App\Models\Back\Catalog\Product\ProductAction;
 use App\Models\Back\Catalog\Product\ProductCategory;
 use App\Models\Back\Catalog\Product\ProductImage;
 use App\Models\Back\Catalog\Publisher;
+use App\Services\MailchimpEcommerceService;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 use App\Exports\ProductsZeroQuantityExport;
 use Maatwebsite\Excel\Facades\Excel;
@@ -138,7 +140,7 @@ class ProductController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(Request $request, MailchimpEcommerceService $mailchimp)
     {
         $product = new Product();
 
@@ -147,6 +149,8 @@ class ProductController extends Controller
         if ($stored) {
             $product->checkSettings()
                     ->storeImages($stored);
+
+            $this->syncProductToMailchimp($stored, $mailchimp);
 
             return redirect()->route('products.edit', ['product' => $stored])->with(['success' => 'Artikl je uspješno snimljen!']);
         }
@@ -193,7 +197,7 @@ class ProductController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Product $product)
+    public function update(Request $request, Product $product, MailchimpEcommerceService $mailchimp)
     {
         $updated = $product->validateRequest($request)->edit();
 
@@ -202,6 +206,7 @@ class ProductController extends Controller
                     ->storeImages($updated);
 
             $product->addHistoryData('change');
+            $this->syncProductToMailchimp($updated, $mailchimp);
 
             return redirect()->route('products.edit', ['product' => $updated])->with(['success' => 'Artikl je uspješno snimljen!']);
         }
@@ -217,8 +222,10 @@ class ProductController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Request $request, Product $product)
+    public function destroy(Request $request, Product $product, MailchimpEcommerceService $mailchimp)
     {
+        $this->deleteProductFromMailchimp($product, $mailchimp);
+
         ProductImage::where('product_id', $product->id)->delete();
         ProductCategory::where('product_id', $product->id)->delete();
 
@@ -281,5 +288,45 @@ class ProductController extends Controller
     {
         $fileName = 'products_zero_' . now()->format('Ymd_His') . '.xlsx';
         return Excel::download(new ProductsZeroQuantityExport(), $fileName);
+    }
+
+    private function syncProductToMailchimp(Product $product, MailchimpEcommerceService $mailchimp): void
+    {
+        if (! $mailchimp->isConfigured()) {
+            return;
+        }
+
+        try {
+            $freshProduct = $product->fresh() ?: $product;
+            $result = $mailchimp->syncCatalogProduct($freshProduct);
+
+            if (! ($result['ok'] ?? false)) {
+                Log::warning('Mailchimp product sync failed from admin product CRUD', [
+                    'product_id' => $product->id,
+                    'error' => $result['error'] ?? 'Nepoznata greška',
+                ]);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Mailchimp product sync exception from admin product CRUD', [
+                'product_id' => $product->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    private function deleteProductFromMailchimp(Product $product, MailchimpEcommerceService $mailchimp): void
+    {
+        if (! $mailchimp->isConfigured()) {
+            return;
+        }
+
+        try {
+            $mailchimp->deleteProductById((string) $product->id);
+        } catch (\Throwable $e) {
+            Log::warning('Mailchimp product delete exception from admin product CRUD', [
+                'product_id' => $product->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }

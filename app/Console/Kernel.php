@@ -14,6 +14,9 @@ class Kernel extends ConsoleKernel
      */
     protected $commands = [
         \App\Console\Commands\SyncAbandonedCartsToMailchimp::class,
+        \App\Console\Commands\SyncSubscribersToMailchimp::class,
+        \App\Console\Commands\SyncProductsToMailchimp::class,
+        \App\Console\Commands\SyncOrdersToMailchimp::class,
     ];
 
     /**
@@ -29,6 +32,9 @@ class Kernel extends ConsoleKernel
         //
         $schedule->command('check:wishlist')->everySixHours();//->everyMinute();
         $schedule->command('mailchimp:sync-abandoned-carts --minutes=60 --limit=200')->everyFifteenMinutes();
+        $schedule->command('mailchimp:sync-subscribers --chunk=200')->hourly();
+        $schedule->command('mailchimp:sync-products --chunk=100 --only-active=1 --only-stocked=1')->dailyAt('02:20');
+        $schedule->command('mailchimp:sync-orders --days=7 --chunk=100')->dailyAt('02:35');
     }
 
     /**

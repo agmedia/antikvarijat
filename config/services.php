@@ -52,6 +52,7 @@ return [
         'ecommerce_currency_code' => env('MAILCHIMP_ECOMMERCE_CURRENCY_CODE', 'EUR'),
         'abandoned_cart_tag' => env('MAILCHIMP_TAG_ABANDONED_CART', 'abandoned_cart'),
         'customer_tag' => env('MAILCHIMP_TAG_CUSTOMER', 'customer'),
+        'connected_site_script_url' => env('MAILCHIMP_CONNECTED_SITE_SCRIPT_URL'),
     ],
 
     /*******************************************************************************

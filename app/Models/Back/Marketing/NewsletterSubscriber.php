@@ -2,6 +2,7 @@
 
 namespace App\Models\Back\Marketing;
 
+use App\Services\MailchimpNewsletterService;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 
@@ -60,6 +61,7 @@ class NewsletterSubscriber extends Model
         $subscriber->subscribed_at = now();
 
         $subscriber->save();
+        static::syncToMailchimp($subscriber);
 
         return $subscriber;
     }
@@ -89,5 +91,37 @@ class NewsletterSubscriber extends Model
                 'order_id' => $orderId,
                 'updated_at' => now(),
             ]);
+    }
+
+    private static function syncToMailchimp(self $subscriber): void
+    {
+        if ((int) $subscriber->status !== 1 || (int) $subscriber->gdpr !== 1) {
+            return;
+        }
+
+        try {
+            /** @var MailchimpNewsletterService $service */
+            $service = app(MailchimpNewsletterService::class);
+
+            if (! $service->isConfigured()) {
+                return;
+            }
+
+            $result = $service->syncSubscriber($subscriber);
+
+            $attributes = [
+                'mailchimp_last_error' => $result['ok'] ? null : $result['error'],
+            ];
+
+            if ($result['ok']) {
+                $attributes['mailchimp_synced_at'] = now();
+            }
+
+            $subscriber->forceFill($attributes)->save();
+        } catch (\Throwable $e) {
+            $subscriber->forceFill([
+                'mailchimp_last_error' => $e->getMessage(),
+            ])->save();
+        }
     }
 }

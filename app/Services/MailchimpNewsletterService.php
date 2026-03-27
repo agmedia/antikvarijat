@@ -7,6 +7,15 @@ use Illuminate\Support\Facades\Http;
 
 class MailchimpNewsletterService
 {
+    public function isConfigured(): bool
+    {
+        $apiKey = $this->getApiKey();
+
+        return $apiKey !== ''
+            && $this->getAudienceId() !== ''
+            && $this->getServerPrefix($apiKey) !== '';
+    }
+
     /**
      * @param NewsletterSubscriber $subscriber
      *

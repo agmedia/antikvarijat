@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Back\Marketing\NewsletterSubscriber;
 use App\Services\MailchimpNewsletterService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 
 class NewsletterSubscriberController extends Controller
 {
@@ -86,5 +87,39 @@ class NewsletterSubscriberController extends Controller
             'status',
             $message
         );
+    }
+
+    public function syncProducts()
+    {
+        @set_time_limit(0);
+
+        Artisan::call('mailchimp:sync-products', [
+            '--chunk' => 100,
+            '--only-active' => 1,
+            '--only-stocked' => 1,
+        ]);
+
+        return back()->with('status', trim(Artisan::output()) ?: 'Mailchimp product sync pokrenut.');
+    }
+
+    public function syncOrders()
+    {
+        @set_time_limit(0);
+
+        Artisan::call('mailchimp:sync-orders', [
+            '--days' => 3650,
+            '--chunk' => 100,
+        ]);
+
+        return back()->with('status', trim(Artisan::output()) ?: 'Mailchimp order sync pokrenut.');
+    }
+
+    public function clearCaches()
+    {
+        @set_time_limit(0);
+
+        Artisan::call('optimize:clear');
+
+        return back()->with('status', trim(Artisan::output()) ?: 'Laravel cache je očišćen.');
     }
 }

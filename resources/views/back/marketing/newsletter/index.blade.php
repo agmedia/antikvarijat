@@ -20,6 +20,24 @@
                             Import novih u Mailchimp ({{ $pendingSyncCount ?? 0 }})
                         </button>
                     </form>
+                    <form method="post" action="{{ route('newsletter.products.sync') }}" class="d-inline-block mr-2">
+                        @csrf
+                        <button type="submit" class="btn btn-primary">
+                            Sync artikala u Mailchimp
+                        </button>
+                    </form>
+                    <form method="post" action="{{ route('newsletter.orders.sync') }}" class="d-inline-block mr-2">
+                        @csrf
+                        <button type="submit" class="btn btn-primary">
+                            Sync ordera u Mailchimp
+                        </button>
+                    </form>
+                    <form method="post" action="{{ route('newsletter.caches.clear') }}" class="d-inline-block mr-2">
+                        @csrf
+                        <button type="submit" class="btn btn-warning">
+                            Očisti app cache
+                        </button>
+                    </form>
                     <a class="btn btn-primary" href="{{ route('newsletter.subscribers') }}">
                         Očisti filter
                     </a>
@@ -29,7 +47,7 @@
             <div class="block-content">
                 @if (session('status'))
                     <div class="alert alert-info">
-                        {{ session('status') }}
+                        <pre class="mb-0" style="white-space: pre-wrap;">{{ session('status') }}</pre>
                     </div>
                 @endif
 

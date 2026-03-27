@@ -186,9 +186,9 @@ class CheckoutController extends Controller
 
             if ($processedNow) {
                 NewsletterSubscriber::attachOrderToEmail((string) $order->payment_email, (int) $order->id);
+                $mailchimp = app(MailchimpEcommerceService::class);
 
                 try {
-                    $mailchimp = app(MailchimpEcommerceService::class);
                     $mailchimp->syncOrder($order);
                     $mailchimp->deleteCartById((string) session(config('session.cart')));
                     app(MailchimpNewsletterService::class)->markAsCustomer((string) $order->payment_email);
@@ -201,6 +201,19 @@ class CheckoutController extends Controller
 
                 $order->decreaseCartItems($order->products)
                       ->forgetSession();
+
+                try {
+                    foreach ($order->products()->with('product')->get() as $orderProduct) {
+                        if ($orderProduct->product) {
+                            $mailchimp->syncCatalogProduct($orderProduct->product->fresh() ?: $orderProduct->product);
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning('Mailchimp product inventory refresh failed after checkout success', [
+                        'order_id' => $order->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
 
                 $this->shoppingCart()
                      ->flush()

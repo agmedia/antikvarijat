@@ -266,6 +266,18 @@
             /></noscript>
     @endif
 
+    @if (config('app.env') == 'production' && config('services.mailchimp.connected_site_script_url'))
+        <script id="mcjs">
+            (function(d, s, src) {
+                var js = d.createElement(s);
+                var fjs = d.getElementsByTagName(s)[0];
+                js.async = true;
+                js.src = src;
+                fjs.parentNode.insertBefore(js, fjs);
+            })(document, 'script', @json(config('services.mailchimp.connected_site_script_url')));
+        </script>
+    @endif
+
     <style>
         [v-cloak] { display:none !important; }
     </style>
