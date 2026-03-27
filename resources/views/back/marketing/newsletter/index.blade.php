@@ -67,6 +67,36 @@
                     Za veće kataloge sync artikala i ordera ide u batch režimu iz ovog ekrana, tako da ne padne timeout na hostingu.
                 </div>
 
+                <div class="block block-rounded block-bordered">
+                    <div class="block-header block-header-default">
+                        <h3 class="block-title">Sync odabranih artikala</h3>
+                    </div>
+                    <div class="block-content">
+                        <form method="post" action="{{ route('newsletter.products.selected.sync') }}">
+                            @csrf
+                            <div class="form-group">
+                                <label for="product_refs">ID ili SKU artikala</label>
+                                <textarea id="product_refs"
+                                          name="product_refs"
+                                          rows="4"
+                                          class="form-control @error('product_refs') is-invalid @enderror"
+                                          placeholder="Primjer: 8129, 8130&#10;01013812&#10;M7100">{{ old('product_refs') }}</textarea>
+                                @error('product_refs')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
+                                <small class="form-text text-muted">
+                                    Zalijepi ID-eve ili SKU-ove, odvojene zarezom, razmakom ili novim redom.
+                                </small>
+                            </div>
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-info">
+                                    Sync samo odabrane artikle
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
                 <div class="bg-body-dark p-3 mb-3">
                     <form method="get" action="{{ route('newsletter.subscribers') }}">
                         <div class="form-group row">

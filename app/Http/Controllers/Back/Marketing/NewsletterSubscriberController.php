@@ -9,6 +9,7 @@ use App\Models\Back\Orders\Order;
 use App\Services\MailchimpEcommerceService;
 use App\Services\MailchimpNewsletterService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Artisan;
 
 class NewsletterSubscriberController extends Controller
@@ -134,6 +135,86 @@ class NewsletterSubscriberController extends Controller
         Artisan::call('optimize:clear');
 
         return back()->with('status', trim(Artisan::output()) ?: 'Laravel cache je očišćen.');
+    }
+
+    public function syncSelectedProducts(Request $request, MailchimpEcommerceService $mailchimp)
+    {
+        $request->validate([
+            'product_refs' => 'required|string',
+        ], [
+            'product_refs.required' => 'Upiši barem jedan ID ili SKU artikla.',
+        ]);
+
+        $refs = $this->parseProductRefs((string) $request->input('product_refs'));
+
+        if ($refs->isEmpty()) {
+            return back()->with('status', 'Nisam pronašao nijedan valjan ID ili SKU za sync.');
+        }
+
+        if (! $mailchimp->isConfigured()) {
+            return back()->with('status', 'Mailchimp e-commerce nije konfiguriran.');
+        }
+
+        $products = CatalogProduct::query()
+            ->where(function ($query) use ($refs) {
+                $numericRefs = $refs->filter(fn ($ref) => ctype_digit($ref))->values();
+                $skuRefs = $refs->filter(fn ($ref) => ! ctype_digit($ref))->values();
+
+                if ($numericRefs->isNotEmpty()) {
+                    $query->orWhereIn('id', $numericRefs->map(fn ($ref) => (int) $ref)->all());
+                }
+
+                if ($skuRefs->isNotEmpty()) {
+                    $query->orWhereIn('sku', $skuRefs->all());
+                }
+            })
+            ->orderBy('id')
+            ->get();
+
+        if ($products->isEmpty()) {
+            return back()->with('status', 'Nijedan odabrani artikal nije pronađen po ID-u ili SKU-u.');
+        }
+
+        $synced = 0;
+        $failed = 0;
+        $missing = $refs->reject(function ($ref) use ($products) {
+            if (ctype_digit($ref)) {
+                return $products->contains('id', (int) $ref);
+            }
+
+            return $products->contains('sku', $ref);
+        })->values();
+        $errorSamples = [];
+
+        foreach ($products as $product) {
+            $result = $mailchimp->syncCatalogProduct($product);
+
+            if ($result['ok']) {
+                $synced++;
+                continue;
+            }
+
+            if (count($errorSamples) < 3 && ! empty($result['error'])) {
+                $errorSamples[] = 'Artikl ' . $product->id . ' / ' . $product->sku . ': ' . $result['error'];
+            }
+
+            $failed++;
+        }
+
+        $message = 'Sync odabranih artikala gotov. Traženo: ' . $refs->count()
+            . ', pronađeno: ' . $products->count()
+            . ', uspješno: ' . $synced
+            . ', greške: ' . $failed . '.';
+
+        if ($missing->isNotEmpty()) {
+            $message .= ' Nije pronađeno: ' . $missing->implode(', ') . '.';
+        }
+
+        if (! empty($errorSamples)) {
+            $message .= ' Primjeri: ' . implode(' | ', array_unique($errorSamples));
+        }
+
+        return back()->with('status', $message);
     }
 
     private function performProductSyncBatch(int $lastId, int $batch, MailchimpEcommerceService $mailchimp): array
@@ -325,5 +406,14 @@ class NewsletterSubscriberController extends Controller
     private function formatBatchResult(string $label, array $result): string
     {
         return $label . ': ' . ($result['message'] ?? 'Batch je pokrenut.');
+    }
+
+    private function parseProductRefs(string $refs): Collection
+    {
+        return collect(preg_split('/[\s,;]+/', $refs) ?: [])
+            ->map(fn ($ref) => trim((string) $ref))
+            ->filter()
+            ->unique()
+            ->values();
     }
 }

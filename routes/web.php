@@ -141,6 +141,7 @@ Route::middleware(['auth:sanctum', 'verified', 'no.customers'])->prefix('admin')
         // NEWSLETTER
         Route::get('newsletter', [NewsletterSubscriberController::class, 'index'])->name('newsletter.subscribers');
         Route::post('newsletter/sync-mailchimp', [NewsletterSubscriberController::class, 'syncMailchimp'])->name('newsletter.subscribers.sync');
+        Route::post('newsletter/sync-selected-products', [NewsletterSubscriberController::class, 'syncSelectedProducts'])->name('newsletter.products.selected.sync');
         Route::post('newsletter/sync-products', [NewsletterSubscriberController::class, 'syncProducts'])->name('newsletter.products.sync');
         Route::post('newsletter/sync-orders', [NewsletterSubscriberController::class, 'syncOrders'])->name('newsletter.orders.sync');
         Route::post('newsletter/clear-caches', [NewsletterSubscriberController::class, 'clearCaches'])->name('newsletter.caches.clear');
