@@ -20,13 +20,21 @@
                             Import novih u Mailchimp ({{ $pendingSyncCount ?? 0 }})
                         </button>
                     </form>
-                    <form method="post" action="{{ route('newsletter.products.sync') }}" class="d-inline-block mr-2">
+                    <form method="post"
+                          action="{{ route('newsletter.products.sync') }}"
+                          class="d-inline-block mr-2 js-mailchimp-batch-form"
+                          data-sync-type="artikala"
+                          data-batch="25">
                         @csrf
                         <button type="submit" class="btn btn-primary">
                             Sync artikala u Mailchimp
                         </button>
                     </form>
-                    <form method="post" action="{{ route('newsletter.orders.sync') }}" class="d-inline-block mr-2">
+                    <form method="post"
+                          action="{{ route('newsletter.orders.sync') }}"
+                          class="d-inline-block mr-2 js-mailchimp-batch-form"
+                          data-sync-type="ordera"
+                          data-batch="10">
                         @csrf
                         <button type="submit" class="btn btn-primary">
                             Sync ordera u Mailchimp
@@ -50,6 +58,14 @@
                         <pre class="mb-0" style="white-space: pre-wrap;">{{ session('status') }}</pre>
                     </div>
                 @endif
+
+                <div id="mailchimp-batch-status" class="alert alert-secondary d-none">
+                    <pre class="mb-0" style="white-space: pre-wrap;"></pre>
+                </div>
+
+                <div class="alert alert-warning">
+                    Za veće kataloge sync artikala i ordera ide u batch režimu iz ovog ekrana, tako da ne padne timeout na hostingu.
+                </div>
 
                 <div class="bg-body-dark p-3 mb-3">
                     <form method="get" action="{{ route('newsletter.subscribers') }}">
@@ -131,3 +147,119 @@
         </div>
     </div>
 @endsection
+
+@push('js_after')
+    <script>
+        (function () {
+            var forms = document.querySelectorAll('.js-mailchimp-batch-form');
+            var statusBox = document.getElementById('mailchimp-batch-status');
+            var statusPre = statusBox ? statusBox.querySelector('pre') : null;
+
+            if (!forms.length || !statusBox || !statusPre) {
+                return;
+            }
+
+            var active = false;
+
+            function setBusyState(isBusy) {
+                active = isBusy;
+
+                forms.forEach(function (form) {
+                    var button = form.querySelector('button[type="submit"]');
+
+                    if (!button) {
+                        return;
+                    }
+
+                    button.disabled = isBusy;
+                    if (isBusy) {
+                        button.dataset.originalText = button.dataset.originalText || button.textContent;
+                        button.textContent = 'Sync u tijeku...';
+                    } else if (button.dataset.originalText) {
+                        button.textContent = button.dataset.originalText;
+                    }
+                });
+            }
+
+            function showStatus(message) {
+                statusBox.classList.remove('d-none');
+                statusPre.textContent = message;
+            }
+
+            function runBatch(form, lastId, totals) {
+                var formData = new FormData(form);
+                var batch = parseInt(form.dataset.batch || '100', 10);
+                var syncType = form.dataset.syncType || 'zapisa';
+
+                formData.append('last_id', String(lastId || 0));
+                formData.append('batch', String(batch));
+
+                fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                    },
+                    body: formData,
+                    credentials: 'same-origin'
+                })
+                .then(function (response) {
+                    if (!response.ok) {
+                        throw new Error('HTTP ' + response.status);
+                    }
+
+                    return response.json();
+                })
+                .then(function (data) {
+                    totals.processed += Number(data.processed || 0);
+                    totals.synced += Number(data.synced || 0);
+                    totals.failed += Number(data.failed || 0);
+                    totals.total = Number(data.total || totals.total || 0);
+
+                    var headline = 'Mailchimp sync ' + syncType + '\n'
+                        + 'Ukupno obradjeno u ovoj sesiji: ' + totals.processed + '\n'
+                        + 'Uspjesno: ' + totals.synced + '\n'
+                        + 'Greske: ' + totals.failed;
+
+                    if (totals.total > 0) {
+                        headline += '\nUkupno za sync: ' + totals.total;
+                    }
+
+                    showStatus(headline + '\n\n' + (data.message || ''));
+
+                    if (data.finished) {
+                        setBusyState(false);
+                        return;
+                    }
+
+                    runBatch(form, Number(data.last_id || 0), totals);
+                })
+                .catch(function (error) {
+                    showStatus('Sync je prekinut. ' + error.message);
+                    setBusyState(false);
+                });
+            }
+
+            forms.forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (active) {
+                        event.preventDefault();
+                        return;
+                    }
+
+                    event.preventDefault();
+
+                    setBusyState(true);
+                    showStatus('Pokrecem batch sync...');
+
+                    runBatch(form, 0, {
+                        processed: 0,
+                        synced: 0,
+                        failed: 0,
+                        total: 0,
+                    });
+                });
+            });
+        })();
+    </script>
+@endpush

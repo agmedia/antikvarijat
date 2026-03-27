@@ -9,6 +9,7 @@ use Illuminate\Http\Client\Response;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use RuntimeException;
 
 class MailchimpEcommerceService
 {
@@ -35,7 +36,11 @@ class MailchimpEcommerceService
             return ['ok' => false, 'error' => 'Nedostaje email, cart id ili cart stavke.'];
         }
 
-        $this->ensureStore();
+        try {
+            $this->ensureStore();
+        } catch (\Throwable $e) {
+            return ['ok' => false, 'error' => $e->getMessage()];
+        }
 
         $customerId = $this->customerId($email);
         $this->upsertCustomer($customerId, $customer);
@@ -96,7 +101,11 @@ class MailchimpEcommerceService
             return ['ok' => false, 'error' => 'Order nema payment email.'];
         }
 
-        $this->ensureStore();
+        try {
+            $this->ensureStore();
+        } catch (\Throwable $e) {
+            return ['ok' => false, 'error' => $e->getMessage()];
+        }
 
         $customerId = $this->customerId($email);
         $this->upsertCustomer($customerId, [
@@ -172,7 +181,11 @@ class MailchimpEcommerceService
             return ['ok' => true, 'error' => null];
         }
 
-        $this->ensureStore();
+        try {
+            $this->ensureStore();
+        } catch (\Throwable $e) {
+            return ['ok' => false, 'error' => $e->getMessage()];
+        }
 
         $productId = (string) $product->id;
         $price = (float) ($product->special() ?: $product->price);
@@ -216,7 +229,16 @@ class MailchimpEcommerceService
             return;
         }
 
-        $this->ensureStore();
+        try {
+            $this->ensureStore();
+        } catch (\Throwable $e) {
+            Log::warning('Mailchimp cart delete skipped because store is unavailable', [
+                'cart_id' => $cartId,
+                'error' => $e->getMessage(),
+            ]);
+
+            return;
+        }
 
         $response = $this->request(
             'delete',
@@ -236,6 +258,17 @@ class MailchimpEcommerceService
     {
         $productId = trim((string) $productId);
         if (! $this->isConfigured() || $productId === '') {
+            return;
+        }
+
+        try {
+            $this->ensureStore();
+        } catch (\Throwable $e) {
+            Log::warning('Mailchimp product delete skipped because store is unavailable', [
+                'product_id' => $productId,
+                'error' => $e->getMessage(),
+            ]);
+
             return;
         }
 
@@ -260,22 +293,49 @@ class MailchimpEcommerceService
         }
 
         $storeId = $this->getStoreId();
-        $response = $this->request(
-            'put',
-            '/ecommerce/stores/' . rawurlencode($storeId),
-            [
-                'id' => $storeId,
-                'list_id' => (string) config('services.mailchimp.audience_id', ''),
-                'name' => (string) config('services.mailchimp.ecommerce_store_name', 'Antikvarijat Biblos'),
-                'currency_code' => $this->getCurrencyCode(),
-            ]
+
+        $existing = $this->request(
+            'get',
+            '/ecommerce/stores/' . rawurlencode($storeId)
         );
 
-        if ($response->failed() && $response->status() !== 400) {
-            Log::warning('Mailchimp store ensure failed', [
-                'status' => $response->status(),
-                'body' => $response->body(),
-            ]);
+        if ($existing->successful()) {
+            $this->storeEnsured = true;
+
+            return;
+        }
+
+        $payload = [
+            'id' => $storeId,
+            'list_id' => (string) config('services.mailchimp.audience_id', ''),
+            'name' => (string) config('services.mailchimp.ecommerce_store_name', 'Antikvarijat Biblos'),
+            'currency_code' => $this->getCurrencyCode(),
+        ];
+
+        if ($existing->status() === 404) {
+            $create = $this->request('post', '/ecommerce/stores', $payload);
+
+            if (! $create->successful()) {
+                throw new RuntimeException('Mailchimp store create failed: ' . $this->extractError($create));
+            }
+
+            $this->storeEnsured = true;
+
+            return;
+        }
+
+        if ($existing->failed()) {
+            throw new RuntimeException('Mailchimp store lookup failed: ' . $this->extractError($existing));
+        }
+
+        $update = $this->request(
+            'patch',
+            '/ecommerce/stores/' . rawurlencode($storeId),
+            Arr::except($payload, ['id'])
+        );
+
+        if (! $update->successful()) {
+            throw new RuntimeException('Mailchimp store update failed: ' . $this->extractError($update));
         }
 
         $this->storeEnsured = true;
