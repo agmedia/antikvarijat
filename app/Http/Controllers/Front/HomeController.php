@@ -94,6 +94,11 @@ class HomeController extends Controller
         $request->validate([
             'email' => 'required|email',
             'gdpr' => 'required|accepted',
+        ], [
+            'email.required' => 'Polje za e-mail adresu je obavezno.',
+            'email.email' => 'Unesite ispravnu e-mail adresu.',
+            'gdpr.required' => 'Morate prihvatiti GDPR privolu.',
+            'gdpr.accepted' => 'Morate prihvatiti GDPR privolu.',
         ]);
 
         NewsletterSubscriber::subscribe([
