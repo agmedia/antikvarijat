@@ -16,6 +16,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 
@@ -116,20 +117,23 @@ class ProductController extends Controller
     {
         $product = new Product();
         $logs = collect();
-        $data = $product->getRelationsData();
+        $data = $product->getRelationsData(false);
         $active_actions = ProductAction::active()->get();
+        $selectedCategoryIds = [];
+        $selectedSubcategoryId = null;
+        $existingImagesCount = 0;
 
-        $allTags = Product::query()
-            ->whereNotNull('tags')
-            ->pluck('tags')
-            ->flatten()
-            ->map(fn($t) => mb_strtolower(trim((string) $t)))
-            ->filter()
-            ->unique()
-            ->sort()
-            ->values();
+        $allTags = $this->getAllTags();
 
-        return view('back.catalog.product.edit', compact('data', 'active_actions', 'allTags', 'logs'));
+        return view('back.catalog.product.edit', compact(
+            'data',
+            'active_actions',
+            'allTags',
+            'logs',
+            'selectedCategoryIds',
+            'selectedSubcategoryId',
+            'existingImagesCount'
+        ));
     }
 
 
@@ -150,6 +154,7 @@ class ProductController extends Controller
             $product->checkSettings()
                     ->storeImages($stored);
 
+            Cache::forget('admin.products.all_tags');
             $this->syncProductToMailchimp($stored, $mailchimp);
 
             return redirect()->route('products.edit', ['product' => $stored])->with(['success' => 'Artikl je uspješno snimljen!']);
@@ -168,24 +173,30 @@ class ProductController extends Controller
      */
     public function edit(Product $product)
     {
-        $data = $product->getRelationsData();
+        $data = $product->getRelationsData(false);
 
-        $logs = $product->historyLogs()->with('user')->get();
+        $logs = $product->historyLogs()->with('user:id,name')->get();
+        $selectedCategoryIds = $product->categories()->pluck('id')->map(fn ($id) => (int) $id)->all();
+        $selectedSubcategoryId = optional($product->subcategory())->id;
+        $existingImagesCount = ProductImage::where('product_id', $product->id)->count();
+        $allTags = $this->getAllTags();
 
+        return view('back.catalog.product.edit', compact(
+            'product',
+            'data',
+            'logs',
+            'allTags',
+            'selectedCategoryIds',
+            'selectedSubcategoryId',
+            'existingImagesCount'
+        ));
+    }
 
+    public function photos(Product $product)
+    {
+        $images = ProductImage::getAdminList($product->id);
 
-        // NOVO:
-        $allTags = Product::query()
-            ->whereNotNull('tags')
-            ->pluck('tags')
-            ->flatten()
-            ->map(fn($t) => mb_strtolower(trim((string) $t)))
-            ->filter()
-            ->unique()
-            ->sort()
-            ->values();
-
-        return view('back.catalog.product.edit', compact('product', 'data', 'logs', 'allTags'));
+        return view('back.catalog.product.partials.existing-photos', compact('product', 'images'));
     }
 
 
@@ -206,6 +217,7 @@ class ProductController extends Controller
                     ->storeImages($updated);
 
             $product->addHistoryData('change');
+            Cache::forget('admin.products.all_tags');
             $this->syncProductToMailchimp($updated, $mailchimp);
 
             return redirect()->route('products.edit', ['product' => $updated])->with(['success' => 'Artikl je uspješno snimljen!']);
@@ -234,6 +246,7 @@ class ProductController extends Controller
         $destroyed = Product::destroy($product->id);
 
         if ($destroyed) {
+            Cache::forget('admin.products.all_tags');
             return redirect()->route('products')->with(['success' => 'Artikl je uspješno snimljen!']);
         }
 
@@ -261,6 +274,7 @@ class ProductController extends Controller
             $destroyed = Product::destroy($id);
 
             if ($destroyed) {
+                Cache::forget('admin.products.all_tags');
                 return response()->json(['success' => 200]);
             }
         }
@@ -328,5 +342,21 @@ class ProductController extends Controller
                 'error' => $e->getMessage(),
             ]);
         }
+    }
+
+    private function getAllTags(): Collection
+    {
+        return Cache::remember('admin.products.all_tags', now()->addMinutes(30), function () {
+            return Product::query()
+                ->select('tags')
+                ->whereNotNull('tags')
+                ->pluck('tags')
+                ->flatten()
+                ->map(fn ($tag) => mb_strtolower(trim((string) $tag)))
+                ->filter()
+                ->unique()
+                ->sort()
+                ->values();
+        });
     }
 }

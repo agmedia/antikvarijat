@@ -10,6 +10,10 @@
 @endpush
 
 @section('content')
+    @php
+        $selectedCategoryIds = $selectedCategoryIds ?? [];
+        $selectedSubcategoryId = $selectedSubcategoryId ?? null;
+    @endphp
 
     <div class="bg-body-light">
         <div class="content content-full">
@@ -225,10 +229,10 @@
                                             <option></option>
                                             @foreach ($data['categories'] as $group => $cats)
                                                 @foreach ($cats as $id => $category)
-                                                    <option value="{{ $id }}" class="font-weight-bold small" {{ ((isset($product)) and (in_array($id, $product->categories()->pluck('id')->toArray()))) ? 'selected' : '' }}>{{ $group . ' >> ' . $category['title'] }}</option>
+                                                    <option value="{{ $id }}" class="font-weight-bold small" {{ in_array((int) $id, $selectedCategoryIds, true) ? 'selected' : '' }}>{{ $group . ' >> ' . $category['title'] }}</option>
                                                     @if ( ! empty($category['subs']))
                                                         @foreach ($category['subs'] as $sub_id => $subcategory)
-                                                            <option value="{{ $sub_id }}" class="pl-3 text-sm" {{ ((isset($product) && $product->subcategory()) and ($sub_id == $product->subcategory()->id)) ? 'selected' : '' }}>{{ $subcategory['title'] }}</option>
+                                                            <option value="{{ $sub_id }}" class="pl-3 text-sm" {{ (int) $sub_id === (int) $selectedSubcategoryId ? 'selected' : '' }}>{{ $subcategory['title'] }}</option>
                                                         @endforeach
                                                     @endif
                                                 @endforeach

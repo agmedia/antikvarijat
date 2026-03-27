@@ -496,7 +496,23 @@ class MailchimpEcommerceService
             return 'https:' . $url;
         }
 
-        return rtrim((string) config('app.url'), '/') . '/' . ltrim($url, '/');
+        return rtrim($this->getStorefrontUrl(), '/') . '/' . ltrim($url, '/');
+    }
+
+    private function getStorefrontUrl(): string
+    {
+        $url = trim((string) config('services.mailchimp.storefront_url', ''));
+
+        if ($url !== '') {
+            return $url;
+        }
+
+        $imagesDomain = trim((string) config('settings.images_domain', ''));
+        if ($imagesDomain !== '') {
+            return $imagesDomain;
+        }
+
+        return trim((string) config('app.url', ''));
     }
 
     private function upsertProductPayload(string $productId, array $payload, string $context): void

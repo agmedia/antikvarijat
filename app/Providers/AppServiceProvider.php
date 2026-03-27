@@ -30,7 +30,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        Paginator::useBootstrap();
+
+        if (request()->is('admin') || request()->is('admin/*')) {
+            return;
+        }
 
         $uvjeti_kupnje = Page::where('subgroup', 'Uvjeti kupnje')->get();
         View::share('uvjeti_kupnje', $uvjeti_kupnje);
@@ -49,7 +53,5 @@ class AppServiceProvider extends ServiceProvider
 
         $zemljovidi_vedute = Category::active()->topList('Zemljovidi i vedute')->select('id', 'title', 'group', 'slug')->sortByName()->get();
         View::share('zemljovidi_vedute', $zemljovidi_vedute);
-
-        Paginator::useBootstrap();
     }
 }

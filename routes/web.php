@@ -103,6 +103,7 @@ Route::middleware(['auth:sanctum', 'verified', 'no.customers'])->prefix('admin')
         Route::get('product/create', [ProductController::class, 'create'])->name('products.create');
         Route::post('product', [ProductController::class, 'store'])->name('products.store');
         Route::get('product/{product}/edit', [ProductController::class, 'edit'])->name('products.edit');
+        Route::get('product/{product}/photos', [ProductController::class, 'photos'])->name('products.photos');
         Route::patch('product/{product}', [ProductController::class, 'update'])->name('products.update');
         Route::delete('product/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
     });

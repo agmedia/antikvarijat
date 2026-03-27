@@ -280,11 +280,11 @@ class Product extends Model
     /**
      * @return array
      */
-    public function getRelationsData(): array
+    public function getRelationsData(bool $withImages = true): array
     {
         return [
             'categories' => (new Category())->getList(false),
-            'images'     => ProductImage::getAdminList($this->id),
+            'images'     => $withImages ? ProductImage::getAdminList($this->id) : collect(),
             'letters'    => Settings::get('product', 'letter_styles'),
             'conditions' => Settings::get('product', 'condition_styles'),
             'bindings'   => Settings::get('product', 'binding_styles'),
