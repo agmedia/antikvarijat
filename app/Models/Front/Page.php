@@ -2,6 +2,7 @@
 
 namespace App\Models\Front;
 
+use App\Models\Concerns\CachesRouteBinding;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -13,6 +14,7 @@ use Illuminate\Support\Str;
 class Page extends Model
 {
 
+    use CachesRouteBinding;
     use HasFactory;
 
     /**

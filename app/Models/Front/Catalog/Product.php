@@ -3,6 +3,7 @@
 namespace App\Models\Front\Catalog;
 
 use App\Helpers\Currency;
+use App\Models\Concerns\CachesRouteBinding;
 use App\Models\Back\Catalog\Product\ProductAction;
 use App\Models\Back\Settings\Settings;
 use Carbon\Carbon;
@@ -18,6 +19,7 @@ use Illuminate\Support\Facades\Log;
  */
 class Product extends Model
 {
+    use CachesRouteBinding;
 
     /**
      * @var string

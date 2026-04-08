@@ -2,6 +2,7 @@
 
 namespace App\Models\Front\Catalog;
 
+use App\Models\Concerns\CachesRouteBinding;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,6 +15,7 @@ use Intervention\Image\Facades\Image;
 
 class Category extends Model
 {
+    use CachesRouteBinding;
     use HasFactory;
 
     /**

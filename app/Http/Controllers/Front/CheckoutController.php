@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Mail\OrderReceived;
 use App\Mail\OrderSent;
 use App\Models\Back\Marketing\NewsletterSubscriber;
+use App\Models\Back\Orders\Order as BackOrder;
 use App\Models\Back\Settings\Settings;
 use App\Models\Front\AgCart;
 use App\Services\MailchimpEcommerceService;
@@ -219,21 +220,8 @@ class CheckoutController extends Controller
                      ->flush()
                      ->resolveDB();
 
-                /*  dispatch(function () use ($order) {
-                      Mail::to(config('mail.admin'))->send(new OrderReceived($order));
-                      Mail::to($order->payment_email)->send(new OrderSent($order));
-                  })->afterResponse();*/
-
-                register_shutdown_function(function () use ($order) {
-                    try {
-                        Mail::to(config('mail.admin'))->send(new OrderReceived($order));
-                        Mail::to($order->payment_email)->send(new OrderSent($order));
-                    } catch (\Throwable $e) {
-                        Log::info('Mail sending failed', [
-                            'order_id' => $order->id,
-                            'error' => $e->getMessage(),
-                        ]);
-                    }
+                app()->terminating(function () use ($order) {
+                    $this->sendOrderNotifications($order);
                 });
             } else {
                 Log::info('Checkout success already processed', [
@@ -319,6 +307,67 @@ class CheckoutController extends Controller
         }
 
         return new AgCart(config('session.cart'));
+    }
+
+
+    /**
+     * @param BackOrder $order
+     *
+     * @return void
+     */
+    private function sendOrderNotifications(BackOrder $order): void
+    {
+        $this->sendAdminOrderNotification($order);
+        $this->sendCustomerOrderNotification($order);
+    }
+
+
+    /**
+     * @param BackOrder $order
+     *
+     * @return void
+     */
+    private function sendAdminOrderNotification(BackOrder $order): void
+    {
+        try {
+            Mail::to(config('mail.admin'))->send(new OrderReceived($order));
+        } catch (\Throwable $e) {
+            Log::warning('Admin order notification failed', [
+                'order_id' => $order->id,
+                'email' => config('mail.admin'),
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+
+    /**
+     * @param BackOrder $order
+     *
+     * @return void
+     */
+    private function sendCustomerOrderNotification(BackOrder $order): void
+    {
+        $email = trim((string) $order->payment_email);
+
+        if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            Log::warning('Customer order confirmation skipped because email is invalid', [
+                'order_id' => $order->id,
+                'email' => $order->payment_email,
+            ]);
+
+            return;
+        }
+
+        try {
+            Mail::to($email)->send(new OrderSent($order));
+        } catch (\Throwable $e) {
+            Log::warning('Customer order notification failed', [
+                'order_id' => $order->id,
+                'email' => $email,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
 }

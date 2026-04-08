@@ -398,6 +398,10 @@ Route::get(config('settings.publisher_path') . '/{publisher?}/{cat?}/{subcat?}',
 //
 Route::get('snizenja/{cat?}/{subcat?}', [CatalogRouteController::class, 'actions'])->name('catalog.route.actions');
 //
+Route::get('{path}', function () {
+    abort(404);
+})->where('path', '.*\.[^/]+$');
+//
 Route::get('{group}/{cat?}/{subcat?}/{prod?}', [CatalogRouteController::class, 'resolve'])->name('catalog.route');
 
 

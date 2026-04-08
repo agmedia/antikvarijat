@@ -18,7 +18,10 @@ return [
     |
     */
 
-    'driver' => env('SESSION_DRIVER', 'database'),
+    // Emergency-safe default: avoid storing sessions in MySQL on production traffic spikes.
+    'driver' => env('APP_ENV') === 'production'
+        ? env('SESSION_DRIVER', 'file')
+        : env('SESSION_DRIVER', 'database'),
 
     /*
     |--------------------------------------------------------------------------

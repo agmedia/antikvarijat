@@ -3,6 +3,7 @@
 namespace App\Models\Front\Catalog;
 
 use App\Helpers\Helper;
+use App\Models\Concerns\CachesRouteBinding;
 use App\Helpers\ProductHelper;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -16,6 +17,7 @@ use Illuminate\Support\Facades\Log;
  */
 class Author extends Model
 {
+    use CachesRouteBinding;
     use HasFactory;
 
     /**

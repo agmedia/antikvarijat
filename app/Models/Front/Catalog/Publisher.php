@@ -3,6 +3,7 @@
 namespace App\Models\Front\Catalog;
 
 use App\Models\Front\Catalog\Category;
+use App\Models\Concerns\CachesRouteBinding;
 use App\Helpers\Helper;
 use App\Helpers\ProductHelper;
 use Illuminate\Database\Eloquent\Builder;
@@ -17,6 +18,7 @@ use Illuminate\Support\Facades\Log;
  */
 class Publisher extends Model
 {
+    use CachesRouteBinding;
     use HasFactory;
 
     /**

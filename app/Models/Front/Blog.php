@@ -2,6 +2,7 @@
 
 namespace App\Models\Front;
 
+use App\Models\Concerns\CachesRouteBinding;
 use App\Helpers\Helper;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
@@ -12,6 +13,7 @@ use Illuminate\Support\Str;
 
 class Blog extends Model
 {
+    use CachesRouteBinding;
 
     /**
      * @var string
