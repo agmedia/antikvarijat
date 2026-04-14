@@ -11,6 +11,7 @@ use App\Services\MailchimpNewsletterService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cache;
 
 class NewsletterSubscriberController extends Controller
 {
@@ -133,6 +134,7 @@ class NewsletterSubscriberController extends Controller
         @set_time_limit(0);
 
         Artisan::call('optimize:clear');
+        Cache::store('file')->flush();
 
         return back()->with('status', trim(Artisan::output()) ?: 'Laravel cache je očišćen.');
     }

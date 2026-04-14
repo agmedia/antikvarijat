@@ -379,7 +379,7 @@ class MailchimpEcommerceService
         }
 
         $price = (float) data_get($item, 'price', 0);
-        $url = $this->absoluteUrl((string) data_get($item, 'attributes.path', config('app.url')));
+        $url = $this->normalizeStorefrontUrl((string) data_get($item, 'attributes.path', config('app.url')));
         $image = $this->absoluteUrl((string) data_get($item, 'associatedModel.image', ''));
 
         $payload = [
@@ -421,7 +421,7 @@ class MailchimpEcommerceService
         $payload = [
             'id' => $productId,
             'title' => $title,
-            'url' => $this->absoluteUrl($url),
+            'url' => $this->normalizeStorefrontUrl($url),
             'variants' => [[
                 'id' => $productId,
                 'title' => $title,
@@ -478,7 +478,7 @@ class MailchimpEcommerceService
             }
         }
 
-        return $this->absoluteUrl($url);
+        return $this->normalizeStorefrontUrl($url);
     }
 
     private function absoluteUrl(string $url): string
@@ -497,6 +497,38 @@ class MailchimpEcommerceService
         }
 
         return rtrim($this->getStorefrontUrl(), '/') . '/' . ltrim($url, '/');
+    }
+
+    private function normalizeStorefrontUrl(string $url): string
+    {
+        $url = trim($url);
+        if ($url === '') {
+            return '';
+        }
+
+        if (str_starts_with($url, '//')) {
+            $url = 'https:' . $url;
+        }
+
+        $parts = parse_url($url);
+        if (is_array($parts) && isset($parts['host'])) {
+            $normalized = rtrim($this->getStorefrontUrl(), '/');
+            $path = (string) ($parts['path'] ?? '/');
+
+            $normalized .= '/' . ltrim($path !== '' ? $path : '/', '/');
+
+            if (! empty($parts['query'])) {
+                $normalized .= '?' . $parts['query'];
+            }
+
+            if (! empty($parts['fragment'])) {
+                $normalized .= '#' . $parts['fragment'];
+            }
+
+            return $normalized;
+        }
+
+        return $this->absoluteUrl($url);
     }
 
     private function getStorefrontUrl(): string

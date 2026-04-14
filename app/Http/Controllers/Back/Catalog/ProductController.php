@@ -10,6 +10,7 @@ use App\Models\Back\Catalog\Product\ProductAction;
 use App\Models\Back\Catalog\Product\ProductCategory;
 use App\Models\Back\Catalog\Product\ProductImage;
 use App\Models\Back\Catalog\Publisher;
+use App\Models\Front\Catalog\Product as FrontProduct;
 use App\Services\MailchimpEcommerceService;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -155,6 +156,7 @@ class ProductController extends Controller
                     ->storeImages($stored);
 
             Cache::forget('admin.products.all_tags');
+            $this->refreshFrontendProductCache($stored);
             $this->syncProductToMailchimp($stored, $mailchimp);
 
             return redirect()->route('products.edit', ['product' => $stored])->with(['success' => 'Artikl je uspješno snimljen!']);
@@ -210,6 +212,8 @@ class ProductController extends Controller
      */
     public function update(Request $request, Product $product, MailchimpEcommerceService $mailchimp)
     {
+        $originalSlug = $product->slug;
+
         $updated = $product->validateRequest($request)->edit();
 
         if ($updated) {
@@ -218,6 +222,7 @@ class ProductController extends Controller
 
             $product->addHistoryData('change');
             Cache::forget('admin.products.all_tags');
+            $this->refreshFrontendProductCache($updated, $originalSlug);
             $this->syncProductToMailchimp($updated, $mailchimp);
 
             return redirect()->route('products.edit', ['product' => $updated])->with(['success' => 'Artikl je uspješno snimljen!']);
@@ -236,6 +241,8 @@ class ProductController extends Controller
      */
     public function destroy(Request $request, Product $product, MailchimpEcommerceService $mailchimp)
     {
+        $originalSlug = $product->slug;
+
         $this->deleteProductFromMailchimp($product, $mailchimp);
 
         ProductImage::where('product_id', $product->id)->delete();
@@ -247,6 +254,7 @@ class ProductController extends Controller
 
         if ($destroyed) {
             Cache::forget('admin.products.all_tags');
+            $this->refreshFrontendProductCache($product, $originalSlug);
             return redirect()->route('products')->with(['success' => 'Artikl je uspješno snimljen!']);
         }
 
@@ -265,6 +273,8 @@ class ProductController extends Controller
     {
         if ($request->has('id')) {
             $id = $request->input('id');
+            $product = Product::query()->find($id);
+            $originalSlug = optional($product)->slug;
 
             ProductImage::where('product_id', $id)->delete();
             ProductCategory::where('product_id', $id)->delete();
@@ -275,6 +285,9 @@ class ProductController extends Controller
 
             if ($destroyed) {
                 Cache::forget('admin.products.all_tags');
+                if ($product) {
+                    $this->refreshFrontendProductCache($product, $originalSlug);
+                }
                 return response()->json(['success' => 200]);
             }
         }
@@ -342,6 +355,14 @@ class ProductController extends Controller
                 'error' => $e->getMessage(),
             ]);
         }
+    }
+
+    private function refreshFrontendProductCache(Product $product, ?string $originalSlug = null): void
+    {
+        Cache::store('file')->forget('front.shared.products_count');
+
+        FrontProduct::forgetCachedRouteBinding($originalSlug);
+        FrontProduct::forgetCachedRouteBinding($product->slug);
     }
 
     private function getAllTags(): Collection

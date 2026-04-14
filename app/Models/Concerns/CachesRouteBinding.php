@@ -10,23 +10,51 @@ trait CachesRouteBinding
     {
         $field = $field ?: $this->getRouteKeyName();
         $ttl = now()->addSeconds((int) config('cache.page_life', 86400));
-        $cacheKey = implode('.', [
-            'route_binding',
-            str_replace('\\', '.', static::class),
-            $field,
-            sha1((string) $value),
-        ]);
+        $cacheKey = static::routeBindingCacheKey($value, $field);
 
         $cache = Cache::store('file');
 
         if ($cache->has($cacheKey)) {
-            return $cache->get($cacheKey);
+            $modelId = $cache->get($cacheKey);
+
+            if ($modelId) {
+                $model = $this->newQuery()->whereKey($modelId)->first();
+
+                if ($model) {
+                    return $model;
+                }
+            }
+
+            $cache->forget($cacheKey);
         }
 
         $model = $this->newQuery()->where($field, $value)->first();
 
-        $cache->put($cacheKey, $model, $ttl);
+        if ($model) {
+            $cache->put($cacheKey, $model->getKey(), $ttl);
+        }
 
         return $model;
+    }
+
+    public static function forgetCachedRouteBinding($value, $field = null): void
+    {
+        if ($value === null || $value === '') {
+            return;
+        }
+
+        Cache::store('file')->forget(static::routeBindingCacheKey($value, $field));
+    }
+
+    protected static function routeBindingCacheKey($value, $field = null): string
+    {
+        $instance = new static();
+
+        return implode('.', [
+            'route_binding',
+            str_replace('\\', '.', static::class),
+            $field ?: $instance->getRouteKeyName(),
+            sha1((string) $value),
+        ]);
     }
 }
