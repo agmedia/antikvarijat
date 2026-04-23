@@ -486,7 +486,7 @@ class Product extends Model
      *
      * @return Builder
      */
-    public function filter(Request $request, Collection $ids = null): Builder
+    public function filter(Request $request, ?Collection $ids = null): Builder
     {
         $query = $this->newQuery();
 
@@ -519,8 +519,8 @@ class Product extends Model
                     $group = 'Zemljovidi i vedute';
                 }
 
-                $query->whereHas('categories', function ($query) use ($request, $group) {
-                    $query->where('group', 'like', '%' . $group . '%');
+                $query->whereHas('categories', function ($query) use ($group) {
+                    $query->where('group', $group);
                 });
             }
         }

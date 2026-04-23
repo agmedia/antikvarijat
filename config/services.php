@@ -54,6 +54,16 @@ return [
         'customer_tag' => env('MAILCHIMP_TAG_CUSTOMER', 'customer'),
         'storefront_url' => env('MAILCHIMP_STOREFRONT_URL'),
         'connected_site_script_url' => env('MAILCHIMP_CONNECTED_SITE_SCRIPT_URL'),
+        'merge_field_labels' => [
+            'first_name' => env('MAILCHIMP_MERGE_LABEL_FIRST_NAME', 'First Name'),
+            'last_name' => env('MAILCHIMP_MERGE_LABEL_LAST_NAME', 'Last Name'),
+            'address' => env('MAILCHIMP_MERGE_LABEL_ADDRESS', 'Address'),
+            'phone' => env('MAILCHIMP_MERGE_LABEL_PHONE', 'Phone Number'),
+            'company' => env('MAILCHIMP_MERGE_LABEL_COMPANY', 'Company'),
+            'zip' => env('MAILCHIMP_MERGE_LABEL_ZIP', 'ZIP'),
+            'city' => env('MAILCHIMP_MERGE_LABEL_CITY', 'City'),
+            'birthday_year' => env('MAILCHIMP_MERGE_LABEL_BIRTHDAY_YEAR', 'BirthdayYear'),
+        ],
     ],
 
     /*******************************************************************************

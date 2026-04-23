@@ -2,17 +2,14 @@
 
 namespace App\Http\Controllers\Api\v2;
 
+use App\Helpers\Currency;
 use App\Helpers\Helper;
-use App\Models\Front\Catalog\Product;
-use App\Models\Back\Catalog\Product\ProductImage;
 use App\Models\Front\Catalog\Author;
 use App\Models\Front\Catalog\Category;
+use App\Models\Front\Catalog\Product;
 use App\Models\Front\Catalog\Publisher;
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class FilterController extends Controller
@@ -130,7 +127,7 @@ class FilterController extends Controller
      *
      * @return array
      */
-    private function resolveCategoryArray($categories, string $type, $target = null, string $parent_slug = null): array
+    private function resolveCategoryArray($categories, string $type, $target = null, ?string $parent_slug = null): array
     {
         $response = [];
 
@@ -157,7 +154,7 @@ class FilterController extends Controller
      *
      * @return string
      */
-    private function resolveCategoryUrl($category, string $type, $target, string $parent_slug = null): string
+    private function resolveCategoryUrl($category, string $type, $target, ?string $parent_slug = null): string
     {
         if ($type == 'author') {
             return route('catalog.route.author', [
@@ -195,45 +192,33 @@ class FilterController extends Controller
         }
 
         $params = $request->input('params');
-        $cache_string = '';
-
         if (isset($params['autor']) && $params['autor']) {
-            $cache_string .= '&author=';
             if (strpos($params['autor'], '+') !== false) {
                 $arr = explode('+', $params['autor']);
 
                 foreach ($arr as $item) {
                     $_author = Author::where('slug', $item)->first();
                     $this->authors[] = $_author;
-                    $cache_string .= $_author->id . '+';
                 }
-
-                $cache_string = substr($cache_string, 0, -1);
 
             } else {
                 $_author = Author::where('slug', $params['autor'])->first();
                 $this->authors[] = $_author;
-                $cache_string .= $_author->id;
             }
         }
 
         if (isset($params['nakladnik']) && $params['nakladnik']) {
-            $cache_string .= '&pub=';
             if (strpos($params['nakladnik'], '+') !== false) {
                 $arr = explode('+', $params['nakladnik']);
 
                 foreach ($arr as $item) {
                     $_publisher = Publisher::where('slug', $item)->first();
                     $this->publishers[] = $_publisher;
-                    $cache_string .= $_publisher->id . '+';
                 }
-
-                $cache_string = substr($cache_string, 0, -1);
 
             } else {
                 $_publisher = Publisher::where('slug', $params['nakladnik'])->first();
                 $this->publishers[] = $_publisher;
-                $cache_string .= $_publisher->id . '_';
             }
         }
 
@@ -245,17 +230,14 @@ class FilterController extends Controller
 
         if (isset($params['group']) && $params['group']) {
             $request_data['group'] = $params['group'];
-            $cache_string .= '&group=' . $params['group'];
         }
 
         if (isset($params['cat']) && $params['cat']) {
             $request_data['cat'] = $params['cat'];
-            $cache_string .= '&cat=' . $params['cat'];
         }
 
         if (isset($params['subcat']) && $params['subcat']) {
             $request_data['subcat'] = $params['subcat'];
-            $cache_string .= '&subcat=' . $params['subcat'];
         }
 
         if (isset($params['autor']) && $params['autor']) {
@@ -268,40 +250,89 @@ class FilterController extends Controller
 
         if (isset($params['start']) && $params['start']) {
             $request_data['start'] = $params['start'];
-            $cache_string .= '&start=' . $params['start'];
         }
 
         if (isset($params['end']) && $params['end']) {
             $request_data['end'] = $params['end'];
-            $cache_string .= '&end=' . $params['end'];
         }
 
         if (isset($params['sort']) && $params['sort']) {
             $request_data['sort'] = $params['sort'];
-            $cache_string .= '&sort=' . $params['sort'];
         }
 
-        $request_data['page'] = $request->input('page');
-
+        $page = max((int) $request->input('page', 1), 1);
+        $request_data['page'] = $page;
         $request = new Request($request_data);
 
-        if (isset($params['ids']) && $params['ids'] != '') {
-            $products = (new Product())->filter($request)
-                                       ->with('author')
-                                       ->paginate(config('settings.pagination.front'));
-        } else {
-            /*$products = Helper::resolveCache('products')->remember($cache_string, config('cache.life'), function () use ($request) {
-                 return (new Product())->filter($request)
-                                       ->with('author')
-                                       ->paginate(config('settings.pagination.front'), ['*'], 'page', $request->input('page'));
-            });*/
+        $products = (new Product())->filter($request)
+            ->select([
+                'id',
+                'author_id',
+                'action_id',
+                'name',
+                'url',
+                'category_string',
+                'image',
+                'price',
+                'special',
+                'special_from',
+                'special_to',
+            ])
+            ->with([
+                'author:id,title,url',
+                'action:id,status,coupon',
+            ])
+            ->paginate(config('settings.pagination.front'), ['*'], 'page', $page);
 
-            $products = (new Product())->filter($request)
-                                       ->with('author')
-                                       ->paginate(config('settings.pagination.front'));
-        }
+        $mainCurrency = Currency::main();
+        $secondaryCurrency = Currency::secondary();
+
+        $products->getCollection()->transform(function (Product $product) use ($mainCurrency, $secondaryCurrency) {
+            $effectiveSpecial = $product->special();
+            $hasSpecialPrice = $effectiveSpecial < (float) $product->price;
+
+            return [
+                'id' => $product->id,
+                'name' => $product->name,
+                'url' => $product->url,
+                'category_string' => $product->category_string,
+                'image' => $product->image,
+                'price' => number_format((float) $product->price, 4, '.', ''),
+                'special' => $hasSpecialPrice ? number_format((float) $effectiveSpecial, 4, '.', '') : null,
+                'main_price' => $this->resolveCurrencyPrice($mainCurrency, $product->price),
+                'main_price_text' => $this->resolveCurrencyPrice($mainCurrency, $product->price, true),
+                'main_special' => $this->resolveCurrencyPrice($mainCurrency, $effectiveSpecial),
+                'main_special_text' => $this->resolveCurrencyPrice($mainCurrency, $effectiveSpecial, true),
+                'secondary_price' => $this->resolveCurrencyPrice($secondaryCurrency, $product->price),
+                'secondary_price_text' => $this->resolveCurrencyPrice($secondaryCurrency, $product->price, true),
+                'secondary_special' => $this->resolveCurrencyPrice($secondaryCurrency, $effectiveSpecial),
+                'secondary_special_text' => $this->resolveCurrencyPrice($secondaryCurrency, $effectiveSpecial, true),
+                'author' => $product->author ? [
+                    'title' => $product->author->title,
+                    'url' => $product->author->url,
+                ] : null,
+            ];
+        });
 
         return response()->json($products);
+    }
+
+    private function resolveCurrencyPrice($currency, $price, bool $formatted = false): ?string
+    {
+        if (! $currency || $price === null || $price === '') {
+            return null;
+        }
+
+        $value = (float) $price * (float) $currency->value;
+
+        if ($formatted) {
+            $left = $currency->symbol_left ? $currency->symbol_left . ' ' : '';
+            $right = $currency->symbol_right ? ' ' . $currency->symbol_right : '';
+
+            return $left . number_format($value, $currency->decimal_places, ',', '.') . $right;
+        }
+
+        return number_format($value, $currency->decimal_places, '.', '');
     }
 
 

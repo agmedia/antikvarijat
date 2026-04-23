@@ -169,6 +169,18 @@
         <div class="row">
             <div class="col-sm-6">
                 <div class="mb-3">
+                    <label class="form-label" for="checkout-birthday-year">Datum rođenja</label>
+                    <input class="form-control @error('address.birthday_year') is-invalid @enderror"
+                           id="checkout-birthday-year"
+                           type="date"
+                           wire:model.defer="address.birthday_year">
+                    @error('address.birthday_year') <div class="invalid-feedback animated fadeIn">Datum rođenja nije ispravan</div> @enderror
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="mb-3">
                     <label class="form-label" for="checkout-address">Adresa <span class="text-danger">*</span></label>
                     <input class="form-control @error('address.address') is-invalid @enderror" type="text" wire:model.defer="address.address">
                     @error('address.address') <div class="invalid-feedback animated fadeIn">Adresa je obvezno</div> @enderror

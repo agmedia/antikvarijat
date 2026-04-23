@@ -190,9 +190,22 @@ class CheckoutController extends Controller
                 $mailchimp = app(MailchimpEcommerceService::class);
 
                 try {
-                    $mailchimp->syncOrder($order);
+                    $orderSync = $mailchimp->syncOrder($order);
+                    if (! ($orderSync['ok'] ?? false)) {
+                        Log::warning('Mailchimp order sync returned error on checkout success', [
+                            'order_id' => $order->id,
+                            'error' => $orderSync['error'] ?? 'Nepoznata greška',
+                        ]);
+                    }
+
                     $mailchimp->deleteCartById((string) session(config('session.cart')));
-                    app(MailchimpNewsletterService::class)->markAsCustomer((string) $order->payment_email);
+                    $customerSync = app(MailchimpNewsletterService::class)->syncCustomerFromOrder($order);
+                    if (! ($customerSync['ok'] ?? false)) {
+                        Log::warning('Mailchimp customer sync returned error on checkout success', [
+                            'order_id' => $order->id,
+                            'error' => $customerSync['error'] ?? 'Nepoznata greška',
+                        ]);
+                    }
                 } catch (\Throwable $e) {
                     Log::warning('Mailchimp order/cart sync failed on checkout success', [
                         'order_id' => $order->id,

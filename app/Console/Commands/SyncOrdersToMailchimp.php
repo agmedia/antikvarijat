@@ -6,6 +6,7 @@ use App\Models\Back\Orders\Order;
 use App\Services\MailchimpEcommerceService;
 use App\Services\MailchimpNewsletterService;
 use Illuminate\Console\Command;
+use Throwable;
 
 class SyncOrdersToMailchimp extends Command
 {
@@ -32,8 +33,7 @@ class SyncOrdersToMailchimp extends Command
 
         $query = Order::query()
             ->whereIn('order_status_id', [3, 4])
-            ->whereNotNull('payment_email')
-            ->orderBy('id');
+            ->whereNotNull('payment_email');
 
         if ($days > 0) {
             $query->where('updated_at', '>=', now()->subDays($days));
@@ -49,12 +49,33 @@ class SyncOrdersToMailchimp extends Command
 
         $ok = 0;
         $failed = 0;
-        $tagFailures = 0;
+        $customerFailures = 0;
         $errorSamples = [];
 
-        $query->chunkById($chunk, function ($orders) use ($mailchimp, $newsletter, &$ok, &$failed, &$tagFailures, &$errorSamples) {
+        $lastId = null;
+
+        do {
+            $orders = (clone $query)
+                ->when($lastId !== null, function ($orderQuery) use ($lastId) {
+                    $orderQuery->where('id', '<', $lastId);
+                })
+                ->orderByDesc('id')
+                ->limit($chunk)
+                ->get();
+
+            if ($orders->isEmpty()) {
+                break;
+            }
+
             foreach ($orders as $order) {
-                $result = $mailchimp->syncOrder($order);
+                try {
+                    $result = $mailchimp->syncOrder($order);
+                } catch (Throwable $e) {
+                    $result = [
+                        'ok' => false,
+                        'error' => $e->getMessage(),
+                    ];
+                }
 
                 if (! $result['ok']) {
                     if (count($errorSamples) < 3 && ! empty($result['error'])) {
@@ -66,19 +87,34 @@ class SyncOrdersToMailchimp extends Command
                     continue;
                 }
 
-                $ok++;
-
-                $tagResult = $newsletter->markAsCustomer((string) $order->payment_email);
-                if (! $tagResult['ok']) {
-                    $tagFailures++;
+                try {
+                    $customerResult = $newsletter->syncCustomerFromOrder($order);
+                } catch (Throwable $e) {
+                    $customerResult = [
+                        'ok' => false,
+                        'error' => $e->getMessage(),
+                    ];
                 }
+
+                if (! $customerResult['ok']) {
+                    $customerFailures++;
+                    if (count($errorSamples) < 3 && ! empty($customerResult['error'])) {
+                        $errorSamples[] = 'Order ' . $order->id . ': ' . $customerResult['error'];
+                    }
+
+                    continue;
+                }
+
+                $ok++;
             }
-        });
+
+            $lastId = (int) $orders->last()->id;
+        } while ($orders->count() === $chunk);
 
         $message = 'Mailchimp order sync gotov. Ukupno: ' . $total
             . ', uspješno: ' . $ok
             . ', greške: ' . $failed
-            . ', tag fallback greške: ' . $tagFailures . '.';
+            . ', customer sync greške: ' . $customerFailures . '.';
 
         if (! empty($errorSamples)) {
             $message .= ' Primjeri: ' . implode(' | ', array_unique($errorSamples));

@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
+use Throwable;
 
 class NewsletterSubscriberController extends Controller
 {
@@ -129,6 +130,23 @@ class NewsletterSubscriberController extends Controller
         return back()->with('status', $this->formatBatchResult('Orderi', $result));
     }
 
+    public function syncCustomerData(Request $request, MailchimpNewsletterService $newsletter)
+    {
+        @set_time_limit(0);
+
+        $result = $this->performCustomerSyncBatch(
+            (int) $request->input('last_id', 0),
+            min(max((int) $request->input('batch', 25), 5), 100),
+            $newsletter
+        );
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json($result);
+        }
+
+        return back()->with('status', $this->formatBatchResult('Customer podaci', $result));
+    }
+
     public function clearCaches()
     {
         @set_time_limit(0);
@@ -189,7 +207,14 @@ class NewsletterSubscriberController extends Controller
         $errorSamples = [];
 
         foreach ($products as $product) {
-            $result = $mailchimp->syncCatalogProduct($product);
+            try {
+                $result = $mailchimp->syncCatalogProduct($product);
+            } catch (Throwable $e) {
+                $result = [
+                    'ok' => false,
+                    'error' => $e->getMessage(),
+                ];
+            }
 
             if ($result['ok']) {
                 $synced++;
@@ -269,7 +294,14 @@ class NewsletterSubscriberController extends Controller
 
         foreach ($products as $product) {
             $newLastId = (int) $product->id;
-            $result = $mailchimp->syncCatalogProduct($product);
+            try {
+                $result = $mailchimp->syncCatalogProduct($product);
+            } catch (Throwable $e) {
+                $result = [
+                    'ok' => false,
+                    'error' => $e->getMessage(),
+                ];
+            }
 
             if ($result['ok']) {
                 $synced++;
@@ -336,9 +368,13 @@ class NewsletterSubscriberController extends Controller
 
         $total = (clone $query)->count();
 
-        $orders = (clone $query)
-            ->where('id', '>', $lastId)
-            ->orderBy('id')
+        $ordersQuery = (clone $query)->orderByDesc('id');
+
+        if ($lastId > 0) {
+            $ordersQuery->where('id', '<', $lastId);
+        }
+
+        $orders = $ordersQuery
             ->limit($batch)
             ->get();
 
@@ -363,11 +399,35 @@ class NewsletterSubscriberController extends Controller
 
         foreach ($orders as $order) {
             $newLastId = (int) $order->id;
-            $result = $mailchimp->syncOrder($order);
+            try {
+                $result = $mailchimp->syncOrder($order);
+            } catch (Throwable $e) {
+                $result = [
+                    'ok' => false,
+                    'error' => $e->getMessage(),
+                ];
+            }
 
             if ($result['ok']) {
-                $synced++;
-                $newsletter->markAsCustomer((string) $order->payment_email);
+                try {
+                    $customerResult = $newsletter->syncCustomerFromOrder($order);
+                } catch (Throwable $e) {
+                    $customerResult = [
+                        'ok' => false,
+                        'error' => $e->getMessage(),
+                    ];
+                }
+
+                if ($customerResult['ok']) {
+                    $synced++;
+                    continue;
+                }
+
+                if (count($errorSamples) < 3 && ! empty($customerResult['error'])) {
+                    $errorSamples[] = 'Order ' . $order->id . ': ' . $customerResult['error'];
+                }
+
+                $failed++;
                 continue;
             }
 
@@ -386,6 +446,107 @@ class NewsletterSubscriberController extends Controller
 
         if ($finished) {
             $message .= ' Sync ordera je završen.';
+        }
+
+        if (! empty($errorSamples)) {
+            $message .= ' Primjeri: ' . implode(' | ', array_unique($errorSamples));
+        }
+
+        return [
+            'ok' => $failed === 0,
+            'message' => $message,
+            'finished' => $finished,
+            'processed' => $orders->count(),
+            'synced' => $synced,
+            'failed' => $failed,
+            'last_id' => $newLastId,
+            'batch' => $batch,
+            'total' => $total,
+        ];
+    }
+
+    private function performCustomerSyncBatch(int $lastId, int $batch, MailchimpNewsletterService $newsletter): array
+    {
+        if (! $newsletter->isConfigured()) {
+            return [
+                'ok' => false,
+                'message' => 'Mailchimp newsletter nije konfiguriran.',
+                'finished' => true,
+                'processed' => 0,
+                'synced' => 0,
+                'failed' => 0,
+                'last_id' => $lastId,
+                'batch' => $batch,
+                'total' => 0,
+            ];
+        }
+
+        $query = Order::query()
+            ->whereIn('order_status_id', [3, 4])
+            ->whereNotNull('payment_email');
+
+        $total = (clone $query)->count();
+
+        $ordersQuery = (clone $query)->orderByDesc('id');
+
+        if ($lastId > 0) {
+            $ordersQuery->where('id', '<', $lastId);
+        }
+
+        $orders = $ordersQuery
+            ->limit($batch)
+            ->get();
+
+        if ($orders->isEmpty()) {
+            return [
+                'ok' => true,
+                'message' => 'Sync customer podataka je završen.',
+                'finished' => true,
+                'processed' => 0,
+                'synced' => 0,
+                'failed' => 0,
+                'last_id' => $lastId,
+                'batch' => $batch,
+                'total' => $total,
+            ];
+        }
+
+        $synced = 0;
+        $failed = 0;
+        $errorSamples = [];
+        $newLastId = $lastId;
+
+        foreach ($orders as $order) {
+            $newLastId = (int) $order->id;
+            try {
+                $result = $newsletter->syncCustomerFromOrder($order);
+            } catch (Throwable $e) {
+                $result = [
+                    'ok' => false,
+                    'error' => $e->getMessage(),
+                ];
+            }
+
+            if ($result['ok']) {
+                $synced++;
+                continue;
+            }
+
+            if (count($errorSamples) < 3 && ! empty($result['error'])) {
+                $errorSamples[] = 'Order ' . $order->id . ': ' . $result['error'];
+            }
+
+            $failed++;
+        }
+
+        $finished = $orders->count() < $batch;
+        $message = 'Batch customer podataka gotov. Obradjeno: ' . $orders->count()
+            . ', uspješno: ' . $synced
+            . ', greške: ' . $failed
+            . ', zadnji ID: ' . $newLastId . '.';
+
+        if ($finished) {
+            $message .= ' Sync customer podataka je završen.';
         }
 
         if (! empty($errorSamples)) {

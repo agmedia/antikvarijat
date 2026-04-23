@@ -40,6 +40,18 @@
                             Sync ordera u Mailchimp
                         </button>
                     </form>
+                    <form method="post"
+                          action="{{ route('newsletter.customers.sync') }}"
+                          class="d-inline-block mr-2 js-mailchimp-batch-form"
+                          data-sync-type="customer podataka"
+                          data-batch="10"
+                          data-max-retries="3"
+                          data-retry-delay="2000">
+                        @csrf
+                        <button type="submit" class="btn btn-info">
+                            Ažuriraj customer podatke
+                        </button>
+                    </form>
                     <form method="post" action="{{ route('newsletter.caches.clear') }}" class="d-inline-block mr-2">
                         @csrf
                         <button type="submit" class="btn btn-warning">
@@ -216,10 +228,42 @@
                 statusPre.textContent = message;
             }
 
-            function runBatch(form, lastId, totals) {
+            function stateKey(form) {
+                return 'mailchimp-batch-state:' + form.action;
+            }
+
+            function loadState(form) {
+                try {
+                    var raw = window.localStorage.getItem(stateKey(form));
+                    return raw ? JSON.parse(raw) : null;
+                } catch (error) {
+                    return null;
+                }
+            }
+
+            function saveState(form, payload) {
+                try {
+                    window.localStorage.setItem(stateKey(form), JSON.stringify(payload));
+                } catch (error) {
+                    // Ignore storage errors and keep batch running.
+                }
+            }
+
+            function clearState(form) {
+                try {
+                    window.localStorage.removeItem(stateKey(form));
+                } catch (error) {
+                    // Ignore storage errors.
+                }
+            }
+
+            function runBatch(form, lastId, totals, attempt) {
                 var formData = new FormData(form);
                 var batch = parseInt(form.dataset.batch || '100', 10);
+                var maxRetries = Math.max(parseInt(form.dataset.maxRetries || '0', 10), 0);
+                var retryDelay = Math.max(parseInt(form.dataset.retryDelay || '1500', 10), 0);
                 var syncType = form.dataset.syncType || 'zapisa';
+                var currentAttempt = attempt || 0;
 
                 formData.append('last_id', String(lastId || 0));
                 formData.append('batch', String(batch));
@@ -255,17 +299,43 @@
                         headline += '\nUkupno za sync: ' + totals.total;
                     }
 
+                    saveState(form, {
+                        last_id: Number(data.last_id || 0),
+                        totals: totals,
+                        updated_at: Date.now()
+                    });
+
                     showStatus(headline + '\n\n' + (data.message || ''));
 
                     if (data.finished) {
+                        clearState(form);
                         setBusyState(false);
                         return;
                     }
 
-                    runBatch(form, Number(data.last_id || 0), totals);
+                    runBatch(form, Number(data.last_id || 0), totals, 0);
                 })
                 .catch(function (error) {
-                    showStatus('Sync je prekinut. ' + error.message);
+                    if (currentAttempt < maxRetries) {
+                        var nextAttempt = currentAttempt + 1;
+
+                        showStatus(
+                            'Sync je privremeno stao. ' + error.message
+                            + '\nPokusaj ponovo automatski (' + nextAttempt + '/' + maxRetries + ') za '
+                            + Math.round(retryDelay / 1000) + ' s...'
+                        );
+
+                        window.setTimeout(function () {
+                            runBatch(form, lastId, totals, nextAttempt);
+                        }, retryDelay);
+
+                        return;
+                    }
+
+                    showStatus(
+                        'Sync je prekinut. ' + error.message
+                        + '\nPonovni klik na isti gumb nastavlja od zadnjeg uspješnog batcha.'
+                    );
                     setBusyState(false);
                 });
             }
@@ -279,15 +349,30 @@
 
                     event.preventDefault();
 
-                    setBusyState(true);
-                    showStatus('Pokrecem batch sync...');
+                    var savedState = loadState(form);
+                    var startLastId = savedState && Number(savedState.last_id || 0) > 0
+                        ? Number(savedState.last_id || 0)
+                        : 0;
+                    var totals = savedState && savedState.totals
+                        ? {
+                            processed: Number(savedState.totals.processed || 0),
+                            synced: Number(savedState.totals.synced || 0),
+                            failed: Number(savedState.totals.failed || 0),
+                            total: Number(savedState.totals.total || 0),
+                        }
+                        : {
+                            processed: 0,
+                            synced: 0,
+                            failed: 0,
+                            total: 0,
+                        };
 
-                    runBatch(form, 0, {
-                        processed: 0,
-                        synced: 0,
-                        failed: 0,
-                        total: 0,
-                    });
+                    setBusyState(true);
+                    showStatus(startLastId > 0
+                        ? 'Nastavljam batch sync od zadnjeg uspješnog koraka...'
+                        : 'Pokrecem batch sync...');
+
+                    runBatch(form, startLastId, totals, 0);
                 });
             });
         })();
