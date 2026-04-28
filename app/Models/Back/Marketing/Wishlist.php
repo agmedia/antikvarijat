@@ -82,7 +82,7 @@ class Wishlist extends Model
      */
     public function scopeBasic(Builder $query): Builder
     {
-        return $query->select('product_id', 'email');
+        return $query->select('id', 'product_id', 'email');
     }
 
     public function product()
@@ -101,10 +101,21 @@ class Wishlist extends Model
      */
     public function validateRequest(Request $request)
     {
+        $request->merge([
+            'email' => static::normalizeEmail($request->input('email')),
+        ]);
+
         $request->validate([
-            'email'      => 'required',
-            'product_id' => 'required',
+            'email'      => 'required|email|max:190',
+            'product_id' => 'required|integer|exists:products,id',
             'recaptcha'  => 'required'
+        ], [
+            'email.required' => 'Polje za e-mail adresu je obavezno.',
+            'email.email' => 'Unesite ispravnu e-mail adresu.',
+            'product_id.required' => 'Proizvod nije odabran.',
+            'product_id.integer' => 'Odabrani proizvod nije ispravan.',
+            'product_id.exists' => 'Odabrani proizvod nije pronađen.',
+            'recaptcha.required' => 'ReCaptcha provjera je obavezna.',
         ]);
 
         $this->request = $request;
@@ -120,8 +131,10 @@ class Wishlist extends Model
      */
     public function create()
     {
+        $email = static::normalizeEmail($this->request->email);
+
         // Provjeri postoji li već zapis za ovaj email i product_id
-        $exists = static::where('email', $this->request->email)
+        $exists = static::where('email', $email)
             ->where('product_id', $this->request->product_id)
             ->exists();
 
@@ -132,7 +145,7 @@ class Wishlist extends Model
 
         $id = $this->insertGetId([
             'user_id'    => auth()->guest() ? 0 : auth()->user()->id,
-            'email'      => $this->request->email,
+            'email'      => $email,
             'product_id' => $this->request->product_id,
             'sent'       => 0,
             'status'     => 1,
@@ -152,18 +165,39 @@ class Wishlist extends Model
         $log_start = microtime(true);
 
         $list = Wishlist::active()->unsent()->basic()->get();
+        $invalidEntries = $list->reject(function ($entry) {
+            return static::isValidEmail($entry->email);
+        });
+
+        foreach ($invalidEntries as $entry) {
+            Log::warning('Skipping wishlist notification with invalid email address.', [
+                'wishlist_id' => $entry->id,
+                'product_id' => $entry->product_id,
+                'email' => $entry->email,
+            ]);
+
+            static::query()->whereKey($entry->id)->delete();
+        }
+
+        $list = $list->filter(function ($entry) {
+            return static::isValidEmail($entry->email);
+        });
         $ids = $list->unique('product_id')->pluck('product_id');
         $products = Product::query()->whereIn('id', $ids)->available()->basicData()->get();
 
         foreach ($products as $product) {
-            $emails = $list->where('product_id', $product->id)->pluck('email');
+            $emails = $list
+                ->where('product_id', $product->id)
+                ->groupBy(function ($entry) {
+                    return static::normalizeEmail($entry->email);
+                });
 
-            foreach ($emails as $email) {
+            foreach ($emails as $email => $entries) {
                 dispatch(function () use ($email, $product) {
                     Mail::to($email)->send(new WishlistArrived($product));
                 });
 
-                Wishlist::query()->where('product_id', $product->id)->where('email', $email)->delete();
+                static::query()->whereIn('id', $entries->pluck('id'))->delete();
             }
         }
 
@@ -171,6 +205,20 @@ class Wishlist extends Model
         Log::info('__Check Wishlist - Total Execution Time: ' . number_format(($log_end - $log_start), 2, ',', '.') . ' sec.');
 
         return 1;
+    }
+
+
+    protected static function normalizeEmail(?string $email): string
+    {
+        return trim((string) $email);
+    }
+
+
+    protected static function isValidEmail(?string $email): bool
+    {
+        $normalizedEmail = static::normalizeEmail($email);
+
+        return $normalizedEmail !== '' && filter_var($normalizedEmail, FILTER_VALIDATE_EMAIL) !== false;
     }
 
 }

@@ -95,6 +95,22 @@ class Product extends Model
     }
 
     /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function author()
+    {
+        return $this->belongsTo(Author::class, 'author_id', 'id');
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function publisher()
+    {
+        return $this->belongsTo(Publisher::class, 'publisher_id', 'id');
+    }
+
+    /**
      * @return Relation
      */
     public function all_actions()

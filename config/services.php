@@ -66,6 +66,17 @@ return [
         ],
     ],
 
+    'google_translate' => [
+        'api_key' => env('GOOGLE_TRANSLATE_API_KEY'),
+        'source' => env('GOOGLE_TRANSLATE_SOURCE', 'hr'),
+        'target' => env('GOOGLE_TRANSLATE_TARGET', 'en'),
+        'use_public_endpoint' => env('GOOGLE_TRANSLATE_USE_PUBLIC_ENDPOINT', true),
+    ],
+
+    'vialibri' => [
+        'access_code' => env('VIALIBRI_ACCESS_CODE'),
+    ],
+
     /*******************************************************************************
      *                              END Copyright : AGmedia                         *
      *******************************************************************************/

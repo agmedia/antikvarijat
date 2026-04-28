@@ -233,9 +233,6 @@ class Checkout extends Component
             return redirect()->route('kosarica');
         }*/
 
-        Log::info('public function changeStep(string $step = )');
-        Log::info($step);
-
         $this->checkCart();
 
         if (in_array($step, ['', 'podaci']) && $this->cart) {

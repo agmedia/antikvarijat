@@ -13,6 +13,7 @@ use App\Http\Controllers\Back\Marketing\ActionController;
 use App\Http\Controllers\Back\Marketing\BlogController;
 use App\Http\Controllers\Back\Marketing\BookPurchaseController;
 use App\Http\Controllers\Back\Marketing\NewsletterSubscriberController;
+use App\Http\Controllers\Back\Marketing\VialibriController;
 use App\Http\Controllers\Back\Settings\ApiController;
 use App\Http\Controllers\Back\Settings\App\CurrencyController;
 use App\Http\Controllers\Back\Settings\App\GeoZoneController;
@@ -32,6 +33,7 @@ use App\Http\Controllers\Front\CatalogRouteController;
 use App\Http\Controllers\Front\CheckoutController;
 use App\Http\Controllers\Front\CustomerController;
 use App\Http\Controllers\Front\HomeController;
+use App\Http\Controllers\Front\VialibriFeedController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Back\Marketing\WishlistController;
 
@@ -147,6 +149,15 @@ Route::middleware(['auth:sanctum', 'verified', 'no.customers'])->prefix('admin')
         Route::post('newsletter/sync-orders', [NewsletterSubscriberController::class, 'syncOrders'])->name('newsletter.orders.sync');
         Route::post('newsletter/sync-customers', [NewsletterSubscriberController::class, 'syncCustomerData'])->name('newsletter.customers.sync');
         Route::post('newsletter/clear-caches', [NewsletterSubscriberController::class, 'clearCaches'])->name('newsletter.caches.clear');
+        // VIALIBRI
+        Route::get('vialibri', [VialibriController::class, 'index'])->name('vialibri.index');
+        Route::get('vialibri/config', [VialibriController::class, 'config'])->name('vialibri.config');
+        Route::get('vialibri/autocomplete', [VialibriController::class, 'autocomplete'])->name('vialibri.autocomplete');
+        Route::post('vialibri/product/{product}', [VialibriController::class, 'store'])->name('vialibri.store');
+        Route::get('vialibri/{vialibriBook}/edit', [VialibriController::class, 'edit'])->name('vialibri.edit');
+        Route::patch('vialibri/{vialibriBook}', [VialibriController::class, 'update'])->name('vialibri.update');
+        Route::post('vialibri/{vialibriBook}/translate', [VialibriController::class, 'translate'])->name('vialibri.translate');
+        Route::delete('vialibri/{vialibriBook}', [VialibriController::class, 'destroy'])->name('vialibri.destroy');
         // OTKUP KNJIGA
         Route::get('otkup-knjiga', [BookPurchaseController::class, 'index'])->name('book.purchases');
         Route::get('otkup-knjiga/{purchase}', [BookPurchaseController::class, 'show'])->name('book.purchases.show');
@@ -380,6 +391,8 @@ Route::get('sitemap/{sitemap?}', [HomeController::class, 'sitemapXML'])->name('s
 Route::get('image-sitemap', [HomeController::class, 'sitemapImageXML'])->name('sitemap');
 //
 Route::get('njuskalo/biblos/xml', [HomeController::class, 'njuskaloXML'])->name('njuskalo');
+Route::get('vialibri/sync.xml', [VialibriFeedController::class, 'sync'])->name('vialibri.feed.sync');
+Route::get('vialibri/data.xml', [VialibriFeedController::class, 'data'])->name('vialibri.feed.data');
 /**
  * Forgot password & login routes.
  */

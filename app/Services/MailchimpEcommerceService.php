@@ -75,11 +75,7 @@ class MailchimpEcommerceService
             $payload['checkout_url'] = $checkoutUrl;
         }
 
-        $response = $this->request(
-            'put',
-            '/ecommerce/stores/' . rawurlencode($this->getStoreId()) . '/carts/' . rawurlencode($cartId),
-            $payload
-        );
+        $response = $this->upsertCartPayload($cartId, $payload);
 
         if ($response->successful()) {
             return ['ok' => true, 'error' => null];
@@ -562,6 +558,26 @@ class MailchimpEcommerceService
                 'body' => $response->body(),
             ]);
         }
+    }
+
+    private function upsertCartPayload(string $cartId, array $payload): Response
+    {
+        $cartPath = '/ecommerce/stores/' . rawurlencode($this->getStoreId()) . '/carts/' . rawurlencode($cartId);
+        $existing = $this->request('get', $cartPath);
+
+        if ($existing->successful()) {
+            return $this->request('patch', $cartPath, Arr::except($payload, ['id']));
+        }
+
+        if ($existing->status() === 404) {
+            return $this->request(
+                'post',
+                '/ecommerce/stores/' . rawurlencode($this->getStoreId()) . '/carts',
+                $payload
+            );
+        }
+
+        return $existing;
     }
 
     private function request(string $method, string $path, ?array $payload = null): Response

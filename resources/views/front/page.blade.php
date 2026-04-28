@@ -87,13 +87,21 @@
                     </div>
                 </div>
             </div>
-            
-            
+
+
         </section>
-        
-       
 
+        <section class="pt-4 pb-lg-2">
+            <div class="container">
+                <div class="d-flex flex-wrap justify-content-between align-items-center pt-1 pb-2 ">
 
+                    <a href="https://www.antikvarijat-biblos.hr/knjige">
+                    <img src="{{ asset('media/web-nocKnjige20tiny.jpg') }}" class="d-none d-sm-block" alt="Banner">
+                    <img src="{{ asset('media/web-nocKnjige20-SQtiny.jpg') }}" class="d-block d-sm-none" alt="Banner">
+                    </a>
+                </div>
+            </div>
+        </section>
         {!! $page->description !!}
 
 
