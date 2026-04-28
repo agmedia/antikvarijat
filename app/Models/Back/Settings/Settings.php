@@ -14,6 +14,16 @@ class Settings extends Model
     use HasFactory;
 
     /**
+     * Request-scoped cache for repeated setting lookups.
+     */
+    protected static array $resolved = [];
+
+    /**
+     * Request-scoped cache for expanded settings lists.
+     */
+    protected static array $resolvedLists = [];
+
+    /**
      * @var string
      */
     protected $table = 'settings';
@@ -41,17 +51,23 @@ class Settings extends Model
      */
     public static function get(string $code, string $key)
     {
+        $cacheKey = $code . '|' . $key;
+
+        if (array_key_exists($cacheKey, static::$resolved)) {
+            return static::$resolved[$cacheKey];
+        }
+
         $styles = Settings::where('code', $code)->where('key', $key)->first();
 
         if ($styles) {
             if ($styles->json) {
-                return collect(json_decode($styles->value));
+                return static::$resolved[$cacheKey] = collect(json_decode($styles->value));
             }
 
-            return $styles->value;
+            return static::$resolved[$cacheKey] = $styles->value;
         }
 
-        return collect();
+        return static::$resolved[$cacheKey] = collect();
     }
 
 
@@ -63,6 +79,12 @@ class Settings extends Model
      */
     public static function getList(string $code, string $key = 'list.%', bool $only_active = true)
     {
+        $cacheKey = implode('|', [$code, $key, (int) $only_active]);
+
+        if (array_key_exists($cacheKey, static::$resolvedLists)) {
+            return static::$resolvedLists[$cacheKey];
+        }
+
         $styles = Settings::where('code', $code)->where('key', 'like', $key)->get();
 
         if ($styles->count()) {
@@ -79,13 +101,13 @@ class Settings extends Model
             }
 
             if ($only_active) {
-                return $return_styles->where('status')->sortBy('sort_order');
+                return static::$resolvedLists[$cacheKey] = $return_styles->where('status')->sortBy('sort_order');
             }
 
-            return $return_styles->sortBy('sort_order');
+            return static::$resolvedLists[$cacheKey] = $return_styles->sortBy('sort_order');
         }
 
-        return [];
+        return static::$resolvedLists[$cacheKey] = [];
     }
 
     /*******************************************************************************
@@ -103,6 +125,8 @@ class Settings extends Model
      */
     public static function set(string $code, string $key, $value, bool $json = true)
     {
+        static::clearResolved();
+
         $setting = Settings::where('code', $code)->where('key', $key)->first();
 
         if ($setting) {
@@ -139,6 +163,8 @@ class Settings extends Model
      */
     public static function setListItem(string $code, string $key, $value)
     {
+        static::clearResolved();
+
         $updated = false;
         $setting = Settings::where('code', $code)->where('key', $key)->first();
 
@@ -161,6 +187,8 @@ class Settings extends Model
      */
     public static function setProduct(string $key, $value, bool $json = true)
     {
+        static::clearResolved();
+
         $styles = Settings::where('code', 'product')->where('key', $key)->first();
 
         if ($styles) {
@@ -197,6 +225,8 @@ class Settings extends Model
      */
     public static function insert(string $code, string $key, $value, bool $json)
     {
+        static::clearResolved();
+
         return self::insertGetId([
             'code'       => $code,
             'key'        => $key,
@@ -219,6 +249,8 @@ class Settings extends Model
      */
     public static function edit(int $id, string $code, string $key, $value, bool $json)
     {
+        static::clearResolved();
+
         return self::where('id', $id)->update([
             'code'       => $code,
             'key'        => $key,
@@ -237,6 +269,14 @@ class Settings extends Model
      */
     public static function erase(string $code, string $key)
     {
+        static::clearResolved();
+
         return self::where('code', $code)->where('key', $key)->delete();
+    }
+
+    protected static function clearResolved(): void
+    {
+        static::$resolved = [];
+        static::$resolvedLists = [];
     }
 }

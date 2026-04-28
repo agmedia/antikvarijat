@@ -39,6 +39,7 @@ class ProductController extends Controller
     {
         // osnovni upit + subselecti
         $query = $product->filter($request)
+            ->with(['categories', 'subcategories'])
             ->select('products.*')
             ->addSelect([
                 // ID zadnje narudžbe u kojoj se artikal pojavio (po datumu stavke)
@@ -75,6 +76,7 @@ class ProductController extends Controller
 
                 // Napravi bazni upit opet sa subselectima (bez full-load u memoriju)
                 $base = Product::query()
+                    ->with(['categories', 'subcategories'])
                     ->select('products.*')
                     ->addSelect([
                         'last_order_id' => DB::table('order_products')

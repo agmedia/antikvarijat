@@ -319,9 +319,12 @@ class Helper
         }
 
         $widgets = [];
+        $loadedWidgets = $wg->relationLoaded('widgets')
+            ? $wg->widgets->sortBy('sort_order')
+            : $wg->widgets()->orderBy('sort_order')->get();
 
         if ($wg->template == 'product_carousel' || $wg->template == 'page_carousel' ) {
-            $widget = $wg->widgets()->first();
+            $widget = $loadedWidgets->first();
             $data = unserialize($widget->data);
 
             if (static::isDescriptionTarget($data, 'product')) {
@@ -373,7 +376,7 @@ class Helper
             ];
 
         } else {
-            foreach ($wg->widgets()->orderBy('sort_order')->get() as $widget) {
+            foreach ($loadedWidgets as $widget) {
                 $data = unserialize($widget->data);
 
 
@@ -459,7 +462,7 @@ class Helper
             $prods->whereIn('id', $data['list']);
         }
 
-        return $prods->with('author');
+        return $prods->with(['author', 'action']);
     }
 
 
@@ -556,7 +559,7 @@ class Helper
         if (!empty($data['popular']) && $data['popular'] === 'on') {
             $product->orderBy('viewed', 'desc'); // prilagodi prema tvojoj logici popularnosti
         }
-        return $product->limit(15);
+        return $product->with(['author', 'action'])->limit(15);
     }
 
 

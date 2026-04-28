@@ -138,10 +138,11 @@
                         </thead>
                         <tbody id="ag-table-with-input-fields" class="js-gallery" >
                         @forelse ($products as $product)
+                            @php($subcategory = $product->subcategories->first())
                             <tr>
                                 <td class="text-center font-size-sm">
                                     <a class="img-link img-link-zoom-in img-lightbox" href="{{ $product->image ? asset($product->image) : asset('media/avatars/avatar0.jpg') }}">
-                                        <img src="{{ $product->image ? asset($product->image) : asset('media/avatars/avatar0.jpg') }}" height="80px"/>
+                                        <img src="{{ $product->thumb ? asset($product->thumb) : asset('media/avatars/avatar0.jpg') }}" height="80px"/>
                                     </a>
                                 </td>
                                 <td class="font-size-sm">
@@ -151,8 +152,8 @@
                                             <span class="badge badge-secondary">{{ $cat->title }}</span>
                                         @endforeach
                                     @endif
-                                    @if ($product->subcategory())
-                                        <span class="badge badge-secondary">{{ $product->subcategory()->title }}</span>
+                                    @if ($subcategory)
+                                        <span class="badge badge-secondary">{{ $subcategory->title }}</span>
                                     @endif
                                 </td>
                                 <td class="font-size-sm">{{ $product->sku }}</td>

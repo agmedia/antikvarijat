@@ -56,6 +56,14 @@ class Product extends Model
      */
     protected $eur;
 
+    protected bool $resolvedCategoryLoaded = false;
+
+    protected bool $resolvedSubcategoryLoaded = false;
+
+    protected ?Category $resolvedCategory = null;
+
+    protected ?Category $resolvedSubcategory = null;
+
 
     /**
      * Get the route key for the model.
@@ -306,7 +314,17 @@ class Product extends Model
      */
     public function category()
     {
-        return $this->hasOneThrough(Category::class, CategoryProducts::class, 'product_id', 'id', 'id', 'category_id')
+        if ($this->resolvedCategoryLoaded) {
+            return $this->resolvedCategory;
+        }
+
+        $this->resolvedCategoryLoaded = true;
+
+        if ($this->relationLoaded('categories')) {
+            return $this->resolvedCategory = $this->categories->firstWhere('parent_id', 0);
+        }
+
+        return $this->resolvedCategory = $this->hasOneThrough(Category::class, CategoryProducts::class, 'product_id', 'id', 'id', 'category_id')
             ->where('parent_id', 0)
             ->first();
     }
@@ -317,7 +335,19 @@ class Product extends Model
      */
     public function subcategory()
     {
-        return $this->hasOneThrough(Category::class, CategoryProducts::class, 'product_id', 'id', 'id', 'category_id')
+        if ($this->resolvedSubcategoryLoaded) {
+            return $this->resolvedSubcategory;
+        }
+
+        $this->resolvedSubcategoryLoaded = true;
+
+        if ($this->relationLoaded('categories')) {
+            return $this->resolvedSubcategory = $this->categories->first(function ($category) {
+                return (int) $category->parent_id !== 0;
+            });
+        }
+
+        return $this->resolvedSubcategory = $this->hasOneThrough(Category::class, CategoryProducts::class, 'product_id', 'id', 'id', 'category_id')
             ->where('parent_id', '!=', 0)
             ->first();
     }

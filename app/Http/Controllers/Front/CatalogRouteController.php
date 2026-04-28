@@ -42,6 +42,8 @@ class CatalogRouteController extends Controller
                 abort(404);
             }
 
+            $prod->loadMissing(['author', 'publisher', 'images', 'action', 'categories']);
+
             $prod->timestamps = false;
             $prod->increment('viewed');
             $prod->timestamps = true;
@@ -63,8 +65,21 @@ class CatalogRouteController extends Controller
             if (!empty($recentIds)) {
                 $recentProducts = Product::whereIn('id', $recentIds)
                     ->where('status', 1)
+                    ->with(['author', 'action'])
                     ->get()
                     ->sortBy(fn ($p) => array_search($p->id, $recentIds))
+                    ->values();
+            }
+
+            $relatedProducts = collect();
+            if ($cat) {
+                $relatedProducts = $cat->products()
+                    ->where('products.id', '!=', $prod->id)
+                    ->where('quantity', '>', 0)
+                    ->with(['author', 'action'])
+                    ->take(15)
+                    ->get()
+                    ->unique('id')
                     ->values();
             }
 
@@ -86,7 +101,8 @@ class CatalogRouteController extends Controller
                 'shipping_methods',
                 'payment_methods',
                 'gdl',
-                'recentProducts'
+                'recentProducts',
+                'relatedProducts'
             ));
         }
 

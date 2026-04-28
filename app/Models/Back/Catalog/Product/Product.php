@@ -157,6 +157,19 @@ class Product extends Model
         return substr($this->image, $from, $length);
     }
 
+    public function getThumbAttribute(): ?string
+    {
+        if (! $this->image) {
+            return null;
+        }
+
+        if (str_ends_with($this->image, '.webp')) {
+            return str_replace('.webp', '-thumb.webp', $this->image);
+        }
+
+        return preg_replace('/\.(jpe?g|png)$/i', '-thumb.webp', $this->image) ?: $this->image;
+    }
+
     /**
      * Validate New Product Request.
      */
