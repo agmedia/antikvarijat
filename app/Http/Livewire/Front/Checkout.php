@@ -12,11 +12,11 @@ use App\Models\Front\AgCart;
 use App\Models\Front\Checkout\GeoZone;
 use App\Models\Front\Checkout\PaymentMethod;
 use App\Models\Front\Checkout\ShippingMethod;
-use App\Services\MailchimpEcommerceService;
 use App\Models\TagManager;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 
 class Checkout extends Component
@@ -55,7 +55,7 @@ class Checkout extends Component
         'zip' => '',
         'company' => '',
         'oib' => '',
-        'state' => '',
+        'state' => 'Croatia',
     ];
 
     /**
@@ -229,60 +229,66 @@ class Checkout extends Component
      */
     public function changeStep(string $step = '')
     {
-        /*if ( ! $this->cart) {
-            return redirect()->route('kosarica');
-        }*/
+        try {
+            /*if ( ! $this->cart) {
+                return redirect()->route('kosarica');
+            }*/
 
-        $this->checkCart();
+            $this->checkCart();
 
-        if (in_array($step, ['', 'podaci']) && $this->cart) {
-            $this->gdl = TagManager::getGoogleCartDataLayer($this->cart->get());
-            $this->gdl_event = 'begin_checkout';
-            $this->gdl_shipping = false;
-            $this->gdl_payment = false;
-        }
-        // Podaci
-        if ($step == '') {
-            $step = 'podaci';
-
-            if (CheckoutSession::hasStep()) {
-                $step = CheckoutSession::getStep();
-            }
-        }
-
-        // Dostava
-        if (in_array($step, ['dostava', 'placanje']) && $this->cart) {
-            $this->setAddress($this->address);
-            $this->validate($this->address_rules);
-            $this->syncNewsletterSubscription();
-            $this->syncMailchimpCart();
-
-            if ($step == 'dostava' && $this->shipping != '') {
-                $this->checkShipping($this->shipping);
+            if (in_array($step, ['', 'podaci']) && $this->cart) {
                 $this->gdl = TagManager::getGoogleCartDataLayer($this->cart->get());
-                $this->gdl_event = 'add_shipping_info';
+                $this->gdl_event = 'begin_checkout';
+                $this->gdl_shipping = false;
+                $this->gdl_payment = false;
+            }
+            // Podaci
+            if ($step == '') {
+                $step = 'podaci';
+
+                if (CheckoutSession::hasStep()) {
+                    $step = CheckoutSession::getStep();
+                }
             }
 
-            if ($step == 'placanje' && $this->payment != '') {
-                $this->checkPayment($this->payment);
-                $this->gdl = TagManager::getGoogleCartDataLayer($this->cart->get());
-                $this->gdl_event = 'add_payment_info';
+            // Dostava
+            if (in_array($step, ['dostava', 'placanje']) && $this->cart) {
+                $this->setAddress($this->address);
+                $this->validate($this->address_rules);
+                $this->syncNewsletterSubscription();
+
+                if ($step == 'dostava' && $this->shipping != '') {
+                    $this->checkShipping($this->shipping);
+                    $this->gdl = TagManager::getGoogleCartDataLayer($this->cart->get());
+                    $this->gdl_event = 'add_shipping_info';
+                }
+
+                if ($step == 'placanje' && $this->payment != '') {
+                    $this->checkPayment($this->payment);
+                    $this->gdl = TagManager::getGoogleCartDataLayer($this->cart->get());
+                    $this->gdl_event = 'add_payment_info';
+                }
             }
+
+            // Plaćanje
+            if ($step == 'placanje') {
+                $this->validate($this->shipping_rules);
+            }
+
+            if ($step == 'placanje' and $this->shipping == 'gls_eu') {
+                $this->validate($this->comment_rules);
+            }
+
+            $this->step = $step;
+
+            CheckoutSession::setStep($step);
+        } catch (ValidationException $e) {
+            $this->dispatchBrowserEvent('checkout-validation-failed', [
+                'step' => $step,
+            ]);
+
+            throw $e;
         }
-
-        // Plaćanje
-        if ($step == 'placanje') {
-            $this->validate($this->shipping_rules);
-        }
-
-        if ($step == 'placanje' and $this->shipping == 'gls_eu') {
-        $this->validate($this->comment_rules);
-    }
-
-
-        $this->step = $step;
-
-        CheckoutSession::setStep($step);
     }
 
     private function syncNewsletterSubscription(): void
@@ -308,43 +314,6 @@ class Checkout extends Component
         }
     }
 
-    private function syncMailchimpCart(): void
-    {
-        if (! $this->cart) {
-            return;
-        }
-
-        $email = trim((string) ($this->address['email'] ?? ''));
-        if ($email === '') {
-            return;
-        }
-
-        try {
-            $result = app(MailchimpEcommerceService::class)->syncCart(
-                $this->cart->get(),
-                [
-                    'email' => $email,
-                    'first_name' => $this->address['fname'] ?? '',
-                    'last_name' => $this->address['lname'] ?? '',
-                ],
-                route('naplata')
-            );
-
-            if (! ($result['ok'] ?? false)) {
-                Log::warning('Mailchimp cart sync failed during checkout', [
-                    'email' => $email,
-                    'error' => $result['error'] ?? 'Nepoznata greška',
-                ]);
-            }
-        } catch (\Throwable $e) {
-            Log::warning('Mailchimp cart sync exception during checkout', [
-                'email' => $email,
-                'error' => $e->getMessage(),
-            ]);
-        }
-    }
-
-
     /**
      * @param string $state
      */
@@ -357,8 +326,6 @@ class Checkout extends Component
         $this->comment = '';
         CheckoutSession::forgetPayment();
         $this->payment = '';
-
-        $this->render();
     }
 
 
@@ -462,6 +429,8 @@ class Checkout extends Component
                     'zip' => auth()->user()->details->zip,
                     'state' => auth()->user()->details->state ?: 'Croatia'
                 ];
+            } else {
+                $this->address['state'] = $this->address['state'] ?: 'Croatia';
             }
         }
 

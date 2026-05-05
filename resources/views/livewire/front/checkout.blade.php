@@ -145,7 +145,7 @@
             <div class="col-sm-6">
                 <div class="mb-3">
                     <label class="form-label" for="checkout-ln">Prezime <span class="text-danger">*</span></label>
-                    <input class="form-control @error('address.lname') is-invalid @enderror" type="text" wire:model.deferl="address.lname">
+                    <input class="form-control @error('address.lname') is-invalid @enderror" type="text" wire:model.defer="address.lname">
                     @error('address.lname') <div class="invalid-feedback animated fadeIn">Prezime je obvezno</div> @enderror
                 </div>
             </div>
@@ -203,7 +203,7 @@
                 </div>
             </div>
             <div class="col-sm-6">
-                <div class="mb-3" wire:ignore>
+                <div class="mb-3">
                     <label class="form-label" for="checkout-country">Država <span class="text-danger">*</span></label>
                     <select class="form-select @error('address.state') is-invalid @enderror" id="state-select" wire:model="address.state" wire:change="stateSelected($event.target.value)">
 <!--                        <option value=""></option>-->
@@ -219,7 +219,7 @@
             <div class="row mt-2 mb-3">
                 <div class="col-sm-12">
                     <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="checkout-newsletter" name="newsletter" wire:model="newsletter">
+                        <input class="form-check-input" type="checkbox" id="checkout-newsletter" name="newsletter" wire:model.defer="newsletter">
                         <label class="form-check-label" for="checkout-newsletter">
                             Želim primati newsletter s novim naslovima i posebnim ponudama.
                         </label>
@@ -232,7 +232,7 @@
                 <div class="col-sm-12">
                     <div class="mb-3">
                         <label class="form-label" for="checkout-napomena">Komentar</label>
-                        <textarea class="form-control" id="checkout-napomena" rows="3" wire:model="napomena"></textarea>
+                        <textarea class="form-control" id="checkout-napomena" rows="3" wire:model.defer="napomena"></textarea>
                     </div>
                 </div>
             </div>
@@ -242,14 +242,14 @@
             <div class="col-sm-6">
                 <div class="mb-3">
                     <label class="form-label" for="checkout-company">Tvrtka</label>
-                    <input class="form-control" type="text" wire:model="address.company">
+                    <input class="form-control" type="text" wire:model.defer="address.company">
                 </div>
             </div>
             <div class="col-sm-6">
                 <div class="mb-3">
                     <div class="mb-3">
                         <label class="form-label" for="checkout-oib">OIB</label>
-                        <input class="form-control" type="text" wire:model="address.oib">
+                        <input class="form-control" type="text" wire:model.defer="address.oib">
                     </div>
                 </div>
             </div>
@@ -257,7 +257,7 @@
 
         <div class="d-flex pt-4 mt-3">
             <div class="w-50 pe-3"><a class="btn btn-secondary d-block w-100" href="{{ route('kosarica') }}"><i class="ci-arrow-left mt-sm-0 me-1"></i><span class="d-none d-sm-inline">Povratak na košaricu</span><span class="d-inline d-sm-none">Povratak</span></a></div>
-            <div class="w-50 ps-2"><a class="btn btn-primary d-block w-100" wire:click="changeStep('dostava')" href="javascript:void(0);"><span class="d-none d-sm-inline">Na odabir dostave</span><span class="d-inline d-sm-none">Nastavi</span><i class="ci-arrow-right mt-sm-0 ms-1"></i></a></div>
+            <div class="w-50 ps-2"><button class="btn btn-primary d-block w-100" wire:click="changeStep('dostava')" type="button"><span class="d-none d-sm-inline">Na odabir dostave</span><span class="d-inline d-sm-none">Nastavi</span><i class="ci-arrow-right mt-sm-0 ms-1"></i></button></div>
         </div>
 
     @endif
@@ -327,8 +327,8 @@
         @endforeach
         @error('shipping') <small class="text-danger">Način dostave je obvezan</small> @enderror
         <div class=" d-flex pt-4 mt-3">
-            <div class="w-50 pe-3"><a class="btn btn-secondary d-block w-100" wire:click="changeStep('podaci')" href="javascript:void(0);"><i class="ci-arrow-left mt-sm-0 me-1"></i><span class="d-none d-sm-inline">Povratak na unos podataka</span><span class="d-inline d-sm-none">Povratak</span></a></div>
-            <div class="w-50 ps-2"><a class="btn btn-primary d-block w-100" wire:click="changeStep('placanje')" href="javascript:void(0);"><span class="d-none d-sm-inline">Na odabir plaćanja</span><span class="d-inline d-sm-none">Nastavi</span><i class="ci-arrow-right mt-sm-0 ms-1"></i></a></div>
+            <div class="w-50 pe-3"><button class="btn btn-secondary d-block w-100" wire:click="changeStep('podaci')" type="button"><i class="ci-arrow-left mt-sm-0 me-1"></i><span class="d-none d-sm-inline">Povratak na unos podataka</span><span class="d-inline d-sm-none">Povratak</span></button></div>
+            <div class="w-50 ps-2"><button class="btn btn-primary d-block w-100" wire:click="changeStep('placanje')" type="button"><span class="d-none d-sm-inline">Na odabir plaćanja</span><span class="d-inline d-sm-none">Nastavi</span><i class="ci-arrow-right mt-sm-0 ms-1"></i></button></div>
         </div>
     @endif
 
@@ -354,7 +354,7 @@
         </div>
         @error('payment') <small class="text-danger">Način plaćanja je obvezan</small> @enderror
         <div class=" d-flex pt-4 mt-3">
-            <div class="w-50 pe-3"><a class="btn btn-secondary d-block w-100" wire:click="changeStep('dostava')" href="javascript:void(0);"><i class="ci-arrow-left mt-sm-0 me-1"></i><span class="d-none d-sm-inline">Povratak na odabir dostave</span><span class="d-inline d-sm-none">Povratak</span></a></div>
+            <div class="w-50 pe-3"><button class="btn btn-secondary d-block w-100" wire:click="changeStep('dostava')" type="button"><i class="ci-arrow-left mt-sm-0 me-1"></i><span class="d-none d-sm-inline">Povratak na odabir dostave</span><span class="d-inline d-sm-none">Povratak</span></button></div>
             <div class="w-50 ps-2"><a class="btn btn-primary d-block w-100" href="{{ ($payment != '') ? route('pregled') : '#' }}"><span class="d-none d-sm-inline">Pregledajte narudžbu</span><span class="d-inline d-sm-none">Nastavi</span><i class="ci-arrow-right mt-sm-0 ms-1"></i></a></div>
         </div>
     @endif
@@ -369,14 +369,53 @@
 
 
 <script>
+    function initGlsParcelLockerMap() {
+        const mapElement = document.getElementById('test-map');
+        const commentInput = document.getElementById('comment');
 
-    var el = document.getElementById('test-map');
-    el.addEventListener('change', (e) => {
-        console.log(e.detail);
-        alert('Odabrali ste:' + e.detail.name);
+        if (!mapElement || !commentInput || mapElement.dataset.listenerAttached === 'true') {
+            return;
+        }
 
-        document.getElementById('comment').value = e.detail.contact.address + ', ' + e.detail.contact.city + '_' + e.detail.id;
-        document.getElementById("comment").dispatchEvent(new Event('input'));
+        mapElement.dataset.listenerAttached = 'true';
+
+        mapElement.addEventListener('change', (event) => {
+            const detail = event.detail || {};
+            const contact = detail.contact || {};
+
+            commentInput.value = `${contact.address || ''}, ${contact.city || ''}_${detail.id || ''}`;
+            commentInput.dispatchEvent(new Event('input'));
+        });
+    }
+
+    function focusFirstCheckoutError() {
+        const firstInvalidField = document.querySelector('.is-invalid, .invalid-feedback, small.text-danger');
+
+        if (!firstInvalidField) {
+            return;
+        }
+
+        firstInvalidField.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+        });
+
+        if (typeof firstInvalidField.focus === 'function') {
+            firstInvalidField.focus({ preventScroll: true });
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', initGlsParcelLockerMap);
+    window.addEventListener('checkout-validation-failed', focusFirstCheckoutError);
+
+    document.addEventListener('livewire:load', () => {
+        initGlsParcelLockerMap();
+
+        if (window.Livewire && typeof window.Livewire.hook === 'function') {
+            window.Livewire.hook('message.processed', () => {
+                initGlsParcelLockerMap();
+            });
+        }
     });
 </script>
 
