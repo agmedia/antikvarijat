@@ -112,12 +112,16 @@
             subcat: String,
             author: String,
             publisher: String,
+            initialCategories: {
+                type: Array,
+                default: () => []
+            }
         },
         //
         data() {
             return {
                 expanded: false,
-                categories: [],
+                categories: this.initialCategories.length ? this.initialCategories : [],
                 category: null,
                 subcategory: null,
                 authors: [],
@@ -173,22 +177,42 @@
         mounted() {
             this.checkQuery(this.$route);
             this.checkCategory();
-            this.getCategories();
+            if (!this.categories.length) {
+                this.getCategories();
+            }
 
             if (this.author == '') {
                 this.show_authors = true;
-                this.getAuthors();
             }
 
             if (this.publisher == '') {
                 this.show_publishers = true;
-                this.getPublishers();
             }
 
             this.preselect();
+            this.deferFilterCollectionsLoad();
         },
 
         methods: {
+            deferFilterCollectionsLoad() {
+                const loadCollections = () => {
+                    if (this.show_authors && !this.authors.length) {
+                        this.getAuthors();
+                    }
+
+                    if (this.show_publishers && !this.publishers.length) {
+                        this.getPublishers();
+                    }
+                };
+
+                if (typeof window.requestIdleCallback === 'function') {
+                    window.requestIdleCallback(loadCollections, { timeout: 1200 });
+                    return;
+                }
+
+                window.setTimeout(loadCollections, 250);
+            },
+
             /**
             *
             **/

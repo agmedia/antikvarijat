@@ -1,3 +1,10 @@
+@php
+    $cardImageIndex = isset($loop) ? $loop->index : null;
+    $isProductDetailContext = request()->routeIs('catalog.route') && request()->route('prod');
+    $cardImageLoading = ($cardImageIndex !== null && $cardImageIndex < 8 && ! $isProductDetailContext) ? 'eager' : 'lazy';
+    $cardImageFetchPriority = ($cardImageIndex !== null && $cardImageIndex < 2 && ! $isProductDetailContext) ? 'high' : 'auto';
+@endphp
+
 <div class="card product-card shadow mb-2 pb-4">
     @if ($product->main_price > $product->main_special)
         <span class="badge  bg-dark mt-1 ms-1 badge-shadow">-{{ number_format(floatval(\App\Helpers\Helper::calculateDiscount($product->price, $product->special())), 0) }}%</span>
@@ -5,7 +12,15 @@
     <div class="product-thumb">
 
         <a  href="{{ url($product->url) }}">
-        <img loading="lazy" src="{{ $product->thumb }}" width="250" height="300" alt="{{ $product->name }}">
+        <img
+            src="{{ $product->thumb }}"
+            width="250"
+            height="300"
+            alt="{{ $product->name }}"
+            loading="{{ $cardImageLoading }}"
+            fetchpriority="{{ $cardImageFetchPriority }}"
+            decoding="async"
+            sizes="(max-width: 575px) 50vw, (max-width: 991px) 33vw, (max-width: 1399px) 25vw, 250px">
         </a>
     </div>
     <div class="card-body pt-2">
@@ -48,9 +63,9 @@
     </div>
 
         <div class="product-floating-btn">
-
-
-        <add-to-cart-btn-simple id="{{ $product->id }}"></add-to-cart-btn-simple>
+        <add-to-cart-btn-simple id="{{ $product->id }}">
+            <a href="{{ url($product->url) }}" class="btn btn-primary btn-sm" aria-label="Otvori {{ $product->name }}">+<i class="ci-cart fs-base ms-1"></i></a>
+        </add-to-cart-btn-simple>
         </div>
 </div>
 <hr class="d-sm-none">

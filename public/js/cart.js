@@ -2591,13 +2591,19 @@ function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
     cat: String,
     subcat: String,
     author: String,
-    publisher: String
+    publisher: String,
+    initialCategories: {
+      type: Array,
+      "default": function _default() {
+        return [];
+      }
+    }
   },
   //
   data: function data() {
     return {
       expanded: false,
-      categories: [],
+      categories: this.initialCategories.length ? this.initialCategories : [],
       category: null,
       subcategory: null,
       authors: [],
@@ -2652,28 +2658,47 @@ function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
   mounted: function mounted() {
     this.checkQuery(this.$route);
     this.checkCategory();
-    this.getCategories();
+    if (!this.categories.length) {
+      this.getCategories();
+    }
     if (this.author == '') {
       this.show_authors = true;
-      this.getAuthors();
     }
     if (this.publisher == '') {
       this.show_publishers = true;
-      this.getPublishers();
     }
     this.preselect();
+    this.deferFilterCollectionsLoad();
   },
   methods: {
+    deferFilterCollectionsLoad: function deferFilterCollectionsLoad() {
+      var _this = this;
+      var loadCollections = function loadCollections() {
+        if (_this.show_authors && !_this.authors.length) {
+          _this.getAuthors();
+        }
+        if (_this.show_publishers && !_this.publishers.length) {
+          _this.getPublishers();
+        }
+      };
+      if (typeof window.requestIdleCallback === 'function') {
+        window.requestIdleCallback(loadCollections, {
+          timeout: 1200
+        });
+        return;
+      }
+      window.setTimeout(loadCollections, 250);
+    },
     /**
     *
     **/
     getCategories: function getCategories() {
-      var _this = this;
+      var _this2 = this;
       var params = this.setParams();
       axios.post('filter/getCategories', {
         params: params
       }).then(function (response) {
-        _this.categories = response.data;
+        _this2.categories = response.data;
       });
     },
     _joinUrl: function _joinUrl(base) {
@@ -2716,28 +2741,28 @@ function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
      *
      **/
     getAuthors: function getAuthors() {
-      var _this2 = this;
+      var _this3 = this;
       this.authors_loaded = false;
       var params = this.setParams();
       axios.post('filter/getAuthors', {
         params: params
       }).then(function (response) {
-        _this2.authors_loaded = true;
-        _this2.authors = response.data;
+        _this3.authors_loaded = true;
+        _this3.authors = response.data;
       });
     },
     /**
      *
      **/
     getPublishers: function getPublishers() {
-      var _this3 = this;
+      var _this4 = this;
       this.publishers_loaded = false;
       var params = this.setParams();
       axios.post('filter/getPublishers', {
         params: params
       }).then(function (response) {
-        _this3.publishers_loaded = true;
-        _this3.publishers = response.data;
+        _this4.publishers_loaded = true;
+        _this4.publishers = response.data;
       });
     },
     /**
@@ -3136,12 +3161,19 @@ function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
     cat: String,
     subcat: String,
     author: String,
-    publisher: String
+    publisher: String,
+    initialProducts: {
+      type: Object,
+      "default": function _default() {
+        return {};
+      }
+    }
   },
   //
   data: function data() {
+    var bootstrappedProducts = this.initialProducts && Object.keys(this.initialProducts).length ? this.initialProducts : null;
     return {
-      products: {},
+      products: bootstrappedProducts || {},
       autor: '',
       nakladnik: '',
       start: '',
@@ -3151,7 +3183,7 @@ function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
       page: 1,
       origin: location.origin + '/',
       hr_total: 'rezultata',
-      products_loaded: false,
+      products_loaded: !!bootstrappedProducts,
       search_zero_result: false,
       navigation_zero_result: false
     };
@@ -3162,40 +3194,45 @@ function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
       this.setQueryParam('sort', value);
     },
     $route: function $route(params) {
-      this.checkQuery(params);
+      this.syncQuery(params);
+      this.loadProductsForCurrentState();
     }
   },
   //
   mounted: function mounted() {
-    this.checkQuery(this.$route);
-
-    /*console.log('twindow.AGSettings')
-    console.log(window.AGSettings)*/
+    this.syncQuery(this.$route);
+    if (this.products_loaded) {
+      this.checkHrTotal();
+      this.checkSpecials();
+      this.setZeroState();
+      return;
+    }
+    this.loadProductsForCurrentState();
   },
-
   methods: {
     /**
      *
      */
     getProducts: function getProducts() {
+      this.requestProducts();
+    },
+    requestProducts: function requestProducts() {
       var _this = this;
+      var page = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
       this.search_zero_result = false;
       this.navigation_zero_result = false;
       this.products_loaded = false;
       var params = this.setParams();
-      axios.post('filter/getProducts', {
+      var pageSuffix = page > 1 ? '?page=' + page : '';
+      axios.post('filter/getProducts' + pageSuffix, {
         params: params
       }).then(function (response) {
         _this.products_loaded = true;
         _this.products = response.data;
+        _this.page = page;
         _this.checkHrTotal();
         _this.checkSpecials();
-        if (params.pojam != '' && !_this.products.total) {
-          _this.search_zero_result = true;
-        }
-        if (params.pojam == '' && !_this.products.total) {
-          _this.navigation_zero_result = true;
-        }
+        _this.setZeroState();
       });
     },
     /**
@@ -3203,23 +3240,12 @@ function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
      * @param page
      */
     getProductsPage: function getProductsPage() {
-      var _this2 = this;
       var page = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
-      this.products_loaded = false;
       this.page = page;
       this.setQueryParam('page', page);
-      var params = this.setParams();
       window.scrollTo({
         top: 0,
         behavior: 'smooth'
-      });
-      axios.post('filter/getProducts?page=' + page, {
-        params: params
-      }).then(function (response) {
-        _this2.products_loaded = true;
-        _this2.products = response.data;
-        _this2.checkHrTotal();
-        _this2.checkSpecials();
       });
     },
     /**
@@ -3250,7 +3276,7 @@ function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
         nakladnik: this.nakladnik,
         sort: this.sorting,
         pojam: this.search_query,
-        page: this.page
+        page: this.page > 1 ? this.page : ''
       };
       return Object.entries(params).reduce(function (acc, _ref) {
         var _ref2 = _slicedToArray(_ref, 2),
@@ -3264,19 +3290,17 @@ function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
      *
      * @param params
      */
-    checkQuery: function checkQuery(params) {
+    syncQuery: function syncQuery(params) {
       this.start = params.query.start ? params.query.start : '';
       this.end = params.query.end ? params.query.end : '';
       this.autor = params.query.autor ? params.query.autor : '';
       this.nakladnik = params.query.nakladnik ? params.query.nakladnik : '';
-      this.page = params.query.page ? params.query.page : '';
+      this.page = params.query.page ? Number(params.query.page) : 1;
       this.sorting = params.query.sort ? params.query.sort : '';
       this.search_query = params.query.pojam ? params.query.pojam : '';
-      if (this.page != '') {
-        this.getProductsPage(this.page);
-      } else {
-        this.getProducts();
-      }
+    },
+    loadProductsForCurrentState: function loadProductsForCurrentState() {
+      this.requestProducts(this.page || 1);
     },
     /**
      *
@@ -3304,7 +3328,9 @@ function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
       return params;
     },
     checkSpecials: function checkSpecials() {
-      var now = new Date();
+      if (!this.products.data) {
+        return;
+      }
       for (var i = 0; i < this.products.data.length; i++) {
         if (Number(this.products.data[i].main_price) <= Number(this.products.data[i].main_special)) {
           this.products.data[i].special = false;
@@ -3315,10 +3341,17 @@ function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
      *
      */
     checkHrTotal: function checkHrTotal() {
+      if (!this.products.total && this.products.total !== 0) {
+        return;
+      }
       this.hr_total = 'rezultata';
       if (this.products.total.toString().slice(-1) == '1') {
         this.hr_total = 'rezultat';
       }
+    },
+    setZeroState: function setZeroState() {
+      this.search_zero_result = this.search_query != '' && !this.products.total;
+      this.navigation_zero_result = this.search_query == '' && !this.products.total;
     },
     /**
      *
@@ -4528,8 +4561,9 @@ var render = function render() {
     staticClass: "fs-sm text-light btn btn-primary btn-sm text-nowrap ms-2 d-none d-sm-block"
   }, [_vm._v("Ukupno " + _vm._s(_vm.products.total ? Number(_vm.products.total).toLocaleString("hr-HR") : 0) + " artikala")])])]), _vm._v(" "), _vm.products.total ? _c("div", {
     staticClass: "row row-cols-2 row-cols-sm-3 row-cols-md-3 row-cols-lg-3 row-cols-xl-4 row-cols-xxl-4 mb-3 px-2"
-  }, _vm._l(_vm.products.data, function (product) {
+  }, _vm._l(_vm.products.data, function (product, index) {
     return _c("div", {
+      key: product.id,
       staticClass: "col px-2 mb-4"
     }, [_c("div", {
       staticClass: "card product-card shadow mb-2"
@@ -4543,7 +4577,10 @@ var render = function render() {
       }
     }, [_c("img", {
       attrs: {
-        loading: "lazy",
+        loading: index < 8 ? "eager" : "lazy",
+        fetchpriority: index < 2 ? "high" : "auto",
+        decoding: "async",
+        sizes: "(max-width: 575px) 50vw, (max-width: 991px) 33vw, (max-width: 1399px) 25vw, 250px",
         src: product.image.replace(".webp", "-thumb.webp"),
         width: "250",
         height: "300",

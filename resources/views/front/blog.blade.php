@@ -62,7 +62,17 @@
                     @foreach ($blogs as $blog)
                         <article class="masonry-grid-item">
                             <div class="card">
-                                <a class="blog-entry-thumb" href="{{ route('catalog.route.blog', ['blog' => $blog]) }}"><img class="card-img-top" src="{{ $blog->image }}" alt="Post"></a>
+                                <a class="blog-entry-thumb" href="{{ route('catalog.route.blog', ['blog' => $blog]) }}">
+                                    <img
+                                        class="card-img-top"
+                                        src="{{ $blog->image }}"
+                                        alt="{{ $blog->title }}"
+                                        loading="{{ $loop->index < 3 ? 'eager' : 'lazy' }}"
+                                        fetchpriority="{{ $loop->index < 2 ? 'high' : 'auto' }}"
+                                        decoding="async"
+                                        width="400"
+                                        height="230">
+                                </a>
                                 <div class="card-body">
                                     <h2 class="h6 blog-entry-title"><a href="{{ route('catalog.route.blog', ['blog' => $blog]) }}">{{ $blog->title }}</a></h2>
                                     <p class="fs-sm">{{ $blog->short_description }}</p>
@@ -89,7 +99,15 @@
                 <div class="col-lg-9">
                     <div class="gallery row pb-2">
                         <div class="col-sm-12">
-                            <a class="gallery-item rounded-3 mb-grid-gutter" href="{{ asset($blog->image) }}" data-bs-sub-html="&lt;h6 class=&quot;fs-sm text-light&quot;&gt;Gallery image caption #1&lt;/h6&gt;"><img src="{{ asset($blog->image) }}" alt="Gallery image"><span class="gallery-item-caption">{{ $blog->title }}</span></a>
+                            <a class="gallery-item rounded-3 mb-grid-gutter" href="{{ asset($blog->image) }}" data-bs-sub-html="&lt;h6 class=&quot;fs-sm text-light&quot;&gt;Gallery image caption #1&lt;/h6&gt;">
+                                <img
+                                    src="{{ asset($blog->image) }}"
+                                    alt="{{ $blog->title }}"
+                                    loading="eager"
+                                    fetchpriority="high"
+                                    decoding="async">
+                                <span class="gallery-item-caption">{{ $blog->title }}</span>
+                            </a>
                         </div>
                     </div>
                     {!! $blog->description !!}

@@ -140,25 +140,9 @@
 
             <div class="block-content">
                 <table class="table table-borderless table-striped table-vcenter font-size-sm">
-                    <tbody>
+                    <tbody id="order-history-list">
                     @foreach ($order->history as $record)
-                        <tr>
-                            <td class="font-size-base d-none d-xl-block">
-                                @if ($record->status)
-                                    <span class="badge badge-pill badge-{{ $record->status->color }}">{{ $record->status->title }}</span>
-                                @else
-                                    <small>Komentar</small>
-                                @endif
-                            </td>
-                            <td>
-                                <span class="font-w600">{{ \Illuminate\Support\Carbon::make($record->created_at)->locale('hr_HR')->diffForHumans() }}</span> /
-                                <span class="font-weight-light">{{ \Illuminate\Support\Carbon::make($record->created_at)->format('d.m.Y - h:i') }}</span>
-                            </td>
-                            <td>
-                                <a href="javascript:void(0)">{{ $record->user ? $record->user->name : $order->shipping_fname . ' ' . $order->shipping_lname }}</a>
-                            </td>
-                            <td>{{ $record->comment }}</td>
-                        </tr>
+                        @include('back.order.partials.history-row')
                     @endforeach
                     </tbody>
                 </table>
@@ -264,12 +248,15 @@
                 console.log(response.data)
                 if (response.data.message) {
                     $('#comment-modal').modal('hide');
+                    $('#comment-input').val('');
+
+                    if (response.data.history_html) {
+                        $('#order-history-list').prepend(response.data.history_html);
+                    }
 
                     successToast.fire({
                         timer: 1500,
                         text: response.data.message,
-                    }).then(() => {
-                        location.reload();
                     })
 
                 } else {

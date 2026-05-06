@@ -10,9 +10,6 @@ use App\Models\Back\Marketing\NewsletterSubscriber;
 use App\Models\Back\Orders\Order as BackOrder;
 use App\Models\Back\Settings\Settings;
 use App\Models\Front\AgCart;
-use App\Services\MailchimpEcommerceService;
-use App\Services\MailchimpNewsletterService;
-
 use App\Models\Front\Checkout\Order;
 use App\Models\TagManager;
 use Illuminate\Http\Request;
@@ -187,47 +184,9 @@ class CheckoutController extends Controller
 
             if ($processedNow) {
                 NewsletterSubscriber::attachOrderToEmail((string) $order->payment_email, (int) $order->id);
-                $mailchimp = app(MailchimpEcommerceService::class);
-
-                try {
-                    $orderSync = $mailchimp->syncOrder($order);
-                    if (! ($orderSync['ok'] ?? false)) {
-                        Log::warning('Mailchimp order sync returned error on checkout success', [
-                            'order_id' => $order->id,
-                            'error' => $orderSync['error'] ?? 'Nepoznata greška',
-                        ]);
-                    }
-
-                    $mailchimp->deleteCartById((string) session(config('session.cart')));
-                    $customerSync = app(MailchimpNewsletterService::class)->syncCustomerFromOrder($order);
-                    if (! ($customerSync['ok'] ?? false)) {
-                        Log::warning('Mailchimp customer sync returned error on checkout success', [
-                            'order_id' => $order->id,
-                            'error' => $customerSync['error'] ?? 'Nepoznata greška',
-                        ]);
-                    }
-                } catch (\Throwable $e) {
-                    Log::warning('Mailchimp order/cart sync failed on checkout success', [
-                        'order_id' => $order->id,
-                        'error' => $e->getMessage(),
-                    ]);
-                }
 
                 $order->decreaseCartItems($order->products)
                       ->forgetSession();
-
-                try {
-                    foreach ($order->products()->with('product')->get() as $orderProduct) {
-                        if ($orderProduct->product) {
-                            $mailchimp->syncCatalogProduct($orderProduct->product->fresh() ?: $orderProduct->product);
-                        }
-                    }
-                } catch (\Throwable $e) {
-                    Log::warning('Mailchimp product inventory refresh failed after checkout success', [
-                        'order_id' => $order->id,
-                        'error' => $e->getMessage(),
-                    ]);
-                }
 
                 $this->shoppingCart()
                      ->flush()

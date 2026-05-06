@@ -34,7 +34,7 @@
                                  data-carousel-options="{&quot;items&quot;:1,&quot;controls&quot;:false,&quot;autoplay&quot;:true,&quot;autoplayTimeout&quot;:5500,&quot;autoplayHoverPause&quot;:true,&quot;speed&quot;:800,&quot;mode&quot;:&quot;carousel&quot;,&quot;loop&quot;:true,&quot;nav&quot;:false,&quot;mouseDrag&quot;:true,&quot;autoplayButtonOutput&quot;:false}">
                                  <div>
                                     <div class="row align-items-center">
-                                        <div class="col-md-6 order-md-2"><img class="d-block mx-auto" src="{{ asset('media/img/knjige_rara_shape_left.png') }}" alt="Hrvatska RARA"></div>
+                                        <div class="col-md-6 order-md-2"><img class="d-block mx-auto" src="{{ asset('media/img/knjige_rara_shape_left.png') }}" alt="Hrvatska RARA" loading="eager" fetchpriority="high" decoding="async"></div>
                                         <div class="col-lg-5 col-md-6 offset-lg-1 order-md-1 pt-4 pb-md-4 text-center text-md-start">
                                             <p class="fw-light h4 pb-1 from-top delay-1">Za istinske kolekcionare</p>
                                             <h2 class="display-6 from-bottom ">Hrvatska RARA</h2>
@@ -46,7 +46,7 @@
                                 </div>
                                 <div>
                                     <div class="row align-items-center">
-                                        <div class="col-md-6 order-md-2"><img class="d-block mx-auto" src="{{ asset('media/img/karta_kapljica.png') }}" alt="Hrvatska RARA"></div>
+                                        <div class="col-md-6 order-md-2"><img class="d-block mx-auto" src="{{ asset('media/img/karta_kapljica.png') }}" alt="Hrvatska RARA" loading="lazy" decoding="async"></div>
                                         <div class="col-lg-5 col-md-6 offset-lg-1 order-md-1 pt-4 pb-md-4 text-center text-md-start">
                                             <p class="h4 fw-light pb-1 from-top delay-1">Za istinske kolekcionare</p>
                                             <h2 class="display-6 from-bottom ">Zemljovidi i vedute</h2>
@@ -66,18 +66,18 @@
                     <div class="col-xl-3 order-xl-1 pt-4 mt-3 mt-xl-0 pt-xl-0">
                         <div class="table-responsive" data-simplebar>
                             <div class="d-flex d-xl-block">
-                                <a class="d-flex align-items-center rounded-3 pt-2 ps-2 mb-4 me-3 me-xl-0 mbanner" href="knjige/knjizevnost" ><img src="{{ asset('media/img/knjizevnost-ikona.png') }}" width="100" alt="Banner">
+                                <a class="d-flex align-items-center rounded-3 pt-2 ps-2 mb-4 me-3 me-xl-0 mbanner" href="knjige/knjizevnost" ><img src="{{ asset('media/img/knjizevnost-ikona.png') }}" width="100" alt="Banner" loading="eager" decoding="async">
                                     <div class="py-4 px-2">
                                         <h5 class="mb-2"><span class="fw-light">Kategorija:</span> <br> Književnost</h5>
                                         <div class="text-dark fs-sm">Istražite naslove<i class="ci-arrow-right fs-xs ms-1"></i></div>
                                     </div>
                                 </a>
-                                <a class="d-flex align-items-center rounded-3 pt-2 ps-2 mb-4 me-4 me-xl-0 mbanner" href="knjige/filozofija" ><img src="{{ asset('media/img/umjetnost-ikona.png') }}" width="100" alt="Banner">
+                                <a class="d-flex align-items-center rounded-3 pt-2 ps-2 mb-4 me-4 me-xl-0 mbanner" href="knjige/filozofija" ><img src="{{ asset('media/img/umjetnost-ikona.png') }}" width="100" alt="Banner" loading="eager" decoding="async">
                                     <div class="py-4 px-2">
                                         <h5 class="mb-2"><span class="fw-light">Kategorija:</span> <br> </span> Filozofija</h5>
                                         <div class="text-dark fs-sm">Istražite naslove<i class="ci-arrow-right fs-xs ms-1"></i></div>
                                     </div></a>
-                                <a class="d-flex align-items-center rounded-3 pt-2 ps-2 mb-4 me-3 me-xl-0 mbanner" href="knjige/povijest" ><img src="{{ asset('media/img/povijest-ikona.png') }}" width="100" alt="Banner">
+                                <a class="d-flex align-items-center rounded-3 pt-2 ps-2 mb-4 me-3 me-xl-0 mbanner" href="knjige/povijest" ><img src="{{ asset('media/img/povijest-ikona.png') }}" width="100" alt="Banner" loading="eager" decoding="async">
                                     <div class="py-4 px-2">
                                         <h5 class="mb-2"><span class="fw-light">Kategorija:</span> <br> </span> Povijest</h5>
                                         <div class="text-dark fs-sm">Istražite naslove<i class="ci-arrow-right fs-xs ms-1"></i></div>
@@ -96,8 +96,8 @@
                 <div class="d-flex flex-wrap justify-content-between align-items-center pt-1 pb-2 ">
 
                     <a href="https://www.antikvarijat-biblos.hr/knjige">
-                    <img src="{{ asset('media/web-nocKnjige20tiny.jpg') }}" class="d-none d-sm-block" alt="Banner">
-                    <img src="{{ asset('media/web-nocKnjige20-SQtiny.jpg') }}" class="d-block d-sm-none" alt="Banner">
+                    <img src="{{ asset('media/web-nocKnjige20tiny.jpg') }}" class="d-none d-sm-block" alt="Banner" loading="lazy" decoding="async">
+                    <img src="{{ asset('media/web-nocKnjige20-SQtiny.jpg') }}" class="d-block d-sm-none" alt="Banner" loading="lazy" decoding="async">
                     </a>
                 </div>
             </div>

@@ -42,30 +42,6 @@ return [
         'bypass_local' => env('RECAPTCHA_BYPASS_LOCAL', true),
     ],
 
-    'mailchimp' => [
-        'api_key'       => env('MAILCHIMP_API_KEY'),
-        'server_prefix' => env('MAILCHIMP_SERVER_PREFIX'),
-        'audience_id'   => env('MAILCHIMP_AUDIENCE_ID'),
-        'subscribe_status' => env('MAILCHIMP_SUBSCRIBE_STATUS', 'subscribed'),
-        'ecommerce_store_id' => env('MAILCHIMP_ECOMMERCE_STORE_ID', 'antikvarijat-biblos'),
-        'ecommerce_store_name' => env('MAILCHIMP_ECOMMERCE_STORE_NAME', 'Antikvarijat Biblos'),
-        'ecommerce_currency_code' => env('MAILCHIMP_ECOMMERCE_CURRENCY_CODE', 'EUR'),
-        'abandoned_cart_tag' => env('MAILCHIMP_TAG_ABANDONED_CART', 'abandoned_cart'),
-        'customer_tag' => env('MAILCHIMP_TAG_CUSTOMER', 'customer'),
-        'storefront_url' => env('MAILCHIMP_STOREFRONT_URL'),
-        'connected_site_script_url' => env('MAILCHIMP_CONNECTED_SITE_SCRIPT_URL'),
-        'merge_field_labels' => [
-            'first_name' => env('MAILCHIMP_MERGE_LABEL_FIRST_NAME', 'First Name'),
-            'last_name' => env('MAILCHIMP_MERGE_LABEL_LAST_NAME', 'Last Name'),
-            'address' => env('MAILCHIMP_MERGE_LABEL_ADDRESS', 'Address'),
-            'phone' => env('MAILCHIMP_MERGE_LABEL_PHONE', 'Phone Number'),
-            'company' => env('MAILCHIMP_MERGE_LABEL_COMPANY', 'Company'),
-            'zip' => env('MAILCHIMP_MERGE_LABEL_ZIP', 'ZIP'),
-            'city' => env('MAILCHIMP_MERGE_LABEL_CITY', 'City'),
-            'birthday_year' => env('MAILCHIMP_MERGE_LABEL_BIRTHDAY_YEAR', 'BirthdayYear'),
-        ],
-    ],
-
     'google_translate' => [
         'api_key' => env('GOOGLE_TRANSLATE_API_KEY'),
         'source' => env('GOOGLE_TRANSLATE_SOURCE', 'hr'),

@@ -18,6 +18,7 @@ use App\Models\Seo;
 use App\Models\TagManager;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -135,7 +136,10 @@ class CatalogRouteController extends Controller
         $meta_tags = Seo::getMetaTags($request, 'filter');
         $crumbs = (new Breadcrumb())->category($group, $cat, $subcat)->resolve();
 
-        return view('front.catalog.category.index', compact('group', 'cat', 'subcat', 'prod', 'crumbs', 'meta_tags'));
+        return view('front.catalog.category.index', array_merge(
+            compact('group', 'cat', 'subcat', 'prod', 'crumbs', 'meta_tags'),
+            $this->categoryIndexBootstrap($request, $group, $cat, $subcat)
+        ));
     }
 
     public function resolveOldUrl($prod = null)
@@ -209,7 +213,10 @@ class CatalogRouteController extends Controller
         $seo = Seo::getAuthorData($author, $cat, $subcat);
         $crumbs = null;
 
-        return view('front.catalog.category.index', compact('author', 'letter', 'cat', 'subcat', 'seo', 'crumbs'));
+        return view('front.catalog.category.index', array_merge(
+            compact('author', 'letter', 'cat', 'subcat', 'seo', 'crumbs'),
+            $this->categoryIndexBootstrap($request, null, $cat, $subcat, null, $author)
+        ));
     }
 
     public function publisher(Request $request, Publisher $publisher = null, Category $cat = null, Category $subcat = null)
@@ -260,7 +267,10 @@ class CatalogRouteController extends Controller
         $seo = Seo::getPublisherData($publisher, $cat, $subcat);
         $crumbs = null;
 
-        return view('front.catalog.category.index', compact('publisher', 'letter', 'cat', 'subcat', 'seo', 'crumbs'));
+        return view('front.catalog.category.index', array_merge(
+            compact('publisher', 'letter', 'cat', 'subcat', 'seo', 'crumbs'),
+            $this->categoryIndexBootstrap($request, null, $cat, $subcat, null, null, $publisher)
+        ));
     }
 
     public function tag(Request $request)
@@ -278,7 +288,10 @@ class CatalogRouteController extends Controller
         $ids = Helper::getTags($query);
         $group = $cat = $subcat = $crumbs = null;
 
-        return view('front.catalog.category.index', compact('group', 'cat', 'subcat', 'ids', 'crumbs'));
+        return view('front.catalog.category.index', array_merge(
+            compact('group', 'cat', 'subcat', 'ids', 'crumbs'),
+            $this->categoryIndexBootstrap($request, $group, $cat, $subcat, $ids)
+        ));
     }
 
     public function search(Request $request)
@@ -297,7 +310,10 @@ class CatalogRouteController extends Controller
 
             $crumbs = null;
 
-            return view('front.catalog.category.index', compact('group', 'cat', 'subcat', 'ids', 'crumbs'));
+            return view('front.catalog.category.index', array_merge(
+                compact('group', 'cat', 'subcat', 'ids', 'crumbs'),
+                $this->categoryIndexBootstrap($request, $group, $cat, $subcat, $ids)
+            ));
         }
 
         // API autocomplete – structured JSON: counts + products + categories
@@ -449,7 +465,10 @@ class CatalogRouteController extends Controller
         $group = 'snizenja';
         $crumbs = null;
 
-        return view('front.catalog.category.index', compact('group', 'cat', 'subcat', 'ids', 'crumbs'));
+        return view('front.catalog.category.index', array_merge(
+            compact('group', 'cat', 'subcat', 'ids', 'crumbs'),
+            $this->categoryIndexBootstrap($request, $group, $cat, $subcat, $ids)
+        ));
     }
 
     public function page(Page $page)
@@ -482,5 +501,349 @@ class CatalogRouteController extends Controller
             }
         }
         return 'A';
+    }
+
+    private function categoryIndexBootstrap(
+        Request $request,
+        ?string $group = null,
+        ?Category $cat = null,
+        ?Category $subcat = null,
+        $ids = null,
+        ?Author $author = null,
+        ?Publisher $publisher = null
+    ): array {
+        $initialCategories = $this->resolveInitialCategories($group, $cat, $subcat, $ids, $author, $publisher);
+        $initialProductsPaginator = $this->resolveInitialProductsPaginator($request, $group, $cat, $subcat, $ids, $author, $publisher);
+
+        return [
+            'initialCategories' => $initialCategories,
+            'initialProductsPaginator' => $initialProductsPaginator,
+            'initialProductsData' => $this->mapProductsPaginator($initialProductsPaginator),
+        ];
+    }
+
+    private function resolveInitialProductsPaginator(
+        Request $request,
+        ?string $group = null,
+        ?Category $cat = null,
+        ?Category $subcat = null,
+        $ids = null,
+        ?Author $author = null,
+        ?Publisher $publisher = null
+    ): LengthAwarePaginator {
+        $queryRequest = new Request($this->buildProductRequestData($request, $group, $cat, $subcat, $ids, $author, $publisher));
+        $page = max((int) $queryRequest->input('page', 1), 1);
+
+        return (new Product())->filter($queryRequest)
+            ->select([
+                'id',
+                'author_id',
+                'action_id',
+                'name',
+                'url',
+                'category_string',
+                'image',
+                'price',
+                'special',
+                'special_from',
+                'special_to',
+            ])
+            ->with([
+                'author:id,title,url',
+                'action:id,status,coupon',
+            ])
+            ->paginate(config('settings.pagination.front'), ['*'], 'page', $page);
+    }
+
+    private function buildProductRequestData(
+        Request $request,
+        ?string $group = null,
+        ?Category $cat = null,
+        ?Category $subcat = null,
+        $ids = null,
+        ?Author $author = null,
+        ?Publisher $publisher = null
+    ): array {
+        $query = $request->query();
+        $requestData = [];
+
+        if ($idsParam = $this->normalizeIdsParam($ids)) {
+            $requestData['ids'] = $idsParam;
+        }
+
+        if ($group) {
+            $requestData['group'] = $group;
+        }
+
+        if ($cat) {
+            $requestData['cat'] = $cat->id;
+        }
+
+        if ($subcat) {
+            $requestData['subcat'] = $subcat->id;
+        }
+
+        if ($author) {
+            $requestData['autor'] = [$author];
+        } elseif (!empty($query['autor'])) {
+            $requestData['autor'] = $this->resolveSelectedAuthors($query['autor']);
+        }
+
+        if ($publisher) {
+            $requestData['nakladnik'] = [$publisher];
+        } elseif (!empty($query['nakladnik'])) {
+            $requestData['nakladnik'] = $this->resolveSelectedPublishers($query['nakladnik']);
+        }
+
+        if (!empty($query['start']) && strlen((string) $query['start']) === 4) {
+            $requestData['start'] = $query['start'];
+        }
+
+        if (!empty($query['end']) && strlen((string) $query['end']) === 4) {
+            $requestData['end'] = $query['end'];
+        }
+
+        if (!empty($query['sort'])) {
+            $requestData['sort'] = $query['sort'];
+        }
+
+        if ($request->has(config('settings.search_keyword'))) {
+            $requestData[config('settings.search_keyword')] = $request->input(config('settings.search_keyword'));
+        }
+
+        if (!empty($query['page'])) {
+            $requestData['page'] = max((int) $query['page'], 1);
+        }
+
+        return $requestData;
+    }
+
+    private function mapProductsPaginator(LengthAwarePaginator $paginator): array
+    {
+        $data = $paginator->getCollection()->map(function (Product $product) {
+            $effectiveSpecial = $product->special();
+            $hasSpecialPrice = $effectiveSpecial < (float) $product->price;
+
+            return [
+                'id' => $product->id,
+                'name' => $product->name,
+                'url' => $product->url,
+                'category_string' => $product->category_string,
+                'image' => $product->image,
+                'price' => number_format((float) $product->price, 4, '.', ''),
+                'special' => $hasSpecialPrice ? number_format((float) $effectiveSpecial, 4, '.', '') : null,
+                'main_price' => $product->main_price,
+                'main_price_text' => $product->main_price_text,
+                'main_special' => $product->main_special,
+                'main_special_text' => $product->main_special_text,
+                'secondary_price' => $product->secondary_price,
+                'secondary_price_text' => $product->secondary_price_text,
+                'secondary_special' => $product->secondary_special,
+                'secondary_special_text' => $product->secondary_special_text,
+                'author' => $product->author ? [
+                    'title' => $product->author->title,
+                    'url' => $product->author->url,
+                ] : null,
+            ];
+        })->values()->all();
+
+        return [
+            'current_page' => $paginator->currentPage(),
+            'data' => $data,
+            'first_page_url' => $paginator->url(1),
+            'from' => $paginator->firstItem(),
+            'last_page' => $paginator->lastPage(),
+            'last_page_url' => $paginator->url($paginator->lastPage()),
+            'next_page_url' => $paginator->nextPageUrl(),
+            'path' => $paginator->path(),
+            'per_page' => $paginator->perPage(),
+            'prev_page_url' => $paginator->previousPageUrl(),
+            'to' => $paginator->lastItem(),
+            'total' => $paginator->total(),
+        ];
+    }
+
+    private function resolveInitialCategories(
+        ?string $group = null,
+        ?Category $cat = null,
+        ?Category $subcat = null,
+        $ids = null,
+        ?Author $author = null,
+        ?Publisher $publisher = null
+    ): array {
+        if ($idsParam = $this->normalizeIdsParam($ids)) {
+            $resolvedIds = collect(explode(',', substr($idsParam, 1, -1)))->filter()->unique();
+
+            $categories = Category::active()
+                ->whereHas('products', function ($query) use ($resolvedIds) {
+                    $query->active()->hasStock()->whereIn('id', $resolvedIds);
+                })
+                ->sortByName()
+                ->withCount([
+                    'products as products_count' => function ($query) use ($resolvedIds) {
+                        $query->active()->hasStock()->whereIn('id', $resolvedIds);
+                    }
+                ])
+                ->get()
+                ->toArray();
+
+            return $this->resolveCategoryArray($categories, 'categories');
+        }
+
+        if (!$cat && !$subcat) {
+            if ($group) {
+                $normalizedGroup = $this->normalizeCategoryGroup($group);
+
+                $categories = Helper::resolveCache('categories')->remember($normalizedGroup, config('cache.life'), function () use ($normalizedGroup) {
+                    return Category::active()
+                        ->topList($normalizedGroup)
+                        ->sortByName()
+                        ->withCount(['products as products_count' => function ($query) {
+                            $query->where('status', 1)->where('quantity', '>', 0);
+                        }])
+                        ->get()
+                        ->toArray();
+                });
+
+                return $this->resolveCategoryArray($categories, 'categories');
+            }
+
+            if ($author) {
+                return $this->resolveCategoryArray($author->categories(), 'author', $author);
+            }
+
+            if ($publisher) {
+                return $this->resolveCategoryArray($publisher->categories(), 'publisher', $publisher);
+            }
+        }
+
+        if ($cat && !$subcat) {
+            if ($group) {
+                $items = Helper::resolveCache('categories')->remember($cat->id, config('cache.life'), function () use ($cat) {
+                    return Category::active()
+                        ->where('parent_id', $cat->id)
+                        ->sortByName()
+                        ->withCount(['products as products_count' => function ($query) {
+                            $query->where('status', 1)->where('quantity', '>', 0);
+                        }])
+                        ->get()
+                        ->toArray();
+                });
+
+                return $this->resolveCategoryArray($items, 'categories', null, $cat->slug);
+            }
+
+            if ($author) {
+                return $this->resolveCategoryArray($author->categories($cat->id), 'author', $author, $cat->slug);
+            }
+
+            if ($publisher) {
+                return $this->resolveCategoryArray($publisher->categories($cat->id), 'publisher', $publisher, $cat->slug);
+            }
+        }
+
+        return [];
+    }
+
+    private function resolveCategoryArray($categories, string $type, $target = null, ?string $parentSlug = null): array
+    {
+        return collect($categories)->map(function ($category) use ($type, $target, $parentSlug) {
+            $item = is_array($category) ? $category : $category->toArray();
+
+            return [
+                'id' => $item['id'],
+                'title' => $item['title'],
+                'count' => $item['products_count'] ?? 0,
+                'url' => $this->resolveCategoryUrl($item, $type, $target, $parentSlug),
+            ];
+        })->values()->all();
+    }
+
+    private function resolveCategoryUrl(array $category, string $type, $target = null, ?string $parentSlug = null): string
+    {
+        if ($type === 'author') {
+            return route('catalog.route.author', [
+                'author' => $target,
+                'cat' => $parentSlug ?: $category['slug'],
+                'subcat' => $parentSlug ? $category['slug'] : null,
+            ]);
+        }
+
+        if ($type === 'publisher') {
+            return route('catalog.route.publisher', [
+                'publisher' => $target,
+                'cat' => $parentSlug ?: $category['slug'],
+                'subcat' => $parentSlug ? $category['slug'] : null,
+            ]);
+        }
+
+        return route('catalog.route', [
+            'group' => Str::slug($category['group']),
+            'cat' => $parentSlug ?: $category['slug'],
+            'subcat' => $parentSlug ? $category['slug'] : null,
+        ]);
+    }
+
+    private function normalizeIdsParam($ids): ?string
+    {
+        if ($ids === null || $ids === '' || $ids === [] || $ids === '[]') {
+            return null;
+        }
+
+        $collection = $ids instanceof Collection ? $ids : collect($ids);
+        $normalized = $collection->filter()->map(function ($id) {
+            return is_numeric($id) ? (int) $id : $id;
+        })->unique()->values();
+
+        if ($normalized->isEmpty()) {
+            return null;
+        }
+
+        return '[' . $normalized->implode(',') . ']';
+    }
+
+    private function resolveSelectedAuthors(string $slugs): array
+    {
+        $items = collect(explode('+', $slugs))->filter()->values();
+
+        if ($items->isEmpty()) {
+            return [];
+        }
+
+        return Author::query()
+            ->whereIn('slug', $items)
+            ->get()
+            ->sortBy(function (Author $author) use ($items) {
+                return $items->search($author->slug);
+            })
+            ->values()
+            ->all();
+    }
+
+    private function resolveSelectedPublishers(string $slugs): array
+    {
+        $items = collect(explode('+', $slugs))->filter()->values();
+
+        if ($items->isEmpty()) {
+            return [];
+        }
+
+        return Publisher::query()
+            ->whereIn('slug', $items)
+            ->get()
+            ->sortBy(function (Publisher $publisher) use ($items) {
+                return $items->search($publisher->slug);
+            })
+            ->values()
+            ->all();
+    }
+
+    private function normalizeCategoryGroup(?string $group): ?string
+    {
+        if ($group === 'zemljovidi-i-vedute') {
+            return 'Zemljovidi i vedute';
+        }
+
+        return $group;
     }
 }

@@ -87,7 +87,7 @@
 
                                    <div class="item single-product" >
                                        <a class="link" href="{{  ($prod->image) }}">
-                                           <img src="{{  ($prod->image) }}" alt="{{ $prod->name }}" height="600" style="max-height:600px">
+                                           <img src="{{  ($prod->image) }}" alt="{{ $prod->name }}" height="600" style="max-height:600px" loading="eager" fetchpriority="high" decoding="async">
                                        </a>
                                    </div>
 
@@ -98,7 +98,7 @@
                                    @foreach ($prod->images as $key => $image)
                                        <div class="item single-product" >
                                            <a class="link" href="{{  config('settings.images_domain') .($image->image) }}">
-                                               <img src="{{  config('settings.images_domain') .($image->image) }}" alt="{{ $image->alt }}" height="600" style="max-height:600px">
+                                               <img src="{{  config('settings.images_domain') .($image->image) }}" alt="{{ $image->alt }}" height="600" style="max-height:600px" loading="lazy" decoding="async">
                                            </a>
                                        </div>
 
@@ -110,12 +110,12 @@
                                @if ($prod->images->count())
                                    @if ( ! empty($prod->thumb))
 
-                                       <li><img src="{{  ($prod->thumb) }}" class="thumb" width="100" height="100" alt="{{ $prod->name }}"></li>
+                                       <li><img src="{{  ($prod->thumb) }}" class="thumb" width="100" height="100" alt="{{ $prod->name }}" loading="eager" decoding="async"></li>
 
 
                                    @endif
                                @foreach ($prod->images as $key => $image)
-                                   <li><img src="{{  config('settings.images_domain') .($image->thumb) }}" class="thumb" width="100" height="100" alt="{{ $image->alt }}"></li>
+                                   <li><img src="{{  config('settings.images_domain') .($image->thumb) }}" class="thumb" width="100" height="100" alt="{{ $image->alt }}" loading="lazy" decoding="async"></li>
                                @endforeach
 
                                @endif

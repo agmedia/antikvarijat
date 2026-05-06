@@ -36,6 +36,15 @@
     @endpush
 @endif
 
+@push('css_after')
+    <style>
+        filter-view,
+        products-view {
+            display: contents;
+        }
+    </style>
+@endpush
+
 
 @section('content')
 
@@ -140,21 +149,34 @@
 
         </div>
     </div>
-    <div class="container pb-4 mb-2 mb-md-4" id="filter-app" v-cloak>
+    <div class="container pb-4 mb-2 mb-md-4" id="filter-app">
         <div class="row">
             <filter-view ids="{{ isset($ids) ? $ids : null }}"
                          group="{{ isset($group) ? $group : null }}"
                          cat="{{ isset($cat) ? $cat : null }}"
                          subcat="{{ isset($subcat) ? $subcat : null }}"
                          author="{{ isset($author) ? $author['slug'] : null }}"
-                         publisher="{{ isset($publisher) ? $publisher['slug'] : null }}">
+                         publisher="{{ isset($publisher) ? $publisher['slug'] : null }}"
+                         :initial-categories='@json($initialCategories ?? [])'>
+                @include('front.catalog.category.partials.filter-fallback', [
+                    'initialCategories' => $initialCategories ?? [],
+                    'group' => $group ?? null,
+                    'cat' => $cat ?? null,
+                    'subcat' => $subcat ?? null,
+                    'author' => $author ?? null,
+                    'publisher' => $publisher ?? null,
+                ])
             </filter-view>
             <products-view ids="{{ isset($ids) ? $ids : null }}"
                            group="{{ isset($group) ? $group : null }}"
                            cat="{{ isset($cat) ? $cat['id'] : null }}"
                            subcat="{{ isset($subcat) ? $subcat['id'] : null }}"
                            author="{{ isset($author) ? $author['slug'] : null }}"
-                           publisher="{{ isset($publisher) ? $publisher['slug'] : null }}">
+                           publisher="{{ isset($publisher) ? $publisher['slug'] : null }}"
+                           :initial-products='@json($initialProductsData ?? [])'>
+                @include('front.catalog.category.partials.products-fallback', [
+                    'initialProductsPaginator' => $initialProductsPaginator ?? null,
+                ])
             </products-view>
         </div>
     </div>

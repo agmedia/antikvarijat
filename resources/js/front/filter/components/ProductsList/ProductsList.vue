@@ -25,12 +25,20 @@
 
 
 
-            <div class="col px-2 mb-4" v-for="product in products.data">
+            <div class="col px-2 mb-4" v-for="(product, index) in products.data" :key="product.id">
                 <div class="card product-card shadow mb-2">
                     <span class="badge  bg-dark mt-1 ms-1 badge-shadow" v-if="product.special">-{{ ($store.state.service.getDiscountAmount(product.price, product.special)) }}%</span>
                     <div class="product-thumb">
                         <a :href="origin + product.url">
-                        <img loading="lazy" :src="product.image.replace('.webp', '-thumb.webp')" width="250" height="300" :alt="product.name">
+                        <img
+                            :loading="index < 8 ? 'eager' : 'lazy'"
+                            :fetchpriority="index < 2 ? 'high' : 'auto'"
+                            decoding="async"
+                            sizes="(max-width: 575px) 50vw, (max-width: 991px) 33vw, (max-width: 1399px) 25vw, 250px"
+                            :src="product.image.replace('.webp', '-thumb.webp')"
+                            width="250"
+                            height="300"
+                            :alt="product.name">
                         </a>
                     </div>
                     <div class="card-body pt-2">
@@ -116,11 +124,19 @@
             subcat: String,
             author: String,
             publisher: String,
+            initialProducts: {
+                type: Object,
+                default: () => ({})
+            }
         },
         //
         data() {
+            const bootstrappedProducts = this.initialProducts && Object.keys(this.initialProducts).length
+                ? this.initialProducts
+                : null;
+
             return {
-                products: {},
+                products: bootstrappedProducts || {},
                 autor: '',
                 nakladnik: '',
                 start: '',
@@ -130,7 +146,7 @@
                 page: 1,
                 origin: location.origin + '/',
                 hr_total: 'rezultata',
-                products_loaded: false,
+                products_loaded: !!bootstrappedProducts,
                 search_zero_result: false,
                 navigation_zero_result: false,
             }
@@ -141,15 +157,22 @@
                 this.setQueryParam('sort', value);
             },
             $route(params) {
-                this.checkQuery(params);
+                this.syncQuery(params);
+                this.loadProductsForCurrentState();
             }
         },
         //
         mounted() {
-            this.checkQuery(this.$route);
+            this.syncQuery(this.$route);
 
-            /*console.log('twindow.AGSettings')
-            console.log(window.AGSettings)*/
+            if (this.products_loaded) {
+                this.checkHrTotal();
+                this.checkSpecials();
+                this.setZeroState();
+                return;
+            }
+
+            this.loadProductsForCurrentState();
         },
 
         methods: {
@@ -157,24 +180,23 @@
              *
              */
             getProducts() {
+                this.requestProducts();
+            },
+
+            requestProducts(page = 1) {
                 this.search_zero_result = false;
                 this.navigation_zero_result = false;
                 this.products_loaded = false;
                 let params = this.setParams();
+                const pageSuffix = page > 1 ? '?page=' + page : '';
 
-                axios.post('filter/getProducts', { params }).then(response => {
+                axios.post('filter/getProducts' + pageSuffix, { params }).then(response => {
                     this.products_loaded = true;
                     this.products = response.data;
+                    this.page = page;
                     this.checkHrTotal();
                     this.checkSpecials();
-
-                    if (params.pojam != '' && !this.products.total) {
-                        this.search_zero_result = true;
-                    }
-
-                    if (params.pojam == '' && !this.products.total) {
-                        this.navigation_zero_result = true;
-                    }
+                    this.setZeroState();
                 });
             },
 
@@ -183,19 +205,9 @@
              * @param page
              */
             getProductsPage(page = 1) {
-                this.products_loaded = false;
                 this.page = page;
                 this.setQueryParam('page', page);
-
-                let params = this.setParams();
                 window.scrollTo({top: 0, behavior: 'smooth'});
-
-                axios.post('filter/getProducts?page=' + page, { params }).then(response => {
-                    this.products_loaded = true;
-                    this.products = response.data;
-                    this.checkHrTotal();
-                    this.checkSpecials();
-                });
             },
 
             /**
@@ -224,7 +236,7 @@
                     nakladnik: this.nakladnik,
                     sort: this.sorting,
                     pojam: this.search_query,
-                    page: this.page
+                    page: this.page > 1 ? this.page : ''
                 };
 
                 return Object.entries(params).reduce((acc, [key, val]) => {
@@ -237,20 +249,18 @@
              *
              * @param params
              */
-            checkQuery(params) {
+            syncQuery(params) {
                 this.start = params.query.start ? params.query.start : '';
                 this.end = params.query.end ? params.query.end : '';
                 this.autor = params.query.autor ? params.query.autor : '';
                 this.nakladnik = params.query.nakladnik ? params.query.nakladnik : '';
-                this.page = params.query.page ? params.query.page : '';
+                this.page = params.query.page ? Number(params.query.page) : 1;
                 this.sorting = params.query.sort ? params.query.sort : '';
                 this.search_query = params.query.pojam ? params.query.pojam : '';
+            },
 
-                if (this.page != '') {
-                    this.getProductsPage(this.page);
-                } else {
-                    this.getProducts();
-                }
+            loadProductsForCurrentState() {
+                this.requestProducts(this.page || 1);
             },
 
             /**
@@ -283,7 +293,9 @@
 
 
             checkSpecials() {
-                let now = new Date();
+                if (!this.products.data) {
+                    return;
+                }
 
                 for (let i = 0; i < this.products.data.length; i++) {
                     if (Number(this.products.data[i].main_price) <= Number(this.products.data[i].main_special)) {
@@ -296,11 +308,20 @@
              *
              */
             checkHrTotal() {
+                if (!this.products.total && this.products.total !== 0) {
+                    return;
+                }
+
                 this.hr_total = 'rezultata';
 
                 if ((this.products.total).toString().slice(-1) == '1') {
                     this.hr_total = 'rezultat';
                 }
+            },
+
+            setZeroState() {
+                this.search_zero_result = this.search_query != '' && !this.products.total;
+                this.navigation_zero_result = this.search_query == '' && !this.products.total;
             },
 
             /**

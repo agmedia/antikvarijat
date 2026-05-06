@@ -62,7 +62,9 @@
                                     <img class="w-100 h-100 rounded-3 object-fit-cover"
                                          src="{{ asset('media/img/widget/11/otkup-knjiga-primjer-1.jpg') }}"
                                          alt="Primjer dobro fotografiranih knjiga - primjer 1"
-                                         loading="lazy">
+                                         loading="eager"
+                                         fetchpriority="high"
+                                         decoding="async">
                                 </a>
                             </div>
                             <div class="col-6 col-md-3">
@@ -70,7 +72,8 @@
                                     <img class="w-100 h-100 rounded-3 object-fit-cover"
                                          src="{{ asset('media/img/widget/11/otkup-knjiga-primjer-2.jpg') }}"
                                          alt="Primjer dobro fotografiranih knjiga - primjer 2"
-                                         loading="lazy">
+                                         loading="eager"
+                                         decoding="async">
                                 </a>
                             </div>
                             <div class="col-6 col-md-3">
@@ -78,7 +81,8 @@
                                     <img class="w-100 h-100 rounded-3 object-fit-cover"
                                          src="{{ asset('media/img/widget/11/otkup-knjiga-primjer-3.jpg') }}"
                                          alt="Primjer dobro fotografiranih knjiga - primjer 3"
-                                         loading="lazy">
+                                         loading="lazy"
+                                         decoding="async">
                                 </a>
                             </div>
                             <div class="col-6 col-md-3">
@@ -86,7 +90,8 @@
                                     <img class="w-100 h-100 rounded-3 object-fit-cover"
                                          src="{{ asset('media/img/widget/11/otkup-knjiga-primjer-4.jpg') }}"
                                          alt="Primjer dobro fotografiranih knjiga - primjer 4"
-                                         loading="lazy">
+                                         loading="lazy"
+                                         decoding="async">
                                 </a>
                             </div>
                         </div>
