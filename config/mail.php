@@ -109,6 +109,6 @@ return [
 
     'order_status_notifications_enabled' => env('ORDER_STATUS_NOTIFICATIONS_ENABLED', false),
 
-    'admin' => 'filip@agmedia.hr'
+    'admin' => 'info@antikvarijat-biblos.hr'
 
 ];

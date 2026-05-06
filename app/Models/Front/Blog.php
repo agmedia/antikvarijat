@@ -44,7 +44,43 @@ class Blog extends Model
      */
     public function getImageAttribute($value)
     {
-        return config('settings.images_domain') . str_replace('.jpg', '.webp', $value);
+        $path = Helper::resolveOptimizedPublicImagePath($value);
+
+        if (! $path) {
+            return null;
+        }
+
+        return config('settings.images_domain') . ltrim($path, '/');
+    }
+
+
+    /**
+     * @return string|null
+     */
+    public function getThumbAttribute($value)
+    {
+        $path = Helper::resolveOptimizedPublicImagePath($this->getRawOriginal('image'));
+
+        if (! $path) {
+            return null;
+        }
+
+        return url('cache/thumb?size=600&src=' . urlencode($path));
+    }
+
+
+    /**
+     * @return string|null
+     */
+    public function getHeroAttribute($value)
+    {
+        $path = Helper::resolveOptimizedPublicImagePath($this->getRawOriginal('image'));
+
+        if (! $path) {
+            return null;
+        }
+
+        return url('cache/thumb?size=1200x1200&src=' . urlencode($path));
     }
 
 
@@ -55,7 +91,9 @@ class Blog extends Model
      */
     public function getDescriptionAttribute($value)
     {
-        return Helper::resolveYouTubeFrame($value);
+        return Helper::optimizeRichContentMedia(
+            Helper::resolveYouTubeFrame((string) $value)
+        );
     }
 
 

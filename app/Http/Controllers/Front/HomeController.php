@@ -351,9 +351,29 @@ class HomeController extends Controller
             return asset('media/img/knjiga-detalj.jpg');
         }
 
-        $cacheimage = Image::cache(function($image) use ($request) {
+        $src = $request->input('src');
+        $appHost = parse_url((string) config('app.url'), PHP_URL_HOST);
+        $imagesHost = parse_url((string) config('settings.images_domain'), PHP_URL_HOST);
+
+        if (filter_var($src, FILTER_VALIDATE_URL)) {
+            $srcHost = parse_url($src, PHP_URL_HOST);
+            $srcPath = parse_url($src, PHP_URL_PATH);
+
+            if ($srcPath && in_array($srcHost, array_filter([$appHost, $imagesHost]), true)) {
+                $src = public_path(ltrim($srcPath, '/'));
+            }
+        } elseif (! str_starts_with($src, DIRECTORY_SEPARATOR)) {
+            $publicPath = public_path(ltrim($src, '/'));
+
+            if (file_exists($publicPath)) {
+                $src = $publicPath;
+            }
+        }
+
+        $cacheimage = Image::cache(function($image) use ($request, $src) {
             $width = 250;
             $height = 300;
+            $mode = $request->input('mode');
 
             if ($request->has('size')) {
                 if (strpos($request->input('size'), 'x') !== false) {
@@ -365,7 +385,20 @@ class HomeController extends Controller
                 $width = $request->input('size');
             }
 
-            $image->make($request->input('src'))->resize($width, $height);
+            $image = $image->make($src);
+
+            if ($mode === 'fit' && $width && $height) {
+                $image->fit((int) $width, (int) $height, function ($constraint) {
+                    $constraint->upsize();
+                });
+
+                return;
+            }
+
+            $image->resize((int) $width, $height ? (int) $height : null, function ($constraint) {
+                $constraint->aspectRatio();
+                $constraint->upsize();
+            });
 
         }, config('imagecache.lifetime'));
 

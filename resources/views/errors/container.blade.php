@@ -19,7 +19,7 @@
     <!-- Vendor Styles including: Font Icons, Plugins, etc.-->
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <!-- Main Theme Styles + Bootstrap-->
-    <link rel="stylesheet" media="screen" href="{{ config('settings.images_domain') . 'css/theme.min.css?v=1.6' }}">
+    <link rel="stylesheet" media="screen" href="{{ config('settings.images_domain') . 'css/theme.min.css?v=' . filemtime(public_path('css/theme.min.css')) }}">
     <!-- Fire the plugin -->
     <script>
         document.addEventListener(
@@ -68,7 +68,7 @@
 <script src="{{ asset('js/smooth-scroll.polyfills.min.js?v=1.2') }}"></script>
 <!-- Main theme script-->
 
-<script src="{{ asset('js/cart.js?v=2.0.2') }}"></script>
+<script src="{{ asset('js/cart.js?v=' . filemtime(public_path('js/cart.js'))) }}"></script>
 
 <script src="{{ asset('js/theme.min.js') }}"></script>
 @stack('js')

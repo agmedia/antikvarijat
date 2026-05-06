@@ -3,6 +3,10 @@
 @section('title', 'Otkup knjiga')
 @section('description', 'Pošaljite prijavu za otkup knjiga i časopisa.')
 
+@push('css_after')
+    <link rel="stylesheet" media="screen" href="{{ asset('js/simple-lightbox.css?v2.14.0') }}">
+@endpush
+
 @section('content')
     <div class="bg-secondary py-4" style="background-image: url({{ asset('media/img/farmer.png') }}); background-repeat: repeat">
         <div class="container d-lg-flex justify-content-between py-2 py-lg-3">
@@ -161,7 +165,6 @@
 
 @push('js_after')
     @include('front.layouts.partials.recaptcha-js')
-    <link rel="stylesheet" media="screen" href="{{ asset('js/simple-lightbox.css?v2.14.0') }}">
     <script src="{{ asset('js/simple-lightbox.js?v2.14.0') }}"></script>
 
     <script>

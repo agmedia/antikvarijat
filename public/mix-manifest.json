@@ -1,5 +1,7 @@
 {
     "/js/cart.js": "/js/cart.js",
     "/js/filter.js": "/js/filter.js",
-    "/js/components/ag-order-products.js": "/js/components/ag-order-products.js"
+    "/js/components/ag-order-products.js": "/js/components/ag-order-products.js",
+    "/js/cart/cart-checkout.js": "/js/cart/cart-checkout.js",
+    "/js/cart/catalog-filter.js": "/js/cart/catalog-filter.js"
 }

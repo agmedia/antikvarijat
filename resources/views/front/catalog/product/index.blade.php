@@ -5,7 +5,6 @@
 @section('og_image', asset($prod->image))
 @section('canonical', url($prod->url))
 @push('meta_tags')
-
     <meta property="og:updated_time" content="{{ $prod->updated_at  }}" />
     <meta property="og:image:width" content="640" />
     <meta property="og:image:height" content="480" />
@@ -15,8 +14,12 @@
     <meta property="product:price:currency" content="EUR" />
     <meta property="product:availability" content="instock" />
     <meta property="product:retailer_item_id" content="{{ $prod->sku }}" />
-    <link rel="stylesheet" media="screen" href="{{ asset('vendor/lightgallery/css/lightgallery-bundle.min.css')}}"/>
+@endpush
 
+@push('css_after')
+    <link rel="stylesheet" media="screen" href="{{ asset('js/slick/slick.css') }}">
+    <link rel="stylesheet" media="screen" href="{{ asset('js/slick/slick-theme.css') }}">
+    <link rel="stylesheet" media="screen" href="{{ asset('js/simple-lightbox.css?v2.14.0') }}">
 @endpush
 
 @if (isset($gdl))
@@ -445,11 +448,7 @@
 @endsection
 
 @push('js_after')
-
-    <link rel="stylesheet" media="screen" href="{{ asset('js/slick/slick.css') }}">
-    <link rel="stylesheet" media="screen" href="{{ asset('js/slick/slick-theme.css') }}">
     <script src="{{ asset('js/slick/slick.min.js') }}"></script>
-    <link rel="stylesheet" media="screen" href="{{ asset('js/simple-lightbox.css?v2.14.0') }}">
     <script src="{{ asset('js/simple-lightbox.js?v2.14.0') }}"></script>
 
 

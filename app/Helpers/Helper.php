@@ -960,5 +960,188 @@ Sve pohvale. 🙂👍',
     }
 
 
+    /**
+     * @param string|null $path
+     *
+     * @return string|null
+     */
+    public static function resolveOptimizedPublicImagePath(?string $path): ?string
+    {
+        if (! $path) {
+            return null;
+        }
+
+        $path = ltrim($path, '/');
+        $webpPath = preg_replace('/\.(jpe?g|png)$/i', '.webp', $path) ?: $path;
+
+        if ($webpPath !== $path && file_exists(public_path($webpPath))) {
+            return $webpPath;
+        }
+
+        return $path;
+    }
+
+
+    /**
+     * @param string $html
+     *
+     * @return string
+     */
+    public static function optimizeRichContentMedia(string $html): string
+    {
+        if (trim($html) === '') {
+            return $html;
+        }
+
+        $html = preg_replace_callback('/<img\b[^>]*>/i', function (array $matches) {
+            $tag = $matches[0];
+            $src = static::getTagAttribute($tag, 'src');
+
+            if ($src) {
+                $optimizedSrc = static::resolveRichContentImageUrl($src);
+
+                if ($optimizedSrc !== $src) {
+                    $tag = static::setTagAttribute($tag, 'src', $optimizedSrc, true);
+                }
+            }
+
+            $tag = static::setTagAttribute($tag, 'loading', 'lazy');
+            $tag = static::setTagAttribute($tag, 'decoding', 'async');
+            $tag = static::setTagAttribute($tag, 'fetchpriority', 'low');
+
+            return static::appendTagClass($tag, 'img-fluid');
+        }, $html);
+
+        return preg_replace_callback('/<iframe\b[^>]*>/i', function (array $matches) {
+            $tag = $matches[0];
+            $tag = static::setTagAttribute($tag, 'loading', 'lazy');
+
+            return static::setTagAttribute($tag, 'referrerpolicy', 'strict-origin-when-cross-origin');
+        }, $html);
+    }
+
+
+    /**
+     * @param string $tag
+     * @param string $attribute
+     *
+     * @return string|null
+     */
+    private static function getTagAttribute(string $tag, string $attribute): ?string
+    {
+        $pattern = '/\b' . preg_quote($attribute, '/') . '\s*=\s*(["\'])(.*?)\1/i';
+
+        if (preg_match($pattern, $tag, $matches)) {
+            return html_entity_decode($matches[2], ENT_QUOTES, 'UTF-8');
+        }
+
+        return null;
+    }
+
+
+    /**
+     * @param string $tag
+     * @param string $attribute
+     * @param string $value
+     * @param bool   $replace
+     *
+     * @return string
+     */
+    private static function setTagAttribute(string $tag, string $attribute, string $value, bool $replace = false): string
+    {
+        $escapedValue = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+        $pattern = '/\s' . preg_quote($attribute, '/') . '\s*=\s*(?:"[^"]*"|\'[^\']*\')/i';
+
+        if (preg_match($pattern, $tag)) {
+            if (! $replace) {
+                return $tag;
+            }
+
+            return preg_replace($pattern, ' ' . $attribute . '="' . $escapedValue . '"', $tag, 1) ?: $tag;
+        }
+
+        return preg_replace('/\s*(\/?>)$/', ' ' . $attribute . '="' . $escapedValue . '"$1', $tag, 1) ?: $tag;
+    }
+
+
+    /**
+     * @param string $tag
+     * @param string $className
+     *
+     * @return string
+     */
+    private static function appendTagClass(string $tag, string $className): string
+    {
+        $class = static::getTagAttribute($tag, 'class');
+
+        if (! $class) {
+            return static::setTagAttribute($tag, 'class', $className);
+        }
+
+        $classes = preg_split('/\s+/', trim($class)) ?: [];
+
+        if (in_array($className, $classes, true)) {
+            return $tag;
+        }
+
+        $classes[] = $className;
+
+        return static::setTagAttribute($tag, 'class', implode(' ', array_filter($classes)), true);
+    }
+
+
+    /**
+     * @param string $src
+     *
+     * @return string
+     */
+    private static function resolveRichContentImageUrl(string $src): string
+    {
+        $source = trim($src);
+
+        if ($source === '' || str_starts_with($source, 'data:') || str_contains($source, '/cache/thumb')) {
+            return $src;
+        }
+
+        $path = static::normalizeLocalPublicPath($source);
+
+        if (! $path || ! Str::startsWith($path, 'media/img/blog/')) {
+            return $src;
+        }
+
+        $optimizedPath = static::resolveOptimizedPublicImagePath($path);
+
+        if (! $optimizedPath) {
+            return $src;
+        }
+
+        return url('cache/thumb?size=1200x1200&src=' . urlencode($optimizedPath));
+    }
+
+
+    /**
+     * @param string $src
+     *
+     * @return string|null
+     */
+    private static function normalizeLocalPublicPath(string $src): ?string
+    {
+        $imagesDomain = rtrim((string) config('settings.images_domain'), '/');
+        $appUrl = rtrim((string) config('app.url'), '/');
+
+        foreach (array_filter([$imagesDomain, $appUrl]) as $prefix) {
+            if (str_starts_with($src, $prefix . '/')) {
+                return ltrim(substr($src, strlen($prefix)), '/');
+            }
+        }
+
+        if (preg_match('/^https?:\/\//i', $src)) {
+            return null;
+        }
+
+        return ltrim($src, '/');
+    }
+
+
 
 }

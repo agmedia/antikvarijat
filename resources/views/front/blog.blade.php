@@ -9,10 +9,16 @@
 @endif
 
 @push('meta_tags')
+    @if (isset($blogs))
+        <script src="{{ asset('js/imagesloaded/imagesloaded.pkgd.min.js') }}"></script>
+        <script src="{{ asset('js/shufflejs/dist/shuffle.min.js') }}"></script>
+    @endif
+@endpush
 
-
-    <link rel="stylesheet" media="screen" href="{{ asset('vendor/lightgallery/css/lightgallery-bundle.min.css')}}"/>
-
+@push('css_after')
+    @if (! isset($blogs))
+        <link rel="stylesheet" media="screen" href="{{ asset('js/simple-lightbox.css?v2.14.0') }}">
+    @endif
 @endpush
 
 @if (isset($gdl))
@@ -65,13 +71,12 @@
                                 <a class="blog-entry-thumb" href="{{ route('catalog.route.blog', ['blog' => $blog]) }}">
                                     <img
                                         class="card-img-top"
-                                        src="{{ $blog->image }}"
+                                        src="{{ $blog->thumb ?: $blog->image }}"
                                         alt="{{ $blog->title }}"
                                         loading="{{ $loop->index < 3 ? 'eager' : 'lazy' }}"
                                         fetchpriority="{{ $loop->index < 2 ? 'high' : 'auto' }}"
                                         decoding="async"
-                                        width="400"
-                                        height="230">
+                                        width="400">
                                 </a>
                                 <div class="card-body">
                                     <h2 class="h6 blog-entry-title"><a href="{{ route('catalog.route.blog', ['blog' => $blog]) }}">{{ $blog->title }}</a></h2>
@@ -97,11 +102,12 @@
         <div class="container pb-5">
             <div class="row justify-content-center pt-5 mt-md-2">
                 <div class="col-lg-9">
-                    <div class="gallery row pb-2">
+                    <div class="blog-gallery row pb-2">
                         <div class="col-sm-12">
-                            <a class="gallery-item rounded-3 mb-grid-gutter" href="{{ asset($blog->image) }}" data-bs-sub-html="&lt;h6 class=&quot;fs-sm text-light&quot;&gt;Gallery image caption #1&lt;/h6&gt;">
+                            <a class="gallery-item rounded-3 mb-grid-gutter" href="{{ $blog->image }}" data-bs-sub-html="&lt;h6 class=&quot;fs-sm text-light&quot;&gt;Gallery image caption #1&lt;/h6&gt;">
                                 <img
-                                    src="{{ asset($blog->image) }}"
+                                    class="img-fluid rounded-3"
+                                    src="{{ $blog->hero ?: $blog->image }}"
                                     alt="{{ $blog->title }}"
                                     loading="eager"
                                     fetchpriority="high"
@@ -119,20 +125,12 @@
 @endsection
 
 @push('js_after')
-
-  
-    <link rel="stylesheet" media="screen" href="{{ asset('js/simple-lightbox.css?v2.14.0') }}">
-    <script src="{{ asset('js/simple-lightbox.js?v2.14.0') }}"></script>
-
-
-   
-    <script>
-        (function () {
-            var $gallery = new SimpleLightbox('.gallery a', {});
-        })();
-    </script>
- 
-
-
-
+    @if (! isset($blogs))
+        <script src="{{ asset('js/simple-lightbox.js?v2.14.0') }}"></script>
+        <script>
+            (function () {
+                var $gallery = new SimpleLightbox('.blog-gallery a', {});
+            })();
+        </script>
+    @endif
 @endpush

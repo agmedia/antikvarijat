@@ -107,7 +107,8 @@
     <!-- Vendor Styles including: Font Icons, Plugins, etc.-->
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <!-- Main Theme Styles + Bootstrap-->
-    <link rel="stylesheet" media="screen" href="{{ asset('css/theme.css?v=1.61')  }}">
+    <link rel="stylesheet" media="screen" href="{{ asset('css/theme.min.css?v=' . filemtime(public_path('css/theme.min.css'))) }}">
+    <link rel="stylesheet" media="screen" href="{{ config('settings.images_domain') . 'css/tiny-slider.css?v=1.2' }}"/>
     <style>
         #gdpr-cookie-message {
             position: fixed;
@@ -213,58 +214,24 @@
 
 
     @if (config('app.env') == 'production')
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            window.gtag = window.gtag || function () {
+                window.dataLayer.push(arguments);
+            };
+            window.__biblosTracking = {
+                gtmId: 'GTM-TV7RKFH',
+                facebookPixelId: '659899245170060',
+                loaded: {
+                    gtm: false,
+                    facebook: false
+                }
+            };
+        </script>
         @yield('google_data_layer')
-        <!-- Google Tag Manager -->
-            <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-                        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-                                                                  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-                    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-                })(window,document,'script','dataLayer','GTM-TV7RKFH');
-            </script>
-
-
-        <!-- Google tag (gtag.js) -->
-        <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17717773581"></script>
-        <script>
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-
-            gtag('config', 'AW-17717773581');
-        </script>
-
-
-        <!-- Global site tag (gtag.js) - Google Analytics -->
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-YY35049KQZ"></script>
-        <script>
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-
-            gtag('config', 'G-YY35049KQZ');
-        </script>
     @endif
 
     @stack('css_after')
-
-    @if (config('app.env') == 'production')
-        <!-- Facebook Pixel Code -->
-        <script>
-            !function(f,b,e,v,n,t,s)
-            {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-                n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-                if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-                n.queue=[];t=b.createElement(e);t.async=!0;
-                t.src=v;s=b.getElementsByTagName(e)[0];
-                s.parentNode.insertBefore(t,s)}(window, document,'script',
-                'https://connect.facebook.net/en_US/fbevents.js');
-            fbq('init', '659899245170060');
-            fbq('track', 'PageView');
-        </script>
-        <noscript><img height="1" width="1" style="display:none"
-                       src="https://www.facebook.com/tr?id=659899245170060&ev=PageView&noscript=1"
-            /></noscript>
-    @endif
 
     <style>
         [v-cloak] { display:none !important; }
@@ -275,13 +242,6 @@
 </head>
 <!-- Body-->
 <body class="paper-white-bck">
-
-@if (config('app.env') == 'production')
-    <!-- Google Tag Manager (noscript) -->
-    <noscript>
-        <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TV7RKFH" height="0" width="0" style="display:none;visibility:hidden"></iframe>
-    </noscript>
-@endif
 
 <!-- Topbar-->
 <div class="topbar topbar-light  d-none d-md-block" style="background-image: url({{ asset('media/img/farmer.png') }});background-repeat: repeat">
@@ -312,8 +272,6 @@
 
 <!-- Back To Top Button-->
 <a class="btn-scroll-top" href="#top" data-scroll><span class="btn-scroll-top-tooltip text-muted fs-sm me-2">Top</span><i class="btn-scroll-top-icon ci-arrow-up"></i></a>
-<!-- Vendor Styles including: Font Icons, Plugins, etc.-->
-<link rel="stylesheet" media="screen" href="{{ config('settings.images_domain') . 'css/tiny-slider.css?v=1.2' }}"/>
 <!-- Vendor scrits: js libraries and plugins-->
 <script src="{{ asset('js/jquery/jquery-2.1.1.min.js?v=1.3') }}"></script>
 <script src="{{ asset('js/jquery.ihavecookies.js?v=1.32') }}"></script>
@@ -321,18 +279,126 @@
 <script src="{{ asset('js/tiny-slider.js?v=1.2') }}"></script>
 <script src="{{ asset('js/smooth-scroll.polyfills.min.js?v=1.3') }}"></script>
 
-<script src="{{ asset('js/imagesloaded/imagesloaded.pkgd.min.js') }}"></script>
-<script src="{{ asset('js/shufflejs/dist/shuffle.min.js') }}"></script>
-
 <!-- Main theme script-->
 
-<script src="{{ asset('js/cart.js?v=168') }}"></script>
+<script src="{{ asset('js/cart.js?v=' . filemtime(public_path('js/cart.js'))) }}"></script>
 
 
 
 
 
 <script src="{{ asset('js/theme.min.js') }}"></script>
+@if (config('app.env') == 'production')
+    <script>
+        (function () {
+            var tracking = window.__biblosTracking;
+
+            function getCookie(name) {
+                var match = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/[.$?*|{}()\\[\\]\\\\/+^]/g, '\\$&') + '=([^;]*)'));
+                return match ? decodeURIComponent(match[1]) : null;
+            }
+
+            function getConsentPrefs() {
+                var raw = getCookie('cookieControlPrefs');
+
+                if (!raw) {
+                    return [];
+                }
+
+                try {
+                    var prefs = JSON.parse(raw);
+                    return Array.isArray(prefs) ? prefs : [];
+                } catch (error) {
+                    return [];
+                }
+            }
+
+            function hasConsent(type) {
+                return getConsentPrefs().indexOf(type) !== -1;
+            }
+
+            function schedule(task) {
+                if (window.requestIdleCallback) {
+                    window.requestIdleCallback(task, { timeout: 4000 });
+                    return;
+                }
+
+                window.setTimeout(task, 2500);
+            }
+
+            function loadScript(src) {
+                return new Promise(function (resolve, reject) {
+                    var script = document.createElement('script');
+                    script.async = true;
+                    script.src = src;
+                    script.onload = resolve;
+                    script.onerror = reject;
+                    document.head.appendChild(script);
+                });
+            }
+
+            function updateGoogleConsent() {
+                window.gtag('consent', 'default', {
+                    ad_storage: 'denied',
+                    ad_user_data: 'denied',
+                    ad_personalization: 'denied',
+                    analytics_storage: 'denied',
+                    wait_for_update: 500
+                });
+
+                window.gtag('consent', 'update', {
+                    ad_storage: hasConsent('marketing') ? 'granted' : 'denied',
+                    ad_user_data: hasConsent('marketing') ? 'granted' : 'denied',
+                    ad_personalization: hasConsent('marketing') ? 'granted' : 'denied',
+                    analytics_storage: hasConsent('analytics') ? 'granted' : 'denied'
+                });
+            }
+
+            function loadGtm() {
+                if (tracking.loaded.gtm || (!hasConsent('analytics') && !hasConsent('marketing'))) {
+                    return;
+                }
+
+                tracking.loaded.gtm = true;
+                updateGoogleConsent();
+                window.dataLayer.push({
+                    'gtm.start': new Date().getTime(),
+                    event: 'gtm.js'
+                });
+
+                loadScript('https://www.googletagmanager.com/gtm.js?id=' + tracking.gtmId).catch(function () {
+                    tracking.loaded.gtm = false;
+                });
+            }
+
+            function loadFacebookPixel() {
+                if (tracking.loaded.facebook || !hasConsent('marketing')) {
+                    return;
+                }
+
+                tracking.loaded.facebook = true;
+
+                !function(f,b,e,v,n,t,s)
+                {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+                    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+                    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+                    n.queue=[];t=b.createElement(e);t.async=!0;
+                    t.src=v;s=b.getElementsByTagName(e)[0];
+                    s.parentNode.insertBefore(t,s)}(window, document,'script',
+                    'https://connect.facebook.net/en_US/fbevents.js');
+                fbq('init', tracking.facebookPixelId);
+                fbq('track', 'PageView');
+            }
+
+            window.loadBiblosTracking = function () {
+                schedule(function () {
+                    loadGtm();
+                    loadFacebookPixel();
+                });
+            };
+        }());
+    </script>
+@endif
 <script type="text/javascript">
     $(document).ready(function() {
         $('body').ihavecookies({
@@ -341,12 +407,17 @@
             expires: 90,
 
             onAccept: function(){
-                var myPreferences = $.fn.ihavecookies.cookie();
+                if (window.loadBiblosTracking) {
+                    window.loadBiblosTracking();
+                }
 
             },
             uncheckBoxes: false
         });
 
+        if (window.loadBiblosTracking) {
+            window.loadBiblosTracking();
+        }
     });
 </script>
 

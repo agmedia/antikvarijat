@@ -479,7 +479,18 @@ class CatalogRouteController extends Controller
     public function blog(Blog $blog)
     {
         if (!$blog->exists) {
-            $blogs = Blog::active()->paginate(9);
+            $blogs = Blog::query()
+                ->active()
+                ->select([
+                    'id',
+                    'slug',
+                    'title',
+                    'short_description',
+                    'image',
+                    'created_at',
+                ])
+                ->paginate(9);
+
             return view('front.blog', compact('blogs'));
         }
 

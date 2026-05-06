@@ -18,13 +18,13 @@
 }
 .mbanner{
     min-width: 16rem;
-    background-image: url('../media/img/paper.png');
+    background-image: url('../media/img/light_paper_bg_seamless.png');
     background-repeat: repeat
 }
 
 .paper-white-bck{
     min-width: 16rem;
-    background-image: url('../media/img/paper.png');
+    background-image: url('../media/img/light_paper_bg_seamless.png');
     background-repeat: repeat
 }
 
