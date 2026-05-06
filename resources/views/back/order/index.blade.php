@@ -140,7 +140,7 @@
                         </tr>
                         </thead>
                         <tbody>
-                        @forelse ($orders->sortByDesc('id') as $order)
+                        @forelse ($orders as $order)
                             <tr>
                                 <td class="text-center">
                                     <div class="form-group">
@@ -162,7 +162,7 @@
                                 <td>
                                     <a class="font-w600" href="{{ route('orders.show', ['order' => $order]) }}">{{ $order->shipping_fname }} {{ $order->shipping_lname }}</a>
                                 </td>
-                                <td class="text-center">{{ $order->products->count() }}</td>
+                                <td class="text-center">{{ $order->order_products_count }}</td>
                                 <td class="text-right">
                                     @if ($order->id > 4627)
                                         <strong>€ {{ number_format($order->total, 2, ',', '.') }}</strong>

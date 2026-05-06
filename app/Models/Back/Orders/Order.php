@@ -77,6 +77,15 @@ class Order extends Model
 
 
     /**
+     * Lightweight relation used for counts and list views.
+     */
+    public function orderProducts()
+    {
+        return $this->hasMany(OrderProduct::class, 'order_id');
+    }
+
+
+    /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function history()
@@ -484,39 +493,42 @@ class Order extends Model
         // SEARCH (kupac, email, id narudžbe + kupljeni artikl)
         if ($request->filled('search')) {
             $s = trim($request->input('search'));
+            $isNumericSearch = ctype_digit($s);
 
-            $query->where(function ($q) use ($s) {
-                // osnovna polja iz orders
-                $q->where('id', 'like', "%{$s}%")
-                    ->orWhere('payment_fname', 'like', "%{$s}%")
-                    ->orWhere('payment_lname', 'like', "%{$s}%")
-                    ->orWhere('payment_email', 'like', "%{$s}%");
-
-                // pretraga po kupljenom artiklu (order_products)
-                $q->orWhereExists(function ($sub) use ($s) {
-                    $sub->from('order_products as op')
-                        ->whereColumn('op.order_id', 'orders.id')
-                        ->where(function ($w) use ($s) {
-                            $w->where('op.name', 'like', "%{$s}%");
-                            if (ctype_digit($s)) {
-                                $w->orWhere('op.product_id', (int) $s);
-                            }
+            if ($isNumericSearch) {
+                $query->where(function ($q) use ($s) {
+                    $q->where('id', (int) $s)
+                        ->orWhereExists(function ($sub) use ($s) {
+                            $sub->from('order_products as op')
+                                ->whereColumn('op.order_id', 'orders.id')
+                                ->where('op.product_id', (int) $s);
                         });
                 });
+            } else {
+                $query->where(function ($q) use ($s) {
+                    $q->where('payment_fname', 'like', "%{$s}%")
+                        ->orWhere('payment_lname', 'like', "%{$s}%")
+                        ->orWhere('payment_email', 'like', "%{$s}%");
 
-                // NOVO: pretraga preko products.category_string i products.tags
-                $q->orWhereExists(function ($sub) use ($s) {
-                    $sub->from('order_products as op')
-                        ->join('products as p', 'p.id', '=', 'op.product_id')
-                        ->whereColumn('op.order_id', 'orders.id')
-                        ->where(function ($w) use ($s) {
-                            $w->where('p.category_string', 'like', "%{$s}%")
-                                ->orWhere('p.tags', 'like', "%{$s}%");
-                            // opcionalno: ako želiš i po nazivu proizvoda iz products tablice
-                            //->orWhere('p.name', 'like', "%{$s}%");
-                        });
+                    // pretraga po kupljenom artiklu (order_products)
+                    $q->orWhereExists(function ($sub) use ($s) {
+                        $sub->from('order_products as op')
+                            ->whereColumn('op.order_id', 'orders.id')
+                            ->where('op.name', 'like', "%{$s}%");
+                    });
+
+                    // pretraga preko products.category_string i products.tags
+                    $q->orWhereExists(function ($sub) use ($s) {
+                        $sub->from('order_products as op')
+                            ->join('products as p', 'p.id', '=', 'op.product_id')
+                            ->whereColumn('op.order_id', 'orders.id')
+                            ->where(function ($w) use ($s) {
+                                $w->where('p.category_string', 'like', "%{$s}%")
+                                    ->orWhere('p.tags', 'like', "%{$s}%");
+                            });
+                    });
                 });
-            });
+            }
         }
 
 
@@ -534,8 +546,7 @@ class Order extends Model
             } catch (\Exception $e) {}
         }
 
-        // distinct da izbjegnemo duplikate u slučaju budućih joinova
-        return $query->distinct()->orderBy('created_at', 'desc');
+        return $query->orderBy('created_at', 'desc');
     }
 
 

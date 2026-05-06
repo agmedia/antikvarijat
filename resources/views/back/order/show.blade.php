@@ -50,7 +50,7 @@
 
 
                                 <td class="text-center"> <a class="img-link img-link-zoom-in img-lightbox" href="{{ $product->product->image ? asset($product->product->image) : asset('media/avatars/avatar0.jpg') }}">
-                                        <img src="{{ $product->product->image ? asset($product->product->image) : asset('media/avatars/avatar0.jpg') }}" height="80px"/>
+                                        <img src="{{ $product->product->thumb ? asset($product->product->thumb) : asset('media/avatars/avatar0.jpg') }}" height="80px" alt="{{ $product->name }}" decoding="async"/>
                                     </a>
                                 </td>
 
@@ -155,7 +155,7 @@
                                 <span class="font-weight-light">{{ \Illuminate\Support\Carbon::make($record->created_at)->format('d.m.Y - h:i') }}</span>
                             </td>
                             <td>
-                                <a href="javascript:void(0)">{{ $record->user ? $record->user->name : $record->order->shipping_fname . ' ' . $record->order->shipping_lname }}</a>
+                                <a href="javascript:void(0)">{{ $record->user ? $record->user->name : $order->shipping_fname . ' ' . $order->shipping_lname }}</a>
                             </td>
                             <td>{{ $record->comment }}</td>
                         </tr>

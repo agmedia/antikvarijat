@@ -123,14 +123,9 @@
                                 </div>
                                 <div class="col-md-4">
                                     <label for="shipping-amount-input">Iznos</label>
-                                    @php
-                                        $shippingRow = isset($order) ? $order->totals()->where('code', 'shipping')->first() : null;
-                                        $shippingValue = $shippingRow ? $shippingRow->value : old('shipping_amount');
-                                    @endphp
-
                                     <input type="text" class="form-control" id="shipping-amount-input"
                                            name="shipping_amount" placeholder="Upišite iznos"
-                                           value="{{ $shippingValue }}">
+                                           value="{{ isset($order) ? $shippingAmount : old('shipping_amount') }}">
                                 </div>
                             </div>
                         </div>
@@ -153,7 +148,7 @@
                                 </div>
                                 <div class="col-md-4">
                                     <label for="payment-amount-input">Iznos</label>
-                                    <input type="text" class="form-control" id="payment-amount-input" name="payment_amount" placeholder="Upišite iznos" value="{{ (isset($order) && $order->totals()->where('code', 'payment')->first()) ? $order->totals()->where('code', 'payment')->first()->value : old('payment_amount') }}">
+                                    <input type="text" class="form-control" id="payment-amount-input" name="payment_amount" placeholder="Upišite iznos" value="{{ isset($order) ? $paymentAmount : old('payment_amount') }}">
                                 </div>
                             </div>
                         </div>
@@ -203,7 +198,7 @@
                                     <span class="font-weight-light">{{ \Illuminate\Support\Carbon::make($record->created_at)->format('d.m.Y - h:i') }}</span>
                                 </td>
                                 <td>
-                                    <a href="javascript:void(0)">{{ $record->user ? $record->user->name : $record->order->shipping_fname . ' ' . $record->order->shipping_lname }}</a>
+                                    <a href="javascript:void(0)">{{ $record->user ? $record->user->name : $order->shipping_fname . ' ' . $order->shipping_lname }}</a>
                                 </td>
                                 <td>{{ $record->comment }}</td>
                             </tr>

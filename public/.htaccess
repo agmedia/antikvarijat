@@ -237,9 +237,35 @@ AddType text/x-vcard                        vcf
   ExpiresByType image/svg+xml             "access plus 1 month"
 
 # CSS and JavaScript
-  ExpiresByType application/javascript    "access plus 1 year"
-  ExpiresByType text/css                  "access plus 1 year"
+  # Keep these shorter while assets are mostly referenced by fixed filenames.
+  # Once CSS/JS are consistently versioned, this can safely go back to 1 year.
+  ExpiresByType application/javascript    "access plus 1 month"
+  ExpiresByType text/css                  "access plus 1 month"
 
+</IfModule>
+
+# ----------------------------------------------------------------------
+# Cache-Control headers
+# ----------------------------------------------------------------------
+
+# Explicit Cache-Control rules complement Expires and make browser behaviour
+# more predictable for Laravel's dynamic HTML responses and static assets.
+<IfModule mod_headers.c>
+  # Do not cache app responses rendered through PHP / the front controller.
+  <FilesMatch "\.(html?|php)$">
+    Header always set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+    Header always set Pragma "no-cache"
+    Header always set Expires "0"
+  </FilesMatch>
+
+  # Static assets can be reused by the browser between page loads and visits.
+  <FilesMatch "\.(css|js|mjs|map)$">
+    Header set Cache-Control "public, max-age=2592000"
+  </FilesMatch>
+
+  <FilesMatch "\.(gif|ico|jpe?g|png|svg|svgz|webp|avif|mp4|m4v|webm|ogv|ogg|oga|m4a|eot|otf|ttc|ttf|woff|woff2)$">
+    Header set Cache-Control "public, max-age=2592000"
+  </FilesMatch>
 </IfModule>
 
 # ----------------------------------------------------------------------
@@ -556,4 +582,3 @@ AddCharset utf-8 .atom .css .js .json .rss .vtt .xml
 <IfModule mod_php5.c>
   php_value session.cookie_httponly true
 </IfModule>
-

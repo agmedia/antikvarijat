@@ -11,7 +11,9 @@ use App\Models\Back\Orders\Order;
 use App\Models\Back\Orders\OrderHistory;
 use App\Models\Back\Settings\Settings;
 use App\Models\Front\Checkout\Shipping\Gls;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Maatwebsite\Excel\Facades\Excel;
@@ -26,9 +28,46 @@ class OrderController extends Controller
      */
     public function index(Request $request, Order $order)
     {
-        $orders = $order->filter($request)
-            ->paginate(config('settings.pagination.back'))
-            ->appends($request->query());
+        $perPage = (int) config('settings.pagination.back');
+        $query = $order->filter($request)
+            ->select([
+                'id',
+                'created_at',
+                'order_status_id',
+                'payment_method',
+                'shipping_fname',
+                'shipping_lname',
+                'total',
+                'printed',
+            ])
+            ->withCount('orderProducts');
+
+        $hasActiveFilters = $request->filled('status')
+            || $request->filled('search')
+            || $request->filled('date_from')
+            || $request->filled('date_to');
+
+        if ($hasActiveFilters) {
+            $orders = $query
+                ->paginate($perPage)
+                ->appends($request->query());
+        } else {
+            $page = LengthAwarePaginator::resolveCurrentPage();
+            $total = Cache::remember('admin.orders.total', now()->addMinutes(10), function () {
+                return Order::query()->count();
+            });
+
+            $orders = new LengthAwarePaginator(
+                $query->forPage($page, $perPage)->get(),
+                $total,
+                $perPage,
+                $page,
+                [
+                    'path' => $request->url(),
+                    'query' => $request->query(),
+                ]
+            );
+        }
 
         $statuses = Settings::get('order', 'statuses');
 
@@ -81,6 +120,12 @@ class OrderController extends Controller
      */
     public function show(Order $order)
     {
+        $order->loadMissing([
+            'products.product',
+            'totals',
+            'history.user',
+        ]);
+
         $statuses = Settings::get('order', 'statuses');
 
         return view('back.order.show', compact('order', 'statuses'));
@@ -96,12 +141,28 @@ class OrderController extends Controller
      */
     public function edit(Order $order)
     {
+        $order->loadMissing([
+            'products.product',
+            'totals',
+            'history.user',
+        ]);
+
         $countries = Country::list();
         $statuses = Settings::get('order', 'statuses');
         $shippings = Settings::getList('shipping');
         $payments = Settings::getList('payment');
+        $shippingAmount = optional($order->totals->firstWhere('code', 'shipping'))->value;
+        $paymentAmount = optional($order->totals->firstWhere('code', 'payment'))->value;
 
-        return view('back.order.edit', compact('order', 'countries', 'statuses', 'shippings', 'payments'));
+        return view('back.order.edit', compact(
+            'order',
+            'countries',
+            'statuses',
+            'shippings',
+            'payments',
+            'shippingAmount',
+            'paymentAmount'
+        ));
     }
 
 
