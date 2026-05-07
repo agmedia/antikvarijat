@@ -571,7 +571,7 @@ class Helper
      */
     public static function resolveCache(string $tag): ?object
     {
-        if (env('APP_ENV') == 'local') {
+        if (app()->environment('local')) {
             return Cache::getFacadeRoot();
         }
 
@@ -587,7 +587,7 @@ class Helper
      */
     public static function flushCache(string $tag, string $key)
     {
-        if (env('APP_ENV') == 'local') {
+        if (app()->environment('local')) {
             return Cache::getFacadeRoot();
         }
 

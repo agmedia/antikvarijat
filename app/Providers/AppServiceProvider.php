@@ -114,8 +114,8 @@ class AppServiceProvider extends ServiceProvider
             return $resolved[$key];
         }
 
-        // Keep shared frontend data off MySQL so header/footer traffic does not amplify connection pressure.
-        $cache = Cache::store('file');
+        // Keep shared frontend data on the configured cache store so live can use Redis while local stays file-based.
+        $cache = Cache::store(config('cache.default'));
 
         if ($cache->has($key)) {
             return $resolved[$key] = $cache->get($key, $default);

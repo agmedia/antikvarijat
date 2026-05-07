@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Back\Settings;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Cache;
 
 class QuickMenuController extends Controller
 {
@@ -19,7 +18,6 @@ class QuickMenuController extends Controller
         Artisan::call('config:clear');
         Artisan::call('view:clear');
         Artisan::call('route:clear');
-        Cache::store('file')->flush();
     
         return redirect()->back()->with('success', 'Cache Cleared succesfully!');
     }

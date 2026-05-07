@@ -314,7 +314,7 @@ class ProductController extends Controller
 
     private function refreshFrontendProductCache(Product $product, ?string $originalSlug = null): void
     {
-        Cache::store('file')->forget('front.shared.products_count');
+        Cache::store(config('cache.default'))->forget('front.shared.products_count');
 
         FrontProduct::forgetCachedRouteBinding($originalSlug);
         FrontProduct::forgetCachedRouteBinding($product->slug);

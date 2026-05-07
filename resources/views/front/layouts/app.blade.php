@@ -294,7 +294,7 @@
             var tracking = window.__biblosTracking;
 
             function getCookie(name) {
-                var match = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/[.$?*|{}()\\[\\]\\\\/+^]/g, '\\$&') + '=([^;]*)'));
+                var match = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '=([^;]*)'));
                 return match ? decodeURIComponent(match[1]) : null;
             }
 

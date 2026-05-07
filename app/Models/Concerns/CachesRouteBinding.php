@@ -12,7 +12,7 @@ trait CachesRouteBinding
         $ttl = now()->addSeconds((int) config('cache.page_life', 86400));
         $cacheKey = static::routeBindingCacheKey($value, $field);
 
-        $cache = Cache::store('file');
+        $cache = Cache::store(config('cache.default'));
 
         if ($cache->has($cacheKey)) {
             $modelId = $cache->get($cacheKey);
@@ -43,7 +43,7 @@ trait CachesRouteBinding
             return;
         }
 
-        Cache::store('file')->forget(static::routeBindingCacheKey($value, $field));
+        Cache::store(config('cache.default'))->forget(static::routeBindingCacheKey($value, $field));
     }
 
     protected static function routeBindingCacheKey($value, $field = null): string
