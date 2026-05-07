@@ -40,6 +40,7 @@ class NewsletterSubscriberController extends Controller
         @set_time_limit(0);
 
         Artisan::call('optimize:clear');
+        Artisan::call('cache:clear');
 
         return back()->with('status', trim(Artisan::output()) ?: 'Laravel cache je očišćen.');
     }

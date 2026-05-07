@@ -14,8 +14,8 @@ class QuickMenuController extends Controller
      */
     public function cache()
     {
-        Artisan::call('cache:clear');
         Artisan::call('config:clear');
+        Artisan::call('cache:clear');
         Artisan::call('view:clear');
         Artisan::call('route:clear');
     
