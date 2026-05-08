@@ -290,7 +290,9 @@ class Helper
             $offset = $to + 2;
         }
 
-        $wgs = WidgetGroup::whereIn('id', $ids)->orWhereIn('slug', $ids)->where('status', 1)->with('widgets')->get();
+        $wgs = WidgetGroup::where(function ($query) use ($ids) {
+            $query->whereIn('id', $ids)->orWhereIn('slug', $ids);
+        })->where('status', 1)->with('widgets')->get();
 
         foreach ($ids as $id) {
             $description = Cache::remember('wg.' . $id, config('cache.life'), function () use ($wgs, $description, $id) {
@@ -318,6 +320,10 @@ class Helper
             $wg = $wgs->where('slug', $id)->first();
         }
 
+        if ( ! $wg) {
+            return str_replace('++' . $id . '++', '', $description);
+        }
+
         $widgets = [];
         $loadedWidgets = $wg->relationLoaded('widgets')
             ? $wg->widgets->sortBy('sort_order')
@@ -325,7 +331,9 @@ class Helper
 
         if ($wg->template == 'product_carousel' || $wg->template == 'page_carousel' ) {
             $widget = $loadedWidgets->first();
-            $data = unserialize($widget->data);
+            $data = $widget ? static::decodeWidgetData($widget->data) : [];
+            $items = collect();
+            $tablename = $data['target'] ?? ($data['group'] ?? '');
 
             if (static::isDescriptionTarget($data, 'product')) {
                 $items     = static::products($data)->get();
@@ -365,11 +373,11 @@ class Helper
             }
 
             $widgets = [
-                'title'      => $widget->title,
-                'subtitle'   => $widget->subtitle,
-                'url'        => $widget->url,
+                'title'      => $widget ? $widget->title : '',
+                'subtitle'   => $widget ? $widget->subtitle : '',
+                'url'        => $widget ? $widget->url : '/',
                 'tablename'  => $tablename,
-                'css'        => $data['css'],
+                'css'        => $data['css'] ?? null,
                 'container'  => (isset($data['container']) && $data['container'] == 'on') ? 1 : null,
                 'background' => (isset($data['background']) && $data['background'] == 'on') ? 1 : null,
                 'items'      => $items
@@ -377,7 +385,7 @@ class Helper
 
         } else {
             foreach ($loadedWidgets as $widget) {
-                $data = unserialize($widget->data);
+                $data = static::decodeWidgetData($widget->data);
 
 
 
@@ -400,6 +408,23 @@ class Helper
             view('front.layouts.widget.widget_' . $wg->template, ['data' => $widgets]),
             $description
         );
+    }
+
+
+    /**
+     * @param string|null $data
+     *
+     * @return array
+     */
+    private static function decodeWidgetData(?string $data): array
+    {
+        if ( ! $data) {
+            return [];
+        }
+
+        $decoded = @unserialize($data, ['allowed_classes' => false]);
+
+        return is_array($decoded) ? $decoded : [];
     }
 
 
@@ -516,6 +541,24 @@ class Helper
         }
 
         return $category;
+    }
+
+    /**
+     * @param array $data
+     *
+     * @return Builder
+     */
+    private static function author(array $data): Builder
+    {
+        $author = (new Author())->newQuery();
+
+        $author->active();
+
+        if (isset($data['list']) && $data['list']) {
+            $author->whereIn('id', $data['list']);
+        }
+
+        return $author->orderBy('title');
     }
 
 
