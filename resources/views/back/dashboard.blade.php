@@ -5,7 +5,7 @@
     <div class="bg-body-light">
         <div class="content content-full">
             <div class="d-flex flex-column flex-sm-row justify-content-sm-between align-items-sm-center">
-                <h1 class="flex-sm-fill font-size-h2 font-w400 mt-2 mb-0 mb-sm-2">Nadzorna ploča1 </h1>
+                <h1 class="flex-sm-fill font-size-h2 font-w400 mt-2 mb-0 mb-sm-2">Nadzorna ploča</h1>
                 <nav class="flex-sm-00-auto ml-sm-3" aria-label="breadcrumb">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item active" aria-current="page">Nadzorna ploča</li>
@@ -17,7 +17,7 @@
     <!-- END Hero -->
 
     @if (auth()->user()->can('*'))
-        <div class="block block-rounded">
+      {{--  <div class="block block-rounded">
             <div class="block-content block-content-full">
                 <div class="content pt-0">
                     <a href="{{ route('roles.set') }}" class="btn btn-hero-sm btn-rounded btn-hero-info mb-3 mr-3">Set Roles</a>
@@ -30,7 +30,7 @@
                     <a href="{{ route('duplicate.revision', ['target' => 'publishers']) }}" class="btn btn-hero-sm btn-rounded btn-hero-primary mb-3 mr-3">Duplicate Publishers revision</a>
                 </div>
             </div>
-        </div>
+        </div>--}}
     @endif
 
     <!-- Page Content -->
