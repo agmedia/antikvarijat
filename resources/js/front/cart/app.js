@@ -33,9 +33,9 @@ Vue.component('add-to-cart-btn', require('./components/AddToCartBtn/AddToCartBtn
 Vue.component('add-to-cart-btn-simple', require('./components/AddToCartBtnSimple/AddToCartBtnSimple').default);
 Vue.component('cart-view', () => import(/* webpackChunkName: "cart-checkout" */ './components/CartView/CartView.vue'));
 Vue.component('cart-view-aside', () => import(/* webpackChunkName: "cart-checkout" */ './components/CartViewAside/CartViewAside.vue'));
-Vue.component('filter-view', () => import(/* webpackChunkName: "catalog-filter" */ './../filter/components/Filter/Filter.vue'));
-Vue.component('products-view', () => import(/* webpackChunkName: "catalog-filter" */ './../filter/components/ProductsList/ProductsList.vue'));
-Vue.component('pagination', () => import(/* webpackChunkName: "catalog-filter" */ './../filter/components/Pagination/LaravelVuePagination.vue'));
+Vue.component('filter-view', () => import(/* webpackChunkName: "catalog-filter-v2" */ './../filter/components/Filter/Filter.vue'));
+Vue.component('products-view', () => import(/* webpackChunkName: "catalog-filter-v2" */ './../filter/components/ProductsList/ProductsList.vue'));
+Vue.component('pagination', () => import(/* webpackChunkName: "catalog-filter-v2" */ './../filter/components/Pagination/LaravelVuePagination.vue'));
 
 /**
  * Next, we will create a fresh Vue application instance and attach it to

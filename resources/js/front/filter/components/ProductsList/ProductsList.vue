@@ -1,5 +1,5 @@
 <template>
-    <section class="col-lg-9 catalog-products">
+    <section class="col-lg-9">
         <!-- Toolbar-->
         <div class="d-flex justify-content-center justify-content-sm-between align-items-center pt-2 pb-4 pb-sm-5">
             <div class="d-flex flex-wrap">
@@ -346,55 +346,4 @@
 </script>
 
 <style>
-#filter-app {
-    overflow-x: hidden;
-}
-
-.catalog-products,
-.catalog-products .product-card,
-.catalog-products .product-card .card-body,
-.catalog-products .product-card .d-flex,
-.catalog-products .product-card .text-muted,
-.catalog-products .product-card .product-title,
-.catalog-products .product-card .product-title > a,
-.catalog-products .product-card .product-meta,
-.catalog-products .product-card .one-line {
-    min-width: 0;
-}
-
-.catalog-products .product-card .text-muted,
-.catalog-products .product-card .product-meta,
-.catalog-products .product-card .one-line {
-    max-width: 100%;
-}
-
-.catalog-products .product-card .text-muted {
-    width: 100%;
-    overflow: hidden;
-}
-
-.catalog-products .product-card .product-meta {
-    width: 100%;
-}
-
-.catalog-products .product-card .product-title > a {
-    overflow-wrap: anywhere;
-}
-
-@media (max-width: 499.98px) {
-    .catalog-products .product-card .card-body {
-        padding-left: .75rem;
-        padding-right: .75rem;
-    }
-
-    .catalog-products .product-card .price-box {
-        padding-right: 3.5rem;
-    }
-
-    .catalog-products .product-floating-btn {
-        right: .5rem;
-        bottom: .5rem;
-        opacity: 1;
-    }
-}
 </style>
