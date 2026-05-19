@@ -215,10 +215,20 @@ class OrderController extends Controller
     {
         if ($request->has('orders')) {
             $orders = explode(',', substr($request->input('orders'), 1, -1));
+            $statusId = (int) $request->input('selected');
 
             Order::whereIn('id', $orders)->update([
-                'order_status_id' => $request->input('selected')
+                'order_status_id' => $statusId
             ]);
+
+            if ($statusId) {
+                Order::query()
+                    ->whereIn('id', $orders)
+                    ->get()
+                    ->each(function (Order $order) use ($statusId) {
+                        $this->sendStatusNotification($order, $statusId);
+                    });
+            }
 
             return response()->json(['message' => 'Statusi su uspješno promijenjeni..!']);
         }
@@ -233,23 +243,9 @@ class OrderController extends Controller
                 ]);
             }
 
-            $order = Order::query()
-                ->select(['id', 'payment_email', 'shipping_fname', 'shipping_lname'])
-                ->find($orderId);
+            $order = Order::query()->find($orderId);
 
-            if (config('mail.order_status_notifications_enabled') && $order && $order->payment_email) {
-                if ($statusId === (int) config('settings.order.status.paid')) {
-                    dispatch(function () use ($order) {
-                        Mail::to($order->payment_email)->send(new StatusPaid($order));
-                    })->afterResponse();
-                }
-
-                if ($statusId === (int) config('settings.order.status.canceled')) {
-                    dispatch(function () use ($order) {
-                        Mail::to($order->payment_email)->send(new StatusCanceled($order));
-                    })->afterResponse();
-                }
-            }
+            $this->sendStatusNotification($order, $statusId);
 
             OrderHistory::store($orderId, $request);
 
@@ -272,6 +268,49 @@ class OrderController extends Controller
         }
 
         return response()->json(['error' => 'Greška..! Molimo pokušajte ponovo ili kontaktirajte administratora..']);
+    }
+
+    private function sendStatusNotification(?Order $order, int $statusId): void
+    {
+        if (! config('mail.order_status_notifications_enabled') || ! $order) {
+            return;
+        }
+
+        $email = trim((string) $order->payment_email);
+
+        if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            Log::warning('Order status notification skipped because email is invalid', [
+                'order_id' => $order->id,
+                'status_id' => $statusId,
+                'email' => $order->payment_email,
+            ]);
+
+            return;
+        }
+
+        $paidStatusId = (int) config('settings.order.status.paid');
+        $canceledStatusId = (int) config('settings.order.status.canceled');
+
+        if (! in_array($statusId, [$paidStatusId, $canceledStatusId], true)) {
+            return;
+        }
+
+        dispatch(function () use ($order, $email, $statusId, $paidStatusId) {
+            try {
+                $mailable = $statusId === $paidStatusId
+                    ? new StatusPaid($order)
+                    : new StatusCanceled($order);
+
+                Mail::to($email)->send($mailable);
+            } catch (\Throwable $e) {
+                Log::warning('Order status notification failed', [
+                    'order_id' => $order->id,
+                    'status_id' => $statusId,
+                    'email' => $email,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        })->afterResponse();
     }
 
 
