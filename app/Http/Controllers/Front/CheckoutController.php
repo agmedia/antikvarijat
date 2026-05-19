@@ -289,6 +289,17 @@ class CheckoutController extends Controller
      */
     private function sendOrderNotifications(BackOrder $order): void
     {
+        $orderId = $order->id;
+        $order = BackOrder::query()->find($orderId);
+
+        if (! $order) {
+            Log::warning('Order notifications skipped because order was not found', [
+                'order_id' => $orderId,
+            ]);
+
+            return;
+        }
+
         $this->sendAdminOrderNotification($order);
         $this->sendCustomerOrderNotification($order);
     }
@@ -301,12 +312,33 @@ class CheckoutController extends Controller
      */
     private function sendAdminOrderNotification(BackOrder $order): void
     {
+        $email = config('mail.admin');
+
+        if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            Log::warning('Admin order notification skipped because admin email is invalid', [
+                'order_id' => $order->id,
+                'email' => $email,
+            ]);
+
+            return;
+        }
+
         try {
-            Mail::to(config('mail.admin'))->send(new OrderReceived($order));
+            Log::info('Admin order notification sending', [
+                'order_id' => $order->id,
+                'email' => $email,
+            ]);
+
+            Mail::to($email)->send(new OrderReceived($order));
+
+            Log::info('Admin order notification sent', [
+                'order_id' => $order->id,
+                'email' => $email,
+            ]);
         } catch (\Throwable $e) {
             Log::warning('Admin order notification failed', [
                 'order_id' => $order->id,
-                'email' => config('mail.admin'),
+                'email' => $email,
                 'error' => $e->getMessage(),
             ]);
         }

@@ -272,7 +272,27 @@ class OrderController extends Controller
 
     private function sendStatusNotification(?Order $order, int $statusId): void
     {
-        if (! config('mail.order_status_notifications_enabled') || ! $order) {
+        $paidStatusId = (int) config('settings.order.status.paid');
+        $canceledStatusId = (int) config('settings.order.status.canceled');
+
+        if (! in_array($statusId, [$paidStatusId, $canceledStatusId], true)) {
+            return;
+        }
+
+        if (! config('mail.order_status_notifications_enabled')) {
+            Log::warning('Order status notification skipped because notifications are disabled', [
+                'order_id' => $order ? $order->id : null,
+                'status_id' => $statusId,
+            ]);
+
+            return;
+        }
+
+        if (! $order) {
+            Log::warning('Order status notification skipped because order was not found', [
+                'status_id' => $statusId,
+            ]);
+
             return;
         }
 
@@ -285,13 +305,6 @@ class OrderController extends Controller
                 'email' => $order->payment_email,
             ]);
 
-            return;
-        }
-
-        $paidStatusId = (int) config('settings.order.status.paid');
-        $canceledStatusId = (int) config('settings.order.status.canceled');
-
-        if (! in_array($statusId, [$paidStatusId, $canceledStatusId], true)) {
             return;
         }
 

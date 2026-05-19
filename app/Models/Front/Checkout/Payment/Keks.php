@@ -77,8 +77,8 @@ class Keks
         $data['action']      = $this->url[$this->env]['action'];
         $data['deep_link']   = $this->url[$this->env]['deep_link'];
         $data['logo']        = asset('media/img/keks-logo.svg');
-        $data['success_url'] = route('checkout.success');
-        $data['fail_url']    = route('checkout.error');
+        $data['success_url'] = route('checkout.success', ['order_number' => $order_id]);
+        $data['fail_url']    = route('checkout.error', ['order_number' => $order_id]);
 
         $data['qr_code']     = 1;
         $data['cid']         = $payment_method->data->cid;
@@ -132,8 +132,8 @@ class Keks
                 $json['redirect'] = route('kosarica');
                 $json['status']   = 1;
 
-                if ($this->order['order_status_id'] == config('settings.order.new_status')) {
-                    $json['redirect'] = route('checkout.success');
+                if ($this->order['order_status_id'] == config('settings.order.status.new')) {
+                    $json['redirect'] = route('checkout.success', ['order_number' => $this->order->id]);
                 }
             }
         }
@@ -151,7 +151,7 @@ class Keks
     public function finishOrder(Order $order, Request $request): bool
     {
         $order->update([
-            'order_status_id' => config('settings.order.new_status')
+            'order_status_id' => config('settings.order.status.new')
         ]);
 
         Transaction::insert([
