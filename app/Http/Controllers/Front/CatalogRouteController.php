@@ -523,7 +523,7 @@ class CatalogRouteController extends Controller
         ?Author $author = null,
         ?Publisher $publisher = null
     ): array {
-        $initialCategories = $this->resolveInitialCategories($group, $cat, $subcat, $ids, $author, $publisher);
+        $initialCategories = $this->resolveInitialCategories($request, $group, $cat, $subcat, $ids, $author, $publisher);
         $initialProductsPaginator = $this->resolveInitialProductsPaginator($request, $group, $cat, $subcat, $ids, $author, $publisher);
 
         return [
@@ -675,6 +675,7 @@ class CatalogRouteController extends Controller
     }
 
     private function resolveInitialCategories(
+        Request $request,
         ?string $group = null,
         ?Category $cat = null,
         ?Category $subcat = null,
@@ -684,15 +685,32 @@ class CatalogRouteController extends Controller
     ): array {
         if ($idsParam = $this->normalizeIdsParam($ids)) {
             $resolvedIds = collect(explode(',', substr($idsParam, 1, -1)))->filter()->unique();
+            $exactSkuIds = $this->resolveExactSkuIds($request);
 
             $categories = Category::active()
-                ->whereHas('products', function ($query) use ($resolvedIds) {
-                    $query->active()->hasStock()->whereIn('id', $resolvedIds);
+                ->whereHas('products', function ($query) use ($resolvedIds, $exactSkuIds) {
+                    $query->active()->whereIn('id', $resolvedIds);
+
+                    if ($exactSkuIds->isNotEmpty()) {
+                        $query->where(function ($query) use ($exactSkuIds) {
+                            $query->hasStock()->orWhereIn('id', $exactSkuIds);
+                        });
+                    } else {
+                        $query->hasStock();
+                    }
                 })
                 ->sortByName()
                 ->withCount([
-                    'products as products_count' => function ($query) use ($resolvedIds) {
-                        $query->active()->hasStock()->whereIn('id', $resolvedIds);
+                    'products as products_count' => function ($query) use ($resolvedIds, $exactSkuIds) {
+                        $query->active()->whereIn('id', $resolvedIds);
+
+                        if ($exactSkuIds->isNotEmpty()) {
+                            $query->where(function ($query) use ($exactSkuIds) {
+                                $query->hasStock()->orWhereIn('id', $exactSkuIds);
+                            });
+                        } else {
+                            $query->hasStock();
+                        }
                     }
                 ])
                 ->get()
@@ -801,8 +819,20 @@ class CatalogRouteController extends Controller
             return null;
         }
 
-        $collection = $ids instanceof Collection ? $ids : collect($ids);
-        $normalized = $collection->filter()->map(function ($id) {
+        if ($ids instanceof Collection) {
+            $collection = $ids;
+        } elseif (is_string($ids)) {
+            $decoded = json_decode($ids, true);
+            $collection = json_last_error() === JSON_ERROR_NONE && is_array($decoded)
+                ? collect($decoded)
+                : collect(explode(',', trim($ids, '[]')));
+        } else {
+            $collection = collect($ids);
+        }
+
+        $normalized = $collection->flatten()->filter(function ($id) {
+            return $id !== null && $id !== '';
+        })->map(function ($id) {
             return is_numeric($id) ? (int) $id : $id;
         })->unique()->values();
 
@@ -811,6 +841,17 @@ class CatalogRouteController extends Controller
         }
 
         return '[' . $normalized->implode(',') . ']';
+    }
+
+    private function resolveExactSkuIds(Request $request): Collection
+    {
+        $searchTerm = trim((string) $request->input(config('settings.search_keyword', 'pojam'), ''));
+
+        if ($searchTerm === '') {
+            return collect();
+        }
+
+        return Product::query()->active()->where('sku', $searchTerm)->pluck('id');
     }
 
     private function resolveSelectedAuthors(string $slugs): array

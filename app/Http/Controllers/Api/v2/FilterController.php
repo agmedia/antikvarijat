@@ -28,6 +28,10 @@ class FilterController extends Controller
 
         $response = [];
         $params = $request->input('params');
+        $searchTerm = trim((string) ($params[config('settings.search_keyword', 'pojam')] ?? ''));
+        $exactSkuIds = $searchTerm !== ''
+            ? Product::query()->active()->where('sku', $searchTerm)->pluck('id')
+            : collect();
 
         $author = $params['author'] ? Author::where('slug', $params['author'])->first() : null;
         $publisher = $params['publisher'] ? Publisher::where('slug', $params['publisher'])->first() : null;
@@ -99,14 +103,30 @@ class FilterController extends Controller
             $_ids = collect(explode(',', substr($params['ids'], 1, -1)))->unique();
 
             $categories = Category::active()
-                ->whereHas('products', function ($query) use ($_ids) {
-                    $query->active()->hasStock()->whereIn('id', $_ids);
+                ->whereHas('products', function ($query) use ($_ids, $exactSkuIds) {
+                    $query->active()->whereIn('id', $_ids);
+
+                    if ($exactSkuIds->isNotEmpty()) {
+                        $query->where(function ($query) use ($exactSkuIds) {
+                            $query->hasStock()->orWhereIn('id', $exactSkuIds);
+                        });
+                    } else {
+                        $query->hasStock();
+                    }
                 })
                 ->sortByName()
                 ->withCount([
-                    // filtrirani count (status = 1 i quantity > 0 + whereIn)
-                    'products as products_count' => function ($query) use ($_ids) {
-                        $query->active()->hasStock()->whereIn('id', $_ids);
+                    // Filtrirani count prati istu vidljivost kao SKU search rezultati.
+                    'products as products_count' => function ($query) use ($_ids, $exactSkuIds) {
+                        $query->active()->whereIn('id', $_ids);
+
+                        if ($exactSkuIds->isNotEmpty()) {
+                            $query->where(function ($query) use ($exactSkuIds) {
+                                $query->hasStock()->orWhereIn('id', $exactSkuIds);
+                            });
+                        } else {
+                            $query->hasStock();
+                        }
                     }
                 ])
                 ->get()
@@ -258,6 +278,10 @@ class FilterController extends Controller
 
         if (isset($params['sort']) && $params['sort']) {
             $request_data['sort'] = $params['sort'];
+        }
+
+        if (isset($params['pojam']) && $params['pojam']) {
+            $request_data[config('settings.search_keyword', 'pojam')] = $params['pojam'];
         }
 
         $page = max((int) $request->input('page', 1), 1);

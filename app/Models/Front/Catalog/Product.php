@@ -520,7 +520,20 @@ class Product extends Model
     {
         $query = $this->newQuery();
 
-        $query->active()->hasStock();
+        $query->active();
+
+        $searchTerm = trim((string) $request->input(config('settings.search_keyword', 'pojam'), ''));
+        $exactSkuIds = $searchTerm !== ''
+            ? self::query()->active()->where('sku', $searchTerm)->pluck('id')
+            : collect();
+
+        if ($exactSkuIds->isNotEmpty()) {
+            $query->where(function ($query) use ($exactSkuIds) {
+                $query->hasStock()->orWhereIn('id', $exactSkuIds);
+            });
+        } else {
+            $query->hasStock();
+        }
 
         if ($ids && $ids->count() && ! \request()->has('pojam')) {
             $query->whereIn('id', $ids->unique());
