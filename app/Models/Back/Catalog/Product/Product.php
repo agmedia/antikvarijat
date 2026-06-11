@@ -188,6 +188,7 @@ class Product extends Model
             ],
             'price'    => ['required'],
             'category' => ['required'],
+            'skl'      => ['nullable', 'integer', 'min:0'],
             'tags'     => ['nullable'], // može biti string ili array
         ]);
 
@@ -219,6 +220,7 @@ class Product extends Model
 
         $product->price            = $this->request->price;
         $product->quantity         = $this->request->quantity ?: 0;
+        $product->skl              = $this->resolveSkl();
         $product->tax_id           = $this->request->tax_id ?: 1;
         $product->special          = $this->request->special;
         $product->special_from     = $this->request->special_from ? Carbon::make($this->request->special_from) : null;
@@ -272,6 +274,7 @@ class Product extends Model
             'tags'             => $this->request->tags,
             'price'            => isset($this->request->price) ? $this->request->price : 0,
             'quantity'         => $this->request->quantity ?: 0,
+            'skl'              => $this->resolveSkl(),
             'tax_id'           => $this->request->tax_id ?: 1,
             'special'          => $this->request->special,
             'special_from'     => $this->request->special_from ? Carbon::make($this->request->special_from) : null,
@@ -455,6 +458,17 @@ class Product extends Model
         $clean = preg_replace('/ style=("|\')(.*?)("|\')/', '', $description ?: '');
 
         return preg_replace('/ face=("|\')(.*?)("|\')/', '', $clean);
+    }
+
+    private function resolveSkl(): ?int
+    {
+        $value = $this->request->input('skl');
+
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        return (int) $value;
     }
 
     /**

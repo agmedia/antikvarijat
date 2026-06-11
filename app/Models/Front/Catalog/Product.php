@@ -36,6 +36,11 @@ class Product extends Model
     protected $guarded = ['id', 'created_at', 'updated_at'];
 
     /**
+     * @var array
+     */
+    protected $hidden = ['skl'];
+
+    /**
      * @var string[]
      */
     protected $appends = [

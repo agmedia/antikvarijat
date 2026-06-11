@@ -101,12 +101,33 @@ class ProductController extends Controller
         if ($request->has('product')) {
             $product = $request->input('product');
             $target = $product['target'];
+            $currentValue = $product['item'][$target] ?? null;
+            $newValue = $product['new_value'];
 
-            if ($product['item'][$target] != $product['new_value']) {
+            if ($newValue === '...') {
+                $newValue = '';
+            }
+
+            if ($target === 'skl') {
+                $currentValue = ($currentValue === null || $currentValue === '') ? null : (int) $currentValue;
+                $newValue = $newValue === null ? null : trim((string) $newValue);
+
+                if ($newValue !== null && $newValue !== '' && ! ctype_digit($newValue)) {
+                    return response()->json(['error' => 422]);
+                }
+
+                $newValue = ($newValue === null || $newValue === '') ? null : (int) $newValue;
+            }
+
+            $hasChanged = $target === 'skl'
+                ? $currentValue !== $newValue
+                : $currentValue != $newValue;
+
+            if ($hasChanged) {
                 // If update price
                 if ($target == 'price' && $product['item']['special']) {
                     $discount = Helper::calculateDiscount($product['item']['price'], $product['item']['special']);
-                    $new_special = Helper::calculateDiscountPrice($product['new_value'], $discount);
+                    $new_special = Helper::calculateDiscountPrice($newValue, $discount);
 
                     Product::where('id', $product['item']['id'])->update([
                         'special' => $new_special
@@ -114,12 +135,12 @@ class ProductController extends Controller
                 }
 
                 Product::where('id', $product['item']['id'])->update([
-                    $target => $product['new_value']
+                    $target => $newValue
                 ]);
 
                 return response()->json([
                     'success' => 200,
-                    'value_1' => $product['new_value'],
+                    'value_1' => $newValue,
                     'value_2' => isset($new_special) ? $new_special : null
                 ]);
             }

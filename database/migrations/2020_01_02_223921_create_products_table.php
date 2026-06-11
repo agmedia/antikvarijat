@@ -28,6 +28,7 @@ class CreateProductsTable extends Migration
             $table->string('image')->nullable();
             $table->decimal('price', 15, 4)->default(0);
             $table->integer('quantity')->unsigned()->default(0);
+            $table->integer('skl')->unsigned()->nullable();
             $table->integer('tax_id')->unsigned()->default(0);
             $table->decimal('special', 15, 4)->nullable();
             $table->timestamp('special_from')->nullable();
@@ -97,6 +98,5 @@ class CreateProductsTable extends Migration
         Schema::dropIfExists('product_category');
     }
 }
-
 
 

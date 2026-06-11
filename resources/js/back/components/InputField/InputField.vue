@@ -15,7 +15,7 @@
         </div>
 
         <div v-if="field == 'text'">
-            <span v-if="!view_input" style="cursor: pointer;" v-on:click="viewField">{{ field_value }}</span>
+            <span v-if="!view_input" class="ag-input-field-value" style="cursor: pointer;" v-on:click="viewField">{{ field_value }}</span>
             <div class="input-group" v-if="view_input">
                 <input type="text" class="form-control" v-model="field_value" v-on:keyup.enter="updateField">
                 <div class="input-group-append">
@@ -50,7 +50,7 @@
             return {
                 product: JSON.parse(this.item),
                 view_input: false,
-                field_value: '...',
+                field_value: '',
             }
         },
         //
@@ -67,12 +67,16 @@
                     this.field_value = Number(this.product.price).toFixed(2);
                     this.checkSpecials();
                 }
-                if (this.field == 'text' && this.product[this.target]) {
-                    this.field_value = this.product[this.target];
-                }
+                if (this.field == 'text') {
+                    let value = this.product[this.target];
 
-                if (this.target == 'quantity' && this.product[this.target] === 0) {
-                    this.field_value = '0';
+                    if (value === '...') {
+                        this.field_value = '';
+                    } else if (value === 0 || value === '0') {
+                        this.field_value = '0';
+                    } else if (value) {
+                        this.field_value = value;
+                    }
                 }
             },
             /**
@@ -142,4 +146,9 @@
 </script>
 <style>
 
+    .ag-input-field-value {
+        display: inline-block;
+        min-width: 1.5rem;
+        min-height: 1rem;
+    }
 </style>

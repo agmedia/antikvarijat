@@ -245,6 +245,13 @@ class ProductHistory extends Model
             $this->changed .= '<li>Promjenjena količina: <b>' . $this->old['quantity'] . '</b> u <b>' . $this->new['quantity'] . '</b></li>';
         }
 
+        if (($this->old['skl'] ?? null) != ($this->new['skl'] ?? null)) {
+            $old = $this->old['skl'] ?? '';
+            $new = $this->new['skl'] ?? '';
+
+            $this->changed .= '<li>Promjenjen Skl: <b>' . $old . '</b> u <b>' . $new . '</b></li>';
+        }
+
         // Tax changed
         if ($this->old['tax_id'] != $this->new['tax_id']) {
             $old = Settings::get('tax', 'list')->where('id', $this->old['tax_id'])->first();

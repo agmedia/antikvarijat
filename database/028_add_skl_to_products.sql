@@ -1,0 +1,2 @@
+ALTER TABLE `products`
+    ADD COLUMN `skl` INT(10) UNSIGNED NULL DEFAULT NULL AFTER `quantity`;

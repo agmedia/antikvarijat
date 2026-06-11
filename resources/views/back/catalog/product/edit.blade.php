@@ -98,7 +98,7 @@
                                     </div>
                                 </div>
                                 <div class="form-group row items-push mb-3">
-                                    <div class="col-md-3">
+                                    <div class="col-md-2">
                                         <label for="quantity-input">Količina <span class="text-danger">*</span></label>
                                         <input type="text" class="form-control" id="quantity-input" name="quantity" placeholder="Upišite količinu artikla" value="{{ isset($product) ? $product->quantity : ( ! isset($product) ? 1 : old('quantity')) }}">
                                         @error('quantity ')
@@ -106,7 +106,15 @@
                                         @enderror
                                     </div>
 
-                                    <div class="col-md-3">
+                                    <div class="col-md-2">
+                                        <label for="skl-input">Skl</label>
+                                        <input type="text" class="form-control" id="skl-input" name="skl" placeholder="Upišite skladište" value="{{ old('skl', isset($product) ? $product->skl : '') }}">
+                                        @error('skl')
+                                        <span class="text-danger font-italic">Skl mora biti cijeli broj...</span>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-md-2">
                                         <label for="sku-input">Šifra <span class="text-danger">*</span></label>
                                         <input type="text" class="form-control" id="sku-input" name="sku" placeholder="Upišite šifru artikla" value="{{ isset($product) ? $product->sku : old('sku') }}">
                                         @error('sku')

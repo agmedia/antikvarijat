@@ -129,6 +129,7 @@
                             <th class="text-center">Polica</th>
                             <th class="text-center">Dimenzija</th>
                             <th class="text-center">Kol.</th>
+                            <th class="text-center">Skl</th>
                             <th>Dodano</th>
                             <th>Zadnja narudžba</th>
                             <th>Zadnja izmjena</th>
@@ -166,6 +167,7 @@
                                 <td class="font-size-sm text-center">  <ag-input-field item="{{ $product }}" target="polica"></ag-input-field></td>
                                 <td class="font-size-sm text-center">  <ag-input-field item="{{ $product }}" target="dimensions"></ag-input-field></td>
                                 <td class="font-size-sm text-center">  <ag-input-field item="{{ $product }}" target="quantity"></ag-input-field></td>
+                                <td class="font-size-sm text-center">  <ag-input-field item="{{ $product }}" target="skl"></ag-input-field></td>
 
 
                                 <td class="font-size-sm">{{ \Illuminate\Support\Carbon::make($product->created_at)->format('d.m.Y') }}</td>
@@ -202,7 +204,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td class="text-center font-size-sm" colspan="7">
+                                <td class="text-center font-size-sm" colspan="14">
                                     <label>Nema proizvoda...</label>
                                 </td>
                             </tr>
@@ -218,7 +220,7 @@
 @endsection
 
 @push('js_after')
-    <script src="{{ asset('js/ag-input-field.js') }}"></script>
+    <script src="{{ asset('js/ag-input-field.js') }}?v={{ filemtime(public_path('js/ag-input-field.js')) }}"></script>
 
     <!-- Page JS Plugins -->
     <script src="{{ asset('js/plugins/magnific-popup/jquery.magnific-popup.min.js') }}"></script>
