@@ -118,6 +118,9 @@
                 sort_order: $('#bank-sort-order').val()
             };
 
+            item = collectPaymentLocaleFields('bank', item);
+
+
             axios.post("{{ route('api.payment.store') }}", {data: item})
             .then(response => {
                 console.log(response.data)

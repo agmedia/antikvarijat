@@ -2,6 +2,7 @@
 
 namespace App\Models\Front\Catalog;
 
+use App\Helpers\LocaleHelper;
 use App\Models\Concerns\CachesRouteBinding;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
@@ -37,6 +38,31 @@ class Category extends Model
     public function getRouteKeyName()
     {
         return 'slug';
+    }
+
+    public function getTitleAttribute($value)
+    {
+        return LocaleHelper::localizedField($this, 'title', true);
+    }
+
+    public function getDescriptionAttribute($value)
+    {
+        return LocaleHelper::localizedField($this, 'description', true);
+    }
+
+    public function getMetaTitleAttribute($value)
+    {
+        return LocaleHelper::localizedField($this, 'meta_title', true);
+    }
+
+    public function getMetaDescriptionAttribute($value)
+    {
+        return LocaleHelper::localizedField($this, 'meta_description', true);
+    }
+
+    public function getSlugAttribute($value)
+    {
+        return LocaleHelper::isEnglish() ? LocaleHelper::routeKey($this, LocaleHelper::ENGLISH_LOCALE) : $value;
     }
 
 
@@ -123,18 +149,7 @@ class Category extends Model
      */
     public function url(Category $subcategory = null)
     {
-        if ($subcategory) {
-            return route('catalog.route', [
-                'group' => Str::slug($this->group),
-                'cat' => $this,
-                'subcat' => $subcategory
-            ]);
-        }
-
-        return route('catalog.route', [
-            'group' => Str::slug($this->group),
-            'cat' => $this
-        ]);
+        return LocaleHelper::categoryUrl($this, $subcategory);
     }
 
 

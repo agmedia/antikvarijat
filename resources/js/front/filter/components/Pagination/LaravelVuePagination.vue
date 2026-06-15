@@ -18,26 +18,26 @@
             slot-scope="{ data, limit, showDisabled, size, align, computed, prevButtonEvents, nextButtonEvents, pageButtonEvents }">
 
             <li class="page-item pagination-prev-nav" :class="{'disabled': !computed.prevPageUrl}" v-if="computed.prevPageUrl || showDisabled">
-                <a class="page-link" href="#" aria-label="Prethodna" :tabindex="!computed.prevPageUrl && -1" v-on="prevButtonEvents">
+                <a class="page-link" href="#" :aria-label="labels.previous" :tabindex="!computed.prevPageUrl && -1" v-on="prevButtonEvents">
                     <slot name="prev-nav">
                         <span aria-hidden="true">&laquo;</span>
-                        <span class="sr-only">Prethodna</span>
+                        <span class="sr-only">{{ labels.previous }}</span>
                     </slot>
                 </a>
             </li>
 
             <li class="page-item pagination-page-nav d-none d-sm-block" v-for="(page, key) in computed.pageRange" :key="key" :class="{ 'active': page == computed.currentPage }">
                 <a class="page-link" href="#" v-on="pageButtonEvents(page)">
-                    {{ page == '...' ? page : Number(page).toLocaleString('hr-HR') }}
+                    {{ page == '...' ? page : Number(page).toLocaleString(numberLocale) }}
                     <span class="sr-only" v-if="page == computed.currentPage"></span>
                 </a>
             </li>
 
             <li class="page-item pagination-next-nav" :class="{'disabled': !computed.nextPageUrl}" v-if="computed.nextPageUrl || showDisabled">
-                <a class="page-link" href="#" aria-label="Sljedeća" :tabindex="!computed.nextPageUrl && -1" v-on="nextButtonEvents">
+                <a class="page-link" href="#" :aria-label="labels.next" :tabindex="!computed.nextPageUrl && -1" v-on="nextButtonEvents">
                     <slot name="next-nav">
                         <span aria-hidden="true">&raquo;</span>
-                        <span class="sr-only">Sljedeća</span>
+                        <span class="sr-only">{{ labels.next }}</span>
                     </slot>
                 </a>
             </li>
@@ -77,6 +77,23 @@ export default {
             validator: value => {
                 return ['left', 'center', 'right'].indexOf(value) !== -1;
             }
+        }
+    },
+
+    computed: {
+        labels() {
+            const t = (window.FrontTranslations && window.FrontTranslations.js && window.FrontTranslations.js.pagination)
+                ? window.FrontTranslations.js.pagination
+                : {};
+
+            return {
+                previous: t.previous || ((document.documentElement.lang || 'hr') === 'en' ? 'Previous' : 'Prethodna'),
+                next: t.next || ((document.documentElement.lang || 'hr') === 'en' ? 'Next' : 'Sljedeća')
+            };
+        },
+
+        numberLocale() {
+            return (document.documentElement.lang || 'hr') === 'en' ? 'en-US' : 'hr-HR';
         }
     },
 

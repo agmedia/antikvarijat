@@ -18,10 +18,10 @@
                         <div class="block-content block-content-full px-lg-5 py-md-5 py-lg-6">
                             <!-- Header -->
                             <div class="mb-2 text-center">
-                                <a class="link-fx font-w700 font-size-h2" href="{{ route('index') }}">
+                                <a class="link-fx font-w700 font-size-h2" href="{{ \App\Helpers\LocaleHelper::route('index') }}">
                                     <span class="text-dark">Antikvarijat</span> <span class="text-primary">Biblos</span>
                                 </a>
-                                <p class="text-uppercase font-w700 font-size-sm text-muted">PRIJAVA</p>
+                                <p class="text-uppercase font-w700 font-size-sm text-muted">{{ __('front.auth.login_title') }}</p>
                             </div>
                             <form method="POST" action="{{ route('login') }}">
                                 @csrf
@@ -29,30 +29,30 @@
                                     <input type="text" class="form-control form-control-alt" id="email" name="email" value="{{ old('email') }}" placeholder="Email">
                                 </div>
                                 <div class="form-group">
-                                    <input type="password" class="form-control form-control-alt" id="password" name="password" placeholder="Lozinka">
+                                    <input type="password" class="form-control form-control-alt" id="password" name="password" placeholder="{{ __('front.checkout.password') }}">
                                 </div>
                                 <div class="form-group">
                                     <label for="remember_me" class="flex items-center">
                                         <x-jet-checkbox id="remember_me" name="remember" />
-                                        <span class="ml-2 text-sm text-gray-600">{{ __('Zapamti me') }}</span>
+                                        <span class="ml-2 text-sm text-gray-600">{{ __('front.checkout.remember_me') }}</span>
                                     </label>
                                 </div>
                                 <div class="form-group">
                                     <button type="submit" class="btn btn-block btn-hero-primary">
-                                        <i class="fa fa-fw fa-sign-in-alt mr-1"></i> Prijavi se
+                                        <i class="fa fa-fw fa-sign-in-alt mr-1"></i> {{ __('front.auth.login_button') }}
                                     </button>
                                 </div>
                             </form>
                             <div class="mb-2 text-center">
                                 @if (Route::has('forget.password.get'))
                                     <a class="link-fx font-size-sm" href="{{ route('forget.password.get') }}">
-                                        {{ __('Zaboravili ste lozinku?') }}
+                                        {{ __('front.auth.forgot_password') }}
                                     </a>
                                 @endif
                             </div>
                             <div class="mb-2 text-center">
                                 <a class="link-fx font-size-sm" href="{{ route('register') }}">
-                                    {{ __('Nemate račun? Registrirajte se') }}
+                                    {{ __('front.auth.no_account_register') }}
                                 </a>
                             </div>
                         </div>
@@ -60,14 +60,14 @@
                     <div class="col-md-6 order-md-0 bg-primary-dark-op d-flex align-items-center">
                         <div class="block-content block-content-full px-lg-5 py-md-5 py-lg-6">
                             <div class="media">
-                                <a class="img-link mr-3" href="{{ route('index') }}">
+                                <a class="img-link mr-3" href="{{ \App\Helpers\LocaleHelper::route('index') }}">
                                     <img class="img-avatar img-avatar-thumb" src="{{ asset('media/img/faviconbiblos.png') }}" alt="Antikvarijat Biblos">
                                 </a>
                                 <div class="media-body">
                                     <p class="text-white font-w600 mb-1">
-                                        Knjige, vedute & zemljovidi
+                                        {{ __('front.general.brand_tagline') }}
                                     </p>
-                                    <a class="text-white-75 font-w600" href="{{ route('index') }}">Antikvarijat Biblos</a>
+                                    <a class="text-white-75 font-w600" href="{{ \App\Helpers\LocaleHelper::route('index') }}">Antikvarijat Biblos</a>
                                 </div>
                             </div>
                         </div>

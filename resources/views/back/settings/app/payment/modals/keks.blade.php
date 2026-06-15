@@ -174,6 +174,9 @@
                 sort_order: $('#keks-sort-order').val()
             };
 
+            item = collectPaymentLocaleFields('keks', item);
+
+
             axios.post("{{ route('api.payment.store') }}", {data: item})
             .then(response => {
                 if (response.data.success) {

@@ -5,6 +5,6 @@
         <a class="d-table-cell handheld-toolbar-item" href="#" data-bs-toggle="offcanvas" data-bs-target="#shop-sidebar"><span class="handheld-toolbar-icon"><i class="ci-filter-alt"></i></span></a>
         @endif
         <a class="d-table-cell handheld-toolbar-item" href="javascript:void(0)" data-bs-toggle="collapse" data-bs-target="#navbarCollapseMain" onclick="window.scrollTo(0, 0)"><span class="handheld-toolbar-icon"><i class="ci-menu"></i></span></a>
-        <cart-footer-icon carturl="{{ route('kosarica') }}"></cart-footer-icon>
+        <cart-footer-icon carturl="{{ \App\Helpers\LocaleHelper::route('kosarica') }}"></cart-footer-icon>
     </div>
 </div>

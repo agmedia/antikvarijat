@@ -41,11 +41,16 @@
                         <tr>
                             <td class="text-center">{{ $loop->iteration }}.</td>
                             <td class="text-center"><span class="text-gray-dark">{{ $status->id }}</span></td>
-                            <td>{{ $status->title }}</td>
+                            <td>
+                                {{ $status->title }}
+                                @if (! empty($status->title_en))
+                                    <div class="small text-muted">EN: {{ $status->title_en }}</div>
+                                @endif
+                            </td>
                             <td class="text-center"><span class="badge badge-pill badge-{{ isset($status->color) && $status->color ? $status->color : 'light' }}">{{ $status->title }}</span></td>
                             <td class="text-center">{{ $status->sort_order }}</td>
                             <td class="text-right font-size-sm">
-                                <button class="btn btn-sm btn-alt-secondary" onclick="event.preventDefault(); openModal({{ json_encode($status) }});">
+                                <button class="btn btn-sm btn-alt-secondary js-order-status-edit" data-item="{{ base64_encode(json_encode($status)) }}">
                                     <i class="fa fa-fw fa-pencil-alt"></i>
                                 </button>
                                 <button class="btn btn-sm btn-alt-danger" onclick="event.preventDefault(); deleteStatus({{ $status->id }});">
@@ -82,8 +87,13 @@
                         <div class="row justify-content-center mb-3">
                             <div class="col-md-10">
                                 <div class="form-group">
-                                    <label for="status-title">Naslov</label>
+                                    <label for="status-title">Naslov (HR)</label>
                                     <input type="text" class="form-control" id="status-title" name="title">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="status-title-en">Naslov (EN)</label>
+                                    <input type="text" class="form-control" id="status-title-en" name="title_en">
                                 </div>
 
                                 <div class="form-group">
@@ -159,6 +169,12 @@
 @push('js_after')
     <script src="{{ asset('js/plugins/select2/js/select2.full.min.js') }}"></script>
     <script>
+        $(document).on('click', '.js-order-status-edit', function (event) {
+            event.preventDefault();
+
+            openModal(JSON.parse(atob($(this).attr('data-item'))));
+        });
+
         $(() => {
             $('#status-color-select').select2({
                 minimumResultsForSearch: Infinity,
@@ -200,6 +216,7 @@
             let item = {
                 id: $('#status-id').val(),
                 title: $('#status-title').val(),
+                title_en: $('#status-title-en').val(),
                 sort_order: $('#status-sort-order').val(),
                 color: $('#status-color-select').val()
             };
@@ -249,6 +266,7 @@
         function editStatus(item) {
             $('#status-id').val(item.id);
             $('#status-title').val(item.title);
+            $('#status-title-en').val(item.title_en || '');
             $('#status-sort-order').val(item.sort_order);
 
             $('#status-color-select').val(item.color);

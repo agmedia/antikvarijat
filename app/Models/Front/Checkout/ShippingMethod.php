@@ -2,6 +2,7 @@
 
 namespace App\Models\Front\Checkout;
 
+use App\Helpers\LocaleHelper;
 use App\Helpers\Session\CheckoutSession;
 use App\Models\Back\Settings\Settings;
 use Illuminate\Support\Collection;
@@ -102,12 +103,12 @@ class ShippingMethod
             }
 
             $condition = new \Darryldecode\Cart\CartCondition(array(
-                'name' => $shipping->title,
+                'name' => LocaleHelper::localizedSettingField($shipping, 'title'),
                 'type' => 'shipping',
                 'target' => 'total', // this condition will be applied to cart's subtotal when getSubTotal() is called.
                 'value' => '+' . $value,
                 'attributes' => [
-                    'description' => $shipping->data->short_description,
+                    'description' => LocaleHelper::localizedSettingDataField($shipping, 'short_description'),
                     'geo_zone' => $shipping->geo_zone
                 ]
             ));

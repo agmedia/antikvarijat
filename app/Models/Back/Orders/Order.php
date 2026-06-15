@@ -2,6 +2,7 @@
 
 namespace App\Models\Back\Orders;
 
+use App\Helpers\LocaleHelper;
 use App\Helpers\Session\CheckoutSession;
 use App\Models\Back\Settings\Settings;
 use App\Models\Back\Users\Client;
@@ -280,7 +281,7 @@ class Order extends Model
         if ($this->request->filled('shipping_amount')) {
             // title iz postavki za kod dostave
             $shippingSetting = Settings::get('shipping', 'list.' . $this->request->shipping)->first();
-            $shippingTitle   = $shippingSetting ? $shippingSetting->title : 'Dostava';
+            $shippingTitle   = $shippingSetting ? LocaleHelper::localizedSettingField($shippingSetting, 'title') : __('front.email.total_shipping');
 
             // normalizacija broja (podržava i "55,00")
             $shippingValue = (float) str_replace(',', '.', $this->request->shipping_amount);
@@ -315,7 +316,7 @@ class Order extends Model
 
         // 3b) Ako je payment COD i poslan iznos naknade, upiši/override-aj "payment"
         if (strtolower($this->request->payment) === 'cod' && $this->request->filled('payment_amount')) {
-            $paymentTitle = 'Naknada za pouzeće'; // po potrebi promijeni ili povuci iz configa
+            $paymentTitle = __('front.email.total_payment');
             $paymentValue = (float) str_replace(',', '.', $this->request->payment_amount);
 
             $foundPayment = false;
@@ -375,7 +376,7 @@ class Order extends Model
             'payment_state'    => $this->request->state,
             'payment_phone'    => $this->request->phone ?: null,
             'payment_email'    => $this->request->email,
-            'payment_method'   => $payment->title,
+            'payment_method'   => LocaleHelper::localizedSettingField($payment, 'title'),
             'payment_code'     => $payment->code,
             'shipping_fname'   => $this->request->fname,
             'shipping_lname'   => $this->request->lname,
@@ -384,7 +385,7 @@ class Order extends Model
             'shipping_city'    => $this->request->city,
             'shipping_phone'   => $this->request->phone ?: null,
             'shipping_email'   => $this->request->email,
-            'shipping_method'  => $shipping->title,
+            'shipping_method'  => LocaleHelper::localizedSettingField($shipping, 'title'),
             'shipping_code'    => $shipping->code,
             'company'          => isset($this->request->company) ? $this->request->company : null,
             'oib'              => isset($this->request->oib) ? $this->request->oib : null,
@@ -421,7 +422,7 @@ class Order extends Model
             'payment_state'    => $this->request->state,
             'payment_phone'    => $this->request->phone ?: null,
             'payment_email'    => $this->request->email,
-            'payment_method'   => $payment->title,
+            'payment_method'   => LocaleHelper::localizedSettingField($payment, 'title'),
             'payment_code'     => $payment->code,
             'shipping_fname'   => $this->request->fname,
             'shipping_lname'   => $this->request->lname,
@@ -430,7 +431,7 @@ class Order extends Model
             'shipping_city'    => $this->request->city,
             'shipping_phone'   => $this->request->phone ?: null,
             'shipping_email'   => $this->request->email,
-            'shipping_method'  => $shipping->title,
+            'shipping_method'  => LocaleHelper::localizedSettingField($shipping, 'title'),
             'shipping_code'    => $shipping->code,
             'company'          => isset($this->request->company) ? $this->request->company : null,
             'oib'              => isset($this->request->oib) ? $this->request->oib : null,

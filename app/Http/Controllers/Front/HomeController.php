@@ -35,7 +35,7 @@ class HomeController extends Controller
             return Page::where('slug', 'homepage')->first();
         });
 
-        $page->description = Helper::setDescription($page->description);
+        $page->setAttribute('rendered_description', Helper::setDescription((string) $page->description));
 
         return view('front.page', compact('page'));
     }
@@ -68,20 +68,20 @@ class HomeController extends Controller
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'errors' => [
-                        'recaptcha' => ['ReCaptcha provjera nije uspjela. Osvježite stranicu i pokušajte ponovno.'],
+                        'recaptcha' => [__('front.messages.recaptcha_failed')],
                     ],
                 ], 422);
             }
 
-            return back()->withErrors(['error' => 'ReCaptcha Error! Kontaktirajte administratora!'])
+            return back()->withErrors(['error' => __('front.messages.recaptcha_admin')])
                 ->withInput();
         }
 
         if ($wish->create()) {
-            return back()->with(['success' => 'Vaš Email je upisan u listu želja za ovaj artikl..!']);
+            return back()->with(['success' => __('front.wishlist.success')]);
         }
 
-        return back()->with(['error' => 'Vaš Email je već upisan u listu želja za ovaj artikl!']);
+        return back()->with(['error' => __('front.wishlist.exists')]);
     }
 
     /**
@@ -95,10 +95,10 @@ class HomeController extends Controller
             'email' => 'required|email',
             'gdpr' => 'required|accepted',
         ], [
-            'email.required' => 'Polje za e-mail adresu je obavezno.',
-            'email.email' => 'Unesite ispravnu e-mail adresu.',
-            'gdpr.required' => 'Morate prihvatiti GDPR privolu.',
-            'gdpr.accepted' => 'Morate prihvatiti GDPR privolu.',
+            'email.required' => __('front.newsletter.email_required'),
+            'email.email' => __('front.newsletter.email_invalid'),
+            'gdpr.required' => __('front.newsletter.gdpr_required'),
+            'gdpr.accepted' => __('front.newsletter.gdpr_required'),
         ]);
 
         NewsletterSubscriber::subscribe([
@@ -111,11 +111,11 @@ class HomeController extends Controller
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
                 'status' => 'success',
-                'message' => 'Hvala! Uspješno ste prijavljeni na newsletter.',
+                'message' => __('front.newsletter.success'),
             ]);
         }
 
-        return back()->with('newsletter_success', 'Hvala! Uspješno ste prijavljeni na newsletter.');
+        return back()->with('newsletter_success', __('front.newsletter.success'));
     }
 
 
@@ -179,7 +179,7 @@ class HomeController extends Controller
         $recaptcha = (new Recaptcha())->check($request->toArray());
 
         if ( ! $recaptcha->ok()) {
-            return back()->withErrors(['error' => 'ReCaptcha Error! Kontaktirajte administratora!']);
+            return back()->withErrors(['error' => __('front.messages.recaptcha_admin')]);
         }
 
         $message = $request->toArray();
@@ -188,7 +188,7 @@ class HomeController extends Controller
             Mail::to(config('mail.admin'))->send(new ContactFormMessage($message));
         });
 
-        return view('front.contact')->with(['success' => 'Vaša poruka je uspješno poslana.! Odgovoriti ćemo vam uskoro.']);
+        return view('front.contact')->with(['success' => __('front.contact.sent')]);
     }
 
     /**
@@ -206,8 +206,8 @@ class HomeController extends Controller
             'photos' => 'required|array|min:1|max:20',
             'photos.*' => 'required|file|image|mimes:jpg,jpeg,png,webp|max:4096',
         ], [
-            'photos.max' => 'Maksimalno je dozvoljeno 20 fotografija.',
-            'photos.*.max' => 'Maksimalna veličina pojedine fotografije je 4 MB.',
+            'photos.max' => __('front.book_purchase.max_files'),
+            'photos.*.max' => __('front.book_purchase.single_photo_too_large'),
         ]);
 
         $totalUploadSize = collect($request->file('photos', []))->sum(function ($photo) {
@@ -218,13 +218,13 @@ class HomeController extends Controller
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'errors' => [
-                        'photos' => ['Ukupna veličina svih fotografija može biti najviše 40 MB.'],
+                        'photos' => [__('front.book_purchase.total_too_large')],
                     ],
                 ], 422);
             }
 
             return back()->withErrors([
-                'photos' => 'Ukupna veličina svih fotografija može biti najviše 40 MB.',
+                'photos' => __('front.book_purchase.total_too_large'),
             ])->withInput();
         }
 
@@ -233,12 +233,12 @@ class HomeController extends Controller
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'errors' => [
-                        'recaptcha' => ['ReCaptcha provjera nije uspjela. Osvježite stranicu i pokušajte ponovno.'],
+                        'recaptcha' => [__('front.messages.recaptcha_failed')],
                     ],
                 ], 422);
             }
 
-            return back()->withErrors(['error' => 'ReCaptcha Error! Kontaktirajte administratora!'])
+            return back()->withErrors(['error' => __('front.messages.recaptcha_admin')])
                 ->withInput();
         }
 
@@ -304,22 +304,22 @@ class HomeController extends Controller
 
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
-                    'message' => 'Došlo je do greške prilikom slanja prijave. Pokušajte ponovno.',
+                    'message' => __('front.book_purchase.send_error'),
                 ], 500);
             }
 
             return back()->withErrors([
-                'error' => 'Došlo je do greške prilikom slanja prijave. Pokušajte ponovno.',
+                'error' => __('front.book_purchase.send_error'),
             ])->withInput();
         }
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
-                'message' => 'Hvala! Vaša prijava za otkup knjiga je uspješno poslana.',
+                'message' => __('front.book_purchase.sent'),
             ]);
         }
 
-        return back()->with(['success' => 'Hvala! Vaša prijava za otkup knjiga je uspješno poslana.']);
+        return back()->with(['success' => __('front.book_purchase.sent')]);
     }
 
 

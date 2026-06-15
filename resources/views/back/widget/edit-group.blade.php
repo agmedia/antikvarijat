@@ -56,14 +56,25 @@
                             <h5 class="text-black mb-0 mt-2">Generalne Informacije</h5>
                             <hr class="mb-3">
 
-                            <div class="form-group mb-3">
-                                <label for="title-input">Naslov @include('back.layouts.partials.required-star')</label>
-                                <input type="text" class="form-control" name="title" id="title-input" value="{{ isset($widget->title) ? $widget->title : '' }}" placeholder="">
-                            </div>
+                            @include('back.layouts.partials.language-tabs', ['id' => 'widget-group-tabs'])
+                            <div class="tab-content">
+                                <div class="tab-pane active" id="widget-group-tabs-hr" role="tabpanel">
+                                    <div class="form-group mb-3">
+                                        <label for="title-input">Naslov @include('back.layouts.partials.required-star')</label>
+                                        <input type="text" class="form-control" name="title" id="title-input" value="{{ isset($widget->title) ? $widget->title : '' }}" placeholder="">
+                                    </div>
 
-                            <div class="form-group mb-3">
-                                <label for="slug-input">Indentifikacijska Oznaka <small class="text-gray">Nije preporučljivo samostalno dodavanje!</small></label>
-                                <input type="text" class="form-control" name="slug" id="slug-input" value="{{ isset($widget->slug) ? $widget->slug : '' }}" placeholder="">
+                                    <div class="form-group mb-3">
+                                        <label for="slug-input">Indentifikacijska Oznaka <small class="text-gray">Nije preporučljivo samostalno dodavanje!</small></label>
+                                        <input type="text" class="form-control" name="slug" id="slug-input" value="{{ isset($widget->slug) ? $widget->slug : '' }}" placeholder="">
+                                    </div>
+                                </div>
+                                <div class="tab-pane" id="widget-group-tabs-en" role="tabpanel">
+                                    <div class="form-group mb-3">
+                                        <label for="title-en-input">Naslov EN</label>
+                                        <input type="text" class="form-control" name="title_en" id="title-en-input" value="{{ isset($widget->title_en) ? $widget->title_en : '' }}" placeholder="">
+                                    </div>
+                                </div>
                             </div>
 
                         </div>

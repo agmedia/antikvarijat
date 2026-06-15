@@ -4,7 +4,7 @@
             @if (! empty($initialCategories))
                 <div class="widget widget-categories mb-3 pb-4">
                     @if (! $cat && ! $subcat)
-                        <h3 class="widget-title">Kategorije</h3>
+                        <h3 class="widget-title">{{ __('front.js.filter.categories') }}</h3>
                     @elseif ($cat && ! $subcat)
                         <h3 class="widget-title">{{ $cat->title }}<span class="badge bg-secondary float-end">{{ number_format((int) ($cat->count ?? 0), 0, ',', '.') }}</span></h3>
                     @elseif ($cat && $subcat)

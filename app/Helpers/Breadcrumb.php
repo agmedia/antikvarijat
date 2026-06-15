@@ -47,7 +47,7 @@ class Breadcrumb
                     '@type' => 'ListItem',
                     'position' => 3,
                     'name' => $cat->title,
-                    'item' => route('catalog.route', ['group' => $group, 'cat' => $cat])
+                    'item' => LocaleHelper::route('catalog.route', ['group' => $group, 'cat' => $cat])
                 ]);
             }
 
@@ -56,7 +56,7 @@ class Breadcrumb
                     '@type' => 'ListItem',
                     'position' => 4,
                     'name' => $subcat->title,
-                    'item' => route('catalog.route', ['group' => $group, 'cat' => $cat, 'subcat' => $subcat])
+                    'item' => LocaleHelper::route('catalog.route', ['group' => $group, 'cat' => $cat, 'subcat' => $subcat])
                 ]);
             }
         }
@@ -100,19 +100,25 @@ class Breadcrumb
     public function productBookSchema(Product $prod = null)
     {
         if ($prod) {
+            $unknownAuthor = LocaleHelper::isEnglish() ? 'Author' : 'Autor';
+            $publisherLabel = LocaleHelper::isEnglish() ? 'Publisher' : 'Izdavačka kuća';
+            $description = LocaleHelper::isEnglish()
+                ? $prod->name . ' book by ' . (($prod->author) ? $prod->author->title : $unknownAuthor) . ', published in ' . ($prod->year ?: '...')
+                : $prod->name . ' knjiga autora ' . (($prod->author) ? $prod->author->title : $unknownAuthor) . ' godine izdanja ' . ($prod->year ?: '...') . '. izdavača ' . (($prod->publisher) ? $prod->publisher->title : $publisherLabel);
+
             return [
                 '@context' => 'https://schema.org/',
                 '@type' => 'Book',
                 'datePublished' => $prod->year ?: '...',
-                'description' => $prod->name . ' knjiga autora ' . (($prod->author) ? $prod->author->title : 'Autor') . ' godine izdanja ' . ($prod->year ?: '...') . '. izdavača ' . (($prod->publisher) ? $prod->publisher->title : 'Izdavačka kuća'),
+                'description' => $description,
                 'image' => asset($prod->image),
                 'name' => $prod->name,
                 'url' => url($prod->url),
                 'publisher' => [
                     '@type' => 'Organization', 
-                    'name' => ($prod->publisher) ? $prod->publisher->title : 'Izdavačka kuća',
+                    'name' => ($prod->publisher) ? $prod->publisher->title : $publisherLabel,
                 ],
-                'author' => ($prod->author) ? $prod->author->title : 'Autor',
+                'author' => ($prod->author) ? $prod->author->title : $unknownAuthor,
                 'offers' => [
                     '@type' => 'Offer',
                     'priceCurrency' => 'EUR',
@@ -149,8 +155,8 @@ class Breadcrumb
         array_push($this->breadcrumbs, [
             '@type' => 'ListItem',
             'position' => 1,
-            'name' => 'Naslovnica',
-            'item' => route('index')
+            'name' => LocaleHelper::isEnglish() ? 'Home' : 'Naslovnica',
+            'item' => LocaleHelper::route('index')
         ]);
     }
 
@@ -163,8 +169,8 @@ class Breadcrumb
         array_push($this->breadcrumbs, [
             '@type' => 'ListItem',
             'position' => 2,
-            'name' => Str::ucfirst($group),
-            'item' => route('catalog.route', ['group' => $group])
+            'name' => LocaleHelper::groupTitle($group),
+            'item' => LocaleHelper::route('catalog.route', ['group' => $group])
         ]);
     }
 }

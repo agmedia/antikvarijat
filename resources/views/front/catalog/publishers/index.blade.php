@@ -1,6 +1,6 @@
 @extends('front.layouts.app')
-@section('title', 'Nakladnici knjiga - Antikvarijat Biblos')
-@section('description', 'Pregled nakladnika i dostupnih naslova u Antikvarijatu Biblos. Pretražite nakladnike po početnom slovu i pronađite tražene knjige.')
+@section('title', __('front.publishers.meta_title'))
+@section('description', __('front.publishers.meta_description'))
 
 @if (isset($meta_tags))
     @push('meta_tags')
@@ -16,8 +16,8 @@
         <div class="container position-relative zindex-5 py-4 my-3">
             <div class="row justify-content-center">
                 <div class="col-lg-8">
-                    <h1 class="text-dark text-center">Lista nakladnika</h1>
-                    <p class="pb-0 text-dark text-center mb-0">Pretraživanje prema početnom slovu imena nakladnika</p>
+                    <h1 class="text-dark text-center">{{ __('front.publishers.title') }}</h1>
+                    <p class="pb-0 text-dark text-center mb-0">{{ __('front.publishers.subtitle') }}</p>
                 </div>
             </div>
         </div>
@@ -30,7 +30,7 @@
                 <div class="scrolling-wrapper">
 
                 @foreach ($letters as $item)
-                    <a href="{{ route('catalog.route.publisher', ['publisher' => null, 'letter' => $item['value']]) }}"
+                    <a href="{{ \App\Helpers\LocaleHelper::route('catalog.route.publisher', ['publisher' => null, 'letter' => $item['value']]) }}"
                        class="btn btn-secondary btn-icon cardd mb-2 @if( ! $item['active']) disabled @endif @if($item['value'] == $letter) bg-fourth disabled @endif">
                         <h3 class="h4 @if($item['value'] == $letter) text-white @else text-dark @endif  py-0 mb-0 px-1">{{ $item['value'] }}</h3>
                     </a>

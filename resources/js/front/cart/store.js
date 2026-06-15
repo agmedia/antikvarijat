@@ -3,14 +3,36 @@ let storage_cart = {
     name: 'sl_cart',
     cart: { count: 0 }
 };
+const currentLocale = (document.documentElement.lang || 'hr').toLowerCase();
+const frontTranslations = window.FrontTranslations || {};
+const translatedMessages = frontTranslations.js && frontTranslations.js.messages ? frontTranslations.js.messages : {};
+const messagesByLocale = {
+    hr: {
+        error: 'Whoops!... Server connection error!',
+        cartAdd: 'Product added to cart.',
+        cartUpdate: 'Product quantity has been updated.',
+        cartRemove: 'Product removed from cart.',
+        couponSuccess: 'Coupon has been added to your cart.',
+        couponError: 'Unfortunately, no coupon was found for that code.',
+    },
+    en: {
+        error: 'Whoops!... Server connection error!',
+        cartAdd: 'Product added to cart.',
+        cartUpdate: 'Product quantity has been updated.',
+        cartRemove: 'Product removed from cart.',
+        couponSuccess: 'Coupon has been added to your cart.',
+        couponError: 'Unfortunately, no coupon was found for that code.',
+    }
+};
+let fallbackMessages = messagesByLocale[currentLocale] || messagesByLocale.hr;
 let messages = {
-    error: 'Whoops!... Greška u vezi sa poslužiteljem!',
-    cartAdd: 'Proizvod dodan u košaricu.',
-    cartUpdate: 'Količina proizvoda je promjenjena',
-    cartRemove: 'Proizvod maknut iz košarice.',
-    couponSuccess: 'Kupon je uspješno dodan u košaricu.',
-    couponError: 'Nažalost nema kupona pod tim kodom.',
-}
+    error: translatedMessages.server_error || fallbackMessages.error,
+    cartAdd: translatedMessages.cart_add || fallbackMessages.cartAdd,
+    cartUpdate: translatedMessages.cart_update || fallbackMessages.cartUpdate,
+    cartRemove: translatedMessages.cart_remove || fallbackMessages.cartRemove,
+    couponSuccess: translatedMessages.coupon_success || fallbackMessages.couponSuccess,
+    couponError: translatedMessages.coupon_error || fallbackMessages.couponError,
+};
 
 
 class AgService {

@@ -47,19 +47,40 @@
                     <div class="row justify-content-center push">
                         <div class="col-md-10">
 
-                            <div class="form-group">
-                                <label for="title-input">Naziv izdavača</label>
-                                <input type="text" class="form-control" id="title-input" name="title" placeholder="Upišite naziv autora" value="{{ isset($publisher) ? $publisher->title : old('title') }}" onkeyup="SetSEOPreview()">
-                            </div>
+                            @include('back.layouts.partials.language-tabs', ['id' => 'publisher-content-tabs'])
+                            <div class="tab-content">
+                                <div class="tab-pane active" id="publisher-content-tabs-hr" role="tabpanel">
+                                    <div class="form-group">
+                                        <label for="title-input">Naziv izdavača</label>
+                                        <input type="text" class="form-control" id="title-input" name="title" placeholder="Upišite naziv izdavača" value="{{ isset($publisher) ? $publisher->title : old('title') }}" onkeyup="SetSEOPreview()">
+                                    </div>
 
-                            <div class="form-group">
-                                <label for="slug-input">SEO link (url)</label>
-                                <input type="text" class="form-control" id="slug-input" name="slug" value="{{ isset($publisher) ? $publisher->slug : old('slug') }}" disabled>
-                            </div>
+                                    <div class="form-group">
+                                        <label for="slug-input">SEO link (url)</label>
+                                        <input type="text" class="form-control" id="slug-input" name="slug" value="{{ isset($publisher) ? $publisher->slug : old('slug') }}" disabled>
+                                    </div>
 
-                            <div class="form-group">
-                                <label for="description-editor">Opis izdavača</label>
-                                <textarea id="description-editor" name="description">{!! isset($publisher) ? $publisher->description : old('description') !!}</textarea>
+                                    <div class="form-group">
+                                        <label for="description-editor">Opis izdavača</label>
+                                        <textarea id="description-editor" name="description">{!! isset($publisher) ? $publisher->description : old('description') !!}</textarea>
+                                    </div>
+                                </div>
+                                <div class="tab-pane" id="publisher-content-tabs-en" role="tabpanel">
+                                    <div class="form-group">
+                                        <label for="title-en-input">Naziv EN</label>
+                                        <input type="text" class="form-control" id="title-en-input" name="title_en" placeholder="Upišite engleski naziv izdavača" value="{{ old('title_en', isset($publisher) ? $publisher->title_en : '') }}">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="slug-en-input">SEO link EN</label>
+                                        <input type="text" class="form-control" id="slug-en-input" name="slug_en" value="{{ old('slug_en', isset($publisher) ? $publisher->slug_en : '') }}" placeholder="Ako je prazno koristi se HR slug">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="description-en-editor">Opis EN</label>
+                                        <textarea id="description-en-editor" name="description_en">{!! old('description_en', isset($publisher) ? $publisher->description_en : '') !!}</textarea>
+                                    </div>
+                                </div>
                             </div>
 
                         </div>
@@ -74,20 +95,42 @@
                 <div class="block-content">
                     <div class="row justify-content-center">
                         <div class="col-md-10 ">
-                            <div class="form-group">
-                                <label for="meta-title-input">Meta naslov</label>
-                                <input type="text" class="js-maxlength form-control" id="meta-title-input" name="meta_title" value="{{ isset($publisher) ? $publisher->meta_title : old('meta_title') }}" maxlength="70" data-always-show="true" data-placement="top">
-                                <small class="form-text text-muted">
-                                    70 znakova max
-                                </small>
-                            </div>
+                            @include('back.layouts.partials.language-tabs', ['id' => 'publisher-seo-tabs'])
+                            <div class="tab-content">
+                                <div class="tab-pane active" id="publisher-seo-tabs-hr" role="tabpanel">
+                                    <div class="form-group">
+                                        <label for="meta-title-input">Meta naslov</label>
+                                        <input type="text" class="js-maxlength form-control" id="meta-title-input" name="meta_title" value="{{ isset($publisher) ? $publisher->meta_title : old('meta_title') }}" maxlength="70" data-always-show="true" data-placement="top">
+                                        <small class="form-text text-muted">
+                                            70 znakova max
+                                        </small>
+                                    </div>
 
-                            <div class="form-group">
-                                <label for="meta-description-input">Meta opis</label>
-                                <textarea class="js-maxlength form-control" id="meta-description-input" name="meta_description" rows="4" maxlength="160" data-always-show="true" data-placement="top">{{ isset($publisher) ? $publisher->meta_description : old('meta_description') }}</textarea>
-                                <small class="form-text text-muted">
-                                    160 znakova max
-                                </small>
+                                    <div class="form-group">
+                                        <label for="meta-description-input">Meta opis</label>
+                                        <textarea class="js-maxlength form-control" id="meta-description-input" name="meta_description" rows="4" maxlength="160" data-always-show="true" data-placement="top">{{ isset($publisher) ? $publisher->meta_description : old('meta_description') }}</textarea>
+                                        <small class="form-text text-muted">
+                                            160 znakova max
+                                        </small>
+                                    </div>
+                                </div>
+                                <div class="tab-pane" id="publisher-seo-tabs-en" role="tabpanel">
+                                    <div class="form-group">
+                                        <label for="meta-title-en-input">Meta naslov EN</label>
+                                        <input type="text" class="js-maxlength form-control" id="meta-title-en-input" name="meta_title_en" value="{{ old('meta_title_en', isset($publisher) ? $publisher->meta_title_en : '') }}" maxlength="70" data-always-show="true" data-placement="top">
+                                        <small class="form-text text-muted">
+                                            70 znakova max
+                                        </small>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="meta-description-en-input">Meta opis EN</label>
+                                        <textarea class="js-maxlength form-control" id="meta-description-en-input" name="meta_description_en" rows="4" maxlength="160" data-always-show="true" data-placement="top">{{ old('meta_description_en', isset($publisher) ? $publisher->meta_description_en : '') }}</textarea>
+                                        <small class="form-text text-muted">
+                                            160 znakova max
+                                        </small>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="form-group row">
@@ -144,6 +187,15 @@
         $(() => {
             ClassicEditor
             .create( document.querySelector('#description-editor'))
+            .then( editor => {
+                console.log(editor);
+            } )
+            .catch( error => {
+                console.error(error);
+            } );
+
+            ClassicEditor
+            .create( document.querySelector('#description-en-editor'))
             .then( editor => {
                 console.log(editor);
             } )

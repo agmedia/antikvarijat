@@ -117,6 +117,9 @@
                 sort_order: $('#flat-sort-order').val()
             };
 
+            item = collectShippingLocaleFields('flat', item);
+
+
             axios.post("{{ route('api.shipping.store') }}", {data: item})
             .then(response => {
                 console.log(response.data)
@@ -125,7 +128,7 @@
                 } else {
                     return errorToast.fire(response.data.message);
                 }
-            });
+            }).catch(handleSettingsSaveError);
         }
 
         /**

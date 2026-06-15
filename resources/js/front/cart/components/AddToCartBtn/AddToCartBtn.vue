@@ -2,11 +2,11 @@
     <div class="cart mb-3 d-flex align-items-center" v-cloak v-if="show_buy">
         <div class="d-flex flex-wrap align-items-center pt-4 pb-2 mb-3">
             <input class="form-control me-3 "  type="number" inputmode="numeric" pattern="[0-9]*" v-model="quantity" min="1" :max="is_available" v-if="show_quantity" style="width: 5rem;">
-            <button class="btn btn-primary btn-shadow  w-auto" @click="addToCart()"><i class="ci-cart fs-base me-1"></i> Dodaj u Košaricu</button>
+            <button class="btn btn-primary btn-shadow  w-auto" @click="addToCart()"><i class="ci-cart fs-base me-1"></i> {{ labels.addToCart }}</button>
         </div>
     </div>
     <div class="cart mb-3 d-flex align-items-center" v-cloak v-else>
-        <a class="btn btn-primary btn-shadow d-block w-100" href="#wishlist-modal" data-bs-toggle="modal">Obavijesti me o dostupnosti</a>
+        <a class="btn btn-primary btn-shadow d-block w-100" href="#wishlist-modal" data-bs-toggle="modal">{{ labels.notifyAvailability }}</a>
     </div>
 </template>
 
@@ -29,10 +29,25 @@ export default {
         }
     },
     //
+    computed: {
+        labels() {
+            const t = (window.FrontTranslations && window.FrontTranslations.js && window.FrontTranslations.js.cart)
+                ? window.FrontTranslations.js.cart
+                : {};
+            return (document.documentElement.lang || 'hr') === 'en' ? {
+                addToCart: t.add_to_cart || 'Add to cart',
+                notifyAvailability: t.notify_availability || 'Notify me when available'
+            } : {
+                addToCart: t.add_to_cart || 'Add to cart',
+                notifyAvailability: t.notify_availability || 'Notify me when available'
+            };
+        }
+    },
+    //
 
 
     beforeMount() {
-        this.context_product = this.product;      // ✅ već je object
+        this.context_product = this.product;
         this.is_available = this.context_product.quantity;
 
         if (this.wishlist == '0') {

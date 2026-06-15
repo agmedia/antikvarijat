@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Helpers\LocaleHelper;
 use App\Helpers\Metatags;
 use App\Models\Front\Catalog\Author;
 use App\Models\Front\Catalog\Category;
@@ -22,9 +23,16 @@ class Seo
      */
     public static function getProductData(Product $product): array
     {
+        if (LocaleHelper::isEnglish()) {
+            return [
+                'title' => $product->meta_title ?: $product->name . ' book ' . (isset($product->author->title) ? $product->author->title : ''),
+                'description' => $product->meta_description ?: 'Book ' . $product->name . ' by ' . (isset($product->author->title) ? $product->author->title : 'unknown author') . ' from ' . ($product->year ?: '') . ' in Antikvarijat Biblos.'
+            ];
+        }
+
         return [
-            'title'       => $product->name . ' knjige ' . (isset($product->author->title) ? $product->author->title : ''),
-            'description' => 'Knjiga ' . $product->name . ' izdavača ' . (isset($product->author->title) ? $product->author->title : '') . ' godine izdanja ' . ($product->year ?: '') . ' i mjesta izdavanja ' . ($product->origin ?: '') . ' u Antikvarijatu Biblos.'
+            'title'       => $product->meta_title ?: $product->name . ' knjige ' . (isset($product->author->title) ? $product->author->title : ''),
+            'description' => $product->meta_description ?: 'Knjiga ' . $product->name . ' izdavača ' . (isset($product->author->title) ? $product->author->title : '') . ' godine izdanja ' . ($product->year ?: '') . ' i mjesta izdavanja ' . ($product->origin ?: '') . ' u Antikvarijatu Biblos.'
         ];
     }
 
@@ -34,8 +42,13 @@ class Seo
      */
     public static function getAuthorData(Author $author, Category $cat = null, Category $subcat = null): array
     {
-        $title = $author->title . ' knjige - Antikvarijat Biblos';
-        $description = 'Knjige autora ' . $author->title . ' danas su jako popularne u svijetu. Bogati izbor knjiga autora ' . $author->title . ' uz brzu dostavu i sigurnu kupovinu.';
+        if (LocaleHelper::isEnglish()) {
+            $title = $author->meta_title ?: $author->title . ' books - Antikvarijat Biblos';
+            $description = $author->meta_description ?: 'Browse books by ' . $author->title . ' in Antikvarijat Biblos with secure ordering and delivery.';
+        } else {
+            $title = $author->meta_title ?: $author->title . ' knjige - Antikvarijat Biblos';
+            $description = $author->meta_description ?: 'Knjige autora ' . $author->title . ' danas su jako popularne u svijetu. Bogati izbor knjiga autora ' . $author->title . ' uz brzu dostavu i sigurnu kupovinu.';
+        }
 
         // Check if there is meta title or description and set vars.
         if ($cat || $subcat) {
@@ -54,8 +67,13 @@ class Seo
      */
     public static function getPublisherData(Publisher $publisher, Category $cat = null, Category $subcat = null): array
     {
-        $title = $publisher->title . ' knjige - Antikvarijat Biblos';
-        $description = 'Ponuda knjiga nakladnika ' . $publisher->title . '. Knjige iz antikvarijata, naklade ' . $publisher->title . ' mogu biti u vašem domu uz brzu dostavu.';
+        if (LocaleHelper::isEnglish()) {
+            $title = $publisher->meta_title ?: $publisher->title . ' books - Antikvarijat Biblos';
+            $description = $publisher->meta_description ?: 'Browse books from publisher ' . $publisher->title . ' in Antikvarijat Biblos with secure ordering and delivery.';
+        } else {
+            $title = $publisher->meta_title ?: $publisher->title . ' knjige - Antikvarijat Biblos';
+            $description = $publisher->meta_description ?: 'Ponuda knjiga nakladnika ' . $publisher->title . '. Knjige iz antikvarijata, naklade ' . $publisher->title . ' mogu biti u vašem domu uz brzu dostavu.';
+        }
 
         // Check if there is meta title or description and set vars.
         if ($cat) {

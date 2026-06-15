@@ -116,6 +116,9 @@
                 sort_order: $('#gls_eu-sort-order').val()
             };
 
+            item = collectShippingLocaleFields('gls_eu', item);
+
+
             axios.post("{{ route('api.shipping.store') }}", {data: item})
             .then(response => {
                 console.log(response.data)
@@ -124,7 +127,7 @@
                 } else {
                     return errorToast.fire(response.data.message);
                 }
-            });
+            }).catch(handleSettingsSaveError);
         }
 
         /**

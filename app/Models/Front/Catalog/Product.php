@@ -3,6 +3,7 @@
 namespace App\Models\Front\Catalog;
 
 use App\Helpers\Currency;
+use App\Helpers\LocaleHelper;
 use App\Models\Concerns\CachesRouteBinding;
 use App\Models\Back\Catalog\Product\ProductAction;
 use App\Models\Back\Settings\Settings;
@@ -78,6 +79,41 @@ class Product extends Model
     public function getRouteKeyName()
     {
         return 'slug';
+    }
+
+    public function getNameAttribute($value)
+    {
+        return LocaleHelper::localizedField($this, 'name', true);
+    }
+
+    public function getDescriptionAttribute($value)
+    {
+        return LocaleHelper::localizedProductDescription($this);
+    }
+
+    public function getSlugAttribute($value)
+    {
+        return LocaleHelper::isEnglish() ? LocaleHelper::routeKey($this, LocaleHelper::ENGLISH_LOCALE) : $value;
+    }
+
+    public function getUrlAttribute($value)
+    {
+        return LocaleHelper::productPath($this, $value);
+    }
+
+    public function getMetaTitleAttribute($value)
+    {
+        return LocaleHelper::localizedField($this, 'meta_title', true);
+    }
+
+    public function getMetaDescriptionAttribute($value)
+    {
+        return LocaleHelper::localizedField($this, 'meta_description', true);
+    }
+
+    public function getCategoryStringAttribute($value)
+    {
+        return LocaleHelper::categoryString($this, $value);
     }
 
 
@@ -361,7 +397,7 @@ class Product extends Model
     /**
      * @return string
      */
-    public function priceString(string $price = null)
+    public function priceString(?string $price = null)
     {
         if ($price) {
             $set = explode('.', $price);
@@ -507,7 +543,7 @@ class Product extends Model
      */
     public function scopeBasicData(Builder $query): Builder
     {
-        return $query->select('id', 'name', 'url', 'image', 'price', 'special', 'author_id');
+        return $query->select('id', 'name', 'name_en', 'slug', 'slug_en', 'url', 'url_en', 'image', 'price', 'special', 'author_id');
     }
 
     /*******************************************************************************
@@ -531,6 +567,15 @@ class Product extends Model
         $exactSkuIds = $searchTerm !== ''
             ? self::query()->active()->where('sku', $searchTerm)->pluck('id')
             : collect();
+
+        if ($searchTerm !== '' && LocaleHelper::isEnglish()) {
+            $query->where(function ($query) use ($searchTerm) {
+                $query->where('name', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('name_en', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('description_en', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('sku', $searchTerm);
+            });
+        }
 
         if ($exactSkuIds->isNotEmpty()) {
             $query->where(function ($query) use ($exactSkuIds) {

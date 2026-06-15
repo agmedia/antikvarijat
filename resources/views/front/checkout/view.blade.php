@@ -8,14 +8,14 @@
         <div class="order-lg-2 mb-3 mb-lg-0 pt-lg-2">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb breadcrumb-dark flex-lg-nowrap justify-content-center justify-content-lg-start">
-                    <li class="breadcrumb-item"><a class="text-nowrap" href="{{ route('index') }}"><i class="ci-home"></i>Naslovnica</a></li>
+                    <li class="breadcrumb-item"><a class="text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('index') }}"><i class="ci-home"></i>{{ __('front.nav.home') }}</a></li>
 
-                    <li class="breadcrumb-item text-nowrap active" aria-current="page">Potvrdite narudžbu</li>
+                    <li class="breadcrumb-item text-nowrap active" aria-current="page">{{ __('front.checkout.confirm_order') }}</li>
                 </ol>
             </nav>
         </div>
         <div class="order-lg-1 pe-lg-4 text-center text-lg-start">
-            <h1 class="h3 text-dark mb-0">Način plaćanja</h1>
+            <h1 class="h3 text-dark mb-0">{{ __('front.checkout.payment_method') }}</h1>
         </div>
     </div>
 </div>
@@ -25,75 +25,75 @@
         <section class="col-lg-8">
 
             <div class="steps steps-dark pt-2 pb-3 mb-5">
-                <a class="step-item active" href="{{ route('kosarica') }}">
+                <a class="step-item active" href="{{ \App\Helpers\LocaleHelper::route('kosarica') }}">
                     <div class="step-progress"><span class="step-count">1</span></div>
-                    <div class="step-label"><i class="ci-cart"></i>Košarica</div>
+                    <div class="step-label"><i class="ci-cart"></i>{{ __('front.checkout.cart') }}</div>
                 </a>
-                <a class="step-item active" href="{{ route('naplata', ['step' => 'podaci']) }}">
+                <a class="step-item active" href="{{ \App\Helpers\LocaleHelper::route('naplata', ['step' => 'podaci']) }}">
                     <div class="step-progress"><span class="step-count">2</span></div>
-                    <div class="step-label"><i class="ci-user-circle"></i>Podaci</div>
+                    <div class="step-label"><i class="ci-user-circle"></i>{{ __('front.checkout.details') }}</div>
                 </a>
-                <a class="step-item active" href="{{ route('naplata', ['step' => 'dostava']) }}">
+                <a class="step-item active" href="{{ \App\Helpers\LocaleHelper::route('naplata', ['step' => 'dostava']) }}">
                     <div class="step-progress"><span class="step-count">3</span></div>
-                    <div class="step-label"><i class="ci-package"></i>Dostava</div>
+                    <div class="step-label"><i class="ci-package"></i>{{ __('front.checkout.shipping') }}</div>
                 </a>
-                <a class="step-item active" href="{{ route('naplata', ['step' => 'placanje']) }}">
+                <a class="step-item active" href="{{ \App\Helpers\LocaleHelper::route('naplata', ['step' => 'placanje']) }}">
                     <div class="step-progress"><span class="step-count">4</span></div>
-                    <div class="step-label"><i class="ci-card"></i>Plaćanje</div>
+                    <div class="step-label"><i class="ci-card"></i>{{ __('front.checkout.payment') }}</div>
                 </a>
-                <a class="step-item current active" href="{{ route('pregled') }}">
+                <a class="step-item current active" href="{{ \App\Helpers\LocaleHelper::route('pregled') }}">
                     <div class="step-progress"><span class="step-count">5</span></div>
-                    <div class="step-label"><i class="ci-eye"></i>Pregledaj</div>
+                    <div class="step-label"><i class="ci-eye"></i>{{ __('front.checkout.review') }}</div>
                 </a>
 
-                <a class="step-item current " href="{{ route('pregled') }}">
+                <a class="step-item current " href="{{ \App\Helpers\LocaleHelper::route('pregled') }}">
                     <div class="step-progress"><span class="step-count">6</span></div>
-                    <div class="step-label"><i class="ci-check-circle"></i>Uspješno</div>
+                    <div class="step-label"><i class="ci-check-circle"></i>{{ __('front.checkout.success') }}</div>
                 </a>
             </div>
             <div class="bg-white rounded-3 shadow-lg p-4">
-            <h2 class="h6 pt-1 pb-3 mb-3">Pregled košarice</h2>
-            <cart-view continueurl="{{ route('index') }}" checkouturl="{{ route('naplata') }}" buttons="false"></cart-view>
+            <h2 class="h6 pt-1 pb-3 mb-3">{{ __('front.checkout.cart_review') }}</h2>
+            <cart-view continueurl="{{ \App\Helpers\LocaleHelper::route('index') }}" checkouturl="{{ \App\Helpers\LocaleHelper::route('naplata') }}" buttons="false"></cart-view>
 
             <div class="bg-secondary rounded-3 px-4 pt-4 pb-2">
                 <div class="row">
                     <div class="col-sm-6">
-                        <h4 class="h6">Platitelj:</h4>
+                        <h4 class="h6">{{ __('front.checkout.payer') }}:</h4>
                         <ul class="list-unstyled fs-sm">
                             @if (auth()->guest())
-                                <li><span class="">Korisnik:&nbsp;</span>{{ $data['address']['fname'] }} {{ $data['address']['lname'] }}</li>
-                                <li><span class="">Adresa:&nbsp;</span>{{ $data['address']['address'] }}, {{ $data['address']['zip'] }} {{ $data['address']['city'] }}, {{ $data['address']['state'] }}</li>
-                                <li><span class="">Email:&nbsp;</span>{{ $data['address']['email'] }}</li>
+                                <li><span class="">{{ __('front.checkout.user') }}:&nbsp;</span>{{ $data['address']['fname'] }} {{ $data['address']['lname'] }}</li>
+                                <li><span class="">{{ __('front.checkout.address') }}:&nbsp;</span>{{ $data['address']['address'] }}, {{ $data['address']['zip'] }} {{ $data['address']['city'] }}, {{ $data['address']['state'] }}</li>
+                                <li><span class="">{{ __('front.checkout.email') }}:&nbsp;</span>{{ $data['address']['email'] }}</li>
                             @else
-                                <li><span class="">Korisnik:&nbsp;</span>{{ auth()->user()->details->fname }} {{ auth()->user()->details->lname }}</li>
-                                <li><span class="">Adresa:&nbsp;</span>{{ auth()->user()->details->address }}, {{ auth()->user()->details->zip }} {{ auth()->user()->details->city }}, {{ $data['address']['state'] }}</li>
-                                <li><span class="">Email:&nbsp;</span>{{ auth()->user()->email }}</li>
+                                <li><span class="">{{ __('front.checkout.user') }}:&nbsp;</span>{{ auth()->user()->details->fname }} {{ auth()->user()->details->lname }}</li>
+                                <li><span class="">{{ __('front.checkout.address') }}:&nbsp;</span>{{ auth()->user()->details->address }}, {{ auth()->user()->details->zip }} {{ auth()->user()->details->city }}, {{ $data['address']['state'] }}</li>
+                                <li><span class="">{{ __('front.checkout.email') }}:&nbsp;</span>{{ auth()->user()->email }}</li>
                             @endif
                         </ul>
                     </div>
                     <div class="col-sm-6">
-                        <h4 class="h6">Dostaviti na:</h4>
+                        <h4 class="h6">{{ __('front.checkout.deliver_to') }}:</h4>
                         <ul class="list-unstyled fs-sm">
-                            <li><span class="">Korisnik:&nbsp;</span>{{ $data['address']['fname'] }} {{ $data['address']['lname'] }}</li>
-                            <li><span class="">Adresa:&nbsp;</span>{{ $data['address']['address'] }}, {{ $data['address']['zip'] }} {{ $data['address']['city'] }}, {{ $data['address']['state'] }}</li>
-                            <li><span class="">Email:&nbsp;</span>{{ $data['address']['email'] }}</li>
+                            <li><span class="">{{ __('front.checkout.user') }}:&nbsp;</span>{{ $data['address']['fname'] }} {{ $data['address']['lname'] }}</li>
+                            <li><span class="">{{ __('front.checkout.address') }}:&nbsp;</span>{{ $data['address']['address'] }}, {{ $data['address']['zip'] }} {{ $data['address']['city'] }}, {{ $data['address']['state'] }}</li>
+                            <li><span class="">{{ __('front.checkout.email') }}:&nbsp;</span>{{ $data['address']['email'] }}</li>
                         </ul>
                     </div>
                     <div class="col-sm-6">
-                        <h4 class="h6">Način dostave:</h4>
+                        <h4 class="h6">{{ __('front.checkout.shipping_method') }}:</h4>
                         <ul class="list-unstyled fs-sm">
                             <li>
-                                <span class="text-muted">{{ $data['shipping']->title }} </span><br>
-                                {{ $data['shipping']->data->description ?: $data['shipping']->data->short_description }}
+                                <span class="text-muted">{{ \App\Helpers\LocaleHelper::localizedSettingField($data['shipping'], 'title') }} </span><br>
+                                {{ \App\Helpers\LocaleHelper::localizedSettingDataField($data['shipping'], 'description') ?: \App\Helpers\LocaleHelper::localizedSettingDataField($data['shipping'], 'short_description') }}
                             </li>
                         </ul>
                     </div>
                     <div class="col-sm-6">
-                        <h4 class="h6">Način plaćanja:</h4>
+                        <h4 class="h6">{{ __('front.checkout.payment_method') }}:</h4>
                         <ul class="list-unstyled fs-sm">
                             <li>
-                                <span class="text-muted">{{ $data['payment']->title }} </span><br>
-                                {{ $data['payment']->data->description ?: $data['payment']->data->short_description }}
+                                <span class="text-muted">{{ \App\Helpers\LocaleHelper::localizedSettingField($data['payment'], 'title') }} </span><br>
+                                {{ \App\Helpers\LocaleHelper::localizedSettingDataField($data['payment'], 'description') ?: \App\Helpers\LocaleHelper::localizedSettingDataField($data['payment'], 'short_description') }}
                             </li>
                         </ul>
                     </div>
@@ -107,7 +107,7 @@
         </section>
 
         <aside class="col-lg-4 pt-4 pt-lg-0 mb-3 ps-xl-5 d-block">
-            <cart-view-aside route="pregled" continueurl="{{ route('index') }}" checkouturl="/"></cart-view-aside>
+            <cart-view-aside route="pregled" continueurl="{{ \App\Helpers\LocaleHelper::route('index') }}" checkouturl="/"></cart-view-aside>
         </aside>
     </div>
 
@@ -121,7 +121,7 @@
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable ">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Opći uvjeti korištenja</h5>
+                <h5 class="modal-title" id="exampleModalLabel">{{ __('front.checkout.terms_title') }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -131,7 +131,7 @@
                 @endforeach
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zatvori</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('front.checkout.close') }}</button>
 
             </div>
         </div>
@@ -167,12 +167,12 @@
                         form.submit();
                     } else {
                         // Prikaz greške korisniku
-                        alert('Nažalost, neki proizvodi više nisu dostupni ili je količina manja od naručene.');
+                        alert('{{ __('front.checkout.stock_error') }}');
                     }
                 })
                 .catch(error => {
-                    console.error('Greška:', error);
-                    alert('Došlo je do greške prilikom provjere zaliha. Pokušajte ponovo.');
+                    console.error('Error:', error);
+                    alert('{{ __('front.checkout.stock_check_error') }}');
                 });
             });
         });

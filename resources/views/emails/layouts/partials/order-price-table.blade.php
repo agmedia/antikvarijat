@@ -34,10 +34,10 @@
 
 <table id="products">
     <tr>
-        <th>Proizvod</th>
-        <th style="text-align: center;" width="15%">Kol.</th>
-        <th style="text-align: right;" width="20%">Cijena</th>
-        <th style="text-align: right;" width="25%">Ukupno</th>
+        <th>{{ __('front.general.product') }}</th>
+        <th style="text-align: center;" width="15%">{{ __('front.general.quantity_short') }}</th>
+        <th style="text-align: right;" width="20%">{{ __('front.general.price') }}</th>
+        <th style="text-align: right;" width="25%">{{ __('front.general.total') }}</th>
     </tr>
     @foreach ($order->products as $product)
         <tr>
@@ -53,9 +53,10 @@
         <tr>
             <td style="border-right: none; border-top: none;"></td>
             <td style="border-left: none; border-right: none;"></td>
-            <td style="border-left: none; text-align: right; {{ $total->code == 'shipping' ? '' : 'font-weight: bold;' }}">{{ $total->title }}</td>
+            @php($totalKey = 'front.email.total_' . $total->code)
+            <td style="border-left: none; text-align: right; {{ $total->code == 'shipping' ? '' : 'font-weight: bold;' }}">{{ trans($totalKey) !== $totalKey ? trans($totalKey) : $total->title }}</td>
             @if ($order->shipping_state != 'Croatia' && $total->code == 'shipping')
-                <td style="border-left: none; text-align: right; {{ $total->code == 'shipping' ? '' : 'font-weight: bold;' }}" width="20%">Trošak dostave će Vam biti poslan u roku od 24h.</td>
+                <td style="border-left: none; text-align: right; {{ $total->code == 'shipping' ? '' : 'font-weight: bold;' }}" width="20%">{{ __('front.email.shipping_cost_later') }}</td>
             @else
                 <td style="border-left: none; text-align: right; {{ $total->code == 'shipping' ? '' : 'font-weight: bold;' }}" width="20%">€ {{ number_format($total->value, 2, ',', '.') }}</td>
             @endif
@@ -63,13 +64,12 @@
     @endforeach
 </table>
 
-<p style="text-align: right;font-size: 10px;"> PDV uključen u cijenu. Od toga
+<p style="text-align: right;font-size: 10px;"> {{ __('front.email.vat_included') }}
     @foreach ($order->totals as $total)
         @if($total->code == 'subtotal')
-        € <strong>{{ number_format($total->value - ($total->value / 1.05 ), 2, ',', '.') }}</strong>  PDV knjige i
+        € <strong>{{ number_format($total->value - ($total->value / 1.05 ), 2, ',', '.') }}</strong> {{ __('front.email.book_vat') }}
     @elseif ($total->code == 'shipping')
-        € <strong>{{number_format($total->value - ($total->value / 1.25 ), 2, ',', '.') }}</strong>  PDV dostava
+        € <strong>{{number_format($total->value - ($total->value / 1.25 ), 2, ',', '.') }}</strong> {{ __('front.email.shipping_vat') }}
     @endif
     @endforeach
 </p>
-

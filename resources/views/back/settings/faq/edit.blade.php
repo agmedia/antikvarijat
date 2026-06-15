@@ -34,15 +34,33 @@
                     <div class="row justify-content-center push">
                         <div class="col-md-10">
 
-                            <div class="form-group">
-                                <label for="title-input">Pitanje</label>
-                                <input type="text" class="form-control" id="title-input" name="title" placeholder="Upišite naslov..." value="{{ isset($faq) ? $faq->title : old('title') }}" onkeyup="SetSEOPreview()">
-                            </div>
+                            @include('back.layouts.partials.language-tabs', ['id' => 'faq-content-tabs'])
+                            <div class="tab-content">
+                                <div class="tab-pane active" id="faq-content-tabs-hr" role="tabpanel">
+                                    <div class="form-group">
+                                        <label for="title-input">Pitanje</label>
+                                        <input type="text" class="form-control" id="title-input" name="title" placeholder="Upišite naslov..." value="{{ isset($faq) ? $faq->title : old('title') }}" onkeyup="SetSEOPreview()">
+                                    </div>
 
-                            <div class="form-group row  mb-4">
-                                <div class="col-md-12">
-                                    <label for="description-editor">Odgovor</label>
-                                    <textarea id="js-ckeditor" name="description">{!! isset($faq) ? $faq->description : old('description') !!}</textarea>
+                                    <div class="form-group row mb-4">
+                                        <div class="col-md-12">
+                                            <label for="description-editor">Odgovor</label>
+                                            <textarea id="js-ckeditor" name="description">{!! isset($faq) ? $faq->description : old('description') !!}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="tab-pane" id="faq-content-tabs-en" role="tabpanel">
+                                    <div class="form-group">
+                                        <label for="title-en-input">Pitanje EN</label>
+                                        <input type="text" class="form-control" id="title-en-input" name="title_en" placeholder="Upišite englesko pitanje..." value="{{ old('title_en', isset($faq) ? $faq->title_en : '') }}">
+                                    </div>
+
+                                    <div class="form-group row mb-4">
+                                        <div class="col-md-12">
+                                            <label for="js-ckeditor-en">Odgovor EN</label>
+                                            <textarea id="js-ckeditor-en" name="description_en">{!! old('description_en', isset($faq) ? $faq->description_en : '') !!}</textarea>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -82,6 +100,13 @@
 
 
     <!-- Page JS Helpers (CKEditor 5 plugins) -->
-    <script>jQuery(function(){Dashmix.helpers(['ckeditor']);});</script>
+    <script>
+        jQuery(function(){
+            Dashmix.helpers(['ckeditor']);
+            if (window.CKEDITOR && document.getElementById('js-ckeditor-en')) {
+                CKEDITOR.replace('js-ckeditor-en');
+            }
+        });
+    </script>
 
 @endpush

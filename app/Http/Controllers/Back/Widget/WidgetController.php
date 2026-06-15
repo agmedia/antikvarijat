@@ -169,8 +169,10 @@ class WidgetController extends Controller
     {
         $widget_group = WidgetGroup::where('id', $widget->group_id)->first();
 
-        Cache::forget('wg.' . $widget_group->id);
-        Cache::forget('wg.' . $widget_group->slug);
+        foreach (config('localization.locales', ['hr' => [], 'en' => []]) as $locale => $settings) {
+            Cache::forget('wg.' . $locale . '.' . $widget_group->id);
+            Cache::forget('wg.' . $locale . '.' . $widget_group->slug);
+        }
     }
 
 

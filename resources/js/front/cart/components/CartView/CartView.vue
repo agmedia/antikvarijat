@@ -6,15 +6,15 @@
 
 
 
-            <div role="alert" class="alert alert-secondary d-flex fs-sm" v-if="$store.state.cart.total < freeship && $store.state.cart.count"><div class="alert-icon"><i class="ci-gift"></i></div> <div> Još  {{ $store.state.service.formatMainPrice(freeship - $store.state.cart.total) }} <span v-if="$store.state.cart.secondary_price">({{ $store.state.service.formatSecondaryPrice(freeship - $store.state.cart.total) }})</span> do besplatne dostave!</div></div>
+            <div role="alert" class="alert alert-secondary d-flex fs-sm" v-if="$store.state.cart.total < freeship && $store.state.cart.count"><div class="alert-icon"><i class="ci-gift"></i></div> <div>{{ labels.freeShippingRemainingStart }} {{ $store.state.service.formatMainPrice(freeship - $store.state.cart.total) }} <span v-if="$store.state.cart.secondary_price">({{ $store.state.service.formatSecondaryPrice(freeship - $store.state.cart.total) }})</span> {{ labels.freeShippingRemainingEnd }}</div></div>
 
-            <div role="alert" class="alert alert-secondary d-flex fs-sm" v-if="$store.state.cart.total > freeship && $store.state.cart.count"><div class="alert-icon"><i class="ci-gift"></i></div> <div> Ostvarili ste pravo na besplatnu dostavu!</div></div>
+            <div role="alert" class="alert alert-secondary d-flex fs-sm" v-if="$store.state.cart.total > freeship && $store.state.cart.count"><div class="alert-icon"><i class="ci-gift"></i></div> <div>{{ labels.freeShippingUnlocked }}</div></div>
 
             <div class="d-flex pt-3 pb-2 mt-1">
-                <h2 class="h6 text-dark mb-0">Artikli</h2>
+                <h2 class="h6 text-dark mb-0">{{ labels.items }}</h2>
             </div>
             <div class="d-flex pt-3 pb-2 mt-1" v-if="!$store.state.cart.count">
-                <p class="text-dark mb-0">Vaša košarica je prazna!</p>
+                <p class="text-dark mb-0">{{ labels.emptyCart }}</p>
             </div>
 
 
@@ -33,14 +33,14 @@
                 </div>
             </div>
             <div class="pt-2 pt-sm-0 ps-sm-3 mx-auto mx-sm-0 text-center text-sm-start" style="max-width: 9rem;">
-                <label class="form-label">Količina</label>
+                <label class="form-label">{{ labels.quantity }}</label>
                 <input class="form-control" type="number" v-model="item.quantity" min="1" :max="item.associatedModel.quantity" @click.prevent="updateCart(item)">
-                <button class="btn btn-link px-0 text-danger" type="button" @click.prevent="removeFromCart(item)"><i class="ci-close-circle me-2"></i><span class="fs-sm">Ukloni</span></button>
+                <button class="btn btn-link px-0 text-danger" type="button" @click.prevent="removeFromCart(item)"><i class="ci-close-circle me-2"></i><span class="fs-sm">{{ labels.remove }}</span></button>
             </div>
         </div>
 
         <div class="d-flex pt-3 pb-2 mt-1" v-if="show_buttons">
-            <a class="btn btn-outline-primary btn-sm btn-shadow mt-3" :href="continueurl"><i class="ci-arrow-left me-2"></i>Natrag na trgovinu</a>
+            <a class="btn btn-outline-primary btn-sm btn-shadow mt-3" :href="continueurl"><i class="ci-arrow-left me-2"></i>{{ labels.backToShop }}</a>
         </div>
 
     </div>
@@ -61,6 +61,32 @@
                 show_delete_btn: true,
                 coupon: '',
                 show_buttons: true,
+            }
+        },
+        computed: {
+            labels() {
+                const t = (window.FrontTranslations && window.FrontTranslations.js && window.FrontTranslations.js.cart)
+                    ? window.FrontTranslations.js.cart
+                    : {};
+                return (document.documentElement.lang || 'hr') === 'en' ? {
+                    freeShippingRemainingStart: t.free_shipping_remaining_start || 'Only',
+                    freeShippingRemainingEnd: t.free_shipping_remaining_end || 'left for free delivery!',
+                    freeShippingUnlocked: t.free_shipping_unlocked || 'You qualify for free delivery!',
+                    items: t.items || 'Items',
+                    emptyCart: t.empty_cart || 'Your cart is empty!',
+                    quantity: t.quantity || 'Quantity',
+                    remove: t.remove || 'Remove',
+                    backToShop: t.back_to_shop || 'Back to shop'
+                } : {
+                    freeShippingRemainingStart: t.free_shipping_remaining_start || 'Još',
+                    freeShippingRemainingEnd: t.free_shipping_remaining_end || 'do besplatne dostave!',
+                    freeShippingUnlocked: t.free_shipping_unlocked || 'Ostvarili ste pravo na besplatnu dostavu!',
+                    items: t.items || 'Artikli',
+                    emptyCart: t.empty_cart || 'Vaša košarica je prazna!',
+                    quantity: t.quantity || 'Količina',
+                    remove: t.remove || 'Ukloni',
+                    backToShop: t.back_to_shop || 'Natrag na trgovinu'
+                };
             }
         },
         mounted() {

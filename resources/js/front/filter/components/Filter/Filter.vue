@@ -3,14 +3,14 @@
         <!-- Sidebar-->
         <div class="offcanvas offcanvas-collapse bg-white w-100 rounded-3 shadow-lg py-1" id="shop-sidebar" style="max-width: 22rem;">
             <div class="offcanvas-cap align-items-center shadow-sm">
-                <h2 class="h5 mb-0">Filtriraj</h2>
+                <h2 class="h5 mb-0">{{ labels.filter }}</h2>
                 <button class="btn-close ms-auto" type="button" data-bs-dismiss="offcanvas" v-on:click="closeWindow" aria-label="Close"></button>
             </div>
             <div class="offcanvas-body py-grid-gutter px-lg-grid-gutter">
                 <!-- Categories-->
                 <div class="widget widget-categories mb-3 pb-4 "   v-if="categories">
 
-                    <h3 class="widget-title" v-if="!category && !subcategory">Kategorije</h3>
+                    <h3 class="widget-title" v-if="!category && !subcategory">{{ labels.categories }}</h3>
 
                     <h3 class="widget-title" v-if="category && !subcategory">{{ category.title }}<span class="badge bg-secondary float-end">{{ Number(category.count).toLocaleString('hr-HR') }} </span></h3>
 <!--                    <p class="fs-xs text-muted" v-if="category && !subcategory">Podkategorije</p>-->
@@ -36,12 +36,12 @@
                     <button class="btn btn-sm btn-outline-primary mt-3"
                             @click="goToParentCategory"
                             v-if="category || subcategory">
-                        <i class="ci-arrow-left fs-xs me-1"></i> Povratak
+                        <i class="ci-arrow-left fs-xs me-1"></i> {{ labels.back }}
                     </button>
 
                     <div class=" mt-3" v-if="categories.length > 16">
                         <button class="btn btn-primary btn-sm" @click="expanded = !expanded">
-                            {{ expanded ? 'Prikaži manje' : 'Prikaži sve kategorije' }}
+                            {{ expanded ? labels.showLess : labels.showAllCategories }}
                         </button>
                     </div>
 
@@ -49,19 +49,19 @@
 
                 <!-- Date range-->
                 <div class="widget mb-3 pb-4 ">
-                    <h3 class="widget-title">Godina izdanja</h3>
+                    <h3 class="widget-title">{{ labels.publicationYear }}</h3>
                     <div >
                         <div class="d-flex pb-1">
                             <div class="w-50 pe-2 me-2">
                                 <div class="input-group input-group-sm">
-                                    <input class="form-control range-slider-value-min" placeholder="Od" type="text" v-model="start">
-                                    <span class="input-group-text">g</span>
+                                    <input class="form-control range-slider-value-min" :placeholder="labels.from" type="text" v-model="start">
+                                    <span class="input-group-text">{{ labels.yearShort }}</span>
                                 </div>
                             </div>
                             <div class="w-50 ps-2">
                                 <div class="input-group input-group-sm">
-                                    <input class="form-control range-slider-value-max" placeholder="Do" type="text" v-model="end">
-                                    <span class="input-group-text">g</span>
+                                    <input class="form-control range-slider-value-max" :placeholder="labels.to" type="text" v-model="end">
+                                    <span class="input-group-text">{{ labels.yearShort }}</span>
                                 </div>
                             </div>
                         </div>
@@ -69,9 +69,9 @@
                 </div>
 
                 <div class="widget widget-filter mb-3 pb-4 " v-if="show_authors">
-                    <h3 class="widget-title">Autori<span v-if="!authors_loaded" class="spinner-border spinner-border-sm" style="float: right;"></span></h3>
+                    <h3 class="widget-title">{{ labels.authors }}<span v-if="!authors_loaded" class="spinner-border spinner-border-sm" style="float: right;"></span></h3>
                     <div class="input-group input-group-sm mb-2 autocomplete">
-                        <input type="search" v-model="searchAuthor" class="form-control rounded-end pe-5" placeholder="Pretraži autora"><i class="ci-search position-absolute top-50 end-0 translate-middle-y fs-sm me-3"></i>
+                        <input type="search" v-model="searchAuthor" class="form-control rounded-end pe-5" :placeholder="labels.searchAuthor"><i class="ci-search position-absolute top-50 end-0 translate-middle-y fs-sm me-3"></i>
                     </div>
                     <ul class="widget-list widget-filter-list list-unstyled pt-1" style="max-height: 11rem;" data-simplebar data-simplebar-auto-hide="false">
                         <li class="widget-filter-item d-flex justify-content-between align-items-center mb-1" v-for="author in authors">
@@ -84,9 +84,9 @@
                 </div>
 
                 <div class="widget widget-filter mb-3 pb-4" v-if="show_publishers">
-                    <h3 class="widget-title">Nakladnici<span v-if="!publishers_loaded" class="spinner-border spinner-border-sm" style="float: right;"></span></h3>
+                    <h3 class="widget-title">{{ labels.publishers }}<span v-if="!publishers_loaded" class="spinner-border spinner-border-sm" style="float: right;"></span></h3>
                     <div class="input-group input-group-sm mb-2 autocomplete">
-                        <input type="search" v-model="searchPublisher" class="form-control rounded-end pe-5" placeholder="Pretraži nakladnike"><i class="ci-search position-absolute top-50 end-0 translate-middle-y fs-sm me-3"></i>
+                        <input type="search" v-model="searchPublisher" class="form-control rounded-end pe-5" :placeholder="labels.searchPublisher"><i class="ci-search position-absolute top-50 end-0 translate-middle-y fs-sm me-3"></i>
                     </div>
                     <ul class="widget-list widget-filter-list list-unstyled pt-1" style="max-height: 11rem;" data-simplebar data-simplebar-auto-hide="false">
                         <li class="widget-filter-item d-flex justify-content-between align-items-center mb-1" v-for="publisher in publishers">
@@ -97,7 +97,7 @@
                         </li>
                     </ul>
                 </div>
-                <button type="button" class="btn btn-primary mt-4" v-on:click="cleanQuery"><i class=" ci-trash"></i> Očisti sve</button>
+                <button type="button" class="btn btn-primary mt-4" v-on:click="cleanQuery"><i class=" ci-trash"></i> {{ labels.clearAll }}</button>
             </div>
         </div>
     </aside>
@@ -112,9 +112,52 @@
             subcat: String,
             author: String,
             publisher: String,
+            locale: {
+                type: String,
+                default: 'hr'
+            },
             initialCategories: {
                 type: Array,
                 default: () => []
+            }
+        },
+        //
+        computed: {
+            labels() {
+                const t = (window.FrontTranslations && window.FrontTranslations.js && window.FrontTranslations.js.filter)
+                    ? window.FrontTranslations.js.filter
+                    : {};
+                return this.locale === 'en' ? {
+                    filter: t.filter || 'Filter',
+                    categories: t.categories || 'Categories',
+                    back: t.back || 'Back',
+                    showLess: t.show_less || 'Show less',
+                    showAllCategories: t.show_all_categories || 'Show all categories',
+                    publicationYear: t.publication_year || 'Year of publication',
+                    from: t.from || 'From',
+                    to: t.to || 'To',
+                    yearShort: t.year_short || 'y',
+                    authors: t.authors || 'Authors',
+                    publishers: t.publishers || 'Publishers',
+                    searchAuthor: t.search_author || 'Search author',
+                    searchPublisher: t.search_publisher || 'Search publishers',
+                    clearAll: t.clear_all || 'Clear all'
+                } : {
+                    filter: t.filter || 'Filter',
+                    categories: t.categories || 'Categories',
+                    back: t.back || 'Back',
+                    showLess: t.show_less || 'Show less',
+                    showAllCategories: t.show_all_categories || 'Show all categories',
+                    publicationYear: t.publication_year || 'Year of publication',
+                    from: t.from || 'From',
+                    to: t.to || 'To',
+                    yearShort: t.year_short || 'y',
+                    authors: t.authors || 'Authors',
+                    publishers: t.publishers || 'Publishers',
+                    searchAuthor: t.search_author || 'Search author',
+                    searchPublisher: t.search_publisher || 'Search publishers',
+                    clearAll: t.clear_all || 'Clear all'
+                };
             }
         },
         //
@@ -385,7 +428,8 @@
                     publisher: this.publisher,
                     search_author: this.searchAuthor,
                     search_publisher: this.searchPublisher,
-                    pojam: this.search_query
+                    pojam: this.search_query,
+                    locale: this.locale
                 };
 
                 if (this.author != '') {

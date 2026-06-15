@@ -35,6 +35,8 @@ class WishlistArrived extends Mailable
      */
     public function build()
     {
-        return $this->view('emails.wishlist-arrived')->with(['product' => $this->product]);
+        return $this->subject(__('front.email.wishlist_subject'))
+            ->view('emails.wishlist-arrived')
+            ->with(['product' => $this->product]);
     }
 }

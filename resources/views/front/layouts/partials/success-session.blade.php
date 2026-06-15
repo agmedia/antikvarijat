@@ -4,6 +4,6 @@
         <div class="alert-icon">
             <i class="ci-check-circle"></i>
         </div>
-        <div>Uspjeh..! {{ session('success') }}</div>
+        <div>{{ __('front.messages.success') }} {{ session('success') }}</div>
     </div>
 @endif

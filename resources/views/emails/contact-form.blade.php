@@ -4,16 +4,16 @@
     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
         <tr>
             <td style="padding: 20px 20px 10px 20px; font-family: sans-serif; font-size: 18px; font-weight: bold; line-height: 20px; color: #555555; text-align: center;">
-                Poruka s Web kontakt forme.<br>
+                {{ __('front.email.contact_form_message') }}<br>
             </td>
         </tr>
         <tr>
             <td style="padding: 20px 20px 0 20px; font-family: sans-serif; font-size: 15px; line-height: 20px; color: #555555;">
-                Dobili ste poruku s Web kontakt forme.<br>
+                {{ __('front.email.contact_form_received') }}<br>
                 <br>
                 <table cellspacing="0" cellpadding="0" border="0" width="100%">
                     <tr>
-                        <td style="width: 26%">Ime:</td>
+                        <td style="width: 26%">{{ __('front.checkout.first_name') }}:</td>
                         <td style="width: 74%"><b>{{ $contact['name'] }}</b></td>
                     </tr>
                     <tr>
@@ -22,7 +22,7 @@
                     </tr>
                     @if ( ! empty($contact['phone']))
                         <tr>
-                            <td>Telefon:</td>
+                            <td>{{ __('front.checkout.phone') }}:</td>
                             <td><b>{{ $contact['phone'] }}</b></td>
                         </tr>
                     @endif
@@ -36,8 +36,8 @@
         </tr>
         <tr>
             <td style="padding: 20px; font-family: sans-serif; font-size: 15px; line-height: 20px; color: #555555; text-align: center;">
-                <a href="{{ route('index') }}" style="display: block; display: inline-block; width: 200px; min-height: 20px; padding: 10px; background-color: #a50000; border-radius: 3px; color: #ffffff; font-size: 15px; line-height: 25px; text-align: center; text-decoration: none; -webkit-text-size-adjust: none;">
-                    Idi na stranicu
+                <a href="{{ \App\Helpers\LocaleHelper::route('index') }}" style="display: block; display: inline-block; width: 200px; min-height: 20px; padding: 10px; background-color: #a50000; border-radius: 3px; color: #ffffff; font-size: 15px; line-height: 25px; text-align: center; text-decoration: none; -webkit-text-size-adjust: none;">
+                    {{ __('front.general.go_to_site') }}
                 </a>
             </td>
         </tr>

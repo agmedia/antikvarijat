@@ -7,7 +7,7 @@
             @if($data['subtitle'])  <p class=" text-ph fs-md mb-0">{{ $data['subtitle'] }}</p> @endif
         </div>
         @if($data['url'] !='/')
-         <a class="btn btn-outline-primary btn-sm btn-shadow mt-3" href="{{ url($data['url']) }}"><span class="d-none d-sm-inline-block">Pogledajte ponudu</span> <i class="ci-arrow-right fs-xs "></i></a>
+         <a class="btn btn-outline-primary btn-sm btn-shadow mt-3" href="{{ url(\App\Helpers\LocaleHelper::localizedUrl($data['url'])) }}"><span class="d-none d-sm-inline-block">{{ __('front.widgets.view_offer') }}</span> <i class="ci-arrow-right fs-xs "></i></a>
         @endif
 
     </div>

@@ -53,20 +53,20 @@
 
                 <div class="d-flex flex-wrap justify-content-between align-items-center py-3">
                     <div class="fs-sm me-2 py-2">
-                        <span class="text-muted">Ukupno:</span>
+                        <span class="text-muted">{{ labels.total }}:</span>
                         <span class="text-primary fs-base ms-1">{{ formattedTotal }}</span>
                         <span v-if="hasSecondary" class="text-muted">{{ formattedTotalSecondary }}</span>
                     </div>
                 </div>
 
                 <a class="btn btn-primary btn-sm d-block w-100" :href="carturl">
-                    <i class="ci-card me-2 fs-base align-middle"></i>Dovrši kupnju
+                    <i class="ci-card me-2 fs-base align-middle"></i>{{ labels.checkout }}
                 </a>
             </div>
 
             <div class="widget widget-cart px-3 pt-2 pb-3" style="width: 20rem;" v-else>
                 <i class="fa fa-cart-arrow-down fa-2x" style="color: #aaaaaa"></i>
-                <p>Vaša košarica je prazna!</p>
+                <p>{{ labels.emptyCart }}</p>
             </div>
         </div>
     </div>
@@ -123,6 +123,21 @@ export default {
             return (svc && typeof svc.formatSecondaryPrice === 'function')
                 ? svc.formatSecondaryPrice(total)
                 : '';
+        },
+
+        labels() {
+            const t = (window.FrontTranslations && window.FrontTranslations.js && window.FrontTranslations.js.cart)
+                ? window.FrontTranslations.js.cart
+                : {};
+            return (document.documentElement.lang || 'hr') === 'en' ? {
+                total: t.total || 'Total',
+                checkout: t.complete_purchase || 'Complete purchase',
+                emptyCart: t.empty_cart || 'Your cart is empty!'
+            } : {
+                total: t.total || 'Total',
+                checkout: t.complete_purchase || 'Complete purchase',
+                emptyCart: t.empty_cart || 'Your cart is empty!'
+            };
         }
     },
 

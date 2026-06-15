@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\v2;
 
 use App\Helpers\Currency;
 use App\Helpers\Helper;
+use App\Helpers\LocaleHelper;
 use App\Models\Front\Catalog\Author;
 use App\Models\Front\Catalog\Category;
 use App\Models\Front\Catalog\Product;
@@ -22,6 +23,8 @@ class FilterController extends Controller
      */
     public function categories(Request $request)
     {
+        $this->applyRequestedLocale($request);
+
         if ( ! $request->input('params')) {
             return response()->json(['status' => 300, 'message' => 'Error!']);
         }
@@ -177,22 +180,22 @@ class FilterController extends Controller
     private function resolveCategoryUrl($category, string $type, $target, ?string $parent_slug = null): string
     {
         if ($type == 'author') {
-            return route('catalog.route.author', [
+            return LocaleHelper::route('catalog.route.author', [
                 'author' => $target,
                 'cat' => $parent_slug ?: $category['slug'],
                 'subcat' => $parent_slug ? $category['slug'] : null
             ]);
 
         } elseif ($type == 'publisher') {
-            return route('catalog.route.publisher', [
+            return LocaleHelper::route('catalog.route.publisher', [
                 'publisher' => $target,
                 'cat' => $parent_slug ?: $category['slug'],
                 'subcat' => $parent_slug ? $category['slug'] : null
             ]);
 
         } else {
-            return route('catalog.route', [
-                'group' => Str::slug($category['group']),
+            return LocaleHelper::route('catalog.route', [
+                'group' => LocaleHelper::groupSlug((string) $category['group']),
                 'cat' => $parent_slug ?: $category['slug'],
                 'subcat' => $parent_slug ? $category['slug'] : null
             ]);
@@ -207,6 +210,8 @@ class FilterController extends Controller
      */
     public function products(Request $request)
     {
+        $this->applyRequestedLocale($request);
+
         if ( ! $request->has('params')) {
             return response()->json(['status' => 300, 'message' => 'Error!']);
         }
@@ -294,7 +299,11 @@ class FilterController extends Controller
                 'author_id',
                 'action_id',
                 'name',
+                'name_en',
+                'slug',
+                'slug_en',
                 'url',
+                'url_en',
                 'category_string',
                 'image',
                 'price',
@@ -303,7 +312,8 @@ class FilterController extends Controller
                 'special_to',
             ])
             ->with([
-                'author:id,title,url',
+                'author:id,title,title_en,slug,slug_en,url,url_en',
+                'categories:id,parent_id,title,title_en,group,slug,slug_en',
                 'action:id,status,coupon',
             ])
             ->paginate(config('settings.pagination.front'), ['*'], 'page', $page);
@@ -367,6 +377,8 @@ class FilterController extends Controller
      */
     public function authors(Request $request)
     {
+        $this->applyRequestedLocale($request);
+
         if ($request->has('params')) {
             $params = $request->input('params');
 
@@ -425,6 +437,8 @@ class FilterController extends Controller
      */
     public function publishers(Request $request)
     {
+        $this->applyRequestedLocale($request);
+
         if ($request->has('params')) {
             $params = $request->input('params');
 
@@ -455,6 +469,16 @@ class FilterController extends Controller
                     ->toArray();
             })
         );
+    }
+
+    private function applyRequestedLocale(Request $request): void
+    {
+        $params = $request->input('params', []);
+
+        if (($params['locale'] ?? null) === LocaleHelper::ENGLISH_LOCALE) {
+            app()->setLocale(LocaleHelper::ENGLISH_LOCALE);
+            config(['app.locale' => LocaleHelper::ENGLISH_LOCALE]);
+        }
     }
 
 

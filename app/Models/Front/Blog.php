@@ -2,6 +2,7 @@
 
 namespace App\Models\Front;
 
+use App\Helpers\LocaleHelper;
 use App\Models\Concerns\CachesRouteBinding;
 use App\Helpers\Helper;
 use Carbon\Carbon;
@@ -34,6 +35,31 @@ class Blog extends Model
     public function getRouteKeyName()
     {
         return 'slug';
+    }
+
+    public function getTitleAttribute($value)
+    {
+        return LocaleHelper::localizedField($this, 'title', true);
+    }
+
+    public function getShortDescriptionAttribute($value)
+    {
+        return LocaleHelper::localizedField($this, 'short_description', true);
+    }
+
+    public function getMetaTitleAttribute($value)
+    {
+        return LocaleHelper::localizedField($this, 'meta_title', true);
+    }
+
+    public function getMetaDescriptionAttribute($value)
+    {
+        return LocaleHelper::localizedField($this, 'meta_description', true);
+    }
+
+    public function getSlugAttribute($value)
+    {
+        return LocaleHelper::isEnglish() ? LocaleHelper::routeKey($this, LocaleHelper::ENGLISH_LOCALE) : $value;
     }
 
 
@@ -91,6 +117,8 @@ class Blog extends Model
      */
     public function getDescriptionAttribute($value)
     {
+        $value = LocaleHelper::localizedField($this, 'description', true);
+
         return Helper::optimizeRichContentMedia(
             Helper::resolveYouTubeFrame((string) $value)
         );

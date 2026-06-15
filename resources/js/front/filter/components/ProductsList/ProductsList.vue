@@ -7,16 +7,16 @@
                 <div class="d-flex align-items-center flex-nowrap me-3 me-sm-4 pb-3">
                     <label class="text-light opacity-75 text-nowrap fs-sm me-2 d-none d-sm-block" for="sorting"></label>
                     <select class="form-select" v-model="sorting">
-                        <option value="">Sortiraj</option>
-                        <option value="novi">Najnovije</option>
-                        <option value="price_up">Najmanja cijena</option>
-                        <option value="price_down">Najveća cijena</option>
+                        <option value="">{{ labels.sort }}</option>
+                        <option value="novi">{{ labels.newest }}</option>
+                        <option value="price_up">{{ labels.lowestPrice }}</option>
+                        <option value="price_down">{{ labels.highestPrice }}</option>
                         <option value="naziv_up">A - Ž</option>
                         <option value="naziv_down">Ž - A</option>
                     </select>
                 </div>
             </div>
-            <div class="d-flex pb-3"><span class="fs-sm text-light btn btn-primary btn-sm text-nowrap ms-2 d-none d-sm-block">Ukupno {{ products.total ? Number(products.total).toLocaleString('hr-HR') : 0 }} artikala</span></div>
+            <div class="d-flex pb-3"><span class="fs-sm text-light btn btn-primary btn-sm text-nowrap ms-2 d-none d-sm-block">{{ labels.total }} {{ formatNumber(products.total || 0) }} {{ labels.items }}</span></div>
         </div>
 
         <!-- Products grid-->
@@ -44,7 +44,7 @@
                     <div class="card-body pt-2">
                         <div class="d-flex flex-wrap justify-content-between align-items-start pb-2">
                             <div class="text-muted fs-xs me-1">
-                                <a class="product-meta fw-medium" :href="product.author ? (origin + product.author.url) : '#'">{{ product.author ? product.author.title : '...' }}</a>
+                                <a class="product-meta fw-medium" :href="product.author ? (origin + product.author.url) : '#'">{{ product.author ? product.author.title : labels.unknown }}</a>
                             </div>
 
                         </div>
@@ -80,33 +80,33 @@
                 <div class="spinner-border text-muted opacity-75" role="status" style="width: 9rem; height: 9rem;"></div>
             </div>
             <div class="col-md-12 d-flex justify-content-center mt-4">
-                <p class="fs-3 fw-lighter opacity-50">Učitavanje knjiga...</p>
+                <p class="fs-3 fw-lighter opacity-50">{{ labels.loading }}</p>
             </div>
         </div>
 
         <div class="col-md-12 d-flex justify-content-center mt-4" v-if="products.total">
-            <p class="fs-sm">Prikazano
-                <span class="font-weight-bolder mx-1">{{ products.from ? Number(products.from).toLocaleString('hr-HR') : 0 }}</span> do
-                <span class="font-weight-bolder mx-1">{{ products.to ? Number(products.to).toLocaleString('hr-HR') : 0 }}</span> od
-                <span class="font-weight-bold mx-1">{{ products.total ? Number(products.total).toLocaleString('hr-HR') : 0 }}</span> {{ hr_total }}
+            <p class="fs-sm">{{ labels.shown }}
+                <span class="font-weight-bolder mx-1">{{ formatNumber(products.from || 0) }}</span> {{ labels.to }}
+                <span class="font-weight-bolder mx-1">{{ formatNumber(products.to || 0) }}</span> {{ labels.of }}
+                <span class="font-weight-bold mx-1">{{ formatNumber(products.total || 0) }}</span> {{ hr_total }}
             </p>
         </div>
 
         <div class="col-md-12 px-2 mb-4" v-if="products_loaded && search_zero_result">
-            <h2>Nema rezultata pretrage</h2>
-            <p> Vaša pretraga za  <mark>{{ search_query }}</mark> pronašla je 0 rezultata.</p>
-            <h4 class="h5">Savjeti i smjernica</h4>
+            <h2>{{ labels.noSearchResultsTitle }}</h2>
+            <p>{{ labels.yourSearchFor }} <mark>{{ search_query }}</mark> {{ labels.zeroResults }}</p>
+            <h4 class="h5">{{ labels.tipsTitle }}</h4>
             <ul class="list-style">
-                <li>Dvaput provjerite pravopis.</li>
-                <li>Ograničite pretragu na samo jedan ili dva pojma.</li>
-                <li>Budite manje precizni u terminologiji. Koristeći više općenitih termina prije ćete doći do sličnih i povezanih proizvoda.</li>
+                <li>{{ labels.tipSpelling }}</li>
+                <li>{{ labels.tipShorter }}</li>
+                <li>{{ labels.tipBroader }}</li>
             </ul>
             <hr class="d-sm-none">
         </div>
 
         <div class="col-md-12 px-2 mb-4" v-if="products_loaded && navigation_zero_result">
-            <h2>Trenutno nema proizvoda</h2>
-            <p> Pogledajte u nekoj drugoj kategoriji ili probajte sa tražilicom :-)</p>
+            <h2>{{ labels.noProductsTitle }}</h2>
+            <p>{{ labels.noProductsText }}</p>
             <hr class="d-sm-none">
         </div>
 
@@ -124,9 +124,74 @@
             subcat: String,
             author: String,
             publisher: String,
+            locale: {
+                type: String,
+                default: 'hr'
+            },
             initialProducts: {
                 type: Object,
                 default: () => ({})
+            }
+        },
+        //
+        computed: {
+            labels() {
+                const en = this.locale === 'en';
+                const t = (window.FrontTranslations && window.FrontTranslations.js && window.FrontTranslations.js.products)
+                    ? window.FrontTranslations.js.products
+                    : {};
+
+                return en ? {
+                    sort: t.sort || 'Sort',
+                    newest: t.newest || 'Newest',
+                    lowestPrice: t.lowest_price || 'Lowest price',
+                    highestPrice: t.highest_price || 'Highest price',
+                    total: t.total || 'Total',
+                    items: t.items || 'items',
+                    unknown: t.unknown || 'Unknown',
+                    loading: t.loading || 'Loading books...',
+                    shown: t.shown || 'Showing',
+                    to: t.to || 'to',
+                    of: t.of || 'of',
+                    result: t.result || 'result',
+                    results: t.results || 'results',
+                    noSearchResultsTitle: t.no_search_results_title || 'No search results',
+                    yourSearchFor: t.your_search_for || 'Your search for',
+                    zeroResults: t.zero_results || 'found 0 results.',
+                    tipsTitle: t.tips_title || 'Tips',
+                    tipSpelling: t.tip_spelling || 'Double-check the spelling.',
+                    tipShorter: t.tip_shorter || 'Limit your search to one or two terms.',
+                    tipBroader: t.tip_broader || 'Use broader terms to find similar and related items.',
+                    noProductsTitle: t.no_products_title || 'There are currently no products',
+                    noProductsText: t.no_products_text || 'Browse another category or try the search.'
+                } : {
+                    sort: t.sort || 'Sort',
+                    newest: t.newest || 'Newest',
+                    lowestPrice: t.lowest_price || 'Lowest price',
+                    highestPrice: t.highest_price || 'Highest price',
+                    total: t.total || 'Total',
+                    items: t.items || 'items',
+                    unknown: t.unknown || 'Unknown',
+                    loading: t.loading || 'Loading books...',
+                    shown: t.shown || 'Showing',
+                    to: t.to || 'to',
+                    of: t.of || 'of',
+                    result: t.result || 'result',
+                    results: t.results || 'results',
+                    noSearchResultsTitle: t.no_search_results_title || 'No search results',
+                    yourSearchFor: t.your_search_for || 'Your search for',
+                    zeroResults: t.zero_results || 'found 0 results.',
+                    tipsTitle: t.tips_title || 'Tips',
+                    tipSpelling: t.tip_spelling || 'Double-check the spelling.',
+                    tipShorter: t.tip_shorter || 'Limit your search to one or two terms.',
+                    tipBroader: t.tip_broader || 'Use broader terms to find similar and related items.',
+                    noProductsTitle: t.no_products_title || 'There are currently no products',
+                    noProductsText: t.no_products_text || 'Browse another category or try the search.'
+                };
+            },
+
+            numberLocale() {
+                return this.locale === 'en' ? 'en-US' : 'hr-HR';
             }
         },
         //
@@ -145,7 +210,7 @@
                 search_query: '',
                 page: 1,
                 origin: location.origin + '/',
-                hr_total: 'rezultata',
+                hr_total: this.locale === 'en' ? 'results' : 'rezultata',
                 products_loaded: !!bootstrappedProducts,
                 search_zero_result: false,
                 navigation_zero_result: false,
@@ -278,7 +343,8 @@
                     start: this.start,
                     end: this.end,
                     sort: this.sorting,
-                    pojam: this.search_query
+                    pojam: this.search_query,
+                    locale: this.locale
                 };
 
                 if (this.author != '') {
@@ -312,11 +378,15 @@
                     return;
                 }
 
-                this.hr_total = 'rezultata';
+                this.hr_total = this.labels.results;
 
-                if ((this.products.total).toString().slice(-1) == '1') {
-                    this.hr_total = 'rezultat';
+                if (this.locale !== 'en' && (this.products.total).toString().slice(-1) == '1') {
+                    this.hr_total = this.labels.result;
                 }
+            },
+
+            formatNumber(number) {
+                return Number(number).toLocaleString(this.numberLocale);
             },
 
             setZeroState() {

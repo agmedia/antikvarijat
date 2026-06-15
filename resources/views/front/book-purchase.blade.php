@@ -1,7 +1,7 @@
 @extends('front.layouts.app')
 
-@section('title', 'Otkup knjiga')
-@section('description', 'Pošaljite prijavu za otkup knjiga i časopisa.')
+@section('title', __('front.book_purchase.title'))
+@section('description', __('front.book_purchase.meta_description'))
 
 @push('css_after')
     <link rel="stylesheet" media="screen" href="{{ asset('js/simple-lightbox.css?v2.14.0') }}">
@@ -13,13 +13,13 @@
             <div class="order-lg-2 mb-3 mb-lg-0 pt-lg-2">
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb flex-lg-nowrap justify-content-center justify-content-lg-start">
-                        <li class="breadcrumb-item"><a class="text-nowrap" href="/"><i class="ci-home"></i> Naslovnica</a></li>
-                        <li class="breadcrumb-item text-nowrap active" aria-current="page">Otkup knjiga</li>
+                        <li class="breadcrumb-item"><a class="text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('index') }}"><i class="ci-home"></i> {{ __('front.nav.home') }}</a></li>
+                        <li class="breadcrumb-item text-nowrap active" aria-current="page">{{ __('front.book_purchase.title') }}</li>
                     </ol>
                 </nav>
             </div>
             <div class="order-lg-1 pe-lg-4 text-center text-lg-start">
-                <h1 class="h3 mb-0">Otkup knjiga</h1>
+                <h1 class="h3 mb-0">{{ __('front.book_purchase.title') }}</h1>
             </div>
         </div>
     </div>
@@ -44,11 +44,11 @@
             <div class="col-12">
                 <div class="card border-0 shadow-sm">
                     <div class="card-body">
-                        <h2 class="h5">Donacije i otkupi</h2>
+                        <h2 class="h5">{{ __('front.book_purchase.section_title') }}</h2>
                         <p class="mb-0 text-muted">
-                            Antikvarijat Biblos uvijek prima donacije knjiga - bilo da je riječ o selidbi, preuređenju životnog prostora ili jednostavno nedostatku prostora - uvijek možete svoje knjige donijeti u antikvarijat jer - knjige se ne bacaju! Mi uvijek znamo kako knjige zbrinuti ili ih dati onima koji će za njih biti zahvalni, dok će Vama savjest biti čista i to - uz brigu manje!</p>
+                            {{ __('front.book_purchase.intro_1') }}</p>
                         <p class="mb-0 text-muted">
-                            Kada je riječ o naslovima za koje smatrate da bi mogli imati neku vrijednost, pošaljite nam svoje podatke kako bismo Vas mogli povratno kontaktirati i - naravno - fotografije knjiga koje nudite na otkup. Molimo, pripazite da fotografije budu snimljene pri dobrom svjetlu i da nisu mutne. U nastavku je par primjera dobro poslanih fotografija:
+                            {{ __('front.book_purchase.intro_2') }}
                         </p>
                     </div>
                 </div>
@@ -65,7 +65,7 @@
                                 <a class="d-block ratio ratio-1x1" href="{{ asset('media/img/widget/11/otkup-knjiga-primjer-1.jpg') }}">
                                     <img class="w-100 h-100 rounded-3 object-fit-cover"
                                          src="{{ asset('media/img/widget/11/otkup-knjiga-primjer-1.jpg') }}"
-                                         alt="Primjer dobro fotografiranih knjiga - primjer 1"
+                                         alt="{{ __('front.book_purchase.photo_alt', ['number' => 1]) }}"
                                          loading="eager"
                                          fetchpriority="high"
                                          decoding="async">
@@ -75,7 +75,7 @@
                                 <a class="d-block ratio ratio-1x1" href="{{ asset('media/img/widget/11/otkup-knjiga-primjer-2.jpg') }}">
                                     <img class="w-100 h-100 rounded-3 object-fit-cover"
                                          src="{{ asset('media/img/widget/11/otkup-knjiga-primjer-2.jpg') }}"
-                                         alt="Primjer dobro fotografiranih knjiga - primjer 2"
+                                         alt="{{ __('front.book_purchase.photo_alt', ['number' => 2]) }}"
                                          loading="eager"
                                          decoding="async">
                                 </a>
@@ -84,7 +84,7 @@
                                 <a class="d-block ratio ratio-1x1" href="{{ asset('media/img/widget/11/otkup-knjiga-primjer-3.jpg') }}">
                                     <img class="w-100 h-100 rounded-3 object-fit-cover"
                                          src="{{ asset('media/img/widget/11/otkup-knjiga-primjer-3.jpg') }}"
-                                         alt="Primjer dobro fotografiranih knjiga - primjer 3"
+                                         alt="{{ __('front.book_purchase.photo_alt', ['number' => 3]) }}"
                                          loading="lazy"
                                          decoding="async">
                                 </a>
@@ -93,7 +93,7 @@
                                 <a class="d-block ratio ratio-1x1" href="{{ asset('media/img/widget/11/otkup-knjiga-primjer-4.jpg') }}">
                                     <img class="w-100 h-100 rounded-3 object-fit-cover"
                                          src="{{ asset('media/img/widget/11/otkup-knjiga-primjer-4.jpg') }}"
-                                         alt="Primjer dobro fotografiranih knjiga - primjer 4"
+                                         alt="{{ __('front.book_purchase.photo_alt', ['number' => 4]) }}"
                                          loading="lazy"
                                          decoding="async">
                                 </a>
@@ -106,18 +106,18 @@
 
         <div class="card border-0 shadow-sm">
             <div class="card-body p-4 p-lg-5">
-                <h2 class="h4 mb-3">Pošaljite prijavu za otkup</h2>
+                <h2 class="h4 mb-3">{{ __('front.book_purchase.form_title') }}</h2>
 
-                <form id="book-purchase-form" action="{{ route('otkup.knjiga.posalji') }}" method="POST" enctype="multipart/form-data" novalidate>
+                <form id="book-purchase-form" action="{{ \App\Helpers\LocaleHelper::route('otkup.knjiga.posalji') }}" method="POST" enctype="multipart/form-data" novalidate>
                     @csrf
 
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label" for="full-name">Ime i prezime @include('back.layouts.partials.required-star')</label>
+                            <label class="form-label" for="full-name">{{ __('front.book_purchase.full_name') }} @include('back.layouts.partials.required-star')</label>
                             <input class="form-control" type="text" id="full-name" name="full_name" value="{{ old('full_name', $defaults['full_name'] ?? '') }}" required>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label" for="postal-code">Poštanski broj @include('back.layouts.partials.required-star')</label>
+                            <label class="form-label" for="postal-code">{{ __('front.book_purchase.postal_code') }} @include('back.layouts.partials.required-star')</label>
                             <input class="form-control" type="text" id="postal-code" name="postal_code" value="{{ old('postal_code', $defaults['postal_code'] ?? '') }}" required>
                         </div>
                         <div class="col-md-6">
@@ -125,18 +125,18 @@
                             <input class="form-control" type="email" id="email" name="email" value="{{ old('email', $defaults['email'] ?? '') }}" required>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label" for="phone">Kontakt broj (mobitel) @include('back.layouts.partials.required-star')</label>
+                            <label class="form-label" for="phone">{{ __('front.book_purchase.phone') }} @include('back.layouts.partials.required-star')</label>
                             <input class="form-control" type="text" id="phone" name="phone" value="{{ old('phone', $defaults['phone'] ?? '') }}" required>
                         </div>
 
                         <div class="col-12">
-                            <label class="form-label" for="photos">Fotografije @include('back.layouts.partials.required-star')</label>
+                            <label class="form-label" for="photos">{{ __('front.book_purchase.photos') }} @include('back.layouts.partials.required-star')</label>
                             <div class="d-flex flex-wrap align-items-center">
                                 <input class="d-none" type="file" id="photos" name="photos[]" accept="image/jpeg,image/png,image/webp" multiple>
-                                <button type="button" id="photos-trigger" class="btn btn-outline-primary me-3 mb-2 mb-sm-0">Odaberi fotografije</button>
-                                <span id="photos-selected-text" class="text-muted">Nijedna datoteka nije odabrana.</span>
+                                <button type="button" id="photos-trigger" class="btn btn-outline-primary me-3 mb-2 mb-sm-0">{{ __('front.book_purchase.choose_photos') }}</button>
+                                <span id="photos-selected-text" class="text-muted">{{ __('front.book_purchase.no_file_selected') }}</span>
                             </div>
-                            <div class="form-text mt-2">Maksimalno 20 fotografija, do 4 MB po fotografiji, ukupno do 40 MB.</div>
+                            <div class="form-text mt-2">{{ __('front.book_purchase.photos_help') }}</div>
                         </div>
 
                         <div class="col-12">
@@ -151,7 +151,7 @@
                         </div>
 
                         <div class="col-12">
-                            <button id="submit-btn" class="btn btn-primary" type="submit">Pošalji</button>
+                            <button id="submit-btn" class="btn btn-primary" type="submit">{{ __('front.book_purchase.submit') }}</button>
                             <div id="otkup-success-bottom" class="alert alert-success d-none mt-3 mb-0" role="alert"></div>
                         </div>
                     </div>
@@ -166,12 +166,28 @@
 @push('js_after')
     @include('front.layouts.partials.recaptcha-js')
     <script src="{{ asset('js/simple-lightbox.js?v2.14.0') }}"></script>
+    @php
+        $bookPurchaseLabels = [
+            'noFileSelected' => __('front.book_purchase.no_file_selected'),
+            'filesSummary' => __('front.book_purchase.files_summary'),
+            'selectedFiles' => __('front.book_purchase.selected_files'),
+            'remove' => __('front.book_purchase.remove'),
+            'selectAtLeastOne' => __('front.book_purchase.select_at_least_one'),
+            'maxFiles' => __('front.book_purchase.max_files'),
+            'fileTooLarge' => __('front.book_purchase.file_too_large'),
+            'totalTooLarge' => __('front.book_purchase.total_too_large'),
+            'sentShort' => __('front.book_purchase.sent_short'),
+            'sendError' => __('front.book_purchase.send_error'),
+            'loading' => __('front.general.loading'),
+        ];
+    @endphp
 
     <script>
         (() => {
             const MAX_FILES = 20;
             const MAX_FILE_SIZE = 4 * 1024 * 1024;
             const MAX_TOTAL_SIZE = 40 * 1024 * 1024;
+            const labels = {!! json_encode($bookPurchaseLabels, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) !!};
 
             const form = document.getElementById('book-purchase-form');
             const fileInput = document.getElementById('photos');
@@ -219,16 +235,18 @@
                 fileList.innerHTML = '';
 
                 if (selectedFiles.length === 0) {
-                    fileSelectedText.textContent = 'Nijedna datoteka nije odabrana.';
+                    fileSelectedText.textContent = labels.noFileSelected;
                     fileSummary.textContent = '';
                     return;
                 }
 
                 const totalBytes = selectedFiles.reduce((sum, file) => sum + file.size, 0);
-                fileSummary.textContent = `${selectedFiles.length} datoteka(e), ukupno ${bytesToMb(totalBytes)} MB`;
+                fileSummary.textContent = labels.filesSummary
+                    .replace(':count', selectedFiles.length)
+                    .replace(':size', bytesToMb(totalBytes));
                 fileSelectedText.textContent = selectedFiles.length === 1
                     ? selectedFiles[0].name
-                    : `Odabrano datoteka: ${selectedFiles.length}`;
+                    : labels.selectedFiles.replace(':count', selectedFiles.length);
 
                 selectedFiles.forEach((file, index) => {
                     const previewUrl = URL.createObjectURL(file);
@@ -240,7 +258,7 @@
                             <img src="${previewUrl}" alt="${file.name}" style="width:64px;height:64px;object-fit:cover;border-radius:6px;border:1px solid #e2e2e2;" class="me-3">
                             <span class="text-break">${file.name} <small class="text-muted">(${bytesToMb(file.size)} MB)</small></span>
                         </div>
-                        <button type="button" class="btn btn-sm btn-outline-danger" data-remove-index="${index}">Obriši</button>
+                        <button type="button" class="btn btn-sm btn-outline-danger" data-remove-index="${index}">${labels.remove}</button>
                     `;
                     fileList.appendChild(li);
                 });
@@ -252,23 +270,23 @@
 
             function validateFiles(files) {
                 if (files.length === 0) {
-                    return 'Odaberite barem jednu fotografiju.';
+                    return labels.selectAtLeastOne;
                 }
 
                 if (files.length > MAX_FILES) {
-                    return 'Maksimalno je dozvoljeno 20 fotografija.';
+                    return labels.maxFiles;
                 }
 
                 let totalSize = 0;
                 for (const file of files) {
                     totalSize += file.size;
                     if (file.size > MAX_FILE_SIZE) {
-                        return `Datoteka ${file.name} je veća od 4 MB.`;
+                        return labels.fileTooLarge.replace(':name', file.name);
                     }
                 }
 
                 if (totalSize > MAX_TOTAL_SIZE) {
-                    return 'Ukupna veličina svih fotografija može biti najviše 40 MB.';
+                    return labels.totalTooLarge;
                 }
 
                 return null;
@@ -351,7 +369,7 @@
                     submitBtn.disabled = false;
 
                     if (xhr.status >= 200 && xhr.status < 300) {
-                        let message = 'Hvala! Vaša prijava je uspješno poslana.';
+                        let message = labels.sentShort;
                         try {
                             const json = JSON.parse(xhr.responseText);
                             if (json.message) {
@@ -371,7 +389,7 @@
                         return;
                     }
 
-                    let message = 'Došlo je do greške prilikom slanja prijave. Pokušajte ponovno.';
+                        let message = labels.sendError;
                     try {
                         const json = JSON.parse(xhr.responseText);
                         if (json.errors) {

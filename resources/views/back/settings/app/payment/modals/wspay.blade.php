@@ -175,6 +175,9 @@
                 sort_order: $('#wspay-sort-order').val()
             };
 
+            item = collectPaymentLocaleFields('wspay', item);
+
+
             axios.post("{{ route('api.payment.store') }}", {data: item})
             .then(response => {
                 console.log(response.data)

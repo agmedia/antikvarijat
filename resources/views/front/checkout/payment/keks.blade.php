@@ -2,14 +2,14 @@
 <div class="row text-center d-none d-sm-block">
     <div class="col-12">
         <img src="{{ $data['logo'] }}" style="height: 90px; margin-bottom:30px;" alt="KEKSPAY" />
-        <h5>Plaćanje putem KEKS Pay aplikacije</h5>
+        <h5>{{ __('front.checkout.keks_title') }}</h5>
     </div>
     <div class="col-12">
         <ul style="list-style: none;padding-left: 0;">
-            <li>1. Otvori KEKS Pay</li>
-            <li>2. Pritisni <img src="{{ asset('media/img/plusikona.svg') }}" style="height: 40px;"/> ikonicu</li>
-            <li>3. Pritisni Skeniraj QR kod</li>
-            <li>4. Skeniraj QR kod</li>
+            <li>1. {{ __('front.checkout.keks_open_app') }}</li>
+            <li>2. {!! __('front.checkout.keks_press_icon', ['icon' => '<img src="'.asset('media/img/plusikona.svg').'" style="height: 40px;"/>']) !!}</li>
+            <li>3. {{ __('front.checkout.keks_scan_option') }}</li>
+            <li>4. {{ __('front.checkout.keks_scan_code') }}</li>
         </ul>
     </div>
     <div class="col-sm-12">
@@ -39,13 +39,13 @@
     <input type="hidden" name="success_url" value="{{ $data['success_url'] }}">
     <input type="hidden" name="fail_url" value="{{ $data['fail_url'] }}">
     <div class="d-grid gap-2 kekspay">
-        <input type="submit" value="Potvrdi" class="btn btn-primary d-block d-sm-none" />
+        <input type="submit" value="{{ __('front.general.confirm') }}" class="btn btn-primary d-block d-sm-none" />
     </div>
 </form>
 <div class="clearfix"></div>
 <div class="row text-center mt-4 appblock">
     <div class="col-12">
-        <h5 >Još nemaš KEKS Pay?</h5>
+        <h5>{{ __('front.checkout.keks_no_app') }}</h5>
         <a href="https://itunes.apple.com/hr/app/keks-pay/id1434843784?l=hr&mt=8">
             <img style="width:150px" src="{{ asset('media/img/appstore.svg') }}" class="getfrom"/>
         </a>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Front;
 
+use App\Helpers\LocaleHelper;
 use App\Helpers\Session\CheckoutSession;
 use App\Http\Controllers\Controller;
 use App\Mail\OrderReceived;
@@ -63,10 +64,10 @@ class CheckoutController extends Controller
 
         if (empty($data)) {
             if ( ! session()->has(config('session.cart'))) {
-                return redirect()->route('kosarica');
+                return redirect(LocaleHelper::route('kosarica'));
             }
 
-            return redirect()->route('naplata', ['step' => 'podaci']);
+            return redirect(LocaleHelper::route('naplata', ['step' => 'podaci']));
         }
 
         $data = $this->collectData($data, config('settings.order.status.unfinished'));
@@ -132,7 +133,7 @@ class CheckoutController extends Controller
             // Ako neka druga metoda šalje drugi parametar, lako ga dodaš ovdje,
             // ali bez orderNumber nema smisla dalje.
             Log::warning('Payment return without order identifier', ['all' => $request->all()]);
-            return redirect()->route('checkout.error');
+            return redirect(LocaleHelper::route('checkout.error'));
         }
 
         $order = new Order();
@@ -146,8 +147,8 @@ class CheckoutController extends Controller
         }
 
         return $ok
-            ? redirect()->route('checkout.success', ['order_number' => $orderNumber])
-            : redirect()->route('checkout.error', ['order_number' => $orderNumber]);
+            ? redirect(LocaleHelper::route('checkout.success', ['order_number' => $orderNumber]))
+            : redirect(LocaleHelper::route('checkout.error', ['order_number' => $orderNumber]));
     }
 
 
@@ -168,7 +169,7 @@ class CheckoutController extends Controller
         }
 
         if (! $data['order']) {
-            return redirect()->route('index');
+            return redirect(LocaleHelper::route('index'));
         }
 
         $order = \App\Models\Back\Orders\Order::where('id', $data['order']['id'])->first();
@@ -207,7 +208,7 @@ class CheckoutController extends Controller
             return view('front.checkout.success', compact('data'));
         }
 
-        return redirect()->route('front.checkout.checkout', ['step' => '']);
+        return redirect(LocaleHelper::route('naplata', ['step' => '']));
     }
 
 

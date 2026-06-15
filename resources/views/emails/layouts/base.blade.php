@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<html lang="{{ app()->getLocale() }}" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
     <meta charset="utf-8"> <!-- utf-8 works for most cases -->
     <meta name="viewport" content="width=device-width"> <!-- Forcing initial-scale shouldn't be necessary -->
@@ -245,7 +245,7 @@
 
     <!-- Visually Hidden Preheader Text : BEGIN -->
     <div style="display: none; font-size: 1px; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden; mso-hide: all; font-family: sans-serif;">
-       Narudžba Antikvarijat Biblos
+       {{ __('front.email.preheader_order') }}
     </div>
     <!-- Visually Hidden Preheader Text : END -->
 
@@ -280,7 +280,7 @@
     <table align="center" role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="margin: auto;" class="email-container">
         <tr>
             <td style="padding: 20px; font-family: sans-serif; font-size: 12px; line-height: 15px; text-align: center; color: #ffffff;">
-                Antikvarijat Biblos © {{ now()->year }}. Sva prava pridržana. <br><a href="https://www.antikvarijat-biblos.hr/info/opci-uvjeti-kupnje" style="color:#ffffff;">Uvjeti korištenja</a>
+                Antikvarijat Biblos © {{ now()->year }}. {{ __('front.email.footer_rights') }} <br><a href="{{ \App\Helpers\LocaleHelper::route('catalog.route.page', ['page' => 'opci-uvjeti-kupnje']) }}" style="color:#ffffff;">{{ __('front.general.privacy_terms') }}</a>
                 <br>
             </td>
         </tr>

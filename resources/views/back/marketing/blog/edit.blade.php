@@ -39,16 +39,45 @@
                     <div class="row justify-content-center push">
                         <div class="col-md-10">
 
-                            <div class="form-group">
-                                <label for="title-input">Naslov</label>
-                                <input type="text" class="form-control" id="title-input" name="title" placeholder="Upišite naslov..." value="{{ isset($blog) ? $blog->title : old('title') }}" onkeyup="SetSEOPreview()">
+                            @include('back.layouts.partials.language-tabs', ['id' => 'blog-content-tabs'])
+                            <div class="tab-content">
+                                <div class="tab-pane active" id="blog-content-tabs-hr" role="tabpanel">
+                                    <div class="form-group">
+                                        <label for="title-input">Naslov</label>
+                                        <input type="text" class="form-control" id="title-input" name="title" placeholder="Upišite naslov..." value="{{ isset($blog) ? $blog->title : old('title') }}" onkeyup="SetSEOPreview()">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="short-description-input">Sažetak</label>
+                                        <textarea class="form-control" id="short-description-input" name="short_description" rows="3" placeholder="Enter an excerpt..">{{ isset($blog) ? $blog->short_description : old('title') }}</textarea>
+                                        <div class="form-text text-muted font-size-sm font-italic">Vidljivo na početnoj stranici</div>
+                                    </div>
+                                    <div class="form-group row mb-4">
+                                        <div class="col-md-12">
+                                            <label for="description-editor">Opis</label>
+                                            <textarea id="description-editor" name="description">{!! isset($blog) ? $blog->description : old('description') !!}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="tab-pane" id="blog-content-tabs-en" role="tabpanel">
+                                    <div class="form-group">
+                                        <label for="title-en-input">Naslov EN</label>
+                                        <input type="text" class="form-control" id="title-en-input" name="title_en" placeholder="Upišite engleski naslov..." value="{{ old('title_en', isset($blog) ? $blog->title_en : '') }}">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="short-description-en-input">Sažetak EN</label>
+                                        <textarea class="form-control" id="short-description-en-input" name="short_description_en" rows="3" placeholder="Enter an excerpt..">{{ old('short_description_en', isset($blog) ? $blog->short_description_en : '') }}</textarea>
+                                    </div>
+                                    <div class="form-group row mb-4">
+                                        <div class="col-md-12">
+                                            <label for="description-en-editor">Opis EN</label>
+                                            <textarea id="description-en-editor" name="description_en">{!! old('description_en', isset($blog) ? $blog->description_en : '') !!}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div class="form-group">
-                                <label for="short-description-input">Sažetak</label>
-                                <textarea class="form-control" id="short-description-input" name="short_description" rows="3" placeholder="Enter an excerpt..">{{ isset($blog) ? $blog->short_description : old('title') }}</textarea>
-                                <div class="form-text text-muted font-size-sm font-italic">Vidljivo na početnoj stranici</div>
-                            </div>
                             <div class="form-group row">
                                 <div class="col-xl-6">
                                     <label>Glavna slika</label>
@@ -61,13 +90,6 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="form-group row  mb-4">
-                                <div class="col-md-12">
-                                    <label for="description-editor">Opis</label>
-                                    <textarea id="description-editor" name="description">{!! isset($blog) ? $blog->description : old('description') !!}</textarea>
-                                </div>
-                            </div>
-
                             <div class="form-group row">
                                 <div class="col-xl-6">
                                     <label for="publish-date-input">Datum objave</label>
@@ -88,29 +110,53 @@
                 <div class="block-content">
                     <div class="row justify-content-center">
                         <div class="col-md-10 ">
-                            <form action="be_pages_ecom_product_edit.html" method="POST" onsubmit="return false;">
-                                <div class="form-group">
-                                    <label for="meta-title-input">Meta naslov</label>
-                                    <input type="text" class="js-maxlength form-control" id="meta-title-input" name="meta_title" value="{{ isset($blog) ? $blog->meta_title : old('meta_title') }}" maxlength="70" data-always-show="true" data-placement="top">
-                                    <small class="form-text text-muted">
-                                        70 znakova max
-                                    </small>
-                                </div>
+                            @include('back.layouts.partials.language-tabs', ['id' => 'blog-seo-tabs'])
+                            <div class="tab-content">
+                                <div class="tab-pane active" id="blog-seo-tabs-hr" role="tabpanel">
+                                    <div class="form-group">
+                                        <label for="meta-title-input">Meta naslov</label>
+                                        <input type="text" class="js-maxlength form-control" id="meta-title-input" name="meta_title" value="{{ isset($blog) ? $blog->meta_title : old('meta_title') }}" maxlength="70" data-always-show="true" data-placement="top">
+                                        <small class="form-text text-muted">
+                                            70 znakova max
+                                        </small>
+                                    </div>
 
-                                <div class="form-group">
-                                    <label for="meta-description-input">Meta opis</label>
-                                    <textarea class="js-maxlength form-control" id="meta-description-input" name="meta_description" rows="4" maxlength="160" data-always-show="true" data-placement="top">{{ isset($blog) ? $blog->meta_description : old('meta_description') }}</textarea>
-                                    <small class="form-text text-muted">
-                                        160 znakova max
-                                    </small>
-                                </div>
+                                    <div class="form-group">
+                                        <label for="meta-description-input">Meta opis</label>
+                                        <textarea class="js-maxlength form-control" id="meta-description-input" name="meta_description" rows="4" maxlength="160" data-always-show="true" data-placement="top">{{ isset($blog) ? $blog->meta_description : old('meta_description') }}</textarea>
+                                        <small class="form-text text-muted">
+                                            160 znakova max
+                                        </small>
+                                    </div>
 
-                                <div class="form-group">
-                                    <label for="slug-input">SEO link (url)</label>
-                                    <input type="text" class="form-control" id="slug-input" name="slug" value="{{ isset($blog) ? $blog->slug : old('slug') }}" disabled>
+                                    <div class="form-group">
+                                        <label for="slug-input">SEO link (url)</label>
+                                        <input type="text" class="form-control" id="slug-input" name="slug" value="{{ isset($blog) ? $blog->slug : old('slug') }}" disabled>
+                                    </div>
                                 </div>
+                                <div class="tab-pane" id="blog-seo-tabs-en" role="tabpanel">
+                                    <div class="form-group">
+                                        <label for="meta-title-en-input">Meta naslov EN</label>
+                                        <input type="text" class="js-maxlength form-control" id="meta-title-en-input" name="meta_title_en" value="{{ old('meta_title_en', isset($blog) ? $blog->meta_title_en : '') }}" maxlength="70" data-always-show="true" data-placement="top">
+                                        <small class="form-text text-muted">
+                                            70 znakova max
+                                        </small>
+                                    </div>
 
-                            </form>
+                                    <div class="form-group">
+                                        <label for="meta-description-en-input">Meta opis EN</label>
+                                        <textarea class="js-maxlength form-control" id="meta-description-en-input" name="meta_description_en" rows="4" maxlength="160" data-always-show="true" data-placement="top">{{ old('meta_description_en', isset($blog) ? $blog->meta_description_en : '') }}</textarea>
+                                        <small class="form-text text-muted">
+                                            160 znakova max
+                                        </small>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="slug-en-input">SEO link EN</label>
+                                        <input type="text" class="form-control" id="slug-en-input" name="slug_en" value="{{ old('slug_en', isset($blog) ? $blog->slug_en : '') }}" placeholder="Ako je prazno koristi se HR slug">
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -153,6 +199,19 @@
         $(() => {
             ClassicEditor
             .create(document.querySelector('#description-editor'), {
+                ckfinder: {
+                    uploadUrl: '{{ route('blogs.upload.image') }}?_token=' + document.querySelector('meta[name="csrf-token"]').getAttribute('content') + '&blog_id={{ (isset($blog->id) && $blog->id) ?: 0 }}',
+                }
+            })
+            .then( editor => {
+                console.log(editor);
+            } )
+            .catch( error => {
+                console.error(error);
+            } );
+
+            ClassicEditor
+            .create(document.querySelector('#description-en-editor'), {
                 ckfinder: {
                     uploadUrl: '{{ route('blogs.upload.image') }}?_token=' + document.querySelector('meta[name="csrf-token"]').getAttribute('content') + '&blog_id={{ (isset($blog->id) && $blog->id) ?: 0 }}',
                 }

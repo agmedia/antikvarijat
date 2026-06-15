@@ -246,6 +246,12 @@ Route::middleware(['auth:sanctum', 'verified'])->prefix('moj-racun')->group(func
     Route::get('/narudzbe', [CustomerController::class, 'orders'])->name('moje-narudzbe');
 });
 
+Route::middleware(['auth:sanctum', 'verified'])->prefix('en/my-account')->as('en.')->group(function () {
+    Route::get('/', [CustomerController::class, 'index'])->name('moj-racun');
+    Route::patch('/save/{user}', [CustomerController::class, 'save'])->name('moj-racun.snimi');
+    Route::get('/orders', [CustomerController::class, 'orders'])->name('moje-narudzbe');
+});
+
 /**
  * API Routes
  */
@@ -378,6 +384,44 @@ Route::get('blog/{blog?}', [CatalogRouteController::class, 'blog'])->name('catal
 //
 Route::get('cache/image', [HomeController::class, 'imageCache']);
 Route::get('cache/thumb', [HomeController::class, 'thumbCache']);
+
+/**
+ * EN FRONT ROUTES
+ *
+ * Hrvatski URL-ovi ostaju bez prefiksa i bez promjene. Engleska verzija je
+ * zaseban sloj pod /en s vlastitim imenima ruta (en.*).
+ */
+Route::prefix('en')->as('en.')->group(function () {
+    Route::get('/', [HomeController::class, 'index'])->name('index');
+    Route::get('/contact', [HomeController::class, 'contact'])->name('kontakt');
+    Route::post('/contact/send', [HomeController::class, 'sendContactMessage'])->name('poruka');
+    Route::get('/book-purchase', [HomeController::class, 'bookPurchase'])->name('otkup.knjiga');
+    Route::post('/book-purchase/send', [HomeController::class, 'sendBookPurchaseMessage'])->name('otkup.knjiga.posalji');
+    Route::post('/newsletter/subscribe', [HomeController::class, 'newsletter'])->name('newsletter.subscribe');
+    Route::get('/faq', [CatalogRouteController::class, 'faq'])->name('faq');
+    Route::post('/wishlist/add', [HomeController::class, 'wishlist'])->name('wishlist');
+
+    Route::get('/cart', [CheckoutController::class, 'cart'])->name('kosarica');
+    Route::get('/checkout', [CheckoutController::class, 'checkout'])->name('naplata');
+    Route::get('/checkout/review', [CheckoutController::class, 'view'])->name('pregled');
+    Route::get('/checkout/order', [CheckoutController::class, 'order'])->name('checkout');
+    Route::get('/checkout/success', [CheckoutController::class, 'success'])->name('checkout.success');
+    Route::get('/checkout/error', [CheckoutController::class, 'error'])->name('checkout.error');
+
+    Route::get('search', [CatalogRouteController::class, 'search'])->name('pretrazi');
+    Route::get('tag', [CatalogRouteController::class, 'tag'])->name('tag');
+
+    Route::get('info/{page}', [CatalogRouteController::class, 'page'])->name('catalog.route.page');
+    Route::get('blog/{blog?}', [CatalogRouteController::class, 'blog'])->name('catalog.route.blog');
+
+    Route::get('authors/{author?}/{cat?}/{subcat?}', [CatalogRouteController::class, 'author'])->name('catalog.route.author');
+    Route::get('publishers/{publisher?}/{cat?}/{subcat?}', [CatalogRouteController::class, 'publisher'])->name('catalog.route.publisher');
+    Route::get('sale/{cat?}/{subcat?}', [CatalogRouteController::class, 'actions'])->name('catalog.route.actions');
+
+    Route::get('{group}/{cat?}/{subcat?}/{prod?}', [CatalogRouteController::class, 'resolve'])
+        ->where('group', 'books|maps-and-views')
+        ->name('catalog.route');
+});
 /**
  * Sitemap routes
  */

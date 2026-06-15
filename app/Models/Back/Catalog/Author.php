@@ -85,12 +85,18 @@ class Author extends Model
             'description'      => $this->request->description,
             'meta_title'       => $this->request->meta_title,
             'meta_description' => $this->request->meta_description,
+            'title_en'         => $this->request->title_en ?: null,
+            'description_en'   => $this->request->description_en ?: null,
+            'meta_title_en'    => $this->request->meta_title_en ?: null,
+            'meta_description_en' => $this->request->meta_description_en ?: null,
             'lang'             => 'hr',
             'sort_order'       => 0,
             'status'           => (isset($this->request->status) and $this->request->status == 'on') ? 1 : 0,
             'featured'         => (isset($this->request->featured) and $this->request->featured == 'on') ? 1 : 0,
             'slug'             => $slug,
             'url'              => config('settings.author_path') . '/' . $slug,
+            'slug_en'          => $this->resolveSlugEn(),
+            'url_en'           => $this->resolveUrlEn($slug),
             'created_at'       => Carbon::now(),
             'updated_at'       => Carbon::now()
         ]);
@@ -118,12 +124,18 @@ class Author extends Model
             'description'      => $this->request->description,
             'meta_title'       => $this->request->meta_title,
             'meta_description' => $this->request->meta_description,
+            'title_en'         => $this->request->title_en ?: null,
+            'description_en'   => $this->request->description_en ?: null,
+            'meta_title_en'    => $this->request->meta_title_en ?: null,
+            'meta_description_en' => $this->request->meta_description_en ?: null,
             'lang'             => 'hr',
             'sort_order'       => 0,
             'status'           => (isset($this->request->status) and $this->request->status == 'on') ? 1 : 0,
             'featured'         => (isset($this->request->featured) and $this->request->featured == 'on') ? 1 : 0,
             'slug'             => $slug,
             'url'              => config('settings.author_path') . '/' . $slug,
+            'slug_en'          => $this->resolveSlugEn('update'),
+            'url_en'           => $this->resolveUrlEn($slug),
             'updated_at'       => Carbon::now()
         ]);
 
@@ -132,6 +144,28 @@ class Author extends Model
         }
 
         return false;
+    }
+
+    private function resolveSlugEn(string $target = 'insert'): ?string
+    {
+        $slug = trim((string) $this->request->input('slug_en', ''));
+
+        if ($slug === '' && $target === 'update') {
+            $slug = (string) $this->getRawOriginal('slug_en');
+        }
+
+        if ($slug === '' && $this->request->filled('title_en')) {
+            $slug = (string) $this->request->title_en;
+        }
+
+        return $slug !== '' ? Str::slug($slug) : null;
+    }
+
+    private function resolveUrlEn(string $fallbackSlug): string
+    {
+        $slug = $this->resolveSlugEn($this->exists ? 'update' : 'insert') ?: $fallbackSlug;
+
+        return 'en/authors/' . $slug;
     }
 
 

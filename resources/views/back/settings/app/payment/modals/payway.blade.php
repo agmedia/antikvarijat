@@ -175,6 +175,9 @@
                 sort_order: $('#payway-sort-order').val()
             };
 
+            item = collectPaymentLocaleFields('payway', item);
+
+
             axios.post("{{ route('api.payment.store') }}", {data: item})
                 .then(response => {
                     console.log(response.data)

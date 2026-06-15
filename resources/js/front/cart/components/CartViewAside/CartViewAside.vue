@@ -3,18 +3,18 @@
         <div class=" rounded-3  p-4" v-if="route == 'kosarica'" style="border: 1px dashed #e3e9ef;background-color: #fff !important;">
             <div class="py-2 px-xl-2" v-cloak>
                 <div class="text-center mb-2 pb-2">
-                    <h2 class="h6 mb-3 pb-1">Ukupno</h2>
+                    <h2 class="h6 mb-3 pb-1">{{ labels.total }}</h2>
                     <h3 class="fw-bold text-primary">{{ $store.state.service.formatMainPrice($store.state.cart.total) }}</h3>
                     <h4 class="fs-sm" v-if="$store.state.cart.secondary_price">{{ $store.state.service.formatSecondaryPrice($store.state.cart.total) }}</h4>
                 </div>
-                <a class="btn btn-primary btn-shadow d-block w-100 mt-4" :href="checkouturl">NASTAVI NA NAPLATU <i class="ci-arrow-right fs-sm"></i></a>
+                <a class="btn btn-primary btn-shadow d-block w-100 mt-4" :href="checkouturl">{{ labels.continueToCheckout }} <i class="ci-arrow-right fs-sm"></i></a>
             </div>
         </div>
 
         <div class="rounded-3 p-4 ms-lg-auto" v-if="route == 'naplata'" style="border: 1px dashed #e3e9ef;background-color: #fff !important;">
             <div class="py-2 px-xl-2">
                 <div class="widget mb-3">
-                    <h2 class="widget-title text-center mb-2">Sažetak narudžbe</h2>
+                    <h2 class="widget-title text-center mb-2">{{ labels.orderSummary }}</h2>
 
                     <div class="d-flex align-items-center pb-2 border-bottom" v-for="item in $store.state.cart.items">
                         <a class="d-block flex-shrink-0" :href="base_path + item.attributes.path"><img :src="item.associatedModel.image" :alt="item.name" width="64"></a>
@@ -26,7 +26,7 @@
                     </div>
                 </div>
                 <ul class="list-unstyled fs-sm pb-2 border-bottom">
-                    <li class="d-flex justify-content-between align-items-center"><span class="me-2">Ukupno:</span><span class="text-end">{{ $store.state.service.formatMainPrice($store.state.cart.subtotal) }}</span></li>
+                    <li class="d-flex justify-content-between align-items-center"><span class="me-2">{{ labels.total }}:</span><span class="text-end">{{ $store.state.service.formatMainPrice($store.state.cart.subtotal) }}</span></li>
                     <li v-if="$store.state.cart.secondary_price" class="d-flex justify-content-between align-items-center">
                         <span class="me-2"></span><span class="text-end">{{ $store.state.service.formatSecondaryPrice($store.state.cart.subtotal) }}</span>
                     </li>
@@ -37,17 +37,17 @@
                 </ul>
                 <h3 class="fw-bold text-primary text-center my-2">{{ $store.state.service.formatMainPrice($store.state.cart.total) }}</h3>
                 <h4 v-if="$store.state.cart.secondary_price" class="fs-sm text-center my-2">{{ $store.state.service.formatSecondaryPrice($store.state.cart.total) }}</h4>
-                <p class="small text-center mt-0 mb-0">PDV uračunat u cijeni</p>
+                <p class="small text-center mt-0 mb-0">{{ labels.taxIncluded }}</p>
             </div>
         </div>
 
         <div class="rounded-3 p-4 ms-lg-auto" v-if="route == 'pregled'" style="border: 1px dashed #e3e9ef;background-color: #fff !important;">
             <div class="py-2 px-xl-2">
                 <div class="widget mb-3">
-                    <h2 class="widget-title text-center">Sažetak narudžbe</h2>
+                    <h2 class="widget-title text-center">{{ labels.orderSummary }}</h2>
                 </div>
                 <ul class="list-unstyled fs-sm pb-2 border-bottom">
-                    <li class="d-flex justify-content-between align-items-center"><span class="me-2">Ukupno:</span><span class="text-end">{{ $store.state.service.formatMainPrice($store.state.cart.subtotal) }}</span></li>
+                    <li class="d-flex justify-content-between align-items-center"><span class="me-2">{{ labels.total }}:</span><span class="text-end">{{ $store.state.service.formatMainPrice($store.state.cart.subtotal) }}</span></li>
                     <li v-if="$store.state.cart.secondary_price" class="d-flex justify-content-between align-items-center">
                         <span class="me-2"></span><span class="text-end">{{ $store.state.service.formatSecondaryPrice($store.state.cart.subtotal) }}</span>
                     </li>
@@ -58,7 +58,7 @@
                 </ul>
                 <h3 class="fw-bold text-primary text-center my-2">{{ $store.state.service.formatMainPrice($store.state.cart.total) }}</h3>
                 <h4 v-if="$store.state.cart.secondary_price" class="fs-sm text-center my-2">{{ $store.state.service.formatSecondaryPrice($store.state.cart.total) }}</h4>
-                <p class="small text-center mt-0 mb-0">PDV uračunat u cijeni</p>
+                <p class="small text-center mt-0 mb-0">{{ labels.taxIncluded }}</p>
             </div>
         </div>
 
@@ -66,11 +66,11 @@
             <div class="py-2 px-xl-2" v-cloak>
                 <div class="form-group">
 
-                    <label class="form-label">Imate li kod za popust?</label>
+                    <label class="form-label">{{ labels.couponQuestion }}</label>
                     <div class="input-group">
-                        <input type="text" class="form-control" v-model="coupon" placeholder="Upišite kod ovdje...">
+                        <input type="text" class="form-control" v-model="coupon" :placeholder="labels.couponPlaceholder">
                         <div class="input-group-append">
-                            <button type="button" v-on:click="setCoupon" class="btn btn-outline-primary btn-shadow">Dodaj</button>
+                            <button type="button" v-on:click="setCoupon" class="btn btn-outline-primary btn-shadow">{{ labels.add }}</button>
                         </div>
                     </div>
                 </div>
@@ -98,6 +98,30 @@ export default {
             show_delete_btn: true,
             coupon: '',
             tax: 0,
+        }
+        },
+    computed: {
+        labels() {
+            const t = (window.FrontTranslations && window.FrontTranslations.js && window.FrontTranslations.js.cart)
+                ? window.FrontTranslations.js.cart
+                : {};
+            return (document.documentElement.lang || 'hr') === 'en' ? {
+                total: t.total || 'Total',
+                continueToCheckout: t.continue_to_checkout || 'CONTINUE TO CHECKOUT',
+                orderSummary: t.order_summary || 'Order summary',
+                taxIncluded: t.tax_included || 'VAT included in the price',
+                couponQuestion: t.coupon_question || 'Do you have a discount code?',
+                couponPlaceholder: t.coupon_placeholder || 'Enter code here...',
+                add: t.add || 'Add'
+            } : {
+                total: t.total || 'Total',
+                continueToCheckout: t.continue_to_checkout || 'CONTINUE TO CHECKOUT',
+                orderSummary: t.order_summary || 'Order summary',
+                taxIncluded: t.tax_included || 'VAT included in the price',
+                couponQuestion: t.coupon_question || 'Do you have a discount code?',
+                couponPlaceholder: t.coupon_placeholder || 'Enter code here...',
+                add: t.add || 'Add'
+            };
         }
     },
     mounted() {

@@ -3,6 +3,7 @@
 namespace App\Models\Front\Checkout;
 
 use App\Helpers\Helper;
+use App\Helpers\LocaleHelper;
 use App\Models\Back\Orders\OrderHistory;
 use App\Models\Back\Orders\OrderProduct;
 use App\Models\Back\Orders\OrderTotal;
@@ -134,7 +135,7 @@ class Order extends Model
                 'payment_phone'    => $this->order['address']['phone'] ?: null,
                 'birthday_year'    => $this->order['address']['birthday_year'] ?: null,
                 'payment_email'    => $this->order['address']['email'],
-                'payment_method'   => $this->order['payment']->title,
+                'payment_method'   => LocaleHelper::localizedSettingField($this->order['payment'], 'title'),
                 'payment_code'     => $this->order['payment']->code,
                 'payment_card'     => '',
                 'payment_installment' => '',
@@ -146,7 +147,7 @@ class Order extends Model
                 'shipping_state'   => $this->order['address']['state'],
                 'shipping_phone'   => $this->order['address']['phone'] ?: null,
                 'shipping_email'   => $this->order['address']['email'],
-                'shipping_method'  => $this->order['shipping']->title,
+                'shipping_method'  => LocaleHelper::localizedSettingField($this->order['shipping'], 'title'),
                 'shipping_code'    => $this->order['shipping']->code,
                 'company'          => $this->order['address']['company'],
                 'oib'              => $this->order['address']['oib'],
@@ -198,7 +199,7 @@ class Order extends Model
             'payment_phone'    => $this->order['address']['phone'] ?: null,
             'birthday_year'    => $this->order['address']['birthday_year'] ?: null,
             'payment_email'    => $this->order['address']['email'],
-            'payment_method'   => $this->order['payment']->title,
+            'payment_method'   => LocaleHelper::localizedSettingField($this->order['payment'], 'title'),
             'payment_code'     => $this->order['payment']->code,
             'payment_card'     => '',
             'payment_installment' => '',
@@ -210,7 +211,7 @@ class Order extends Model
             'shipping_state'   => $this->order['address']['state'],
             'shipping_phone'   => $this->order['address']['phone'] ?: null,
             'shipping_email'   => $this->order['address']['email'],
-            'shipping_method'  => $this->order['shipping']->title,
+            'shipping_method'  => LocaleHelper::localizedSettingField($this->order['shipping'], 'title'),
             'shipping_code'    => $this->order['shipping']->code,
             'company'          => $this->order['address']['company'],
             'comment'          => $this->order['comment'],
@@ -278,7 +279,7 @@ class Order extends Model
         OrderTotal::insert([
             'order_id'   => $order_id,
             'code'       => 'subtotal',
-            'title'      => 'Ukupno',
+            'title'      => __('front.email.total_subtotal'),
             'value'      => $this->order['cart']['subtotal'],
             'sort_order' => 0,
             'created_at' => Carbon::now(),
@@ -316,7 +317,7 @@ class Order extends Model
         OrderTotal::insert([
             'order_id'   => $order_id,
             'code'       => 'total',
-            'title'      => 'Sveukupno',
+            'title'      => __('front.email.total_total'),
             'value'      => $this->order['cart']['total'],
             'sort_order' => 5,
             'created_at' => Carbon::now(),

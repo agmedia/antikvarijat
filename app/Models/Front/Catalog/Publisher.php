@@ -5,6 +5,7 @@ namespace App\Models\Front\Catalog;
 use App\Models\Front\Catalog\Category;
 use App\Models\Concerns\CachesRouteBinding;
 use App\Helpers\Helper;
+use App\Helpers\LocaleHelper;
 use App\Helpers\ProductHelper;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -40,6 +41,40 @@ class Publisher extends Model
     public function getRouteKeyName()
     {
         return 'slug';
+    }
+
+    public function getTitleAttribute($value)
+    {
+        return LocaleHelper::localizedField($this, 'title', true);
+    }
+
+    public function getDescriptionAttribute($value)
+    {
+        return LocaleHelper::localizedField($this, 'description', true);
+    }
+
+    public function getMetaTitleAttribute($value)
+    {
+        return LocaleHelper::localizedField($this, 'meta_title', true);
+    }
+
+    public function getMetaDescriptionAttribute($value)
+    {
+        return LocaleHelper::localizedField($this, 'meta_description', true);
+    }
+
+    public function getSlugAttribute($value)
+    {
+        return LocaleHelper::isEnglish() ? LocaleHelper::routeKey($this, LocaleHelper::ENGLISH_LOCALE) : $value;
+    }
+
+    public function getUrlAttribute($value)
+    {
+        if (LocaleHelper::isEnglish()) {
+            return $this->getRawOriginal('url_en') ?: 'en/publishers/' . LocaleHelper::routeKey($this, LocaleHelper::ENGLISH_LOCALE);
+        }
+
+        return $value;
     }
 
 
@@ -81,7 +116,7 @@ class Publisher extends Model
      */
     public function scopeBasicData($query)
     {
-        return $query->select('id', 'title', 'slug', 'url');
+        return $query->select('id', 'title', 'title_en', 'slug', 'slug_en', 'url', 'url_en');
     }
 
 

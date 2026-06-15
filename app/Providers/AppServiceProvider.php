@@ -39,12 +39,14 @@ class AppServiceProvider extends ServiceProvider
     protected function registerFrontendViewComposers(): void
     {
         View::composer(['front.layouts.partials.footer', 'front.checkout.view'], function ($view) {
+            $locale = app()->getLocale();
+
             $view->with('uvjeti_kupnje', $this->rememberFrontendViewData(
-                'front.shared.uvjeti_kupnje',
+                'front.shared.uvjeti_kupnje.' . $locale,
                 now()->addSeconds((int) config('cache.page_life', 86400)),
                 function () {
                     return Page::query()
-                        ->select('id', 'title', 'slug', 'description')
+                        ->select('id', 'title', 'title_en', 'slug', 'slug_en', 'description', 'description_en')
                         ->where('subgroup', 'Uvjeti kupnje')
                         ->orderBy('title')
                         ->get();
@@ -54,9 +56,11 @@ class AppServiceProvider extends ServiceProvider
         });
 
         View::composer('front.layouts.partials.footer', function ($view) {
+            $locale = app()->getLocale();
+
             $view->with([
                 'products' => $this->rememberFrontendViewData(
-                    'front.shared.products_count',
+                    'front.shared.products_count.' . $locale,
                     now()->addMinutes(15),
                     function () {
                         return Product::query()->active()->hasStock()->count();
@@ -64,7 +68,7 @@ class AppServiceProvider extends ServiceProvider
                     0
                 ),
                 'users' => $this->rememberFrontendViewData(
-                    'front.shared.users_count',
+                    'front.shared.users_count.' . $locale,
                     now()->addMinutes(15),
                     function () {
                         return User::query()->count();
@@ -75,29 +79,31 @@ class AppServiceProvider extends ServiceProvider
         });
 
         View::composer('front.layouts.partials.header', function ($view) {
+            $locale = app()->getLocale();
+
             $view->with([
                 'knjige' => $this->rememberFrontendViewData(
-                    'front.shared.knjige',
+                    'front.shared.knjige.' . $locale,
                     now()->addSeconds((int) config('cache.page_life', 86400)),
                     function () {
                         return Category::query()
                             ->active()
                             ->topList('Knjige')
                             ->sortByName()
-                            ->select('id', 'title', 'group', 'slug')
+                            ->select('id', 'title', 'title_en', 'group', 'slug', 'slug_en')
                             ->get();
                     },
                     collect()
                 ),
                 'zemljovidi_vedute' => $this->rememberFrontendViewData(
-                    'front.shared.zemljovidi_vedute',
+                    'front.shared.zemljovidi_vedute.' . $locale,
                     now()->addSeconds((int) config('cache.page_life', 86400)),
                     function () {
                         return Category::query()
                             ->active()
                             ->topList('Zemljovidi i vedute')
                             ->sortByName()
-                            ->select('id', 'title', 'group', 'slug')
+                            ->select('id', 'title', 'title_en', 'group', 'slug', 'slug_en')
                             ->get();
                     },
                     collect()

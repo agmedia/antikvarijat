@@ -12,19 +12,19 @@
                         <div class="block-content block-content-full px-lg-5 py-md-5 py-lg-6">
                             <!-- Header -->
                             <div class="mb-2 text-center">
-                                <a class="link-fx font-w700 font-size-h2" href="{{ route('index') }}">
+                                <a class="link-fx font-w700 font-size-h2" href="{{ \App\Helpers\LocaleHelper::route('index') }}">
                                     <span class="text-dark">Antikvarijat</span> <span class="text-primary">Biblos</span>
                                 </a>
-                                <p class="text-uppercase font-w700 font-size-sm text-muted">Verifikacija Email-a</p>
+                                <p class="text-uppercase font-w700 font-size-sm text-muted">{{ __('front.auth.verify_title') }}</p>
                             </div>
 
                             <div class="mb-4 text-sm text-gray-600">
-                                {{ __('Hvala vam za registraciju! Prije nego krenete, potrebno je verificirati korisnički račun klikom na link koji smo vam poslali u mail-u? Ako ga niste dobili, rado ćemo vam poslati drugi.') }}
+                                {{ __('front.auth.verify_text') }}
                             </div>
 
                             @if (session('status') == 'verification-link-sent')
                                 <div class="mb-4 font-medium text-sm text-green-600">
-                                    {{ __('Novi verifikacijski link vam je poslan na upisani email.') }}
+                                    {{ __('front.auth.verification_link_sent') }}
                                 </div>
                             @endif
 
@@ -34,7 +34,7 @@
 
                                     <div>
                                         <x-jet-button type="submit">
-                                            {{ __('Pošalji verifikacijski email') }}
+                                            {{ __('front.auth.send_verification_email') }}
                                         </x-jet-button>
                                     </div>
                                 </form>
@@ -43,7 +43,7 @@
                                     @csrf
 
                                     <button type="submit" class="underline text-sm text-gray-600 hover:text-gray-900">
-                                        {{ __('Log Out') }}
+                                        {{ __('front.account.logout') }}
                                     </button>
                                 </form>
                             </div>
@@ -53,14 +53,14 @@
                     <div class="col-md-6 order-md-0 bg-primary-dark-op d-flex align-items-center">
                         <div class="block-content block-content-full px-lg-5 py-md-5 py-lg-6">
                             <div class="media">
-                                <a class="img-link mr-3" href="{{ route('index') }}">
+                                <a class="img-link mr-3" href="{{ \App\Helpers\LocaleHelper::route('index') }}">
                                     <img class="img-avatar img-avatar-thumb" src="{{ asset('media/img/faviconbiblos.png') }}" alt="Antikvarijat Biblos">
                                 </a>
                                 <div class="media-body">
                                     <p class="text-white font-w600 mb-1">
-                                        Knjige, vedute & zemljovidi
+                                        {{ __('front.general.brand_tagline') }}
                                     </p>
-                                    <a class="text-white-75 font-w600" href="{{ route('index') }}">Antikvarijat Biblos</a>
+                                    <a class="text-white-75 font-w600" href="{{ \App\Helpers\LocaleHelper::route('index') }}">Antikvarijat Biblos</a>
                                 </div>
                             </div>
                         </div>

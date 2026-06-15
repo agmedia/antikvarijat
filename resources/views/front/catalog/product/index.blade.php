@@ -38,33 +38,31 @@
 
 @section('content')
 
-
-
    <div class="container">
        <!-- Page title + breadcrumb-->
        <nav class="my-3" aria-label="breadcrumb">
            <ol class="breadcrumb flex-lg-nowrap">
-               <li class="breadcrumb-item"><a class="text-nowrap" href="{{ route('index') }}"><i class="ci-home"></i>Naslovnica</a></li>
+               <li class="breadcrumb-item"><a class="text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('index') }}"><i class="ci-home"></i>{{ __('front.nav.home') }}</a></li>
                @if ($group)
                    @if ($group && ! $cat && ! $subcat)
-                       <li class="breadcrumb-item text-nowrap active" aria-current="page">{{ \Illuminate\Support\Str::ucfirst($group) }}</li>
+                       <li class="breadcrumb-item text-nowrap active" aria-current="page">{{ \App\Helpers\LocaleHelper::groupTitle($group) }}</li>
                    @elseif ($group && $cat)
-                       <li class="breadcrumb-item text-nowrap active" aria-current="page"><a class="text-nowrap" href="{{ route('catalog.route', ['group' => $group]) }}">{{ \Illuminate\Support\Str::ucfirst($group) }}</a></li>
+                       <li class="breadcrumb-item text-nowrap active" aria-current="page"><a class="text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('catalog.route', ['group' => $group]) }}">{{ \App\Helpers\LocaleHelper::groupTitle($group) }}</a></li>
                    @endif
 
                    @if ($cat && ! $subcat)
                        @if ($prod)
-                           <li class="breadcrumb-item text-nowrap active" aria-current="page"><a class="text-nowrap" href="{{ route('catalog.route', ['group' => $group, 'cat' => $cat]) }}">{{ $cat->title }}</a></li>
+                           <li class="breadcrumb-item text-nowrap active" aria-current="page"><a class="text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('catalog.route', ['group' => $group, 'cat' => $cat]) }}">{{ $cat->title }}</a></li>
                        @else
                            <li class="breadcrumb-item text-nowrap active" aria-current="page">{{ $cat->title }}</li>
                        @endif
                    @elseif ($cat && $subcat)
-                       <li class="breadcrumb-item text-nowrap active" aria-current="page"><a class="text-nowrap" href="{{ route('catalog.route', ['group' => $group, 'cat' => $cat]) }}">{{ $cat->title }}</a></li>
+                       <li class="breadcrumb-item text-nowrap active" aria-current="page"><a class="text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('catalog.route', ['group' => $group, 'cat' => $cat]) }}">{{ $cat->title }}</a></li>
                        @if ($prod)
                            @if ($cat && ! $subcat)
-                               <li class="breadcrumb-item text-nowrap active" aria-current="page"><a class="text-nowrap" href="{{ route('catalog.route', ['group' => $group, 'cat' => $cat]) }}">{{ \Illuminate\Support\Str::limit($prod->name, 50) }}</a></li>
+                               <li class="breadcrumb-item text-nowrap active" aria-current="page"><a class="text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('catalog.route', ['group' => $group, 'cat' => $cat]) }}">{{ \Illuminate\Support\Str::limit($prod->name, 50) }}</a></li>
                            @else
-                               <li class="breadcrumb-item text-nowrap active" aria-current="page"><a class="text-nowrap" href="{{ route('catalog.route', ['group' => $group, 'cat' => $cat, 'subcat' => $subcat]) }}">{{ $subcat->title }}</a></li>
+                               <li class="breadcrumb-item text-nowrap active" aria-current="page"><a class="text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('catalog.route', ['group' => $group, 'cat' => $cat, 'subcat' => $subcat]) }}">{{ $subcat->title }}</a></li>
                            @endif
                        @endif
                    @endif
@@ -131,7 +129,7 @@
                <div class="h-100 bg-light shadow  rounded-3 py-5 px-4 px-sm-5">
 
                    @if ( $prod->quantity < 1)
-                       <span class="badge bg-warning ">Rasprodano</span>
+                       <span class="badge bg-warning ">{{ __('front.product.sold_out') }}</span>
                    @endif
 
                    @if ($prod->main_price > $prod->main_special)
@@ -146,7 +144,7 @@
                            @if ($prod->main_price > $prod->main_special)
                                <span class="h3 fw-normal text-accent me-1">{{ $prod->main_special_text }}</span>
                                <del class="text-muted fs-lg me-3">{{ $prod->main_price_text }}</del>
-                               <span class="badge bg-danger align-middle mt-n2">Akcija</span>
+                               <span class="badge bg-danger align-middle mt-n2">{{ __('front.product.sale') }}</span>
                            @else
                                <span class="h3 fw-normal text-accent me-1">{{ $prod->main_price_text }}</span>
                            @endif
@@ -175,40 +173,40 @@
                            <div class="alert-icon">
                                <i class="ci-gift"></i>
                            </div>
-                           <div> Besplatna dostava u RH za narudžbe veće od 70 €</div>
+                           <div>{{ __('front.product.free_delivery_notice') }}</div>
                        </div>
 
                    <!-- Product panels-->
                    <div class="accordion mb-4" id="productPanels">
                        <div class="accordion-item">
-                           <h3 class="accordion-header"><a class="accordion-button" href="#productInfo" role="button" data-bs-toggle="collapse" aria-expanded="true" aria-controls="productInfo"><i class="ci-announcement text-muted fs-lg align-middle mt-n1 me-2"></i>Osnovne informacije</a></h3>
+                           <h3 class="accordion-header"><a class="accordion-button" href="#productInfo" role="button" data-bs-toggle="collapse" aria-expanded="true" aria-controls="productInfo"><i class="ci-announcement text-muted fs-lg align-middle mt-n1 me-2"></i>{{ __('front.product.basic_information') }}</a></h3>
                            <div class="accordion-collapse collapse show" id="productInfo" data-bs-parent="#productPanels">
                                <div class="accordion-body">
 
                                    <ul class="fs-sm ps-4 mb-0 info-list">
                                        @if ($prod->author)
-                                           <li><strong>Autor:</strong> <a href="{{ route('catalog.route.author', ['author' => $prod->author]) }}">{{ $prod->author->title }} </a></li>
+                                           <li><strong>{{ __('front.product.author') }}:</strong> <a href="{{ \App\Helpers\LocaleHelper::route('catalog.route.author', ['author' => $prod->author]) }}">{{ $prod->author->title }} </a></li>
                                        @endif
                                        @if ($prod->publisher)
-                                           <li><strong>Nakladnik:</strong> <a href="{{ route('catalog.route.publisher', ['publisher' => $prod->publisher]) }}">{{ $prod->publisher->title }}</a> </li>
+                                           <li><strong>{{ __('front.product.publisher') }}:</strong> <a href="{{ \App\Helpers\LocaleHelper::route('catalog.route.publisher', ['publisher' => $prod->publisher]) }}">{{ $prod->publisher->title }}</a> </li>
                                        @endif
                                        @if ($prod->isbn)
                                            <li><strong>EAN:</strong> {{ $prod->isbn }} </li>
                                        @endif
                                        @if ($prod->quantity)
                                            @if ($prod->decrease)
-                                               <li><strong>Dostupnost:</strong> {{ $prod->quantity }} </li>
+                                               <li><strong>{{ __('front.product.availability') }}:</strong> {{ $prod->quantity }} </li>
                                            @else
-                                               <li><strong>Dostupnost:</strong> <span class="badge bg-success align-middle ">Dostupno</span></li>
+                                               <li><strong>{{ __('front.product.availability') }}:</strong> <span class="badge bg-success align-middle ">{{ __('front.product.available') }}</span></li>
                                            @endif
                                        @else
-                                           <li><strong>Dostupnost:</strong> <span class="badge bg-danger align-middle ">Rasprodano</span></li>
+                                           <li><strong>{{ __('front.product.availability') }}:</strong> <span class="badge bg-danger align-middle ">{{ __('front.product.sold_out') }}</span></li>
                                        @endif
                                            @if ($prod->condition)
-                                       <li><strong>Stanje:</strong> {{ $prod->condition }} </li>
+                                       <li><strong>{{ __('front.product.condition') }}:</strong> {{ $prod->condition }} </li>
                                            @endif
                                            @if ($prod->sku)
-                                               <li><strong>Šifra:</strong> {{ $prod->sku }} </li>
+                                               <li><strong>{{ __('front.product.code') }}:</strong> {{ $prod->sku }} </li>
                                            @endif
                                    </ul>
 
@@ -216,18 +214,18 @@
                            </div>
                        </div>
                        <div class="accordion-item">
-                           <h3 class="accordion-header"><a class="accordion-button collapsed" href="#shippingOptions" role="button" data-bs-toggle="collapse" aria-expanded="true" aria-controls="shippingOptions"><i class="ci-delivery text-muted lead align-middle mt-n1 me-2"></i>Opcije dostave</a></h3>
+                           <h3 class="accordion-header"><a class="accordion-button collapsed" href="#shippingOptions" role="button" data-bs-toggle="collapse" aria-expanded="true" aria-controls="shippingOptions"><i class="ci-delivery text-muted lead align-middle mt-n1 me-2"></i>{{ __('front.product.shipping_options') }}</a></h3>
                            <div class="accordion-collapse collapse" id="shippingOptions" data-bs-parent="#productPanels">
                                <div class="accordion-body fs-sm">
 
                                    @foreach($shipping_methods as $shipping_method)
                                        <div class="d-flex justify-content-between  py-2">
                                            <div>
-                                               <div class="fw-semibold text-dark">{{ $shipping_method->title }}</div>
+                                               <div class="fw-semibold text-dark">{{ \App\Helpers\LocaleHelper::localizedSettingField($shipping_method, 'title') }}</div>
                                                {{--  <div class="fs-sm text-muted"> Besplatna dostava za narudžbe iznad {{ config('settings.free_shipping') }}€</div>--}}
                                                @if ($prod->shipping_time)
 
-                                                   <span class=" fs-sm text-muted me-1"> Rok dostave: {{ $prod->shipping_time }}</span>
+                                                   <span class=" fs-sm text-muted me-1">{{ __('front.product.delivery_time') }}: {{ $prod->shipping_time }}</span>
 
                                                @endif
                                            </div>
@@ -240,7 +238,7 @@
                            </div>
                        </div>
                        <div class="accordion-item">
-                           <h3 class="accordion-header"><a class="accordion-button collapsed" href="#localStore" role="button" data-bs-toggle="collapse" aria-expanded="true" aria-controls="localStore"><i class="ci-card text-muted fs-lg align-middle mt-n1 me-2"></i>Načini plaćanja</a></h3>
+                           <h3 class="accordion-header"><a class="accordion-button collapsed" href="#localStore" role="button" data-bs-toggle="collapse" aria-expanded="true" aria-controls="localStore"><i class="ci-card text-muted fs-lg align-middle mt-n1 me-2"></i>{{ __('front.product.payment_methods') }}</a></h3>
                            <div class="accordion-collapse collapse" id="localStore" data-bs-parent="#productPanels">
                                <div class="accordion-body fs-sm">
 
@@ -251,9 +249,11 @@
                                        @else
                                            <div class="d-flex justify-content-between  py-2">
                                                <div>
-                                                   <div class="fw-semibold text-dark">{{ $payment_method->title }}</div>
-                                                   @if (isset($payment_method->data->description))
-                                                       <div class="fs-sm text-muted">{{ $payment_method->data->description }}</div>
+                                                   <div class="fw-semibold text-dark">
+                                                       {{ \App\Helpers\LocaleHelper::localizedSettingField($payment_method, 'title') }}
+                                                   </div>
+                                                   @if (\App\Helpers\LocaleHelper::localizedSettingDataField($payment_method, 'description'))
+                                                       <div class="fs-sm text-muted">{{ \App\Helpers\LocaleHelper::localizedSettingDataField($payment_method, 'description') }}</div>
                                                    @endif
                                                </div>
                                            </div>
@@ -277,7 +277,7 @@
            <div class="bg-light px-2 mb-3 shadow rounded-3">
                <!-- Tabs-->
                <ul class="nav nav-tabs" role="tablist">
-                   <li class="nav-item"><a class="nav-link py-4 px-sm-4 active" href="#specs" data-bs-toggle="tab" role="tab"><span>Opis</span> </a></li>
+                   <li class="nav-item"><a class="nav-link py-4 px-sm-4 active" href="#specs" data-bs-toggle="tab" role="tab"><span>{{ __('front.product.description') }}</span> </a></li>
 
                </ul>
                <div class="px-4 pt-lg-3 pb-3 mb-5">
@@ -288,24 +288,24 @@
                            <div class="row pt-2">
                                <div class="col-lg-7 col-sm-7 d-flex flex-column">
 
-                                   {{-- Naziv i autor --}}
+                                   {{-- Title and author --}}
                                    <h2 class="h5 mb-2 pb-0">{{ $prod->name }}</h2>
                                    @if ($prod->author)
                                        <h3 class="h6 mb-4">{{ $prod->author->title }}</h3>
                                    @endif
 
                                    {{-- Sažetak i opis --}}
-                                   <p class="h6">Sažetak</p>
+                                   <p class="h6">{{ __('front.product.summary') }}</p>
                                    <div class="fs-md pb-2 mb-4">
                                        {!! $prod->description !!}
                                    </div>
 
-                                   {{-- Autor i tagovi na dnu --}}
+                                   {{-- Author and tags at the bottom --}}
                                    @if ($prod->author || !empty($prod->tags))
                                        <div class="mt-auto pt-3 pb-4">
                                            @if ($prod->author)
                                                <a class="btn btn-outline-primary btn-sm btn-shadow me-2 mb-2"
-                                                  href="{{ route('catalog.route.author', ['author' => $prod->author]) }}">
+                                                  href="{{ \App\Helpers\LocaleHelper::route('catalog.route.author', ['author' => $prod->author]) }}">
                                                    #{{ $prod->author->title }}
                                                </a>
                                            @endif
@@ -313,7 +313,7 @@
                                            @if(!empty($prod->tags))
                                                @foreach($prod->tags as $tag)
                                                    <a class="btn btn-outline-primary btn-sm btn-shadow me-2 mb-2"
-                                                      href="{{ route('tag', ['pojam' => $tag]) }}">
+                                                      href="{{ \App\Helpers\LocaleHelper::route('tag', ['pojam' => $tag]) }}">
                                                        #{{ $tag }}
                                                    </a>
                                                @endforeach
@@ -323,14 +323,14 @@
                                </div>
 
                                <div class="col-lg-5 col-sm-5">
-                                   <h3 class="h6">Dodatne informacije</h3>
+                                   <h3 class="h6">{{ __('front.product.additional_information') }}</h3>
                                    <ul class="list-unstyled fs-md pb-2">
 
                                        @if ($prod->author)
                                            <li class="d-flex justify-content-between pb-2 border-bottom">
-                                               <span class="text-muted">Autor:</span>
+                                               <span class="text-muted">{{ __('front.product.author') }}:</span>
                                                <span>
-                        <a href="{{ route('catalog.route.author', ['author' => $prod->author]) }}">
+                        <a href="{{ \App\Helpers\LocaleHelper::route('catalog.route.author', ['author' => $prod->author]) }}">
                             {{ Illuminate\Support\Str::limit($prod->author->title, 30) }}
                         </a>
                     </span>
@@ -339,9 +339,9 @@
 
                                        @if ($prod->publisher)
                                            <li class="d-flex justify-content-between pb-2 border-bottom">
-                                               <span class="text-muted">Izdavač:</span>
+                                               <span class="text-muted">{{ __('front.product.publisher_alt') }}:</span>
                                                <span>
-                        <a href="{{ route('catalog.route.publisher', ['publisher' => $prod->publisher]) }}">
+                        <a href="{{ \App\Helpers\LocaleHelper::route('catalog.route.publisher', ['publisher' => $prod->publisher]) }}">
                             {{ Illuminate\Support\Str::limit($prod->publisher->title, 30) }}
                         </a>
                     </span>
@@ -356,43 +356,43 @@
 
                                        @if ($prod->year)
                                            <li class="d-flex justify-content-between pb-2 border-bottom">
-                                               <span class="text-muted">Godina izdanja:</span><span>{{ $prod->year }}</span>
+                                               <span class="text-muted">{{ __('front.product.year_of_publication') }}:</span><span>{{ $prod->year }}</span>
                                            </li>
                                        @endif
 
                                        @if ($prod->origin)
                                            <li class="d-flex justify-content-between pb-2 border-bottom">
-                                               <span class="text-muted">Mjesto izdavanja:</span><span>{{ $prod->origin }}</span>
+                                               <span class="text-muted">{{ __('front.product.place_of_publication') }}:</span><span>{{ $prod->origin }}</span>
                                            </li>
                                        @endif
 
                                        @if ($prod->pages)
                                            <li class="d-flex justify-content-between pb-2 border-bottom">
-                                               <span class="text-muted">Broj stranica:</span><span>{{ $prod->pages }}</span>
+                                               <span class="text-muted">{{ __('front.product.pages') }}:</span><span>{{ $prod->pages }}</span>
                                            </li>
                                        @endif
 
                                        @if ($prod->dimensions)
                                            <li class="d-flex justify-content-between pb-2 border-bottom">
-                                               <span class="text-muted">Dimenzije:</span><span>{{ $prod->dimensions.' cm' }}</span>
+                                               <span class="text-muted">{{ __('front.product.dimensions') }}:</span><span>{{ $prod->dimensions.' cm' }}</span>
                                            </li>
                                        @endif
 
                                        @if ($prod->letter)
                                            <li class="d-flex justify-content-between pb-2 border-bottom">
-                                               <span class="text-muted">Pismo:</span><span>{{ $prod->letter }}</span>
+                                               <span class="text-muted">{{ __('front.product.script') }}:</span><span>{{ $prod->letter }}</span>
                                            </li>
                                        @endif
 
                                        @if ($prod->condition)
                                            <li class="d-flex justify-content-between pb-2 border-bottom">
-                                               <span class="text-muted">Stanje:</span><span>{{ $prod->condition }}</span>
+                                               <span class="text-muted">{{ __('front.product.condition') }}:</span><span>{{ $prod->condition }}</span>
                                            </li>
                                        @endif
 
                                        @if ($prod->binding)
                                            <li class="d-flex justify-content-between pb-2 border-bottom">
-                                               <span class="text-muted">Uvez:</span><span>{{ $prod->binding }}</span>
+                                               <span class="text-muted">{{ __('front.product.binding') }}:</span><span>{{ $prod->binding }}</span>
                                            </li>
                                        @endif
 
@@ -410,7 +410,7 @@
        <!-- Product description-->
        <section class="pb-5 mb-2 mb-xl-4">
            <div class=" flex-wrap justify-content-between align-items-center  text-center">
-               <h2 class="h3 mb-4 pt-1 font-title me-3 text-center"> Možda vas zanima</h2>
+               <h2 class="h3 mb-4 pt-1 font-title me-3 text-center">{{ __('front.product.you_may_like') }}</h2>
 
            </div>
            <div class="tns-carousel tns-controls-static tns-controls-outside tns-nav-enabled pt-2">
@@ -427,7 +427,7 @@
 
        <section class="pb-5 mb-2 mb-xl-4">
            <div class=" flex-wrap justify-content-between align-items-center  text-center">
-               <h2 class="h3 mb-4 pt-1 font-title me-3 text-center"> Nedavno pregledano</h2>
+               <h2 class="h3 mb-4 pt-1 font-title me-3 text-center">{{ __('front.product.recently_viewed') }}</h2>
 
            </div>
            <div class="tns-carousel tns-controls-static tns-controls-outside tns-nav-enabled pt-2">

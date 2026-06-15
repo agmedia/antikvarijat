@@ -28,7 +28,7 @@ class BookPurchaseMessage extends Mailable
      */
     public function build()
     {
-        return $this->subject('Nova prijava: Otkup knjiga')
+        return $this->subject(__('front.email.book_purchase_subject'))
             ->view('emails.book-purchase')
             ->with(['requestData' => $this->payload]);
     }

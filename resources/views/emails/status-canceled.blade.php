@@ -1,14 +1,17 @@
 @extends('emails.layouts.base')
 
 @section('content')
+    @php
+        $paymentTitle = \App\Helpers\LocaleHelper::paymentTitle($order->payment_code, $order->payment_method);
+    @endphp
     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-        <tr><td class="ag-mail-tableset"><h3>Narudžba je otkazana</h3></td></tr>
+        <tr><td class="ag-mail-tableset"><h3>{{ __('front.email.canceled_title') }}</h3></td></tr>
 
         <tr>
             <td class="ag-mail-tableset">
-                Broj narudžbe: <strong>{{ $order->id }}</strong><br>
-                Datum: <strong>{{ now()->format('d.m.Y') }}</strong><br>
-                Status: <strong>OTKAZANO</strong> (Narudžba je otkazana / nije uspjelo plaćanje)
+                {{ __('front.email.order_id') }}: <strong>{{ $order->id }}</strong><br>
+                {{ __('front.email.date') }}: <strong>{{ now()->format('d.m.Y') }}</strong><br>
+                {{ __('front.email.status') }}: <strong>{{ __('front.email.canceled_status') }}</strong> ({{ __('front.email.canceled_status_description') }})
             </td>
         </tr>
 
@@ -24,17 +27,9 @@
         </tr>
         <tr>
             <td class="ag-mail-tableset">
-                {{ __('Način plaćanja') }}:
-                @if ($order->payment_code == 'bank')
-                    <b>{{ __('Općom uplatnicom / Virmanom / Internet bankarstvom') }}</b>
-                @elseif ($order->payment_code == 'cod')
-                    <b>{{ __('Gotovinom prilikom pouzeća') }}</b>
-                @elseif ($order->payment_code == 'corvus')
-                    <b>{{ __('Corvus Pay') }}</b>
-                @else
-                    <b>{{ __('Plaćanje prilikom preuzimanja') }}</b>
-                @endif
-                <br><br>Lijep pozdrav,<br>Antikvarijat Biblos
+                {{ __('front.email.payment_method') }}:
+                <b>{{ $paymentTitle }}</b>
+                <br><br>{{ __('front.general.regards') }},<br>Antikvarijat Biblos
             </td>
         </tr>
 

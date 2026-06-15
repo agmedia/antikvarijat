@@ -7,6 +7,8 @@ use App\Models\Back\Settings\Faq;
 use App\Models\Back\Settings\Settings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class OrderStatusController extends Controller
 {
@@ -32,7 +34,19 @@ class OrderStatusController extends Controller
      */
     public function store(Request $request)
     {
-        $data = $request->data;
+        $data = $this->normalizePayload($request->input('data', []));
+
+        $validator = Validator::make($data, [
+            'id' => ['nullable', 'integer', 'min:0'],
+            'title' => ['required', 'string', 'max:191'],
+            'title_en' => ['nullable', 'string', 'max:191'],
+            'sort_order' => ['nullable', 'integer', 'min:0'],
+            'color' => ['nullable', Rule::in($this->availableColors())],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['message' => $validator->errors()->first()], 422);
+        }
 
         $setting = Settings::where('code', 'order')->where('key', 'statuses')->first();
 
@@ -49,6 +63,7 @@ class OrderStatusController extends Controller
         else {
             $values->where('id', $data['id'])->map(function ($item) use ($data) {
                 $item->title = $data['title'];
+                $item->title_en = $data['title_en'] ?? null;
                 $item->sort_order = $data['sort_order'];
                 $item->color = isset($data['color']) && $data['color'] ? $data['color'] : 'primary';
 
@@ -67,6 +82,27 @@ class OrderStatusController extends Controller
         }
 
         return response()->json(['message' => 'Server error! Pokušajte ponovo ili kontaktirajte administratora!']);
+    }
+
+    private function normalizePayload(array $data): array
+    {
+        foreach ($data as $key => $value) {
+            if ($value === '') {
+                $data[$key] = null;
+            }
+        }
+
+        $data['id'] = $data['id'] ?? null;
+        $data['title_en'] = $data['title_en'] ?? null;
+        $data['sort_order'] = $data['sort_order'] ?? 0;
+        $data['color'] = $data['color'] ?? 'primary';
+
+        return $data;
+    }
+
+    private function availableColors(): array
+    {
+        return ['primary', 'secondary', 'success', 'info', 'light', 'danger', 'warning', 'dark'];
     }
 
 

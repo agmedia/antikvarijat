@@ -1,4 +1,4 @@
-<form id="payForm" name="pay" class="w-100 needs-validation" action="{{ route('checkout') }}" novalidate method="GET">
+<form id="payForm" name="pay" class="w-100 needs-validation" action="{{ \App\Helpers\LocaleHelper::route('checkout') }}" novalidate method="GET">
     <input type="hidden" name="provjera" value="{{ $data['order_id'] }}">
 
     <div class="d-block pt-0 pb-2  text-start" >
@@ -6,31 +6,31 @@
             <div class="alert-icon">
                 <i class="ci-announcement"></i>
             </div>
-            <div><small>Prije kupnje potrebno je prihvatiti Opće uvjete korištenja i privatnosti</small></div>
+            <div><small>{{ __('front.checkout.terms_notice') }}</small></div>
         </div>
 
     </div>
 
     <div class="form-check form-check-inline">
-        <label class="form-check-label" for="ex-check-4">{!! __('Slažem se sa :terms_of_service', [
-                                                'terms_of_service' => '<a data-bs-toggle="modal" data-bs-target="#exampleModal" class="link-fx">'.__('Općim uvjetima korištenja i privatnosti').'</a>',
+        <label class="form-check-label" for="ex-check-4">{!! __('front.checkout.terms_agree', [
+                                                'terms_of_service' => '<a data-bs-toggle="modal" data-bs-target="#exampleModal" class="link-fx">'.__('front.checkout.terms_link').'</a>',
                                                 'privacy_policy' => '<a target="_blank" href="'.route('policy.show').'" class="link-fx">'.__('Privacy Policy').'</a>',
                                         ]) !!}</label>
         <input class="form-check-input" type="checkbox" name="terms" id="terms" required>
-        <div class="invalid-feedback" id="terms">Morate se složiti sa Uvjetima kupnje.</div>
+        <div class="invalid-feedback" id="terms">{{ __('front.checkout.terms_required') }}</div>
     </div>
 
     <div class="form-check form-check-inline">
-        <label class="form-check-label" for="ex-check-4">Prihvaćam povremeno slanje obavijesti o akcijama, popustima i prilikama</label>
+        <label class="form-check-label" for="ex-check-4">{{ __('front.checkout.marketing_consent') }}</label>
         <input class="form-check-input" type="checkbox" name="obavijesti" id="obavijesti" checked>
 
     </div>
     <div class="d-flex mt-3">
     <div class="w-50 pe-3">
-        <a class="btn btn-secondary d-block w-100" href="{{ route('naplata') }}"><i class="ci-arrow-left  me-1"></i><span class="d-none d-sm-inline">Povratak na plaćanje</span><span class="d-inline d-sm-none">Povratak</span></a>
+        <a class="btn btn-secondary d-block w-100" href="{{ \App\Helpers\LocaleHelper::route('naplata') }}"><i class="ci-arrow-left  me-1"></i><span class="d-none d-sm-inline">{{ __('front.checkout.back_to_payment') }}</span><span class="d-inline d-sm-none">{{ __('front.checkout.back') }}</span></a>
     </div>
     <div class="w-50 ps-2">
-        <button id="paySubmit" class="btn btn-green d-block w-100" type="submit"><span class="d-none d-sm-inline">Završite narudžbu</span><span class="d-inline d-sm-none">Završi kupnju</span><i class="ci-arrow-right  ms-1"></i></button>
+        <button id="paySubmit" class="btn btn-green d-block w-100" type="submit"><span class="d-none d-sm-inline">{{ __('front.checkout.complete_order') }}</span><span class="d-inline d-sm-none">{{ __('front.checkout.complete_purchase') }}</span><i class="ci-arrow-right  ms-1"></i></button>
     </div>
     </div>
 </form>

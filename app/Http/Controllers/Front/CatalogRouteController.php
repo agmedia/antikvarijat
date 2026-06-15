@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Front;
 
 use App\Helpers\Breadcrumb;
 use App\Helpers\Helper;
+use App\Helpers\LocaleHelper;
 use App\Http\Controllers\Controller;
 use App\Imports\ProductImport;
 use App\Models\Back\Settings\Settings;
@@ -26,13 +27,27 @@ use Illuminate\Support\Str;
 
 class CatalogRouteController extends Controller
 {
-    public function resolve(Request $request, $group, Category $cat = null, $subcat = null, Product $prod = null)
+    public function resolve(Request $request, $group, ?Category $cat = null, $subcat = null, ?Product $prod = null)
     {
+        $group = LocaleHelper::internalGroup((string) $group);
+
         if ($subcat) {
-            $sub_category = Category::where('slug', $subcat)->where('parent_id', $cat->id)->first();
+            $sub_category = Category::where(function ($query) use ($subcat) {
+                $query->where('slug', $subcat);
+
+                if (LocaleHelper::isEnglish()) {
+                    $query->orWhere('slug_en', $subcat);
+                }
+            })->where('parent_id', $cat->id)->first();
 
             if (!$sub_category) {
-                $prod = Product::where('slug', $subcat)->first();
+                $prod = Product::where(function ($query) use ($subcat) {
+                    $query->where('slug', $subcat);
+
+                    if (LocaleHelper::isEnglish()) {
+                        $query->orWhere('slug_en', $subcat);
+                    }
+                })->first();
             }
 
             $subcat = $sub_category;
@@ -156,16 +171,16 @@ class CatalogRouteController extends Controller
         abort(404);
     }
 
-    public function resolveOldCategoryUrl(string $group = null, $cat = null, $subcat = null)
+    public function resolveOldCategoryUrl(?string $group = null, $cat = null, $subcat = null)
     {
         if ($group) {
-            return redirect()->route('catalog.route', ['group' => $group, 'cat' => $cat, 'subcat' => $subcat]);
+            return redirect(LocaleHelper::route('catalog.route', ['group' => $group, 'cat' => $cat, 'subcat' => $subcat]));
         }
 
         abort(404);
     }
 
-    public function author(Request $request, Author $author = null, Category $cat = null, Category $subcat = null)
+    public function author(Request $request, ?Author $author = null, ?Category $cat = null, ?Category $subcat = null)
     {
         if (!$author) {
             $letters = Helper::resolveCache('authors')->remember('letters', config('cache.life'), function () {
@@ -219,7 +234,7 @@ class CatalogRouteController extends Controller
         ));
     }
 
-    public function publisher(Request $request, Publisher $publisher = null, Category $cat = null, Category $subcat = null)
+    public function publisher(Request $request, ?Publisher $publisher = null, ?Category $cat = null, ?Category $subcat = null)
     {
         if (!$publisher) {
             $letters = Helper::resolveCache('publishers')->remember('letters', config('cache.life'), function () {
@@ -279,10 +294,10 @@ class CatalogRouteController extends Controller
         $query = $request->input($key);
 
         if ($query === null) {
-            return redirect()->back()->with(['error' => 'Nedostaje parametar pretrage.']);
+            return redirect()->back()->with(['error' => __('front.search.missing_query')]);
         }
         if ($query === '') {
-            return redirect()->back()->with(['error' => 'Oops..! Zaboravili ste upisati pojam za pretraživanje..!']);
+            return redirect()->back()->with(['error' => __('front.search.empty_query')]);
         }
 
         $ids = Helper::getTags($query);
@@ -296,10 +311,15 @@ class CatalogRouteController extends Controller
 
     public function search(Request $request)
     {
+        if ($request->input('locale') === LocaleHelper::ENGLISH_LOCALE) {
+            app()->setLocale(LocaleHelper::ENGLISH_LOCALE);
+            config(['app.locale' => LocaleHelper::ENGLISH_LOCALE]);
+        }
+
         // web stranica s rezultatima (ne diramo)
         if ($request->has(config('settings.search_keyword'))) {
             if (!$request->input(config('settings.search_keyword'))) {
-                return redirect()->back()->with(['error' => 'Oops..! Zaboravili ste upisati pojam za pretraživanje..!']);
+                return redirect()->back()->with(['error' => __('front.search.empty_query')]);
             }
 
             $group = null; $cat = null; $subcat = null;
@@ -380,11 +400,13 @@ class CatalogRouteController extends Controller
             $categoriesPayload = $categories->map(function ($c) use ($group) {
                 // NE koristiti $c->url accessor (imaš metodu url())
                 $slug = $c->slug ?: $c->id;
-                $path = '/' . $group . '/' . $slug;   // <<— koristi $group
                 return [
                         'id'   => $c->id,
                     'name' => $c->title,               // JS očekuje "name"
-                        'url'  => url($path),
+                    'url'  => LocaleHelper::route('catalog.route', [
+                        'group' => LocaleHelper::groupSlug($group),
+                        'cat' => $slug,
+                    ]),
                 ];
             })->values()->all();
 
@@ -455,11 +477,11 @@ class CatalogRouteController extends Controller
                 ->header('X-Total-Count', $totalAll);
         }
 
-        return response()->json(['error' => 'Greška kod pretrage..! Molimo pokušajte ponovo ili nas kotaktirajte! HVALA...']);
+        return response()->json(['error' => __('front.search.error')]);
     }
 
 
-    public function actions(Request $request, Category $cat = null, $subcat = null)
+    public function actions(Request $request, ?Category $cat = null, $subcat = null)
     {
         $ids = collect();
         $group = 'snizenja';
@@ -484,8 +506,11 @@ class CatalogRouteController extends Controller
                 ->select([
                     'id',
                     'slug',
+                    'slug_en',
                     'title',
+                    'title_en',
                     'short_description',
+                    'short_description_en',
                     'image',
                     'created_at',
                 ])
@@ -551,7 +576,11 @@ class CatalogRouteController extends Controller
                 'author_id',
                 'action_id',
                 'name',
+                'name_en',
+                'slug',
+                'slug_en',
                 'url',
+                'url_en',
                 'category_string',
                 'image',
                 'price',
@@ -560,7 +589,8 @@ class CatalogRouteController extends Controller
                 'special_to',
             ])
             ->with([
-                'author:id,title,url',
+                'author:id,title,title_en,slug,slug_en,url,url_en',
+                'categories:id,parent_id,title,title_en,group,slug,slug_en',
                 'action:id,status,coupon',
             ])
             ->paginate(config('settings.pagination.front'), ['*'], 'page', $page);
@@ -791,7 +821,7 @@ class CatalogRouteController extends Controller
     private function resolveCategoryUrl(array $category, string $type, $target = null, ?string $parentSlug = null): string
     {
         if ($type === 'author') {
-            return route('catalog.route.author', [
+            return LocaleHelper::route('catalog.route.author', [
                 'author' => $target,
                 'cat' => $parentSlug ?: $category['slug'],
                 'subcat' => $parentSlug ? $category['slug'] : null,
@@ -799,15 +829,15 @@ class CatalogRouteController extends Controller
         }
 
         if ($type === 'publisher') {
-            return route('catalog.route.publisher', [
+            return LocaleHelper::route('catalog.route.publisher', [
                 'publisher' => $target,
                 'cat' => $parentSlug ?: $category['slug'],
                 'subcat' => $parentSlug ? $category['slug'] : null,
             ]);
         }
 
-        return route('catalog.route', [
-            'group' => Str::slug($category['group']),
+        return LocaleHelper::route('catalog.route', [
+            'group' => LocaleHelper::groupSlug((string) $category['group']),
             'cat' => $parentSlug ?: $category['slug'],
             'subcat' => $parentSlug ? $category['slug'] : null,
         ]);
@@ -892,6 +922,10 @@ class CatalogRouteController extends Controller
 
     private function normalizeCategoryGroup(?string $group): ?string
     {
+        if ($group) {
+            return LocaleHelper::internalGroup($group);
+        }
+
         if ($group === 'zemljovidi-i-vedute') {
             return 'Zemljovidi i vedute';
         }

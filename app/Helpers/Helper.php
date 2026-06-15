@@ -185,8 +185,11 @@ class Helper
             ->where(function ($q) use ($target) {
                 $q->where('name', 'like', "%{$target}%")
                     ->orWhere('sku', 'like', "%{$target}%");
-                // ako želiš i opis:
-                // ->orWhere('description', 'like', "%{$target}%");
+
+                if (LocaleHelper::isEnglish()) {
+                    $q->orWhere('name_en', 'like', "%{$target}%")
+                        ->orWhere('description_en', 'like', "%{$target}%");
+                }
             })
             ->pluck('id');
 
@@ -199,20 +202,43 @@ class Helper
 
         if (isset($preg[1]) && in_array($preg[1], $preg) && !isset($preg[2])) {
             $authors = Author::active()
-                ->where('title', 'like', '%' . $preg[0] . '%' . $preg[1] . '%')
-                ->orWhere('title', 'like', '%' . $preg[1] . '% ' . $preg[0] . '%')
+                ->where(function ($query) use ($preg) {
+                    $query->where('title', 'like', '%' . $preg[0] . '%' . $preg[1] . '%')
+                        ->orWhere('title', 'like', '%' . $preg[1] . '% ' . $preg[0] . '%');
+
+                    if (LocaleHelper::isEnglish()) {
+                        $query->orWhere('title_en', 'like', '%' . $preg[0] . '%' . $preg[1] . '%')
+                            ->orWhere('title_en', 'like', '%' . $preg[1] . '% ' . $preg[0] . '%');
+                    }
+                })
                 ->with('products')->get();
         } elseif (isset($preg[2]) && in_array($preg[2], $preg)) {
             $authors = Author::active()
-                ->where('title', 'like', $preg[0] . '%' . $preg[1] . '%' . $preg[2] . '%')
-                ->orWhere('title', 'like', $preg[2] . '%' . $preg[1] . '% ' . $preg[0] . '%')
-                ->orWhere('title', 'like', $preg[0] . '%' . $preg[2] . '% ' . $preg[1] . '%')
-                ->orWhere('title', 'like', $preg[1] . '%' . $preg[0] . '% ' . $preg[2] . '%')
-                ->orWhere('title', 'like', $preg[1] . '%' . $preg[2] . '% ' . $preg[0] . '%')
+                ->where(function ($query) use ($preg) {
+                    $query->where('title', 'like', $preg[0] . '%' . $preg[1] . '%' . $preg[2] . '%')
+                        ->orWhere('title', 'like', $preg[2] . '%' . $preg[1] . '% ' . $preg[0] . '%')
+                        ->orWhere('title', 'like', $preg[0] . '%' . $preg[2] . '% ' . $preg[1] . '%')
+                        ->orWhere('title', 'like', $preg[1] . '%' . $preg[0] . '% ' . $preg[2] . '%')
+                        ->orWhere('title', 'like', $preg[1] . '%' . $preg[2] . '% ' . $preg[0] . '%');
+
+                    if (LocaleHelper::isEnglish()) {
+                        $query->orWhere('title_en', 'like', $preg[0] . '%' . $preg[1] . '%' . $preg[2] . '%')
+                            ->orWhere('title_en', 'like', $preg[2] . '%' . $preg[1] . '% ' . $preg[0] . '%')
+                            ->orWhere('title_en', 'like', $preg[0] . '%' . $preg[2] . '% ' . $preg[1] . '%')
+                            ->orWhere('title_en', 'like', $preg[1] . '%' . $preg[0] . '% ' . $preg[2] . '%')
+                            ->orWhere('title_en', 'like', $preg[1] . '%' . $preg[2] . '% ' . $preg[0] . '%');
+                    }
+                })
                 ->with('products')->get();
         } else {
             $authors = Author::active()
-                ->where('title', 'like', '%' . $preg[0] . '%')
+                ->where(function ($query) use ($preg) {
+                    $query->where('title', 'like', '%' . $preg[0] . '%');
+
+                    if (LocaleHelper::isEnglish()) {
+                        $query->orWhere('title_en', 'like', '%' . $preg[0] . '%');
+                    }
+                })
                 ->with('products')->get();
         }
 
@@ -291,11 +317,13 @@ class Helper
         }
 
         $wgs = WidgetGroup::where(function ($query) use ($ids) {
-            $query->whereIn('id', $ids)->orWhereIn('slug', $ids);
+            $query->whereIn('id', $ids)
+                ->orWhereIn('slug', $ids)
+                ->orWhereIn('slug_en', $ids);
         })->where('status', 1)->with('widgets')->get();
 
         foreach ($ids as $id) {
-            $description = Cache::remember('wg.' . $id, config('cache.life'), function () use ($wgs, $description, $id) {
+            $description = Cache::remember('wg.' . app()->getLocale() . '.' . $id, config('cache.life'), function () use ($wgs, $description, $id) {
                 return static::resolveDescription($wgs, $description, $id);
             });
             //$description = static::resolveDescription($wgs, $description, $id);
@@ -373,9 +401,9 @@ class Helper
             }
 
             $widgets = [
-                'title'      => $widget ? $widget->title : '',
-                'subtitle'   => $widget ? $widget->subtitle : '',
-                'url'        => $widget ? $widget->url : '/',
+                'title'      => $widget ? LocaleHelper::localizedField($widget, 'title') : '',
+                'subtitle'   => $widget ? LocaleHelper::localizedField($widget, 'subtitle') : '',
+                'url'        => $widget ? (LocaleHelper::isEnglish() ? ($widget->url_en ?: LocaleHelper::localizedUrl($widget->url, LocaleHelper::ENGLISH_LOCALE)) : $widget->url) : '/',
                 'tablename'  => $tablename,
                 'css'        => $data['css'] ?? null,
                 'container'  => (isset($data['container']) && $data['container'] == 'on') ? 1 : null,
@@ -390,10 +418,10 @@ class Helper
 
 
                 $widgets[] = [
-                    'title'    => $widget->title,
-                    'subtitle' => $widget->subtitle,
-                    'color'    => $widget->badge,
-                    'url'      => $widget->url,
+                    'title'    => LocaleHelper::localizedField($widget, 'title'),
+                    'subtitle' => LocaleHelper::localizedField($widget, 'subtitle'),
+                    'color'    => LocaleHelper::localizedField($widget, 'badge'),
+                    'url'      => LocaleHelper::isEnglish() ? ($widget->url_en ?: LocaleHelper::localizedUrl($widget->url, LocaleHelper::ENGLISH_LOCALE)) : $widget->url,
                     'image'    => $widget->thumb,
                     'width'    => $widget->width,
                     'right'    => (isset($data['right']) && $data['right'] == 'on') ? 1 : null,

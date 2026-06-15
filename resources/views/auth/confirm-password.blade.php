@@ -12,14 +12,14 @@
                         <div class="block-content block-content-full px-lg-5 py-md-5 py-lg-6">
                             <!-- Header -->
                             <div class="mb-2 text-center">
-                                <a class="link-fx font-w700 font-size-h2" href="{{ route('index') }}">
+                                <a class="link-fx font-w700 font-size-h2" href="{{ \App\Helpers\LocaleHelper::route('index') }}">
                                     <span class="text-dark">Antikvarijat</span> <span class="text-primary">Biblos</span>
                                 </a>
-                                <p class="text-uppercase font-w700 font-size-sm text-muted">Potvrda lozinke</p>
+                                <p class="text-uppercase font-w700 font-size-sm text-muted">{{ __('front.auth.confirm_password_title') }}</p>
                             </div>
 
                             <div class="mb-4 text-sm text-gray-600">
-                                {{ __('Molimo vas da potvrdite vašu lozinku prije nastavka.') }}
+                                {{ __('front.auth.confirm_password_text') }}
                             </div>
 
                             <x-jet-validation-errors class="mb-4" />
@@ -28,13 +28,13 @@
                                 @csrf
 
                                 <div>
-                                    <x-jet-label for="password" value="{{ __('Password') }}" />
+                                    <x-jet-label for="password" value="{{ __('front.checkout.password') }}" />
                                     <x-jet-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="current-password" autofocus />
                                 </div>
 
                                 <div class="flex justify-end mt-4">
                                     <x-jet-button class="ml-4">
-                                        {{ __('Potvrdi') }}
+                                        {{ __('front.general.confirm') }}
                                     </x-jet-button>
                                 </div>
                             </form>
@@ -44,14 +44,14 @@
                     <div class="col-md-6 order-md-0 bg-primary-dark-op d-flex align-items-center">
                         <div class="block-content block-content-full px-lg-5 py-md-5 py-lg-6">
                             <div class="media">
-                                <a class="img-link mr-3" href="{{ route('index') }}">
+                                <a class="img-link mr-3" href="{{ \App\Helpers\LocaleHelper::route('index') }}">
                                     <img class="img-avatar img-avatar-thumb" src="{{ asset('media/img/faviconbiblos.png') }}" alt="Antikvarijat Biblos">
                                 </a>
                                 <div class="media-body">
                                     <p class="text-white font-w600 mb-1">
-                                        Knjige, vedute & zemljovidi
+                                        {{ __('front.general.brand_tagline') }}
                                     </p>
-                                    <a class="text-white-75 font-w600" href="{{ route('index') }}">Antikvarijat Biblos</a>
+                                    <a class="text-white-75 font-w600" href="{{ \App\Helpers\LocaleHelper::route('index') }}">Antikvarijat Biblos</a>
                                 </div>
                             </div>
                         </div>

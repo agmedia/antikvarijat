@@ -1,8 +1,9 @@
 @extends('front.layouts.app')
-@if (request()->routeIs(['index']))
-    @section ( 'title', 'Antikvarijat Biblos - Knjige, vedute i zemljovidi' )
-@section ( 'description', 'Dobrodošli na stranice Antikvarijata Biblos, Palmotićeva 28, Zagreb. Radno vrijeme pon-pet 09-20h, sub 09-14h.' )
-@section('canonical', url('/'))
+@php($isEnglish = \App\Helpers\LocaleHelper::isEnglish())
+@if (request()->routeIs(['index', 'en.index']))
+    @section ( 'title', __('front.meta.default_title') )
+@section ( 'description', __('front.meta.default_description') )
+@section('canonical', \App\Helpers\LocaleHelper::route('index'))
 @section('og_image', 'https://www.antikvarijat-biblos.hr/media/antikvarijat-biblos.jpg')
 
 
@@ -11,7 +12,7 @@
     <meta property="og:image:width" content="1920" />
     <meta property="og:image:height" content="720" />
     <meta property="og:image:type" content="image/jpeg" />
-    <meta property="og:image:alt" content="Antikvarijat Biblos - Knjige, vedute i zemljovidi" />
+    <meta property="og:image:alt" content="{{ __('front.meta.default_title') }}" />
 
 @endpush
 
@@ -22,7 +23,7 @@
 
 @section('content')
 
-    @if (request()->routeIs(['index']))
+    @if (request()->routeIs(['index', 'en.index']))
 
         <section style="background-image: url({{ asset('media/img/farmer.png') }});background-repeat: repeat" class="bg-secondary py-4 pt-md-5">
             <div class="container py-xl-2">
@@ -36,11 +37,11 @@
                                     <div class="row align-items-center">
                                         <div class="col-md-6 order-md-2"><img class="d-block mx-auto" src="{{ asset('media/img/knjige_rara_shape_left.png') }}" alt="Hrvatska RARA" loading="eager" fetchpriority="high" decoding="async"></div>
                                         <div class="col-lg-5 col-md-6 offset-lg-1 order-md-1 pt-4 pb-md-4 text-center text-md-start">
-                                            <p class="fw-light h4 pb-1 from-top delay-1">Za istinske kolekcionare</p>
+                                            <p class="fw-light h4 pb-1 from-top delay-1">{{ __('front.home.for_collectors') }}</p>
                                             <h2 class="display-6 from-bottom ">Hrvatska RARA</h2>
-                                            <p class="h5 fw-light pb-3 from-bottom delay-2">Jedinstvena izdanja za Vašu biblioteku</p>
+                                            <p class="h5 fw-light pb-3 from-bottom delay-2">{{ __('front.home.rara_subtitle') }}</p>
 
-                                            <div class="d-table scale-up delay-4 mx-auto mx-md-0"><a class="btn btn-primary btn-shadow" href="knjige/hrvatska-rara">Pogledajte ponudu<i class="ci-arrow-right ms-2 me-n1"></i></a></div>
+                                            <div class="d-table scale-up delay-4 mx-auto mx-md-0"><a class="btn btn-primary btn-shadow" href="{{ url($isEnglish ? 'en/books/hrvatska-rara' : 'knjige/hrvatska-rara') }}">{{ __('front.home.view_selection') }}<i class="ci-arrow-right ms-2 me-n1"></i></a></div>
                                         </div>
                                     </div>
                                 </div>
@@ -48,11 +49,11 @@
                                     <div class="row align-items-center">
                                         <div class="col-md-6 order-md-2"><img class="d-block mx-auto" src="{{ asset('media/img/karta_kapljica.png') }}" alt="Hrvatska RARA" loading="lazy" decoding="async"></div>
                                         <div class="col-lg-5 col-md-6 offset-lg-1 order-md-1 pt-4 pb-md-4 text-center text-md-start">
-                                            <p class="h4 fw-light pb-1 from-top delay-1">Za istinske kolekcionare</p>
-                                            <h2 class="display-6 from-bottom ">Zemljovidi i vedute</h2>
-                                            <p class="h5 fw-light pb-3 from-bottom delay-2">Karte i grafike koje nose stoljeća</p>
+                                            <p class="h4 fw-light pb-1 from-top delay-1">{{ __('front.home.for_collectors') }}</p>
+                                            <h2 class="display-6 from-bottom ">{{ __('front.home.maps_title') }}</h2>
+                                            <p class="h5 fw-light pb-3 from-bottom delay-2">{{ __('front.home.maps_subtitle') }}</p>
 
-                                            <div class="d-table scale-up delay-4 mx-auto mx-md-0"><a class="btn btn-primary btn-shadow" href="zemljovidi-i-vedute">Pogledajte ponudu<i class="ci-arrow-right ms-2 me-n1"></i></a></div>
+                                            <div class="d-table scale-up delay-4 mx-auto mx-md-0"><a class="btn btn-primary btn-shadow" href="{{ url($isEnglish ? 'en/maps-and-views' : 'zemljovidi-i-vedute') }}">{{ __('front.home.view_selection') }}<i class="ci-arrow-right ms-2 me-n1"></i></a></div>
                                         </div>
                                     </div>
                                 </div>
@@ -66,21 +67,21 @@
                     <div class="col-xl-3 order-xl-1 pt-4 mt-3 mt-xl-0 pt-xl-0">
                         <div class="table-responsive" data-simplebar>
                             <div class="d-flex d-xl-block">
-                                <a class="d-flex align-items-center rounded-3 pt-2 ps-2 mb-4 me-3 me-xl-0 mbanner" href="knjige/knjizevnost" ><img src="{{ asset('media/img/knjizevnost-ikona.png') }}" width="100" alt="Banner" loading="eager" decoding="async">
+                                <a class="d-flex align-items-center rounded-3 pt-2 ps-2 mb-4 me-3 me-xl-0 mbanner" href="{{ url($isEnglish ? 'en/books/knjizevnost' : 'knjige/knjizevnost') }}" ><img src="{{ asset('media/img/knjizevnost-ikona.png') }}" width="100" alt="Banner" loading="eager" decoding="async">
                                     <div class="py-4 px-2">
-                                        <h5 class="mb-2"><span class="fw-light">Kategorija:</span> <br> Književnost</h5>
-                                        <div class="text-dark fs-sm">Istražite naslove<i class="ci-arrow-right fs-xs ms-1"></i></div>
+                                        <h5 class="mb-2"><span class="fw-light">{{ __('front.home.category') }}:</span> <br> {{ __('front.home.literature') }}</h5>
+                                        <div class="text-dark fs-sm">{{ __('front.home.explore_titles') }}<i class="ci-arrow-right fs-xs ms-1"></i></div>
                                     </div>
                                 </a>
-                                <a class="d-flex align-items-center rounded-3 pt-2 ps-2 mb-4 me-4 me-xl-0 mbanner" href="knjige/filozofija" ><img src="{{ asset('media/img/umjetnost-ikona.png') }}" width="100" alt="Banner" loading="eager" decoding="async">
+                                <a class="d-flex align-items-center rounded-3 pt-2 ps-2 mb-4 me-4 me-xl-0 mbanner" href="{{ url($isEnglish ? 'en/books/filozofija' : 'knjige/filozofija') }}" ><img src="{{ asset('media/img/umjetnost-ikona.png') }}" width="100" alt="Banner" loading="eager" decoding="async">
                                     <div class="py-4 px-2">
-                                        <h5 class="mb-2"><span class="fw-light">Kategorija:</span> <br> </span> Filozofija</h5>
-                                        <div class="text-dark fs-sm">Istražite naslove<i class="ci-arrow-right fs-xs ms-1"></i></div>
+                                        <h5 class="mb-2"><span class="fw-light">{{ __('front.home.category') }}:</span> <br> {{ __('front.home.philosophy') }}</h5>
+                                        <div class="text-dark fs-sm">{{ __('front.home.explore_titles') }}<i class="ci-arrow-right fs-xs ms-1"></i></div>
                                     </div></a>
-                                <a class="d-flex align-items-center rounded-3 pt-2 ps-2 mb-4 me-3 me-xl-0 mbanner" href="knjige/povijest" ><img src="{{ asset('media/img/povijest-ikona.png') }}" width="100" alt="Banner" loading="eager" decoding="async">
+                                <a class="d-flex align-items-center rounded-3 pt-2 ps-2 mb-4 me-3 me-xl-0 mbanner" href="{{ url($isEnglish ? 'en/books/povijest' : 'knjige/povijest') }}" ><img src="{{ asset('media/img/povijest-ikona.png') }}" width="100" alt="Banner" loading="eager" decoding="async">
                                     <div class="py-4 px-2">
-                                        <h5 class="mb-2"><span class="fw-light">Kategorija:</span> <br> </span> Povijest</h5>
-                                        <div class="text-dark fs-sm">Istražite naslove<i class="ci-arrow-right fs-xs ms-1"></i></div>
+                                        <h5 class="mb-2"><span class="fw-light">{{ __('front.home.category') }}:</span> <br> {{ __('front.home.history') }}</h5>
+                                        <div class="text-dark fs-sm">{{ __('front.home.explore_titles') }}<i class="ci-arrow-right fs-xs ms-1"></i></div>
                                     </div></a>
                             </div>
                         </div>
@@ -91,7 +92,7 @@
 
         </section>
 
-        {!! $page->description !!}
+        {!! $page->rendered_description ?? $page->description !!}
 
 
     @else
@@ -101,7 +102,7 @@
                 <div class="order-lg-2 mb-3 mb-lg-0 pt-lg-2">
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb breadcrumb-dark flex-lg-nowrap justify-content-center justify-content-lg-start">
-                            <li class="breadcrumb-item"><a class="text-nowrap" href="{{ route('index') }}"><i class="ci-home"></i>Naslovnica</a></li>
+                            <li class="breadcrumb-item"><a class="text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('index') }}"><i class="ci-home"></i>{{ __('front.nav.home') }}</a></li>
                             <li class="breadcrumb-item text-nowrap active" aria-current="page">{{ $page->title }}</li>
                         </ol>
                     </nav>

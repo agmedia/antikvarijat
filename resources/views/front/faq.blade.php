@@ -9,14 +9,14 @@
 
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb breadcrumb-dark flex-lg-nowrap justify-content-center justify-content-lg-start">
-                        <li class="breadcrumb-item"><a class="text-nowrap" href="{{ route('index') }}"><i class="ci-home"></i>Naslovnica</a></li>
-                        <li class="breadcrumb-item text-nowrap active" aria-current="page">Česta pitanja</li>
+                        <li class="breadcrumb-item"><a class="text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('index') }}"><i class="ci-home"></i>{{ __('front.nav.home') }}</a></li>
+                        <li class="breadcrumb-item text-nowrap active" aria-current="page">{{ __('front.faq.title') }}</li>
                     </ol>
                 </nav>
 
             </div>
             <div class="order-lg-1 pe-lg-4 text-center text-lg-start">
-                <h1 class="text-dark">Česta pitanja</h1>
+                <h1 class="text-dark">{{ __('front.faq.title') }}</h1>
             </div>
         </div>
     </div>

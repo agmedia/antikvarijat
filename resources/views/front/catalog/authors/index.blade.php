@@ -1,6 +1,6 @@
 @extends('front.layouts.app')
-@section('title', 'Autori knjiga - Antikvarijat Biblos')
-@section('description', 'Pregled autora i knjiga u ponudi Antikvarijata Biblos. Pretražite autore po početnom slovu i pronađite dostupne naslove.')
+@section('title', __('front.authors.meta_title'))
+@section('description', __('front.authors.meta_description'))
 
 @if (isset($meta_tags))
     @push('meta_tags')
@@ -17,12 +17,12 @@
         <div class="container position-relative zindex-5 py-4 my-3">
             <div class="row justify-content-center">
                 <div class="col-lg-8">
-                    <h1 class="text-dark text-center">Lista autora</h1>
+                    <h1 class="text-dark text-center">{{ __('front.authors.title') }}</h1>
 
 
-                    <form action="{{ route('pretrazi', ['tip' => 'author']) }}" method="get" style="max-width:500px; margin: 0 auto;margin-top:30px">
+                    <form action="{{ \App\Helpers\LocaleHelper::route('pretrazi', ['tip' => 'author']) }}" method="get" style="max-width:500px; margin: 0 auto;margin-top:30px">
                         <div class="input-group input-group-lg flex-nowrap">
-                            <input type="text" class="form-control rounded-start" name="{{ config('settings.search_keyword') }}" placeholder="Pretražite po autoru">
+                            <input type="text" class="form-control rounded-start" name="{{ config('settings.search_keyword') }}" placeholder="{{ __('front.search.search_by_author') }}">
                             <button class="btn btn-primary btn-lg fs-base" type="submit"><i class="ci-search"></i></button>
                         </div>
                     </form>
@@ -37,7 +37,7 @@
             <div class="col-lg-12   py-2 text-center">
                 <div class="scrolling-wrapper">
                 @foreach ($letters as $item)
-                    <a href="{{ route('catalog.route.author', ['author' => null, 'letter' => $item['value']]) }}"
+                    <a href="{{ \App\Helpers\LocaleHelper::route('catalog.route.author', ['author' => null, 'letter' => $item['value']]) }}"
                        class="btn btn-secondary btn-icon cardd mb-2 @if( ! $item['active']) disabled @endif @if($item['value'] == $letter) bg-fourth disabled @endif">
                         <h3 class="h4  @if($item['value'] == $letter) text-white @else text-dark @endif  py-0 mb-0 px-1">{{ $item['value'] }}</h3></a>
                 @endforeach

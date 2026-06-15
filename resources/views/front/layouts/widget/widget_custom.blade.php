@@ -11,7 +11,7 @@
                             <h2 class="h3 text-primary font-title mb-3 mt-3 ">{{ $widget['title'] }} </h2>
 
                             <p class="text-dark d-none mb-3 d-sm-block fs-md">{{ $widget['subtitle'] }}</p>
-                            <div class="d-flex flex-wrap justify-content-center justify-content-xl-start"><a class="btn btn-primary btn-shadow me-2 mb-2" href="{{ url($widget['url']) }}" role="button">Pogledajte ponudu <i class="ci-arrow-right fs-xs ms-2 me-n1"></i></a></div>
+                            <div class="d-flex flex-wrap justify-content-center justify-content-xl-start"><a class="btn btn-primary btn-shadow me-2 mb-2" href="{{ url(\App\Helpers\LocaleHelper::localizedUrl($widget['url'])) }}" role="button">{{ __('front.widgets.view_offer') }} <i class="ci-arrow-right fs-xs ms-2 me-n1"></i></a></div>
                         </div>
                         <div class="p-3"><img src="{{ $widget['image'] }}"  alt="{{ $widget['title'] }}" width="400" height="400"></div>
                     </div>
@@ -24,4 +24,3 @@
 
 
 <!-- How it works-->
-

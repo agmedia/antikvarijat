@@ -1,12 +1,17 @@
 <!DOCTYPE html>
-<html lang="hr">
+<html lang="{{ app()->getLocale() }}">
 <head>
     @php
-        $defaultTitle = 'Antikvarijat Biblos - Knjige, vedute i zemljovidi';
-        $defaultDescription = 'Dobrodošli na stranice Antikvarijata Biblos, Palmotićeva 28, Zagreb. Radno vrijeme pon-pet 09-20h, sub 09-14h.';
+        $locale = app()->getLocale();
+        $isEnglish = $locale === \App\Helpers\LocaleHelper::ENGLISH_LOCALE;
+        $localeSettings = config('localization.locales.' . $locale, config('localization.locales.hr'));
+        $defaultTitle = __('front.meta.default_title');
+        $defaultDescription = __('front.meta.default_description');
         $title = trim($__env->yieldContent('title')) ?: $defaultTitle;
         $description = trim($__env->yieldContent('description')) ?: $defaultDescription;
         $canonicalUrl = trim($__env->yieldContent('canonical')) ?: request()->url();
+        $alternateUrls = \App\Helpers\LocaleHelper::currentAlternateUrls();
+        $languageSwitcherUrls = \App\Helpers\LocaleHelper::languageSwitcherUrls();
         $defaultNoIndexRoutes = [
             'kosarica',
             'naplata',
@@ -24,7 +29,8 @@
         ];
         $robots = trim($__env->yieldContent('robots'));
         if (! $robots) {
-            $robots = request()->routeIs($defaultNoIndexRoutes)
+            $localizedNoIndexRoutes = array_merge($defaultNoIndexRoutes, array_map(fn ($route) => 'en.' . $route, $defaultNoIndexRoutes));
+            $robots = request()->routeIs($localizedNoIndexRoutes)
                 ? 'noindex,follow,noarchive'
                 : 'index,follow,max-image-preview:large';
         }
@@ -59,7 +65,7 @@
             'url' => $imagesDomain,
             'potentialAction' => [
                 '@type' => 'SearchAction',
-                'target' => $imagesDomain . 'pretrazi?' . config('settings.search_keyword') . '={search_term_string}',
+                'target' => \App\Helpers\LocaleHelper::route('pretrazi') . '?' . config('settings.search_keyword') . '={search_term_string}',
                 'query-input' => 'required name=search_term_string',
             ],
         ];
@@ -68,10 +74,16 @@
     <title>{{ $title }}</title>
     <!-- SEO Meta Tags-->
     <meta name="description" content="{{ $description }}">
-    <meta name="language" content="hr">
+    <meta name="language" content="{{ $locale }}">
     <meta name="robots" content="{{ $robots }}">
     <link rel="canonical" href="{{ $canonicalUrl }}">
-    <meta property="og:locale" content="hr_HR">
+    @foreach ($alternateUrls as $alternateLocale => $alternateUrl)
+        <link rel="alternate" hreflang="{{ config('localization.locales.' . $alternateLocale . '.hreflang', $alternateLocale) }}" href="{{ $alternateUrl }}">
+    @endforeach
+    @if (! empty($alternateUrls))
+        <link rel="alternate" hreflang="x-default" href="{{ $alternateUrls['hr'] ?? reset($alternateUrls) }}">
+    @endif
+    <meta property="og:locale" content="{{ $localeSettings['og_locale'] ?? 'hr_HR' }}">
     <meta property="og:type" content="{{ $ogType }}">
     <meta property="og:site_name" content="Antikvarijat Biblos">
     <meta property="og:title" content="{{ $title }}">
@@ -252,8 +264,8 @@
             <a class="topbar-link d-none d-xl-inline-block" href="mailto:info@antikvarijat-biblos.hr"><i class="ci-mail"></i> info@antikvarijat-biblos.hr</a>
         </div>
         <div class="ms-3 text-nowrap">
-            <a class="topbar-link me-4" href="https://www.google.com/maps/place/Biblos/@45.810942,15.9794894,17.53z/data=!4m5!3m4!1s0x4765d7aac4f8b023:0xb60bceb791b31ede!8m2!3d45.8106161!4d15.9816921?hl=hr" target="_blank"><i class="ci-location"></i> Palmotićeva 28, Zagreb </a>
-            <a class="topbar-link d-none d-md-inline-block me-0" href="{{ route('kontakt') }}"><i class="ci-time"></i> PON-PET: 9-20 | SUB: 9-14</a>
+            <a class="topbar-link me-4" href="https://www.google.com/maps/place/Biblos/@45.810942,15.9794894,17.53z/data=!4m5!3m4!1s0x4765d7aac4f8b023:0xb60bceb791b31ede!8m2!3d45.8106161!4d15.9816921?hl=hr" target="_blank"><i class="ci-location"></i> {{ __('front.general.address_value') }} </a>
+            <a class="topbar-link d-none d-md-inline-block me-0" href="{{ \App\Helpers\LocaleHelper::route('kontakt') }}"><i class="ci-time"></i> {{ __('front.general.opening_hours_short') }}</a>
         </div>
     </div>
 </div>
@@ -281,6 +293,10 @@
 
 <!-- Main theme script-->
 
+<script>
+    window.AppLocale = @json(app()->getLocale());
+    window.FrontTranslations = @json(trans('front'), JSON_UNESCAPED_UNICODE);
+</script>
 <script src="{{ asset('js/cart.js?v=' . filemtime(public_path('js/cart.js'))) }}"></script>
 
 

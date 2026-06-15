@@ -4,18 +4,18 @@
     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
         <tr>
             <td style="padding: 20px 20px 10px 20px; font-family: sans-serif; font-size: 18px; font-weight: bold; line-height: 20px; color: #555555; text-align: center;">
-                Nova prijava s forme "Otkup knjiga".
+                {{ __('front.email.book_purchase_new') }}
             </td>
         </tr>
         <tr>
             <td style="padding: 20px 20px 0 20px; font-family: sans-serif; font-size: 15px; line-height: 20px; color: #555555;">
                 <table cellspacing="0" cellpadding="0" border="0" width="100%">
                     <tr>
-                        <td style="width: 35%">Ime i prezime:</td>
+                        <td style="width: 35%">{{ __('front.email.full_name') }}:</td>
                         <td><b>{{ $requestData['full_name'] }}</b></td>
                     </tr>
                     <tr>
-                        <td>Poštanski broj:</td>
+                        <td>{{ __('front.book_purchase.postal_code') }}:</td>
                         <td><b>{{ $requestData['postal_code'] }}</b></td>
                     </tr>
                     <tr>
@@ -23,15 +23,15 @@
                         <td><b>{{ $requestData['email'] }}</b></td>
                     </tr>
                     <tr>
-                        <td>Kontakt broj:</td>
+                        <td>{{ __('front.book_purchase.phone') }}:</td>
                         <td><b>{{ $requestData['phone'] }}</b></td>
                     </tr>
                     <tr>
-                        <td>ID prijave:</td>
+                        <td>{{ __('front.email.submission_id') }}:</td>
                         <td><b>{{ $requestData['submission_id'] }}</b></td>
                     </tr>
                     <tr>
-                        <td>Vrijeme slanja:</td>
+                        <td>{{ __('front.email.submitted_at') }}:</td>
                         <td><b>{{ $requestData['submitted_at'] }}</b></td>
                     </tr>
                 </table>
@@ -40,7 +40,7 @@
 
         <tr>
             <td style="padding: 20px 20px 8px 20px; font-family: sans-serif; font-size: 15px; line-height: 20px; color: #555555; font-weight: bold;">
-                Fotografije
+                {{ __('front.email.photos') }}
             </td>
         </tr>
 

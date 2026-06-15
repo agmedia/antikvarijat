@@ -2,10 +2,20 @@
 
 namespace App\Providers;
 
+use App\Helpers\LocaleHelper;
+use App\Models\Back\Catalog\Author as BackAuthor;
+use App\Models\Back\Catalog\Publisher as BackPublisher;
+use App\Models\Back\Marketing\Blog as BackBlog;
+use App\Models\Back\Settings\Page as BackPage;
+use App\Models\Front\Blog as FrontBlog;
+use App\Models\Front\Catalog\Author as FrontAuthor;
+use App\Models\Front\Catalog\Category as FrontCategory;
+use App\Models\Front\Catalog\Product as FrontProduct;
+use App\Models\Front\Catalog\Publisher as FrontPublisher;
+use App\Models\Front\Page as FrontPage;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
@@ -38,6 +48,7 @@ class RouteServiceProvider extends ServiceProvider
     public function boot()
     {
         $this->removeIndexPHPFromURL();
+        $this->registerLocalizedRouteBindings();
         $this->configureRateLimiting();
 
         $this->routes(function () {
@@ -79,6 +90,85 @@ class RouteServiceProvider extends ServiceProvider
                 exit;
             }
         }
+    }
+
+    protected function registerLocalizedRouteBindings(): void
+    {
+        Route::bind('cat', function ($value) {
+            return $this->resolveFrontendSlug(FrontCategory::class, $value);
+        });
+
+        Route::bind('prod', function ($value) {
+            return $this->resolveFrontendSlug(FrontProduct::class, $value);
+        });
+
+        Route::bind('subcat', function ($value) {
+            if ($this->isFrontendRoute('catalog.route.author') ||
+                $this->isFrontendRoute('catalog.route.publisher') ||
+                $this->isFrontendRoute('catalog.route.actions')) {
+                return $this->resolveFrontendSlug(FrontCategory::class, $value);
+            }
+
+            return $value;
+        });
+
+        Route::bind('page', function ($value) {
+            if ($this->isFrontendRoute('catalog.route.page')) {
+                return $this->resolveFrontendSlug(FrontPage::class, $value);
+            }
+
+            return BackPage::query()->whereKey($value)->firstOrFail();
+        });
+
+        Route::bind('blog', function ($value) {
+            if ($this->isFrontendRoute('catalog.route.blog')) {
+                return $this->resolveFrontendSlug(FrontBlog::class, $value);
+            }
+
+            return BackBlog::query()->whereKey($value)->firstOrFail();
+        });
+
+        Route::bind('author', function ($value) {
+            if ($this->isFrontendRoute('catalog.route.author')) {
+                return $this->resolveFrontendSlug(FrontAuthor::class, $value);
+            }
+
+            return BackAuthor::query()->whereKey($value)->firstOrFail();
+        });
+
+        Route::bind('publisher', function ($value) {
+            if ($this->isFrontendRoute('catalog.route.publisher')) {
+                return $this->resolveFrontendSlug(FrontPublisher::class, $value);
+            }
+
+            return BackPublisher::query()->whereKey($value)->firstOrFail();
+        });
+    }
+
+    protected function resolveFrontendSlug(string $class, string $value)
+    {
+        $model = new $class();
+        $routeKey = $model->getRouteKeyName();
+
+        return $class::query()
+            ->where(function ($query) use ($routeKey, $value) {
+                if (LocaleHelper::isEnglish()) {
+                    $query->where('slug_en', $value)
+                        ->orWhere($routeKey, $value);
+
+                    return;
+                }
+
+                $query->where($routeKey, $value);
+            })
+            ->firstOrFail();
+    }
+
+    protected function isFrontendRoute(string $baseName): bool
+    {
+        $name = optional(request()->route())->getName();
+
+        return $name === $baseName || $name === 'en.' . $baseName;
     }
 
     /**

@@ -170,6 +170,9 @@
                 sort_order: $('#corvus-sort-order').val()
             };
 
+            item = collectPaymentLocaleFields('corvus', item);
+
+
             axios.post("{{ route('api.payment.store') }}", {data: item})
             .then(response => {
                 if (response.data.success) {

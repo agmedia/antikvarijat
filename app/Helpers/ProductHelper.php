@@ -68,6 +68,31 @@ class ProductHelper
         return '/';
     }
 
+    public static function urlEn(Product $product, $category = null, $subcategory = null): ?string
+    {
+        if ( ! $category) {
+            $category = $product->category();
+        }
+
+        if ( ! $subcategory) {
+            $subcategory = $product->subcategory();
+        }
+
+        if (! $category) {
+            return null;
+        }
+
+        $group = LocaleHelper::groupSlug((string) $category->getRawOriginal('group'), LocaleHelper::ENGLISH_LOCALE);
+        $catSlug = LocaleHelper::routeKey($category, LocaleHelper::ENGLISH_LOCALE);
+        $productSlug = LocaleHelper::routeKey($product, LocaleHelper::ENGLISH_LOCALE);
+
+        if ($subcategory) {
+            return 'en/' . $group . '/' . $catSlug . '/' . LocaleHelper::routeKey($subcategory, LocaleHelper::ENGLISH_LOCALE) . '/' . $productSlug;
+        }
+
+        return 'en/' . $group . '/' . $catSlug . '/' . $productSlug;
+    }
+
 
     /**
      * @param Builder $query

@@ -1,7 +1,7 @@
 @extends('front.layouts.app')
 @if(isset($blogs))
-    @section ( 'title', 'Iz medija - Antikvarijat Biblos' )
-    @section ( 'description', 'Medijske objave, članci i obavijesti -  Antikvarijat Biblos' )
+    @section ( 'title', __('front.blog.meta_title') )
+    @section ( 'description', __('front.blog.meta_description') )
 @else
     @section ( 'title', $blog->title. ' - Antikvarijat Biblos' )
     @section ( 'description', $blog->meta_description )
@@ -37,12 +37,12 @@
 
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb breadcrumb-dark flex-lg-nowrap justify-content-center ">
-                        <li class="breadcrumb-item"><a class="text-nowrap" href="{{ route('index') }}"><i class="ci-home"></i>Naslovnica</a></li>
+                        <li class="breadcrumb-item"><a class="text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('index') }}"><i class="ci-home"></i>{{ __('front.nav.home') }}</a></li>
                            @if(isset($blogs))
-                     <li class="breadcrumb-item text-nowrap active" aria-current="page">Iz medija</li>
+                     <li class="breadcrumb-item text-nowrap active" aria-current="page">{{ __('front.blog.title') }}</li>
                 @else
               
-                      <li class="breadcrumb-item text-nowrap active" aria-current="page"><a class="text-nowrap" href="https://www.antikvarijat-biblos.hr/blog">Iz medija</a></li>
+                      <li class="breadcrumb-item text-nowrap active" aria-current="page"><a class="text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('catalog.route.blog') }}">{{ __('front.blog.title') }}</a></li>
                 @endif
                         
                     </ol>
@@ -51,7 +51,7 @@
             </div>
             <div class="order-lg-1 pe-lg-4 text-center ">
                 @if(isset($blogs))
-                    <h1 class="h3 text-dark">Iz medija</h1>
+                    <h1 class="h3 text-dark">{{ __('front.blog.title') }}</h1>
                 @else
                     <h1 class="h3 text-dark">{{ $blog->title }}</h1>
                 @endif
@@ -68,7 +68,7 @@
                     @foreach ($blogs as $blog)
                         <article class="masonry-grid-item">
                             <div class="card">
-                                <a class="blog-entry-thumb" href="{{ route('catalog.route.blog', ['blog' => $blog]) }}">
+                                <a class="blog-entry-thumb" href="{{ \App\Helpers\LocaleHelper::route('catalog.route.blog', ['blog' => $blog]) }}">
                                     <img
                                         class="card-img-top"
                                         src="{{ $blog->thumb ?: $blog->image }}"
@@ -79,11 +79,11 @@
                                         width="400">
                                 </a>
                                 <div class="card-body">
-                                    <h2 class="h6 blog-entry-title"><a href="{{ route('catalog.route.blog', ['blog' => $blog]) }}">{{ $blog->title }}</a></h2>
+                                    <h2 class="h6 blog-entry-title"><a href="{{ \App\Helpers\LocaleHelper::route('catalog.route.blog', ['blog' => $blog]) }}">{{ $blog->title }}</a></h2>
                                     <p class="fs-sm">{{ $blog->short_description }}</p>
                                 </div>
                                 <div class="card-footer d-flex align-items-left fs-xs">
-                                    <div class="me-auto text-nowrap"><a class="blog-entry-meta-link text-nowrap" href="{{ route('catalog.route.blog', ['blog' => $blog]) }}">{{ \Carbon\Carbon::make($blog->created_at)->locale('hr')->format('d.m.Y.') }}</a></div>
+                                    <div class="me-auto text-nowrap"><a class="blog-entry-meta-link text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('catalog.route.blog', ['blog' => $blog]) }}">{{ \Carbon\Carbon::make($blog->created_at)->locale(app()->getLocale())->format('d.m.Y.') }}</a></div>
                                 </div>
                             </div>
                         </article>

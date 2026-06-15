@@ -47,11 +47,6 @@
                         <div class="col-md-10">
 
                             <div class="form-group">
-                                <label for="title-input">Naslov</label>
-                                <input type="text" class="form-control" id="title-input" name="title" placeholder="Upišite naslov..." value="{{ isset($page) ? $page->title : old('title') }}" onkeyup="SetSEOPreview()">
-                            </div>
-
-                            <div class="form-group">
                                 <label for="group-select">Grupa</label>
                                 <select class="js-select2 form-control" id="group-select" name="group" style="width: 100%;">
                                     @foreach ($groups as $group)
@@ -72,11 +67,32 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="form-group row  mb-4">
-                                <div class="col-md-12">
-                                    <label for="description-editor">Opis</label>
-                                    <textarea id="js-ckeditor" name="description">{!! isset($page) ? $page->description : old('description') !!}</textarea>
 
+                            @include('back.layouts.partials.language-tabs', ['id' => 'page-content-tabs'])
+                            <div class="tab-content">
+                                <div class="tab-pane active" id="page-content-tabs-hr" role="tabpanel">
+                                    <div class="form-group">
+                                        <label for="title-input">Naslov</label>
+                                        <input type="text" class="form-control" id="title-input" name="title" placeholder="Upišite naslov..." value="{{ isset($page) ? $page->title : old('title') }}" onkeyup="SetSEOPreview()">
+                                    </div>
+                                    <div class="form-group row mb-4">
+                                        <div class="col-md-12">
+                                            <label for="description-editor">Opis</label>
+                                            <textarea id="js-ckeditor" name="description">{!! isset($page) ? $page->description : old('description') !!}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="tab-pane" id="page-content-tabs-en" role="tabpanel">
+                                    <div class="form-group">
+                                        <label for="title-en-input">Naslov EN</label>
+                                        <input type="text" class="form-control" id="title-en-input" name="title_en" placeholder="Upišite engleski naslov..." value="{{ old('title_en', isset($page) ? $page->title_en : '') }}">
+                                    </div>
+                                    <div class="form-group row mb-4">
+                                        <div class="col-md-12">
+                                            <label for="js-ckeditor-en">Opis EN</label>
+                                            <textarea id="js-ckeditor-en" name="description_en">{!! old('description_en', isset($page) ? $page->description_en : '') !!}</textarea>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -92,29 +108,53 @@
                 <div class="block-content">
                     <div class="row justify-content-center">
                         <div class="col-md-10 ">
-                            <form action="be_pages_ecom_product_edit.html" method="POST" onsubmit="return false;">
-                                <div class="form-group">
-                                    <label for="meta-title-input">Meta naslov</label>
-                                    <input type="text" class="js-maxlength form-control" id="meta-title-input" name="meta_title" value="{{ isset($page) ? $page->meta_title : old('meta_title') }}" maxlength="70" data-always-show="true" data-placement="top">
-                                    <small class="form-text text-muted">
-                                        70 znakova max
-                                    </small>
-                                </div>
+                            @include('back.layouts.partials.language-tabs', ['id' => 'page-seo-tabs'])
+                            <div class="tab-content">
+                                <div class="tab-pane active" id="page-seo-tabs-hr" role="tabpanel">
+                                    <div class="form-group">
+                                        <label for="meta-title-input">Meta naslov</label>
+                                        <input type="text" class="js-maxlength form-control" id="meta-title-input" name="meta_title" value="{{ isset($page) ? $page->meta_title : old('meta_title') }}" maxlength="70" data-always-show="true" data-placement="top">
+                                        <small class="form-text text-muted">
+                                            70 znakova max
+                                        </small>
+                                    </div>
 
-                                <div class="form-group">
-                                    <label for="meta-description-input">Meta opis</label>
-                                    <textarea class="js-maxlength form-control" id="meta-description-input" name="meta_description" rows="4" maxlength="160" data-always-show="true" data-placement="top">{{ isset($page) ? $page->meta_description : old('meta_description') }}</textarea>
-                                    <small class="form-text text-muted">
-                                        160 znakova max
-                                    </small>
-                                </div>
+                                    <div class="form-group">
+                                        <label for="meta-description-input">Meta opis</label>
+                                        <textarea class="js-maxlength form-control" id="meta-description-input" name="meta_description" rows="4" maxlength="160" data-always-show="true" data-placement="top">{{ isset($page) ? $page->meta_description : old('meta_description') }}</textarea>
+                                        <small class="form-text text-muted">
+                                            160 znakova max
+                                        </small>
+                                    </div>
 
-                                <div class="form-group">
-                                    <label for="slug-input">SEO link (url)</label>
-                                    <input type="text" class="form-control" id="slug-input" name="slug" value="{{ isset($page) ? $page->slug : old('slug') }}" disabled>
+                                    <div class="form-group">
+                                        <label for="slug-input">SEO link (url)</label>
+                                        <input type="text" class="form-control" id="slug-input" name="slug" value="{{ isset($page) ? $page->slug : old('slug') }}" disabled>
+                                    </div>
                                 </div>
+                                <div class="tab-pane" id="page-seo-tabs-en" role="tabpanel">
+                                    <div class="form-group">
+                                        <label for="meta-title-en-input">Meta naslov EN</label>
+                                        <input type="text" class="js-maxlength form-control" id="meta-title-en-input" name="meta_title_en" value="{{ old('meta_title_en', isset($page) ? $page->meta_title_en : '') }}" maxlength="70" data-always-show="true" data-placement="top">
+                                        <small class="form-text text-muted">
+                                            70 znakova max
+                                        </small>
+                                    </div>
 
-                            </form>
+                                    <div class="form-group">
+                                        <label for="meta-description-en-input">Meta opis EN</label>
+                                        <textarea class="js-maxlength form-control" id="meta-description-en-input" name="meta_description_en" rows="4" maxlength="160" data-always-show="true" data-placement="top">{{ old('meta_description_en', isset($page) ? $page->meta_description_en : '') }}</textarea>
+                                        <small class="form-text text-muted">
+                                            160 znakova max
+                                        </small>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="slug-en-input">SEO link EN</label>
+                                        <input type="text" class="form-control" id="slug-en-input" name="slug_en" value="{{ old('slug_en', isset($page) ? $page->slug_en : '') }}" placeholder="Ako je prazno koristi se HR slug">
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -163,6 +203,7 @@
             });
 
             editor = CKEDITOR.replace('js-ckeditor'); // bind editor
+            CKEDITOR.replace('js-ckeditor-en');
 
             editor.addCommand("mySimpleCommand", { // create named command
                 exec: function(edt) {

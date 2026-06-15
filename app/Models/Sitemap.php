@@ -2,13 +2,13 @@
 
 namespace App\Models;
 
+use App\Helpers\LocaleHelper;
 use App\Models\Front\Catalog\Author;
 use App\Models\Front\Catalog\Category;
 use App\Models\Front\Catalog\Product;
 use App\Models\Front\Catalog\Publisher;
 use App\Models\Front\Page;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Str;
 
 /**
  * Class Sitemap
@@ -33,7 +33,7 @@ class Sitemap
      *
      * @param string|null $sitemap
      */
-    public function __construct(string $sitemap = null)
+    public function __construct(?string $sitemap = null)
     {
         $this->sitemap = $this->setSitemap($sitemap);
     }
@@ -62,7 +62,7 @@ class Sitemap
      *
      * @return array
      */
-    private function setSitemap(string $sitemap)
+    private function setSitemap(?string $sitemap)
     {
         if ( ! $sitemap) {
             return $sitemap;
@@ -126,36 +126,26 @@ class Sitemap
      */
     private function getPages()
     {
-        $pages = Page::query()->where('group', 'page')->where('slug', '!=', 'homepage')->where('status', '=', 1)->select('slug', 'status', 'updated_at')->get();
-        $blogs = Page::query()->where('group', 'blog')->where('status', '=', 1)->select('slug', 'status', 'updated_at')->get();
+        $pages = Page::query()->where('group', 'page')->where('slug', '!=', 'homepage')->where('status', '=', 1)->select('id', 'slug', 'slug_en', 'status', 'updated_at')->get();
+        $blogs = Page::query()->where('group', 'blog')->where('status', '=', 1)->select('id', 'slug', 'slug_en', 'status', 'updated_at')->get();
 
-        $this->response[] = [
-            'url' => route('index'),
-            'lastmod' => Carbon::now()->startOfMonth()->tz('UTC')->toAtomString()
-        ];
-
-        $this->response[] = [
-            'url' => route('kontakt'),
-            'lastmod' => Carbon::now()->startOfYear()->tz('UTC')->toAtomString()
-        ];
-
-        $this->response[] = [
-            'url' => route('faq'),
-            'lastmod' => Carbon::now()->startOfYear()->tz('UTC')->toAtomString()
-        ];
+        foreach (LocaleHelper::locales() as $locale) {
+            $this->addUrl(LocaleHelper::route('index', [], true, $locale), Carbon::now()->startOfMonth());
+            $this->addUrl(LocaleHelper::route('kontakt', [], true, $locale), Carbon::now()->startOfYear());
+            $this->addUrl(LocaleHelper::route('faq', [], true, $locale), Carbon::now()->startOfYear());
+            $this->addUrl(LocaleHelper::route('otkup.knjiga', [], true, $locale), Carbon::now()->startOfYear());
+        }
 
         foreach ($pages as $page) {
-            $this->response[] = [
-                'url' => route('catalog.route.page', ['page' => $page->slug]),
-                'lastmod' => $page->updated_at->tz('UTC')->toAtomString()
-            ];
+            foreach (LocaleHelper::locales() as $locale) {
+                $this->addUrl(LocaleHelper::route('catalog.route.page', ['page' => $page], true, $locale), $page->updated_at);
+            }
         }
 
         foreach ($blogs as $blog) {
-            $this->response[] = [
-                'url' => route('catalog.route.blog', ['blog' => $blog->slug]),
-                'lastmod' => $blog->updated_at->tz('UTC')->toAtomString()
-            ];
+            foreach (LocaleHelper::locales() as $locale) {
+                $this->addUrl(LocaleHelper::route('catalog.route.blog', ['blog' => $blog], true, $locale), $blog->updated_at);
+            }
         }
 
         //dd($coll);
@@ -172,16 +162,20 @@ class Sitemap
         $categories = Category::query()->active()->topList()->with('subcategories')->get();
 
         foreach ($categories as $category) {
-            $this->response[] = [
-                'url' => route('catalog.route', ['group' => Str::slug($category->group), 'cat' => $category->slug]),
-                'lastmod' => $category->updated_at->tz('UTC')->toAtomString()
-            ];
+            foreach (LocaleHelper::locales() as $locale) {
+                $this->addUrl(
+                    LocaleHelper::route('catalog.route', ['group' => $category->getRawOriginal('group'), 'cat' => $category], true, $locale),
+                    $category->updated_at
+                );
+            }
 
             foreach ($category->subcategories()->get() as $subcategory) {
-                $this->response[] = [
-                    'url' => route('catalog.route', ['group' => Str::slug($category->group), 'cat' => $category->slug, 'subcat' => $subcategory->slug]),
-                    'lastmod' => $subcategory->updated_at->tz('UTC')->toAtomString()
-                ];
+                foreach (LocaleHelper::locales() as $locale) {
+                    $this->addUrl(
+                        LocaleHelper::route('catalog.route', ['group' => $category->getRawOriginal('group'), 'cat' => $category, 'subcat' => $subcategory], true, $locale),
+                        $subcategory->updated_at
+                    );
+                }
             }
         }
 
@@ -194,13 +188,17 @@ class Sitemap
      */
     private function getProducts()
     {
-        $products = Product::query()->active()->hasStock()->select('url', 'updated_at')->get();
+        $products = Product::query()
+            ->active()
+            ->hasStock()
+            ->select('id', 'url', 'url_en', 'slug', 'slug_en', 'updated_at')
+            ->with('categories')
+            ->get();
 
         foreach ($products as $product) {
-            $this->response[] = [
-                'url' => url($product->url),
-                'lastmod' => $product->updated_at->tz('UTC')->toAtomString()
-            ];
+            foreach (LocaleHelper::locales() as $locale) {
+                $this->addUrl(url(LocaleHelper::productPath($product, $product->getRawOriginal('url'), $locale)), $product->updated_at);
+            }
         }
 
         return $this->response;
@@ -212,18 +210,16 @@ class Sitemap
      */
     private function getAuthors()
     {
-        $authors = Author::query()->active()->select('url', 'updated_at')->get();
+        $authors = Author::query()->active()->select('id', 'slug', 'slug_en', 'url', 'updated_at')->get();
 
-        $this->response[] = [
-            'url' => route('catalog.route.author'),
-            'lastmod' => Carbon::now()->startOfMonth()->tz('UTC')->toAtomString()
-        ];
+        foreach (LocaleHelper::locales() as $locale) {
+            $this->addUrl(LocaleHelper::route('catalog.route.author', [], true, $locale), Carbon::now()->startOfMonth());
+        }
 
         foreach ($authors as $author) {
-            $this->response[] = [
-                'url' => url($author->url),
-                'lastmod' => $author->updated_at->tz('UTC')->toAtomString()
-            ];
+            foreach (LocaleHelper::locales() as $locale) {
+                $this->addUrl(LocaleHelper::route('catalog.route.author', ['author' => $author], true, $locale), $author->updated_at);
+            }
 
             /*$cats = Category::query()->topList()->whereHas('products', function ($query) use ($author) {
                 $query->where('author_id', $author->id);
@@ -255,20 +251,26 @@ class Sitemap
      */
     private function getPublishers()
     {
-        $publishers = Publisher::query()->active()->select('url', 'updated_at')->get();
+        $publishers = Publisher::query()->active()->select('id', 'slug', 'slug_en', 'url', 'updated_at')->get();
 
-        $this->response[] = [
-            'url' => route('catalog.route.publisher'),
-            'lastmod' => Carbon::now()->startOfMonth()->tz('UTC')->toAtomString()
-        ];
+        foreach (LocaleHelper::locales() as $locale) {
+            $this->addUrl(LocaleHelper::route('catalog.route.publisher', [], true, $locale), Carbon::now()->startOfMonth());
+        }
 
         foreach ($publishers as $publisher) {
-            $this->response[] = [
-                'url' => url($publisher->url),
-                'lastmod' => $publisher->updated_at->tz('UTC')->toAtomString()
-            ];
+            foreach (LocaleHelper::locales() as $locale) {
+                $this->addUrl(LocaleHelper::route('catalog.route.publisher', ['publisher' => $publisher], true, $locale), $publisher->updated_at);
+            }
         }
 
         return $this->response;
+    }
+
+    private function addUrl(string $url, $lastmod): void
+    {
+        $this->response[] = [
+            'url' => $url,
+            'lastmod' => Carbon::parse($lastmod)->tz('UTC')->toAtomString(),
+        ];
     }
 }

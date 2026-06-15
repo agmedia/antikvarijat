@@ -29,7 +29,7 @@
                 @if ($product->author)
                     <a class="product-meta fw-medium" href="{{ url($product->author->url) }}">{{ $product->author->title }}</a>
                 @else
-                    <a class="product-meta fw-medium" href="#">Nepoznato</a>
+                    <a class="product-meta fw-medium" href="#">{{ __('front.product.unknown') }}</a>
                 @endif
             </div>
 
@@ -64,7 +64,7 @@
 
         <div class="product-floating-btn">
         <add-to-cart-btn-simple id="{{ $product->id }}">
-            <a href="{{ url($product->url) }}" class="btn btn-primary btn-sm" aria-label="Otvori {{ $product->name }}">+<i class="ci-cart fs-base ms-1"></i></a>
+            <a href="{{ url($product->url) }}" class="btn btn-primary btn-sm" aria-label="{{ __('front.product.open') }} {{ $product->name }}">+<i class="ci-cart fs-base ms-1"></i></a>
         </add-to-cart-btn-simple>
         </div>
 </div>

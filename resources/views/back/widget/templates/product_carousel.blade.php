@@ -35,33 +35,54 @@
                             <h5 class="text-black mb-0 mt-20">Generalne Informacije</h5>
                             <hr class="mb-30">
 
-                            <div class="form-group row items-push mb-3">
-                                <div class="col-md-8">
-                                    <label for="title-input">Naziv widgeta @include('back.layouts.partials.required-star')</label>
-                                    <input type="text" class="form-control" id="title-input" name="title" placeholder="Upišite naziv widgeta" value="{{ isset($widget) ? $widget->title : old('title') }}">
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="group-select">Grupa stavki @include('back.layouts.partials.required-star')</label>
-                                    <select class="form-control" id="target-select" name="target">
-                                        <option></option>
-                                        <option value="product" {{ (isset($widget->target) and $widget->target == 'product') ? 'selected="selected"' : '' }}>Artikli</option>
-                                        <option value="product_category" {{ (isset($widget->target) and $widget->target == 'product_category') ? 'selected="selected"' : '' }}>Group</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="form-group row mb-30">
-                                <label class="col-12" for="subtitle-input">Podnaslov</label>
-                                <div class="col-12">
-                                    <textarea class="form-control" id="subtitle-input" name="subtitle" rows="4" placeholder="Kratak tekst, ako je potreban..">{{ isset($widget->subtitle) ? $widget->subtitle : '' }}</textarea>
-                                </div>
-                            </div>
-
-
                             <div class="form-group mb-3">
-                                   <label for="url-input">URL Link @include('back.layouts.partials.popover', ['title' => 'Link Widgeta', 'content' => 'Može se proizvoljno upisati bilo koji link. Odete na front gdje želite > Copy/Paste i to je to.'])</label>
-                                   <input type="text" class="form-control" name="url" id="url-input" value="{{ isset($widget->url) ? $widget->url : '' }}" placeholder="">
-                           </div>
+                                <label for="group-select">Grupa stavki @include('back.layouts.partials.required-star')</label>
+                                <select class="form-control" id="target-select" name="target">
+                                    <option></option>
+                                    <option value="product" {{ (isset($widget->target) and $widget->target == 'product') ? 'selected="selected"' : '' }}>Artikli</option>
+                                    <option value="product_category" {{ (isset($widget->target) and $widget->target == 'product_category') ? 'selected="selected"' : '' }}>Group</option>
+                                </select>
+                            </div>
+
+                            @include('back.layouts.partials.language-tabs', ['id' => 'widget-content-tabs'])
+                            <div class="tab-content">
+                                <div class="tab-pane active" id="widget-content-tabs-hr" role="tabpanel">
+                                    <div class="form-group mb-3">
+                                        <label for="title-input">Naziv widgeta @include('back.layouts.partials.required-star')</label>
+                                        <input type="text" class="form-control" id="title-input" name="title" placeholder="Upišite naziv widgeta" value="{{ isset($widget) ? $widget->title : old('title') }}">
+                                    </div>
+
+                                    <div class="form-group row mb-30">
+                                        <label class="col-12" for="subtitle-input">Podnaslov</label>
+                                        <div class="col-12">
+                                            <textarea class="form-control" id="subtitle-input" name="subtitle" rows="4" placeholder="Kratak tekst, ako je potreban..">{{ isset($widget->subtitle) ? $widget->subtitle : '' }}</textarea>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group mb-3">
+                                        <label for="url-input">URL Link @include('back.layouts.partials.popover', ['title' => 'Link Widgeta', 'content' => 'Može se proizvoljno upisati bilo koji link. Odete na front gdje želite > Copy/Paste i to je to.'])</label>
+                                        <input type="text" class="form-control" name="url" id="url-input" value="{{ isset($widget->url) ? $widget->url : '' }}" placeholder="">
+                                    </div>
+                                </div>
+                                <div class="tab-pane" id="widget-content-tabs-en" role="tabpanel">
+                                    <div class="form-group mb-3">
+                                        <label for="title-en-input">Naziv widgeta EN</label>
+                                        <input type="text" class="form-control" id="title-en-input" name="title_en" placeholder="Widget title in English" value="{{ isset($widget) ? $widget->title_en : old('title_en') }}">
+                                    </div>
+
+                                    <div class="form-group row mb-30">
+                                        <label class="col-12" for="subtitle-en-input">Podnaslov EN</label>
+                                        <div class="col-12">
+                                            <textarea class="form-control" id="subtitle-en-input" name="subtitle_en" rows="4" placeholder="Short text, if needed..">{{ isset($widget->subtitle_en) ? $widget->subtitle_en : '' }}</textarea>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group mb-3">
+                                        <label for="url-en-input">URL Link EN</label>
+                                        <input type="text" class="form-control" name="url_en" id="url-en-input" value="{{ isset($widget->url_en) ? $widget->url_en : '' }}" placeholder="en/...">
+                                    </div>
+                                </div>
+                            </div>
 
 
                             <div class="form-group mb-5">

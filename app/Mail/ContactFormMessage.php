@@ -36,6 +36,8 @@ class ContactFormMessage extends Mailable
      */
     public function build()
     {
-        return $this->view('emails.contact-form')->with(['contact' => $this->contact]);
+        return $this->subject(__('front.email.contact_subject'))
+            ->view('emails.contact-form')
+            ->with(['contact' => $this->contact]);
     }
 }

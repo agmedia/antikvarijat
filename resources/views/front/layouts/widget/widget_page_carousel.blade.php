@@ -10,11 +10,11 @@
     <div class="d-flex flex-wrap justify-content-between align-items-center pt-1  pb-3 mb-2">
         <h2 class="h3 mb-0 pt-0 font-title me-3 "><span class="border-color"> {{ $data['title'] }}</span></h2>
         @if ($data['tablename'] == 'blog')
-        <a class="btn btn-outline-primary btn-sm btn-shadow mt-0" href="/blog"><span class="d-none d-sm-inline-block">Pogledajte sve</span> <i class="ci-arrow-right fs-xs "></i></a>
+        <a class="btn btn-outline-primary btn-sm btn-shadow mt-0" href="{{ \App\Helpers\LocaleHelper::route('catalog.route.blog') }}"><span class="d-none d-sm-inline-block">{{ __('front.widgets.view_all') }}</span> <i class="ci-arrow-right fs-xs "></i></a>
         @endif
 
         @if ($data['tablename'] == 'reviews')
-            <a class="btn btn-outline-primary btn-sm btn-shadow mt-0" target="_blanks" href="https://www.google.com/search?sca_esv=0a74b9f5a5d821da&si=AMgyJEuzsz2NflaaWzrzdpjxXXRaJ2hfdMsbe_mSWso6src8sypp-5CetgPBI0vwf0AeIVtJomeCeueKZqvh42JWVyfZbtudLrwN3Q3Pg_0VkMmG8Q15iQREGs_PaSOZFoKeKAtW2JSU&q=Biblos+Recenzije&sa=X&ved=2ahUKEwiNlo_I8pmPAxX1Q_EDHSMbBUEQ0bkNegQIJxAE&biw=1512&bih=832&dpr=2"><span class="d-none d-sm-inline-block">Google recenzije</span> <i class="ci-arrow-right fs-xs"></i></a>
+            <a class="btn btn-outline-primary btn-sm btn-shadow mt-0" target="_blanks" href="https://www.google.com/search?sca_esv=0a74b9f5a5d821da&si=AMgyJEuzsz2NflaaWzrzdpjxXXRaJ2hfdMsbe_mSWso6src8sypp-5CetgPBI0vwf0AeIVtJomeCeueKZqvh42JWVyfZbtudLrwN3Q3Pg_0VkMmG8Q15iQREGs_PaSOZFoKeKAtW2JSU&q=Biblos+Recenzije&sa=X&ved=2ahUKEwiNlo_I8pmPAxX1Q_EDHSMbBUEQ0bkNegQIJxAE&biw=1512&bih=832&dpr=2"><span class="d-none d-sm-inline-block">{{ __('front.widgets.google_reviews') }}</span> <i class="ci-arrow-right fs-xs"></i></a>
         @endif
     </div>
 
@@ -26,7 +26,7 @@
                         <div class="article mb-grid-gutter">
                             <a class="card border-0 shadow" href="{{ $item['group'] }}/{{ $item['slug'] }}">
                                 <span class="blog-entry-meta-label fs-sm"><i class="ci-book text-primary me-0"></i></span>
-                                <img class="card-img-top" loading="lazy" width="400" height="300" src="{{ $item['image'] }}" alt="Kategorija {{ $item['title'] }}">
+                                <img class="card-img-top" loading="lazy" width="400" height="300" src="{{ $item['image'] }}" alt="{{ __('front.widgets.category_alt', ['title' => $item['title']]) }}">
                                 <div class="card-body py-2 text-center px-0">
                                     <h3 class="h6 mt-1 font-title text-primary">{{ $item['title'] }}</h3>
                                 </div>
@@ -91,11 +91,11 @@
 
                     <!-- Product-->
                     <div>
-                        <div class="card product-card  shadow mb-3 pb-2"><a class="blog-entry-thumb" href="{{ route('catalog.route.blog', ['blog' => $item]) }}"><img class="card-img-top" loading="lazy" src="{{ $item['image'] }}" width="400" height="230" alt="{{ $item['title'] }}" style="width: 100%;height: 260px;object-fit: cover;margin:0 auto"></a>
+                        <div class="card product-card  shadow mb-3 pb-2"><a class="blog-entry-thumb" href="{{ \App\Helpers\LocaleHelper::route('catalog.route.blog', ['blog' => $item]) }}"><img class="card-img-top" loading="lazy" src="{{ $item['image'] }}" width="400" height="230" alt="{{ $item['title'] }}" style="width: 100%;height: 260px;object-fit: cover;margin:0 auto"></a>
                             <div class="card-body">
-                                <h2 class="h6 blog-entry-title"><a href="{{ route('catalog.route.blog', ['blog' => $item]) }}">{{ $item['title'] }}</a></h2>
+                                <h2 class="h6 blog-entry-title"><a href="{{ \App\Helpers\LocaleHelper::route('catalog.route.blog', ['blog' => $item]) }}">{{ $item['title'] }}</a></h2>
                                 <p class="fs-sm"> {!! Str::limit($item['short_description'], 180, ' ...') !!}</p>
-                                <div class="fs-xs text-nowrap"><a class="blog-entry-meta-link text-nowrap" href="#">{{ \Carbon\Carbon::make($item['created_at'])->locale('hr')->format('d.m.Y.') }}</a></div>
+                                <div class="fs-xs text-nowrap"><a class="blog-entry-meta-link text-nowrap" href="#">{{ \Carbon\Carbon::make($item['created_at'])->locale(app()->getLocale())->format('d.m.Y.') }}</a></div>
                             </div>
                         </div>
                     </div>

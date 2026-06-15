@@ -214,6 +214,9 @@ class Product extends Model
         $product->polica           = $this->request->polica;
         $product->description      = $this->cleanHTML($this->request->description);
         $product->slug             = $slug;
+        $product->name_en          = $this->request->name_en ?: null;
+        $product->description_en   = $this->cleanHTML($this->request->description_en);
+        $product->slug_en          = $this->resolveSlugEn();
 
         // Mutator sprema kao JSON array
         $product->tags             = $this->request->tags;
@@ -227,6 +230,8 @@ class Product extends Model
         $product->special_to       = $this->request->special_to ? Carbon::make($this->request->special_to) : null;
         $product->meta_title       = $this->request->meta_title ?: $this->request->name;
         $product->meta_description = $this->request->meta_description;
+        $product->meta_title_en    = $this->request->meta_title_en ?: null;
+        $product->meta_description_en = $this->request->meta_description_en ?: null;
         $product->pages            = $this->request->pages;
         $product->dimensions       = $this->request->dimensions;
         $product->origin           = $this->request->origin;
@@ -247,6 +252,7 @@ class Product extends Model
 
         $product->update([
             'url'             => ProductHelper::url($product),
+            'url_en'          => ProductHelper::urlEn($product),
             'category_string' => ProductHelper::categoryString($product),
         ]);
 
@@ -271,6 +277,9 @@ class Product extends Model
             'polica'           => $this->request->polica,
             'description'      => $this->cleanHTML($this->request->description),
             'slug'             => $slug,
+            'name_en'          => $this->request->name_en ?: null,
+            'description_en'   => $this->cleanHTML($this->request->description_en),
+            'slug_en'          => $this->resolveSlugEn('update'),
             'tags'             => $this->request->tags,
             'price'            => isset($this->request->price) ? $this->request->price : 0,
             'quantity'         => $this->request->quantity ?: 0,
@@ -281,6 +290,8 @@ class Product extends Model
             'special_to'       => $this->request->special_to ? Carbon::make($this->request->special_to) : null,
             'meta_title'       => $this->request->meta_title ?: $this->request->name,
             'meta_description' => $this->request->meta_description,
+            'meta_title_en'    => $this->request->meta_title_en ?: null,
+            'meta_description_en' => $this->request->meta_description_en ?: null,
             'pages'            => $this->request->pages,
             'dimensions'       => $this->request->dimensions,
             'origin'           => $this->request->origin,
@@ -300,6 +311,7 @@ class Product extends Model
 
             $this->update([
                 'url'             => ProductHelper::url($this),
+                'url_en'          => ProductHelper::urlEn($this),
                 'category_string' => ProductHelper::categoryString($this),
             ]);
 
@@ -506,7 +518,7 @@ class Product extends Model
         return false;
     }
 
-    private function resolveSlug(string $target = 'insert', Request $request = null): string
+    private function resolveSlug(string $target = 'insert', ?Request $request = null): string
     {
         $slug = null;
 
@@ -530,6 +542,36 @@ class Product extends Model
         }
 
         if (($cat_exist || $exist) && $target == 'insert') {
+            return $slug . '-' . time();
+        }
+
+        return $slug;
+    }
+
+    private function resolveSlugEn(string $target = 'insert'): ?string
+    {
+        $slug = trim((string) $this->request->input('slug_en', ''));
+
+        if ($slug === '' && $target === 'update') {
+            $slug = (string) $this->getRawOriginal('slug_en');
+        }
+
+        if ($slug === '' && $this->request->filled('name_en')) {
+            $slug = (string) $this->request->name_en;
+        }
+
+        if ($slug === '') {
+            return null;
+        }
+
+        $slug = Str::slug($slug);
+        $exist = $this->where('slug_en', $slug);
+
+        if ($target === 'update') {
+            $exist->where('id', '!=', $this->id);
+        }
+
+        if ($exist->exists() || Category::where('slug_en', $slug)->exists()) {
             return $slug . '-' . time();
         }
 

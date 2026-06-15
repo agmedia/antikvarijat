@@ -7,6 +7,8 @@ use App\Models\Back\Settings\Faq;
 use App\Models\Back\Settings\Settings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class ShippingController extends Controller
 {
@@ -37,13 +39,82 @@ class ShippingController extends Controller
      */
     public function store(Request $request)
     {
-        $updated = Settings::setListItem('shipping', 'list.' . $request->data['code'], $request->data);
+        $data = $this->normalizePayload($request->input('data', []));
+
+        $validator = Validator::make($data, [
+            'title' => ['required', 'string', 'max:191'],
+            'title_en' => ['nullable', 'string', 'max:191'],
+            'code' => ['required', 'string', 'alpha_dash', Rule::in($this->availableShippingCodes())],
+            'geo_zone' => ['nullable', 'integer', 'min:0'],
+            'status' => ['required', 'boolean'],
+            'sort_order' => ['nullable', 'integer', 'min:0'],
+            'data' => ['required', 'array'],
+            'data.price' => ['required', 'numeric', 'min:0'],
+            'data.time' => ['nullable', 'string', 'max:191'],
+            'data.time_en' => ['nullable', 'string', 'max:191'],
+            'data.short_description' => ['nullable', 'string', 'max:500'],
+            'data.short_description_en' => ['nullable', 'string', 'max:500'],
+            'data.description' => ['nullable', 'string'],
+            'data.description_en' => ['nullable', 'string'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['message' => $validator->errors()->first()], 422);
+        }
+
+        $updated = Settings::setListItem('shipping', 'list.' . $data['code'], $data);
 
         if ($updated) {
             return response()->json(['success' => 'Način dostave je uspješno snimljen.']);
         }
 
         return response()->json(['message' => 'Server error! Pokušajte ponovo ili kontaktirajte administratora!']);
+    }
+
+    private function normalizePayload(array $data): array
+    {
+        $data = $this->emptyStringsToNull($data);
+        $data['data'] = isset($data['data']) && is_array($data['data']) ? $data['data'] : [];
+
+        foreach (['title_en'] as $field) {
+            $data[$field] = $data[$field] ?? null;
+        }
+
+        foreach (['price', 'time', 'time_en', 'short_description', 'short_description_en', 'description', 'description_en'] as $field) {
+            $data['data'][$field] = $data['data'][$field] ?? null;
+        }
+
+        $data['status'] = filter_var($data['status'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $data['sort_order'] = $data['sort_order'] ?? 0;
+
+        return $data;
+    }
+
+    private function emptyStringsToNull(array $data): array
+    {
+        foreach ($data as $key => $value) {
+            if (is_array($value)) {
+                $data[$key] = $this->emptyStringsToNull($value);
+            } elseif ($value === '') {
+                $data[$key] = null;
+            }
+        }
+
+        return $data;
+    }
+
+    private function availableShippingCodes(): array
+    {
+        $codes = [];
+        $files = new \DirectoryIterator(resource_path('views/back/settings/app/shipping/modals'));
+
+        foreach ($files as $file) {
+            if ($file->isFile() && strpos($file->getFilename(), '.blade.php') !== false) {
+                $codes[] = str_replace('.blade.php', '', $file->getFilename());
+            }
+        }
+
+        return $codes;
     }
 
 
@@ -72,11 +143,11 @@ class ShippingController extends Controller
      */
     private function checkForNewFiles(): void
     {
-        $files = new \DirectoryIterator('./../resources/views/back/settings/app/shipping/modals');
+        $files = new \DirectoryIterator(resource_path('views/back/settings/app/shipping/modals'));
 
         foreach ($files as $file) {
-            if (strpos($file, 'blade.php') !== false) {
-                $filename = str_replace('.blade.php', '', $file);
+            if ($file->isFile() && strpos($file->getFilename(), '.blade.php') !== false) {
+                $filename = str_replace('.blade.php', '', $file->getFilename());
                 $exist = false;
 
                 $shipping = collect(Settings::get('shipping', 'list.' . $filename));
@@ -88,9 +159,13 @@ class ShippingController extends Controller
                 if ( ! $exist) {
                     $default_value = [
                         'title' => $filename,
+                        'title_en' => null,
                         'code' => $filename,
                         'data' => [
-                            'price' => 0
+                            'price' => 0,
+                            'time_en' => null,
+                            'short_description_en' => null,
+                            'description_en' => null,
                         ],
                         'geo_zone' => '0',
                         'sort_order' => 0,

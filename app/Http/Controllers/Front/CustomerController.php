@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Front;
 
 use App\Helpers\Country;
+use App\Helpers\LocaleHelper;
 use App\Helpers\Session\CheckoutSession;
 use App\Http\Controllers\Controller;
 use App\Models\Front\AgCart;
@@ -64,10 +65,10 @@ class CustomerController extends Controller
         $updated = $user->validateFrontRequest($request)->edit();
 
         if ($updated) {
-            return redirect()->route('moj-racun', ['user' => $updated])->with(['success' => 'Korisnik je uspješno snimljen!']);
+            return redirect(LocaleHelper::route('moj-racun', ['user' => $updated]))->with(['success' => __('front.account.saved')]);
         }
 
-        return redirect()->back()->with(['error' => 'Oops..! Greška prilikom snimanja.']);
+        return redirect()->back()->with(['error' => __('front.account.save_error')]);
     }
 
 }

@@ -117,6 +117,9 @@
                 sort_order: $('#cod-sort-order').val()
             };
 
+            item = collectPaymentLocaleFields('cod', item);
+
+
             axios.post("{{ route('api.payment.store') }}", {data: item})
             .then(response => {
                 console.log(response.data)

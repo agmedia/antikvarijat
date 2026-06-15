@@ -117,8 +117,10 @@ class WidgetGroupController extends Controller
      */
     private function flush(WidgetGroup $widget_group): void
     {
-        Cache::forget('wg.' . $widget_group->id);
-        Cache::forget('wg.' . $widget_group->slug);
+        foreach (config('localization.locales', ['hr' => [], 'en' => []]) as $locale => $settings) {
+            Cache::forget('wg.' . $locale . '.' . $widget_group->id);
+            Cache::forget('wg.' . $locale . '.' . $widget_group->slug);
+        }
     }
 
 

@@ -2,6 +2,7 @@
 
 namespace App\Models\Front\Checkout;
 
+use App\Helpers\LocaleHelper;
 use App\Helpers\Session\CheckoutSession;
 use App\Models\Back\Settings\Settings;
 use Illuminate\Http\Request;
@@ -37,7 +38,7 @@ class PaymentMethod
      *
      * @param string|null $code
      */
-    public function __construct(string $code = null)
+    public function __construct(?string $code = null)
     {
         $this->methods = $this->list();
         $this->response_methods = collect();
@@ -227,7 +228,7 @@ class PaymentMethod
      *
      * @return \Illuminate\Config\Repository|\Illuminate\Contracts\Foundation\Application|mixed
      */
-    private function providers(string $key = null)
+    private function providers(?string $key = null)
     {
         $providers = config('settings.payment.providers');
 
@@ -266,12 +267,12 @@ class PaymentMethod
             }
 
             $condition = new \Darryldecode\Cart\CartCondition(array(
-                'name' => 'Naknada za pouzeće',
+                'name' => __('front.email.total_payment'),
                 'type' => 'payment',
                 'target' => 'total', // this condition will be applied to cart's subtotal when getSubTotal() is called.
                 'value' => '+' . $value ?: 0,
                 'attributes' => [
-                    'description' => $payment->data->short_description ?: '',
+                    'description' => LocaleHelper::localizedSettingDataField($payment, 'short_description') ?: '',
                     'geo_zone' => $payment->geo_zone ?: 0
                 ]
             ));
