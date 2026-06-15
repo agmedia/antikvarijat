@@ -184,7 +184,7 @@
                 } else {
                     return errorToast.fire(response.data.message);
                 }
-            });
+            }).catch(handleSettingsSaveError);
         }
 
         /**

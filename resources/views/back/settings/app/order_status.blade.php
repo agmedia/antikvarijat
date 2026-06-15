@@ -229,7 +229,7 @@
                 } else {
                     return errorToast.fire(response.data.message);
                 }
-            });
+            }).catch(handleSettingsSaveError);
         }
 
         /**
@@ -256,7 +256,7 @@
                 } else {
                     return errorToast.fire(response.data.message);
                 }
-            });
+            }).catch(handleSettingsSaveError);
         }
 
         /**
@@ -271,6 +271,16 @@
 
             $('#status-color-select').val(item.color);
             $('#status-color-select').trigger('change');
+        }
+
+        function handleSettingsSaveError(error) {
+            let message = 'Server error! Pokušajte ponovo ili kontaktirajte administratora!';
+
+            if (error.response && error.response.data && error.response.data.message) {
+                message = error.response.data.message;
+            }
+
+            return errorToast.fire(message);
         }
     </script>
 @endpush

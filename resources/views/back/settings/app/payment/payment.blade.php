@@ -185,6 +185,16 @@
 
             return value.trim() === '' ? null : value;
         }
+
+        function handleSettingsSaveError(error) {
+            let message = 'Server error! Pokušajte ponovo ili kontaktirajte administratora!';
+
+            if (error.response && error.response.data && error.response.data.message) {
+                message = error.response.data.message;
+            }
+
+            return errorToast.fire(message);
+        }
     </script>
 
     @stack('payment-modal-js')
