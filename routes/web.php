@@ -22,6 +22,7 @@ use App\Http\Controllers\Back\Settings\App\PaymentController;
 use App\Http\Controllers\Back\Settings\App\ShippingController;
 use App\Http\Controllers\Back\Settings\App\TaxController;
 use App\Http\Controllers\Back\Settings\FaqController;
+use App\Http\Controllers\Back\Settings\GoogleApiController;
 use App\Http\Controllers\Back\Settings\HistoryController;
 use App\Http\Controllers\Back\Settings\PageController;
 use App\Http\Controllers\Back\Settings\QuickMenuController;
@@ -191,6 +192,11 @@ Route::middleware(['auth:sanctum', 'verified', 'no.customers'])->prefix('admin')
     Route::prefix('settings')->group(function () {
         // API
         Route::get('api', [ApiController::class, 'index'])->name('api.index');
+        Route::get('google-api', [GoogleApiController::class, 'index'])->name('google.api.index');
+        Route::post('google-api/translate/start', [GoogleApiController::class, 'start'])->name('google.api.translate.start');
+        Route::get('google-api/translate/{job}', [GoogleApiController::class, 'status'])->name('google.api.translate.status');
+        Route::post('google-api/translate/{job}/process', [GoogleApiController::class, 'process'])->name('google.api.translate.process');
+        Route::post('google-api/translate/{job}/cancel', [GoogleApiController::class, 'cancel'])->name('google.api.translate.cancel');
         // INFO PAGES
         Route::get('pages', [PageController::class, 'index'])->name('pages');
         Route::get('page/create', [PageController::class, 'create'])->name('pages.create');

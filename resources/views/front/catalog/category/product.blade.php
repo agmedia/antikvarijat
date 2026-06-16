@@ -3,6 +3,7 @@
     $isProductDetailContext = request()->routeIs('catalog.route') && request()->route('prod');
     $cardImageLoading = ($cardImageIndex !== null && $cardImageIndex < 8 && ! $isProductDetailContext) ? 'eager' : 'lazy';
     $cardImageFetchPriority = ($cardImageIndex !== null && $cardImageIndex < 2 && ! $isProductDetailContext) ? 'high' : 'auto';
+    $productMeta = (isset($publisher) && $publisher && $product->publisher) ? $product->publisher : $product->author;
 @endphp
 
 <div class="card product-card shadow mb-2 pb-4">
@@ -26,8 +27,8 @@
     <div class="card-body pt-2">
         <div class="d-flex flex-wrap justify-content-between align-items-start pb-2">
             <div class="text-muted fs-xs me-1">
-                @if ($product->author)
-                    <a class="product-meta fw-medium" href="{{ url($product->author->url) }}">{{ $product->author->title }}</a>
+                @if ($productMeta)
+                    <a class="product-meta fw-medium" href="{{ url($productMeta->url) }}">{{ $productMeta->title }}</a>
                 @else
                     <a class="product-meta fw-medium" href="#">{{ __('front.product.unknown') }}</a>
                 @endif

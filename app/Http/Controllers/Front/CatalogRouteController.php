@@ -183,7 +183,7 @@ class CatalogRouteController extends Controller
     public function author(Request $request, ?Author $author = null, ?Category $cat = null, ?Category $subcat = null)
     {
         if (!$author) {
-            $letters = Helper::resolveCache('authors')->remember('letters', config('cache.life'), function () {
+            $letters = Helper::resolveCache('authors')->remember('authors.letters', config('cache.life'), function () {
                 return Author::letters();
             });
             $letter = $this->checkLetter($letters);
@@ -194,8 +194,8 @@ class CatalogRouteController extends Controller
 
             $currentPage = request()->get('page', 1);
 
-            $authors = Helper::resolveCache('authors')->remember($letter . '.' . $currentPage, config('cache.life'), function () use ($letter) {
-                return Author::query()->select('id', 'title', 'url')
+            $authors = Helper::resolveCache('authors')->remember('authors.index.' . $letter . '.' . $currentPage, config('cache.life'), function () use ($letter) {
+                return Author::query()->select('id', 'title', 'title_en', 'slug', 'slug_en', 'url', 'url_en')
                     ->where('status', 1)
                     ->where('letter', $letter)
                     ->orderBy('title')
@@ -237,7 +237,7 @@ class CatalogRouteController extends Controller
     public function publisher(Request $request, ?Publisher $publisher = null, ?Category $cat = null, ?Category $subcat = null)
     {
         if (!$publisher) {
-            $letters = Helper::resolveCache('publishers')->remember('letters', config('cache.life'), function () {
+            $letters = Helper::resolveCache('publishers')->remember('publishers.letters', config('cache.life'), function () {
                 return Publisher::letters();
             });
             $letter = $this->checkLetter($letters);
@@ -248,8 +248,8 @@ class CatalogRouteController extends Controller
 
             $currentPage = request()->get('page', 1);
 
-            $publishers = Helper::resolveCache('publishers')->remember($letter . '.' . $currentPage, config('cache.life'), function () use ($letter) {
-                return Publisher::query()->select('id', 'title', 'url')
+            $publishers = Helper::resolveCache('publishers')->remember('publishers.index.' . $letter . '.' . $currentPage, config('cache.life'), function () use ($letter) {
+                return Publisher::query()->select('id', 'title', 'title_en', 'slug', 'slug_en', 'url', 'url_en')
                     ->where('status', 1)
                     ->where('letter', $letter)
                     ->orderBy('title')
@@ -574,6 +574,7 @@ class CatalogRouteController extends Controller
             ->select([
                 'id',
                 'author_id',
+                'publisher_id',
                 'action_id',
                 'name',
                 'name_en',
@@ -590,6 +591,7 @@ class CatalogRouteController extends Controller
             ])
             ->with([
                 'author:id,title,title_en,slug,slug_en,url,url_en',
+                'publisher:id,title,title_en,slug,slug_en,url,url_en',
                 'categories:id,parent_id,title,title_en,group,slug,slug_en',
                 'action:id,status,coupon',
             ])
@@ -684,6 +686,10 @@ class CatalogRouteController extends Controller
                 'author' => $product->author ? [
                     'title' => $product->author->title,
                     'url' => $product->author->url,
+                ] : null,
+                'publisher' => $product->publisher ? [
+                    'title' => $product->publisher->title,
+                    'url' => $product->publisher->url,
                 ] : null,
             ];
         })->values()->all();
@@ -893,10 +899,14 @@ class CatalogRouteController extends Controller
         }
 
         return Author::query()
-            ->whereIn('slug', $items)
+            ->where(function (Builder $query) use ($items) {
+                $query->whereIn('slug', $items)->orWhereIn('slug_en', $items);
+            })
             ->get()
             ->sortBy(function (Author $author) use ($items) {
-                return $items->search($author->slug);
+                $position = $items->search($author->slug);
+
+                return $position === false ? $items->search($author->slug_en) : $position;
             })
             ->values()
             ->all();
@@ -911,10 +921,14 @@ class CatalogRouteController extends Controller
         }
 
         return Publisher::query()
-            ->whereIn('slug', $items)
+            ->where(function (Builder $query) use ($items) {
+                $query->whereIn('slug', $items)->orWhereIn('slug_en', $items);
+            })
             ->get()
             ->sortBy(function (Publisher $publisher) use ($items) {
-                return $items->search($publisher->slug);
+                $position = $items->search($publisher->slug);
+
+                return $position === false ? $items->search($publisher->slug_en) : $position;
             })
             ->values()
             ->all();

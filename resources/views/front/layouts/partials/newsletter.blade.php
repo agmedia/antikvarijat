@@ -28,7 +28,7 @@
                     <div class="row g-2">
                         <div class="col-md-8">
                             <label class="form-label mb-1 fs-sm" for="newsletter_email">{{ __('front.newsletter.email') }}</label>
-                            <input class="form-control bg-white" type="email" id="newsletter_email" name="email" value="{{ old('email') }}" placeholder="ime.prezime@email.com" required>
+                            <input class="form-control bg-white" type="email" id="newsletter_email" name="email" value="{{ old('email') }}" placeholder="{{ __('front.newsletter.email_placeholder') }}" required>
                         </div>
                         <div class="col-md-4 d-flex align-items-end">
                             <button class="btn btn-primary w-100" type="submit">{{ __('front.newsletter.submit') }}</button>

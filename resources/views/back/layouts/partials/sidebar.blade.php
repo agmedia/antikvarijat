@@ -172,6 +172,11 @@
                            </a>
                         </li>
                         <li class="nav-main-item">
+                            <a class="nav-main-link{{ request()->routeIs(['google.api.*']) ? ' active' : '' }}" href="{{ route('google.api.index') }}">
+                                <span class="nav-main-link-name">Google API</span>
+                            </a>
+                        </li>
+                        <li class="nav-main-item">
                             <a class="nav-main-link{{ request()->routeIs(['pages', 'pages.*']) ? ' active' : '' }}" href="{{ route('pages') }}">
                                 <span class="nav-main-link-name">Info Stranice</span>
                             </a>

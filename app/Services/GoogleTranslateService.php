@@ -15,7 +15,7 @@ class GoogleTranslateService
     /**
      * Translate one plain-text string.
      */
-    public function translateText(string $text, ?string $source = null, ?string $target = null): array
+    public function translateText(string $text, ?string $source = null, ?string $target = null, string $format = 'text'): array
     {
         $text = trim($text);
 
@@ -35,7 +35,7 @@ class GoogleTranslateService
         $provider = null;
 
         foreach ($chunks as $chunk) {
-            $response = $this->translateChunk($chunk, $source, $target);
+            $response = $this->translateChunk($chunk, $source, $target, $this->normalizeFormat($format));
 
             if (! $response['ok']) {
                 return $response;
@@ -70,13 +70,23 @@ class GoogleTranslateService
         return trim((string) config('services.google_translate.target', 'en')) ?: 'en';
     }
 
+    public function hasOfficialApiKey(): bool
+    {
+        return $this->getApiKey() !== '';
+    }
+
+    public function isPublicEndpointEnabled(): bool
+    {
+        return $this->usePublicEndpoint();
+    }
+
     /**
      * @return array
      */
-    private function translateChunk(string $text, string $source, string $target): array
+    private function translateChunk(string $text, string $source, string $target, string $format): array
     {
         if ($this->getApiKey() !== '') {
-            return $this->translateWithOfficialApi($text, $source, $target);
+            return $this->translateWithOfficialApi($text, $source, $target, $format);
         }
 
         if ($this->usePublicEndpoint()) {
@@ -92,7 +102,7 @@ class GoogleTranslateService
     /**
      * @return array
      */
-    private function translateWithOfficialApi(string $text, string $source, string $target): array
+    private function translateWithOfficialApi(string $text, string $source, string $target, string $format): array
     {
         try {
             $response = Http::timeout(20)
@@ -102,7 +112,7 @@ class GoogleTranslateService
                     'q' => $text,
                     'source' => $source,
                     'target' => $target,
-                    'format' => 'text',
+                    'format' => $format,
                 ]);
 
             if (! $response->successful()) {
@@ -114,7 +124,7 @@ class GoogleTranslateService
 
             return [
                 'ok' => true,
-                'text' => (string) $response->json('data.translations.0.translatedText', ''),
+                'text' => html_entity_decode((string) $response->json('data.translations.0.translatedText', ''), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
                 'provider' => 'google_official',
             ];
         } catch (\Throwable $e) {
@@ -255,5 +265,10 @@ class GoogleTranslateService
     private function usePublicEndpoint(): bool
     {
         return (bool) config('services.google_translate.use_public_endpoint', true);
+    }
+
+    private function normalizeFormat(string $format): string
+    {
+        return in_array($format, ['text', 'html'], true) ? $format : 'text';
     }
 }

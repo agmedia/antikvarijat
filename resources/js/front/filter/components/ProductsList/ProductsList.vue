@@ -44,7 +44,7 @@
                     <div class="card-body pt-2">
                         <div class="d-flex flex-wrap justify-content-between align-items-start pb-2">
                             <div class="text-muted fs-xs me-1">
-                                <a class="product-meta fw-medium" :href="product.author ? (origin + product.author.url) : '#'">{{ product.author ? product.author.title : labels.unknown }}</a>
+                                <a class="product-meta fw-medium" :href="productMeta(product) ? (origin + productMeta(product).url) : '#'">{{ productMeta(product) ? productMeta(product).title : labels.unknown }}</a>
                             </div>
 
                         </div>
@@ -387,6 +387,14 @@
 
             formatNumber(number) {
                 return Number(number).toLocaleString(this.numberLocale);
+            },
+
+            productMeta(product) {
+                if (this.publisher && product.publisher) {
+                    return product.publisher;
+                }
+
+                return product.author || null;
             },
 
             setZeroState() {

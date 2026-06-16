@@ -36,8 +36,8 @@ class FilterController extends Controller
             ? Product::query()->active()->where('sku', $searchTerm)->pluck('id')
             : collect();
 
-        $author = $params['author'] ? Author::where('slug', $params['author'])->first() : null;
-        $publisher = $params['publisher'] ? Publisher::where('slug', $params['publisher'])->first() : null;
+        $author = !empty($params['author']) ? $this->resolveAuthorBySlug($params['author']) : null;
+        $publisher = !empty($params['publisher']) ? $this->resolvePublisherBySlug($params['publisher']) : null;
 
         if ( ! $params['cat'] && ! $params['subcat']) {
             // Ako je normal kategorija
@@ -58,13 +58,13 @@ class FilterController extends Controller
             }
 
             // Ako je autor
-            if ( ! $params['group'] && $params['author']) {
+            if ( ! $params['group'] && !empty($params['author']) && $author) {
                 $a_cats = $author->categories();
                 $response = $this->resolveCategoryArray($a_cats, 'author', $author);
             }
 
             // Ako je nakladnik
-            if ( ! $params['group'] && $params['publisher']) {
+            if ( ! $params['group'] && !empty($params['publisher']) && $publisher) {
                 $a_cats = $publisher->categories();
                 $response = $this->resolveCategoryArray($a_cats, 'publisher', $publisher);
             }
@@ -90,14 +90,14 @@ class FilterController extends Controller
             }
 
             // Ako je autor
-            if ( ! $params['group'] && $params['author']) {
-                $a_cats = (new Author())->categories($cat['id']);
+            if ( ! $params['group'] && !empty($params['author']) && $author) {
+                $a_cats = $author->categories($cat['id']);
                 $response = $this->resolveCategoryArray($a_cats, 'author', $author, $cat['slug']);
             }
 
             // Ako je nakladnik
-            if ( ! $params['group'] && $params['publisher']) {
-                $a_cats = (new Publisher())->categories($cat['id']);
+            if ( ! $params['group'] && !empty($params['publisher']) && $publisher) {
+                $a_cats = $publisher->categories($cat['id']);
                 $response = $this->resolveCategoryArray($a_cats, 'publisher', $publisher, $cat['slug']);
             }
         }
@@ -217,19 +217,22 @@ class FilterController extends Controller
         }
 
         $params = $request->input('params');
+        $authors = [];
+        $publishers = [];
+
         if (isset($params['autor']) && $params['autor']) {
             if (strpos($params['autor'], '+') !== false) {
                 $arr = explode('+', $params['autor']);
 
                 foreach ($arr as $item) {
-                    $_author = Author::where('slug', $item)->first();
-                    $this->authors[] = $_author;
+                    $authors[] = $this->resolveAuthorBySlug($item);
                 }
 
             } else {
-                $_author = Author::where('slug', $params['autor'])->first();
-                $this->authors[] = $_author;
+                $authors[] = $this->resolveAuthorBySlug($params['autor']);
             }
+
+            $authors = array_values(array_filter($authors));
         }
 
         if (isset($params['nakladnik']) && $params['nakladnik']) {
@@ -237,14 +240,14 @@ class FilterController extends Controller
                 $arr = explode('+', $params['nakladnik']);
 
                 foreach ($arr as $item) {
-                    $_publisher = Publisher::where('slug', $item)->first();
-                    $this->publishers[] = $_publisher;
+                    $publishers[] = $this->resolvePublisherBySlug($item);
                 }
 
             } else {
-                $_publisher = Publisher::where('slug', $params['nakladnik'])->first();
-                $this->publishers[] = $_publisher;
+                $publishers[] = $this->resolvePublisherBySlug($params['nakladnik']);
             }
+
+            $publishers = array_values(array_filter($publishers));
         }
 
         $request_data = [];
@@ -266,11 +269,11 @@ class FilterController extends Controller
         }
 
         if (isset($params['autor']) && $params['autor']) {
-            $request_data['autor'] = $this->authors;
+            $request_data['autor'] = $authors;
         }
 
         if (isset($params['nakladnik']) && $params['nakladnik']) {
-            $request_data['nakladnik'] = $this->publishers;
+            $request_data['nakladnik'] = $publishers;
         }
 
         if (isset($params['start']) && $params['start']) {
@@ -297,6 +300,7 @@ class FilterController extends Controller
             ->select([
                 'id',
                 'author_id',
+                'publisher_id',
                 'action_id',
                 'name',
                 'name_en',
@@ -313,6 +317,7 @@ class FilterController extends Controller
             ])
             ->with([
                 'author:id,title,title_en,slug,slug_en,url,url_en',
+                'publisher:id,title,title_en,slug,slug_en,url,url_en',
                 'categories:id,parent_id,title,title_en,group,slug,slug_en',
                 'action:id,status,coupon',
             ])
@@ -344,6 +349,10 @@ class FilterController extends Controller
                 'author' => $product->author ? [
                     'title' => $product->author->title,
                     'url' => $product->author->url,
+                ] : null,
+                'publisher' => $product->publisher ? [
+                    'title' => $product->publisher->title,
+                    'url' => $product->publisher->url,
                 ] : null,
             ];
         });
@@ -411,7 +420,7 @@ class FilterController extends Controller
 
         // Featured fallback (izvan konteksta) – također filtrirani count + limit 15
         return response()->json(
-            Helper::resolveCache('authors')->remember('featured', config('cache.life'), function () {
+            Helper::resolveCache('authors')->remember('authors.featured', config('cache.life'), function () {
                 return Author::query()->active()
                     ->featured()
                     ->basicData()
@@ -458,7 +467,7 @@ class FilterController extends Controller
         }
 
         return response()->json(
-            Helper::resolveCache('publishers')->remember('featured', config('cache.life'), function () {
+            Helper::resolveCache('publishers')->remember('publishers.featured', config('cache.life'), function () {
                 return Publisher::active()
                     ->featured()
                     ->basicData()
@@ -479,6 +488,22 @@ class FilterController extends Controller
             app()->setLocale(LocaleHelper::ENGLISH_LOCALE);
             config(['app.locale' => LocaleHelper::ENGLISH_LOCALE]);
         }
+    }
+
+    private function resolveAuthorBySlug(string $slug): ?Author
+    {
+        return Author::query()
+            ->where('slug', $slug)
+            ->orWhere('slug_en', $slug)
+            ->first();
+    }
+
+    private function resolvePublisherBySlug(string $slug): ?Publisher
+    {
+        return Publisher::query()
+            ->where('slug', $slug)
+            ->orWhere('slug_en', $slug)
+            ->first();
     }
 
 

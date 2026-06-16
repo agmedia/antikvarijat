@@ -358,6 +358,7 @@ return [
         'title' => 'For book lovers who enjoy finding the rare',
         'subtitle' => 'New titles, special copies and quiet recommendations from the antiquarian bookshop.',
         'email' => 'Email address',
+        'email_placeholder' => 'name.surname@email.com',
         'submit' => 'Subscribe',
         'gdpr' => 'I consent to receiving the newsletter and data processing in accordance with GDPR.',
         'validation' => 'Check your email and confirm GDPR consent.',

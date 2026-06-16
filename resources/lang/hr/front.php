@@ -358,6 +358,7 @@ return [
         'title' => 'Za knjigoljupce koji vole pronaći rijetko',
         'subtitle' => 'Novi naslovi, posebni primjerci i tihe preporuke iz antikvarijata.',
         'email' => 'E-mail adresa',
+        'email_placeholder' => 'ime.prezime@email.com',
         'submit' => 'Prijavi me',
         'gdpr' => 'Dajem privolu za primanje newslettera i obradu podataka u skladu s GDPR-om.',
         'validation' => 'Provjerite email i potvrdite GDPR privolu.',
