@@ -211,6 +211,10 @@ class CatalogRouteController extends Controller
 
         $letter = null;
 
+        if (! $author->status) {
+            abort(404);
+        }
+
         // FILTRIRANI COUNT ZA CAT I SUBCAT
         if ($cat) {
             $cat->loadCount(['products as visible_products_count' => function ($q) {
@@ -264,6 +268,10 @@ class CatalogRouteController extends Controller
         }
 
         $letter = null;
+
+        if (! $publisher->status) {
+            abort(404);
+        }
 
         // FILTRIRANI COUNT ZA CAT I SUBCAT
         if ($cat) {

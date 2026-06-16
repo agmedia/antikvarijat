@@ -8,6 +8,8 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -202,20 +204,45 @@ class Author extends Model
     {
         $log_start = microtime(true);
 
-        $total = Author::query()->pluck('id');
+        $activated = Author::query()
+            ->where('status', 0)
+            ->whereIn('id', self::visibleProductAuthorIds())
+            ->update(['status' => 1]);
 
-        $authors_with = Author::query()->whereHas('products', function ($query) {
-            $query->where('status', 1);
-        })->pluck('id');
+        $deactivated = Author::query()
+            ->where('status', 1)
+            ->whereNotIn('id', self::visibleProductAuthorIds())
+            ->update(['status' => 0]);
 
-        $authors_without = $total->diff($authors_with);
-
-        Author::query()->whereIn('id', $authors_with)->update(['status' => 1]);
-        Author::query()->whereIn('id', $authors_without)->update(['status' => 0]);
-
+        self::flushIndexCache();
         $log_end = microtime(true);
-        Log::info('__Check Author Statuses - Total Execution Time: ' . number_format(($log_end - $log_start), 2, ',', '.') . ' sec.');
+
+        Log::info(
+            '__Check Author Statuses - Activated: ' . $activated .
+            ' Deactivated: ' . $deactivated .
+            ' Total Execution Time: ' . number_format(($log_end - $log_start), 2, ',', '.') . ' sec.'
+        );
 
         return 1;
+    }
+
+    private static function visibleProductAuthorIds()
+    {
+        return DB::table('products')
+            ->select('author_id')
+            ->where('author_id', '>', 0)
+            ->where('status', 1)
+            ->where('quantity', '>', 0)
+            ->where('price', '!=', 0)
+            ->distinct();
+    }
+
+    private static function flushIndexCache(): void
+    {
+        if (app()->environment('local')) {
+            return;
+        }
+
+        Cache::tags(['authors'])->flush();
     }
 }

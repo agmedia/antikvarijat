@@ -7,6 +7,8 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -187,20 +189,45 @@ class Publisher extends Model
     {
         $log_start = microtime(true);
 
-        $total = Publisher::query()->pluck('id');
+        $activated = Publisher::query()
+            ->where('status', 0)
+            ->whereIn('id', self::visibleProductPublisherIds())
+            ->update(['status' => 1]);
 
-        $pub_with = Publisher::query()->whereHas('products', function ($query) {
-            $query->where('status', 1);
-        })->pluck('id');
+        $deactivated = Publisher::query()
+            ->where('status', 1)
+            ->whereNotIn('id', self::visibleProductPublisherIds())
+            ->update(['status' => 0]);
 
-        $pub_without = $total->diff($pub_with);
-
-        Publisher::query()->whereIn('id', $pub_with)->update(['status' => 1]);
-        Publisher::query()->whereIn('id', $pub_without)->update(['status' => 0]);
-
+        self::flushIndexCache();
         $log_end = microtime(true);
-        Log::info('__Check Publisher Statuses - Total Execution Time: ' . number_format(($log_end - $log_start), 2, ',', '.') . ' sec.');
+
+        Log::info(
+            '__Check Publisher Statuses - Activated: ' . $activated .
+            ' Deactivated: ' . $deactivated .
+            ' Total Execution Time: ' . number_format(($log_end - $log_start), 2, ',', '.') . ' sec.'
+        );
 
         return 1;
+    }
+
+    private static function visibleProductPublisherIds()
+    {
+        return DB::table('products')
+            ->select('publisher_id')
+            ->where('publisher_id', '>', 0)
+            ->where('status', 1)
+            ->where('quantity', '>', 0)
+            ->where('price', '!=', 0)
+            ->distinct();
+    }
+
+    private static function flushIndexCache(): void
+    {
+        if (app()->environment('local')) {
+            return;
+        }
+
+        Cache::tags(['publishers'])->flush();
     }
 }
