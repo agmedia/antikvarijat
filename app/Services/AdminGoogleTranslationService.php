@@ -671,6 +671,10 @@ class AdminGoogleTranslationService
             $query->where('status', 1);
         }
 
+        if ($targetKey === 'products' && Schema::hasColumn('products', 'quantity')) {
+            $query->where('quantity', '>', 0);
+        }
+
         if ($targetKey === 'pages') {
             $query->where('group', 'page');
         }
@@ -725,7 +729,7 @@ class AdminGoogleTranslationService
             'products' => [
                 'type' => 'model',
                 'label' => 'Artikli',
-                'description' => 'Naziv, opis i SEO polja samo aktivnih artikala.',
+                'description' => 'Naziv, opis i SEO polja samo aktivnih dostupnih artikala.',
                 'model' => Product::class,
                 'table' => 'products',
                 'default' => ['description_en'],
