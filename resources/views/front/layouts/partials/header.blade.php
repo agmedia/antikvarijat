@@ -1,14 +1,14 @@
 <header class="shadow-sm navbar-sticky bg-dark">
     <!-- GORNJI RED: logo + VIDLJIV SEARCH + toolbar -->
-    <div class="navbar navbar-expand-lg navbar-light bg-light paper-white-bck">
-        <div class="container">
+    <div class="navbar navbar-expand-lg navbar-light bg-light paper-white-bck front-header-main">
+        <div class="container front-header-row">
             @php($isEnglish = app()->getLocale() === \App\Helpers\LocaleHelper::ENGLISH_LOCALE)
 
             <!-- Logo -->
             <a class="navbar-brand d-none d-sm-block flex-shrink-0 me-3 p-0" href="{{ \App\Helpers\LocaleHelper::route('index') }}">
                 <img src="{{ asset('media/img/logodark.svg') }}" width="180" height="76" alt="Antikvarijat Biblos">
             </a>
-            <a class="navbar-brand d-sm-none me-2 p-0" href="{{ \App\Helpers\LocaleHelper::route('index') }}">
+            <a class="navbar-brand d-sm-none me-2 p-0 front-header-logo-mobile" href="{{ \App\Helpers\LocaleHelper::route('index') }}">
                 <img src="{{ asset('media/img/logodark.svg') }}" width="140" alt="Antikvarijat Biblos">
             </a>
 
@@ -39,18 +39,18 @@
             </form>--}}
 
             <!-- Toolbar -->
-            <div class="navbar-toolbar d-flex align-items-center">
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapseMain">
+            <div class="navbar-toolbar d-flex align-items-center front-header-toolbar">
+                <button class="navbar-toggler front-header-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapseMain">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
-                <a class="navbar-tool ms-3" href="{{ route('login') }}">
+                <a class="navbar-tool ms-3 front-header-account" href="{{ route('login') }}">
                     <span class="navbar-tool-tooltip">{{ __('front.nav.account') }}</span>
                     <div class="navbar-tool-icon-box"><i class="navbar-tool-icon ci-user"></i></div>
                 </a>
 
-                <div class="dropdown ms-3">
-                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <div class="dropdown ms-3 front-header-language">
+                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle front-language-toggle" type="button" data-bs-toggle="dropdown">
                         {{ strtoupper(app()->getLocale()) }}
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">
@@ -64,7 +64,7 @@
                     </ul>
                 </div>
 
-                <div class="ms-3" style="width:46px">
+                <div class="ms-3 front-header-cart">
                     <cart-nav-icon carturl="{{ \App\Helpers\LocaleHelper::route('kosarica') }}" checkouturl="{{ \App\Helpers\LocaleHelper::route('naplata') }}"></cart-nav-icon>
                 </div>
             </div>

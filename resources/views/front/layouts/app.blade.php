@@ -245,9 +245,71 @@
 
     @stack('css_after')
 
-    <style>
-        [v-cloak] { display:none !important; }
-    </style>
+	    <style>
+	        [v-cloak] { display:none !important; }
+
+	        @media (max-width: 575.98px) {
+	            .front-header-main {
+	                flex-wrap: nowrap;
+	                padding-top: .5rem;
+	                padding-bottom: .5rem;
+	            }
+
+	            .front-header-row {
+	                flex-wrap: nowrap !important;
+	                gap: .375rem;
+	                padding-right: .75rem;
+	                padding-left: .75rem;
+	            }
+
+	            .front-header-logo-mobile {
+	                flex: 1 1 auto;
+	                min-width: 0;
+	                margin-right: .25rem !important;
+	            }
+
+	            .front-header-logo-mobile > img {
+	                width: min(120px, 34vw);
+	                height: auto;
+	            }
+
+	            .front-header-toolbar {
+	                flex: 0 0 auto;
+	                gap: .25rem;
+	                margin-left: auto;
+	                white-space: nowrap;
+	            }
+
+	            .front-header-toolbar .ms-3 {
+	                margin-left: 0 !important;
+	            }
+
+	            .front-header-toggler {
+	                padding: .5rem;
+	            }
+
+	            .front-header-toolbar .navbar-tool-icon-box {
+	                width: 2.25rem;
+	                height: 2.25rem;
+	                line-height: 2.25rem;
+	            }
+
+	            .front-header-toolbar .navbar-tool-icon {
+	                font-size: 1.1rem;
+	                line-height: 2.25rem;
+	            }
+
+	            .front-language-toggle {
+	                min-width: 3.15rem;
+	                padding: .35rem .45rem;
+	                line-height: 1.1;
+	            }
+
+	            .front-header-cart {
+	                width: 2.25rem;
+	            }
+	        }
+	    </style>
 
 
 
