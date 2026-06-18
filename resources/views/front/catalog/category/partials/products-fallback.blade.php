@@ -6,10 +6,23 @@
                     <a class="btn btn-primary dropdown-toggle collapsed" href="#shop-sidebar" data-bs-toggle="collapse" aria-expanded="false"><i class="ci-filter-alt"></i></a>
                 </div>
                 <div class="d-flex align-items-center flex-nowrap me-3 me-sm-4 pb-3">
+                    @php
+                        $isRootBooksListing = in_array(\Illuminate\Support\Str::slug((string) ($group ?? '')), ['knjige', 'books'], true)
+                            && empty($cat)
+                            && empty($subcat)
+                            && empty($author)
+                            && empty($publisher)
+                            && ! request()->filled('autor')
+                            && ! request()->filled('nakladnik')
+                            && ! request()->filled('start')
+                            && ! request()->filled('end')
+                            && ! request()->filled(config('settings.search_keyword', 'pojam'));
+                        $currentSort = request()->get('sort') ?: ($isRootBooksListing ? 'novi' : '');
+                    @endphp
                     <select class="form-select" aria-label="{{ __('front.js.products.sort') }}" disabled>
-                        <option value="">{{ __('front.js.products.sort') }}</option>
+                        <option value="" disabled>{{ __('front.js.products.sort') }}</option>
                         @foreach (config('settings.sorting_list') as $item)
-                            <option value="{{ $item['value'] }}" @selected(request()->get('sort') == $item['value'])>{{ $item['title'] }}</option>
+                            <option value="{{ $item['value'] }}" @selected($currentSort == $item['value'])>{{ $item['title'] }}</option>
                         @endforeach
                     </select>
                 </div>

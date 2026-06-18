@@ -670,33 +670,48 @@ class Product extends Model
             });
         }
 
-        if ($request->has('sort')) {
-            $sort = $request->input('sort');
+        $sort = $request->input('sort');
 
-            if ($sort == 'novi') {
-                $query->orderBy('created_at', 'desc');
-            }
-
-            if ($sort == 'price_up') {
-                $query->orderBy('price');
-            }
-
-            if ($sort == 'price_down') {
-                $query->orderBy('price', 'desc');
-            }
-
-            if ($sort == 'naziv_up') {
-                $query->orderBy('name');
-            }
-
-            if ($sort == 'naziv_down') {
-                $query->orderBy('name', 'desc');
-            }
-        } else {
-            $query->orderBy('updated_at', 'desc');
+        if (is_string($sort) && $sort !== '' && $this->applyCatalogSort($query, $sort)) {
+            return $query;
         }
 
+        if ($request->boolean('_default_sort_latest')) {
+            $this->applyCatalogSort($query, 'novi');
+
+            return $query;
+        }
+
+        $query->orderBy('updated_at', 'desc');
+
         return $query;
+    }
+
+    private function applyCatalogSort(Builder $query, string $sort): bool
+    {
+        switch ($sort) {
+            case 'price_up':
+                $query->orderBy('price');
+                return true;
+
+            case 'price_down':
+                $query->orderBy('price', 'desc');
+                return true;
+
+            case 'naziv_up':
+                $query->orderBy('name');
+                return true;
+
+            case 'naziv_down':
+                $query->orderBy('name', 'desc');
+                return true;
+
+            case 'novi':
+                $query->orderBy('created_at', 'desc')->orderBy('id', 'desc');
+                return true;
+        }
+
+        return false;
     }
 
 

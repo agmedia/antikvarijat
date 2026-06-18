@@ -294,6 +294,11 @@ class FilterController extends Controller
 
         $page = max((int) $request->input('page', 1), 1);
         $request_data['page'] = $page;
+
+        if ($this->shouldDefaultBooksRootToLatest($request_data)) {
+            $request_data['_default_sort_latest'] = true;
+        }
+
         $request = new Request($request_data);
 
         $products = (new Product())->filter($request)
@@ -358,6 +363,23 @@ class FilterController extends Controller
         });
 
         return response()->json($products);
+    }
+
+    private function shouldDefaultBooksRootToLatest(array $requestData): bool
+    {
+        $group = Str::slug((string) ($requestData['group'] ?? ''));
+
+        if (! in_array($group, ['knjige', 'books'], true)) {
+            return false;
+        }
+
+        foreach (['ids', 'cat', 'subcat', 'autor', 'nakladnik', 'start', 'end', 'sort', config('settings.search_keyword', 'pojam')] as $key) {
+            if (!empty($requestData[$key])) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private function resolveCurrencyPrice($currency, $price, bool $formatted = false): ?string

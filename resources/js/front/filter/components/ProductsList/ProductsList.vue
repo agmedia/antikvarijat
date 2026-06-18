@@ -7,7 +7,7 @@
                 <div class="d-flex align-items-center flex-nowrap me-3 me-sm-4 pb-3">
                     <label class="text-light opacity-75 text-nowrap fs-sm me-2 d-none d-sm-block" for="sorting"></label>
                     <select class="form-select" v-model="sorting">
-                        <option value="">{{ labels.sort }}</option>
+                        <option value="" disabled>{{ labels.sort }}</option>
                         <option value="novi">{{ labels.newest }}</option>
                         <option value="price_up">{{ labels.lowestPrice }}</option>
                         <option value="price_down">{{ labels.highestPrice }}</option>
@@ -299,7 +299,7 @@
                     end: this.end,
                     autor: this.autor,
                     nakladnik: this.nakladnik,
-                    sort: this.sorting,
+                    sort: this.sorting && this.sorting !== this.defaultSortForState() ? this.sorting : '',
                     pojam: this.search_query,
                     page: this.page > 1 ? this.page : ''
                 };
@@ -320,12 +320,36 @@
                 this.autor = params.query.autor ? params.query.autor : '';
                 this.nakladnik = params.query.nakladnik ? params.query.nakladnik : '';
                 this.page = params.query.page ? Number(params.query.page) : 1;
-                this.sorting = params.query.sort ? params.query.sort : '';
                 this.search_query = params.query.pojam ? params.query.pojam : '';
+                this.sorting = params.query.sort ? params.query.sort : this.defaultSortForState();
             },
 
             loadProductsForCurrentState() {
                 this.requestProducts(this.page || 1);
+            },
+
+            defaultSortForState() {
+                return this.isRootBooksListing() ? 'novi' : '';
+            },
+
+            isRootBooksListing() {
+                const group = this.normalizeGroup(this.group);
+                const hasBooksGroup = group === 'knjige' || group === 'books';
+                const hasRouteTarget = this.cat || this.subcat || this.author || this.publisher || this.ids;
+                const hasActiveFilters = this.autor || this.nakladnik || this.start || this.end || this.search_query;
+
+                return hasBooksGroup && !hasRouteTarget && !hasActiveFilters;
+            },
+
+            normalizeGroup(group) {
+                return (group || '')
+                    .toString()
+                    .trim()
+                    .toLowerCase()
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .replace(/[^a-z0-9]+/g, '-')
+                    .replace(/^-+|-+$/g, '');
             },
 
             /**
@@ -342,7 +366,7 @@
                     nakladnik: this.nakladnik,
                     start: this.start,
                     end: this.end,
-                    sort: this.sorting,
+                    sort: this.sorting || this.defaultSortForState(),
                     pojam: this.search_query,
                     locale: this.locale
                 };

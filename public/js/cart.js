@@ -3201,7 +3201,7 @@ function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
         end: this.end,
         autor: this.autor,
         nakladnik: this.nakladnik,
-        sort: this.sorting,
+        sort: this.sorting && this.sorting !== this.defaultSortForState() ? this.sorting : '',
         pojam: this.search_query,
         page: this.page > 1 ? this.page : ''
       };
@@ -3223,11 +3223,24 @@ function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
       this.autor = params.query.autor ? params.query.autor : '';
       this.nakladnik = params.query.nakladnik ? params.query.nakladnik : '';
       this.page = params.query.page ? Number(params.query.page) : 1;
-      this.sorting = params.query.sort ? params.query.sort : '';
       this.search_query = params.query.pojam ? params.query.pojam : '';
+      this.sorting = params.query.sort ? params.query.sort : this.defaultSortForState();
     },
     loadProductsForCurrentState: function loadProductsForCurrentState() {
       this.requestProducts(this.page || 1);
+    },
+    defaultSortForState: function defaultSortForState() {
+      return this.isRootBooksListing() ? 'novi' : '';
+    },
+    isRootBooksListing: function isRootBooksListing() {
+      var group = this.normalizeGroup(this.group);
+      var hasBooksGroup = group === 'knjige' || group === 'books';
+      var hasRouteTarget = this.cat || this.subcat || this.author || this.publisher || this.ids;
+      var hasActiveFilters = this.autor || this.nakladnik || this.start || this.end || this.search_query;
+      return hasBooksGroup && !hasRouteTarget && !hasActiveFilters;
+    },
+    normalizeGroup: function normalizeGroup(group) {
+      return (group || '').toString().trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
     },
     /**
      *
@@ -3243,7 +3256,7 @@ function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
         nakladnik: this.nakladnik,
         start: this.start,
         end: this.end,
-        sort: this.sorting,
+        sort: this.sorting || this.defaultSortForState(),
         pojam: this.search_query,
         locale: this.locale
       };
@@ -4100,7 +4113,8 @@ var render = function render() {
     }
   }, [_c("option", {
     attrs: {
-      value: ""
+      value: "",
+      disabled: ""
     }
   }, [_vm._v(_vm._s(_vm.labels.sort))]), _vm._v(" "), _c("option", {
     attrs: {

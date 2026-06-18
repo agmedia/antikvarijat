@@ -666,7 +666,28 @@ class CatalogRouteController extends Controller
             $requestData['page'] = max((int) $query['page'], 1);
         }
 
+        if ($this->shouldDefaultBooksRootToLatest($requestData)) {
+            $requestData['_default_sort_latest'] = true;
+        }
+
         return $requestData;
+    }
+
+    private function shouldDefaultBooksRootToLatest(array $requestData): bool
+    {
+        $group = Str::slug((string) ($requestData['group'] ?? ''));
+
+        if (! in_array($group, ['knjige', 'books'], true)) {
+            return false;
+        }
+
+        foreach (['ids', 'cat', 'subcat', 'autor', 'nakladnik', 'start', 'end', 'sort', config('settings.search_keyword', 'pojam')] as $key) {
+            if (!empty($requestData[$key])) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private function mapProductsPaginator(LengthAwarePaginator $paginator): array
