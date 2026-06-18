@@ -555,7 +555,7 @@
                 button.prop('disabled', true).html('<i class="fa fa-spinner fa-spin mr-1"></i> Prevodim...');
                 translateStatus.removeClass('text-danger text-success').addClass('text-muted').text('Prijevod je u tijeku...');
 
-                axios.post("{{ route('products.translate.description') }}", {
+                axios.post("{{ url('admin/catalog/product/translate-description') }}", {
                     description: source
                 }).then(response => {
                     const translated = response.data && response.data.text ? response.data.text : '';
