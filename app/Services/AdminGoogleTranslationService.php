@@ -667,6 +667,10 @@ class AdminGoogleTranslationService
 
     private function applyTargetFilter(Builder $query, string $targetKey): void
     {
+        if ($targetKey === 'products' && Schema::hasColumn('products', 'status')) {
+            $query->where('status', 1);
+        }
+
         if ($targetKey === 'pages') {
             $query->where('group', 'page');
         }
@@ -721,7 +725,7 @@ class AdminGoogleTranslationService
             'products' => [
                 'type' => 'model',
                 'label' => 'Artikli',
-                'description' => 'Naziv, opis i SEO polja artikala.',
+                'description' => 'Naziv, opis i SEO polja samo aktivnih artikala.',
                 'model' => Product::class,
                 'table' => 'products',
                 'default' => ['description_en'],
