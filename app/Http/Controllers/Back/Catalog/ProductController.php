@@ -11,6 +11,7 @@ use App\Models\Back\Catalog\Product\ProductCategory;
 use App\Models\Back\Catalog\Product\ProductImage;
 use App\Models\Back\Catalog\Publisher;
 use App\Models\Front\Catalog\Product as FrontProduct;
+use App\Services\GoogleTranslateService;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
@@ -226,6 +227,32 @@ class ProductController extends Controller
         }
 
         return redirect()->back()->with(['error' => 'Ops..! Greška prilikom snimanja.']);
+    }
+
+    public function translateDescription(Request $request, GoogleTranslateService $translate)
+    {
+        $data = $request->validate([
+            'description' => ['required', 'string'],
+        ]);
+
+        if (! $translate->hasOfficialApiKey() && ! $translate->isPublicEndpointEnabled()) {
+            return response()->json([
+                'message' => 'Google Translate nije konfiguriran. Postavite GOOGLE_TRANSLATE_API_KEY u .env.',
+            ], 422);
+        }
+
+        $result = $translate->translateText($data['description'], 'hr', 'en', 'html');
+
+        if (! $result['ok']) {
+            return response()->json([
+                'message' => $result['error'] ?? 'Prijevod nije uspio.',
+            ], 422);
+        }
+
+        return response()->json([
+            'text' => $result['text'],
+            'provider' => $result['provider'] ?? null,
+        ]);
     }
 
 

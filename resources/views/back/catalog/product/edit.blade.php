@@ -116,8 +116,14 @@
                                         </div>
                                         <div class="form-group row mb-4">
                                             <div class="col-md-12">
-                                                <label for="description-en-editor">Opis EN</label>
+                                                <div class="d-flex flex-wrap justify-content-between align-items-center mb-2">
+                                                    <label for="description-en-editor" class="mb-0">Opis EN</label>
+                                                    <button type="button" class="btn btn-sm btn-alt-primary" id="translate-description-en">
+                                                        <i class="fa fa-language mr-1"></i> Prevedi iz HR
+                                                    </button>
+                                                </div>
                                                 <textarea id="description-en-editor" name="description_en">{!! old('description_en', isset($product) ? $product->description_en : '') !!}</textarea>
+                                                <div class="font-size-sm text-muted mt-2" id="translate-description-status"></div>
                                             </div>
                                         </div>
                                     </div>
@@ -501,10 +507,21 @@
 
     <script>
         $(() => {
+            let descriptionEditor = null;
+            let descriptionEnEditor = null;
+            const translateButton = $('#translate-description-en');
+            const translateStatus = $('#translate-description-status');
+
+            translateButton.prop('disabled', true);
+
             ClassicEditor
             .create(document.querySelector('#description-editor'))
             .then(editor => {
-                console.log(editor);
+                descriptionEditor = editor;
+
+                if (descriptionEnEditor) {
+                    translateButton.prop('disabled', false);
+                }
             })
             .catch(error => {
                 console.error(error);
@@ -513,10 +530,52 @@
             ClassicEditor
             .create(document.querySelector('#description-en-editor'))
             .then(editor => {
-                console.log(editor);
+                descriptionEnEditor = editor;
+
+                if (descriptionEditor) {
+                    translateButton.prop('disabled', false);
+                }
             })
             .catch(error => {
                 console.error(error);
+            });
+
+            translateButton.on('click', function () {
+                const source = descriptionEditor ? descriptionEditor.getData() : $('#description-editor').val();
+                const plainSource = $('<div>').html(source || '').text().replace(/\u00a0/g, ' ').trim();
+
+                if (!plainSource) {
+                    translateStatus.removeClass('text-success').addClass('text-danger').text('HR opis je prazan.');
+                    return;
+                }
+
+                const button = $(this);
+                const originalHtml = button.html();
+
+                button.prop('disabled', true).html('<i class="fa fa-spinner fa-spin mr-1"></i> Prevodim...');
+                translateStatus.removeClass('text-danger text-success').addClass('text-muted').text('Prijevod je u tijeku...');
+
+                axios.post("{{ route('products.translate.description') }}", {
+                    description: source
+                }).then(response => {
+                    const translated = response.data && response.data.text ? response.data.text : '';
+
+                    if (descriptionEnEditor) {
+                        descriptionEnEditor.setData(translated);
+                    } else {
+                        $('#description-en-editor').val(translated);
+                    }
+
+                    translateStatus.removeClass('text-danger text-muted').addClass('text-success').text('Prijevod je upisan u Opis EN. Snimi artikl za spremanje.');
+                }).catch(error => {
+                    const message = error.response && error.response.data && error.response.data.message
+                        ? error.response.data.message
+                        : 'Prijevod nije uspio.';
+
+                    translateStatus.removeClass('text-success text-muted').addClass('text-danger').text(message);
+                }).finally(() => {
+                    button.prop('disabled', false).html(originalHtml);
+                });
             });
 
             $('#category-select').select2({});
