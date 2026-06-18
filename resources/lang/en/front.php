@@ -2,7 +2,7 @@
 
 return [
     'meta' => [
-        'default_title' => 'Antikvarijat Biblos - Books, maps and vedute',
+        'default_title' => 'Antikvarijat Biblos - Books, maps and views',
         'default_description' => 'Welcome to Antikvarijat Biblos, Palmoticeva 28, Zagreb. Opening hours Mon-Fri 09-20, Sat 09-14.',
     ],
 
@@ -11,8 +11,8 @@ return [
         'account' => 'Account',
         'books' => 'Books',
         'all_books' => 'All books',
-        'maps_and_vedute' => 'Maps and vedute',
-        'all_maps_and_vedute' => 'All maps and vedute',
+        'maps_and_vedute' => 'Maps and views',
+        'all_maps_and_vedute' => 'All maps and views',
         'authors' => 'Authors',
         'publishers' => 'Publishers',
         'blog' => 'Blog',
@@ -170,7 +170,7 @@ return [
     'home' => [
         'for_collectors' => 'For true collectors',
         'rara_subtitle' => 'Unique editions for your library',
-        'maps_title' => 'Maps and vedute',
+        'maps_title' => 'Maps and views',
         'maps_subtitle' => 'Maps and prints carrying centuries of history',
         'view_selection' => 'View selection',
         'category' => 'Category',
@@ -182,7 +182,7 @@ return [
 
     'footer' => [
         'intro_line_1' => 'Purchase and sale of old and rare Croatian and foreign books,',
-        'intro_line_2' => 'maps and vedute',
+        'intro_line_2' => 'maps and views',
         'items' => 'Items',
         'customers' => 'Customers',
         'purchase_terms' => 'Purchase terms',
@@ -225,7 +225,7 @@ return [
     ],
 
     'general' => [
-        'brand_tagline' => 'Books, vedute and maps',
+        'brand_tagline' => 'Books, maps and views',
         'address' => 'Address',
         'address_value' => 'Palmoticeva 28, Zagreb',
         'address_value_long' => 'Palmoticeva 28, 10000 Zagreb',

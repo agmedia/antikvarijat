@@ -32,7 +32,7 @@ return [
             'hr_slug' => 'zemljovidi-i-vedute',
             'hr_title' => 'Zemljovidi i vedute',
             'en_slug' => 'maps-and-views',
-            'en_title' => 'Maps and vedute',
+            'en_title' => 'Maps and views',
         ],
         'snizenja' => [
             'hr_slug' => 'snizenja',
