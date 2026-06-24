@@ -477,7 +477,7 @@ class Product extends Model
      */
     public function scopeHasStock(Builder $query): Builder
     {
-        return $query->where('quantity', '!=', 0);
+        return $query->where('quantity', '>', 0);
     }
 
 
@@ -510,7 +510,7 @@ class Product extends Model
      */
     public function scopeAvailable(Builder $query): Builder
     {
-        return $query->where('quantity', '!=', 0);
+        return $query->where('quantity', '>', 0);
     }
 
 
@@ -677,7 +677,7 @@ class Product extends Model
         }
 
         if ($request->boolean('_default_sort_latest')) {
-            $this->applyCatalogSort($query, 'novi');
+            $query->orderBy('updated_at', 'desc');
 
             return $query;
         }

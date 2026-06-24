@@ -6,20 +6,10 @@
             <div class="d-flex align-items-center flex-nowrap me-3 me-sm-4 pb-3">
                 <label class="text-light opacity-75 text-nowrap fs-sm me-2 d-none d-sm-block" for="sorting"></label>
                 @php
-                    $isRootBooksListing = in_array(\Illuminate\Support\Str::slug((string) ($group ?? '')), ['knjige', 'books'], true)
-                        && empty($cat)
-                        && empty($subcat)
-                        && empty($author)
-                        && empty($publisher)
-                        && ! request()->filled('autor')
-                        && ! request()->filled('nakladnik')
-                        && ! request()->filled('start')
-                        && ! request()->filled('end')
-                        && ! request()->filled(config('settings.search_keyword', 'pojam'));
-                    $currentSort = request()->get('sort') ?: ($isRootBooksListing ? 'novi' : '');
+                    $currentSort = request()->get('sort', '');
                 @endphp
                 <select class="form-select" id="sorting-select" wire:ignore>
-                    <option value="" disabled>Sortiraj</option>
+                    <option value="" disabled @selected($currentSort === '')>Sortiraj</option>
                     @foreach (config('settings.sorting_list') as $item)
                         <option value="{{ $item['value'] }}" @if($currentSort == $item['value']) selected @endif>{{ $item['title'] }}</option>
                     @endforeach

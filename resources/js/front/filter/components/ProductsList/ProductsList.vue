@@ -299,7 +299,7 @@
                     end: this.end,
                     autor: this.autor,
                     nakladnik: this.nakladnik,
-                    sort: this.sorting && this.sorting !== this.defaultSortForState() ? this.sorting : '',
+                    sort: this.sorting,
                     pojam: this.search_query,
                     page: this.page > 1 ? this.page : ''
                 };
@@ -321,35 +321,11 @@
                 this.nakladnik = params.query.nakladnik ? params.query.nakladnik : '';
                 this.page = params.query.page ? Number(params.query.page) : 1;
                 this.search_query = params.query.pojam ? params.query.pojam : '';
-                this.sorting = params.query.sort ? params.query.sort : this.defaultSortForState();
+                this.sorting = params.query.sort ? params.query.sort : '';
             },
 
             loadProductsForCurrentState() {
                 this.requestProducts(this.page || 1);
-            },
-
-            defaultSortForState() {
-                return this.isRootBooksListing() ? 'novi' : '';
-            },
-
-            isRootBooksListing() {
-                const group = this.normalizeGroup(this.group);
-                const hasBooksGroup = group === 'knjige' || group === 'books';
-                const hasRouteTarget = this.cat || this.subcat || this.author || this.publisher || this.ids;
-                const hasActiveFilters = this.autor || this.nakladnik || this.start || this.end || this.search_query;
-
-                return hasBooksGroup && !hasRouteTarget && !hasActiveFilters;
-            },
-
-            normalizeGroup(group) {
-                return (group || '')
-                    .toString()
-                    .trim()
-                    .toLowerCase()
-                    .normalize('NFD')
-                    .replace(/[\u0300-\u036f]/g, '')
-                    .replace(/[^a-z0-9]+/g, '-')
-                    .replace(/^-+|-+$/g, '');
             },
 
             /**
@@ -366,7 +342,7 @@
                     nakladnik: this.nakladnik,
                     start: this.start,
                     end: this.end,
-                    sort: this.sorting || this.defaultSortForState(),
+                    sort: this.sorting,
                     pojam: this.search_query,
                     locale: this.locale
                 };

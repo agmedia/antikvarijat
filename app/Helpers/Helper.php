@@ -501,7 +501,7 @@ class Helper
         $prods->active()->available();
 
         if (isset($data['new']) && $data['new'] == 'on') {
-            $prods->orderBy('created_at', 'desc')->orderBy('id', 'desc')->limit(12);
+            $prods->orderBy('updated_at', 'desc')->limit(12);
         }
 
         if (isset($data['popular']) && $data['popular'] == 'on') {

@@ -7,20 +7,10 @@
                 </div>
                 <div class="d-flex align-items-center flex-nowrap me-3 me-sm-4 pb-3">
                     @php
-                        $isRootBooksListing = in_array(\Illuminate\Support\Str::slug((string) ($group ?? '')), ['knjige', 'books'], true)
-                            && empty($cat)
-                            && empty($subcat)
-                            && empty($author)
-                            && empty($publisher)
-                            && ! request()->filled('autor')
-                            && ! request()->filled('nakladnik')
-                            && ! request()->filled('start')
-                            && ! request()->filled('end')
-                            && ! request()->filled(config('settings.search_keyword', 'pojam'));
-                        $currentSort = request()->get('sort') ?: ($isRootBooksListing ? 'novi' : '');
+                        $currentSort = request()->get('sort', '');
                     @endphp
                     <select class="form-select" aria-label="{{ __('front.js.products.sort') }}" disabled>
-                        <option value="" disabled>{{ __('front.js.products.sort') }}</option>
+                        <option value="" disabled @selected($currentSort === '')>{{ __('front.js.products.sort') }}</option>
                         @foreach (config('settings.sorting_list') as $item)
                             <option value="{{ $item['value'] }}" @selected($currentSort == $item['value'])>{{ $item['title'] }}</option>
                         @endforeach
