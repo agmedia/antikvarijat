@@ -23,6 +23,7 @@
                         @foreach ($uvjeti_kupnje as $page)
                             <li><a class="dropdown-item" href="{{ \App\Helpers\LocaleHelper::route('catalog.route.page', ['page' => $page]) }}">{{ $page->title }}</a></li>
                         @endforeach
+                        <li><a class="dropdown-item" href="{{ route('contract-withdrawal.create') }}">Jednostrani raskid ugovora</a></li>
                         <li><a class="dropdown-item" href="{{ \App\Helpers\LocaleHelper::route('otkup.knjiga') }}">{{ __('front.footer.book_purchase') }}</a></li>
                         <li><a class="dropdown-item" href="{{ \App\Helpers\LocaleHelper::route('kontakt') }}">{{ __('front.footer.contact_us') }}</a></li>
 
@@ -37,6 +38,9 @@
                         @foreach ($uvjeti_kupnje as $page)
                             <li class="widget-list-item"><a class="widget-list-link" href="{{ \App\Helpers\LocaleHelper::route('catalog.route.page', ['page' => $page]) }}">{{ $page->title }}</a></li>
                         @endforeach
+                        <li class="widget-list-item">
+                            <a class="widget-list-link" href="{{ route('contract-withdrawal.create') }}">Jednostrani raskid ugovora</a>
+                        </li>
                         <li class="widget-list-item"><a class="widget-list-link" href="{{ \App\Helpers\LocaleHelper::route('otkup.knjiga') }}">{{ __('front.footer.book_purchase') }}</a></li>
                         <li class="widget-list-item"><a class="widget-list-link" href="{{ \App\Helpers\LocaleHelper::route('kontakt') }}">{{ __('front.footer.contact_us') }}</a></li>
                     </ul>

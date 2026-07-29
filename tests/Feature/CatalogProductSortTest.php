@@ -1,0 +1,84 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Helpers\Helper;
+use App\Models\Front\Catalog\Product;
+use Illuminate\Http\Request;
+use ReflectionClass;
+use Tests\TestCase;
+
+class CatalogProductSortTest extends TestCase
+{
+    public function testCatalogDefaultsToRecentlyUpdatedProducts(): void
+    {
+        $this->assertOrderBy([
+            ['updated_at', 'desc'],
+        ], new Request());
+    }
+
+    public function testBooksRootCanDefaultToRecentlyUpdatedProducts(): void
+    {
+        $this->assertOrderBy([
+            ['updated_at', 'desc'],
+        ], new Request(['_default_sort_latest' => true]));
+    }
+
+    public function testBooksRootTreatsInvalidSortAsRecentlyUpdatedProducts(): void
+    {
+        $this->assertOrderBy([
+            ['updated_at', 'desc'],
+        ], new Request(['sort' => 'unknown', '_default_sort_latest' => true]));
+    }
+
+    public function testCatalogUsesExplicitNewestSort(): void
+    {
+        $this->assertOrderBy([
+            ['created_at', 'desc'],
+            ['id', 'desc'],
+        ], new Request(['sort' => 'novi']));
+    }
+
+    public function testWidgetNewProductsUseRecentlyUpdatedAvailableProducts(): void
+    {
+        $reflection = new ReflectionClass(Helper::class);
+        $method = $reflection->getMethod('products');
+        $method->setAccessible(true);
+
+        $query = $method->invoke(null, ['target' => 'product', 'new' => 'on']);
+
+        $orders = $query->getQuery()->orders;
+        $actual = array_map(static function (array $order): array {
+            return [$order['column'], $order['direction']];
+        }, $orders);
+
+        $this->assertSame([['updated_at', 'desc']], $actual);
+        $this->assertSame(12, $query->getQuery()->limit);
+        $this->assertQueryHasWhere($query->getQuery()->wheres, 'quantity', '>', 0);
+    }
+
+    private function assertOrderBy(array $expected, Request $request): void
+    {
+        $orders = (new Product())
+            ->filter($request)
+            ->getQuery()
+            ->orders;
+
+        $actual = array_map(static function (array $order): array {
+            return [$order['column'], $order['direction']];
+        }, $orders);
+
+        $this->assertSame($expected, $actual);
+    }
+
+    private function assertQueryHasWhere(array $wheres, string $column, string $operator, $value): void
+    {
+        $matches = array_filter($wheres, static function (array $where) use ($column, $operator, $value): bool {
+            return ($where['column'] ?? null) === $column
+                && ($where['operator'] ?? null) === $operator
+                && ($where['value'] ?? null) === $value;
+        });
+
+        $this->assertNotEmpty($matches);
+    }
+}

@@ -25,6 +25,8 @@
 
     @if (request()->routeIs(['index', 'en.index']))
 
+        <h1 class="visually-hidden">{{ __('front.meta.default_title') }}</h1>
+
         <section style="background-image: url({{ asset('media/img/farmer.png') }});background-repeat: repeat" class="bg-secondary py-4 pt-md-5">
             <div class="container py-xl-2">
                 <div class="row">
