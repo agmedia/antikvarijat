@@ -150,18 +150,14 @@ class RouteServiceProvider extends ServiceProvider
         $model = new $class();
         $routeKey = $model->getRouteKeyName();
 
-        $resolved = $class::query()
-            ->where(function ($query) use ($routeKey, $value) {
-                if (LocaleHelper::isEnglish()) {
-                    $query->where('slug_en', $value)
-                        ->orWhere($routeKey, $value);
+        // A localized slug can legitimately be the same as another record's
+        // Croatian slug. On English routes the exact EN slug must therefore
+        // win before falling back to the Croatian route key.
+        $resolved = LocaleHelper::isEnglish()
+            ? $class::query()->where('slug_en', $value)->first()
+            : null;
 
-                    return;
-                }
-
-                $query->where($routeKey, $value);
-            })
-            ->first();
+        $resolved = $resolved ?: $class::query()->where($routeKey, $value)->first();
 
         if ($resolved) {
             return $resolved;

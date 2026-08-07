@@ -436,10 +436,13 @@ class LocaleHelper
             return null;
         }
 
-        return $class::query()
-            ->where('slug', $value)
-            ->orWhere('slug_en', $value)
-            ->first();
+        $localized = self::isEnglish()
+            ? $class::query()->where('slug_en', $value)->first()
+            : null;
+
+        return $localized
+            ?: $class::query()->where('slug', $value)->first()
+            ?: $class::query()->where('slug_en', $value)->first();
     }
 
     private static function normalizeGroupKey(string $group): string

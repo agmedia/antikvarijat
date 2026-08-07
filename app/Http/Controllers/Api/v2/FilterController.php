@@ -42,7 +42,8 @@ class FilterController extends Controller
         if ( ! $params['cat'] && ! $params['subcat']) {
             // Ako je normal kategorija
             if ($params['group']) {
-                $categories = Helper::resolveCache('categories')->remember($params['group'], config('cache.life'), function () use ($params) {
+                $cacheKey = LocaleHelper::current() . '.group.' . $params['group'];
+                $categories = Helper::resolveCache('categories')->remember($cacheKey, config('cache.life'), function () use ($params) {
                     return Category::active()
                         ->topList($params['group'])
                         ->sortByName()
@@ -74,7 +75,8 @@ class FilterController extends Controller
             $cat = Category::where('id', $params['cat'])->first();
 
             if ($params['group']) {
-                $item = Helper::resolveCache('categories')->remember($cat['id'], config('cache.life'), function () use ($cat) {
+                $cacheKey = LocaleHelper::current() . '.parent.' . $cat['id'];
+                $item = Helper::resolveCache('categories')->remember($cacheKey, config('cache.life'), function () use ($cat) {
                     return Category::active()
                         ->where('parent_id', $cat['id'])
                         ->sortByName()
@@ -159,7 +161,7 @@ class FilterController extends Controller
 
             $response[] = [
                 'id' => $category['id'],
-                'title' => $category['title'],
+                'title' => LocaleHelper::localizedField($category, 'title'),
                 'count' => $category['products_count'],
                 'url' => $url
             ];

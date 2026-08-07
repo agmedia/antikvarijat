@@ -32,13 +32,17 @@ class CatalogRouteController extends Controller
         $group = LocaleHelper::internalGroup((string) $group);
 
         if ($subcat) {
-            $sub_category = Category::where(function ($query) use ($subcat) {
-                $query->where('slug', $subcat);
+            $sub_category = LocaleHelper::isEnglish()
+                ? Category::query()
+                    ->where('slug_en', $subcat)
+                    ->where('parent_id', $cat->id)
+                    ->first()
+                : null;
 
-                if (LocaleHelper::isEnglish()) {
-                    $query->orWhere('slug_en', $subcat);
-                }
-            })->where('parent_id', $cat->id)->first();
+            $sub_category = $sub_category ?: Category::query()
+                ->where('slug', $subcat)
+                ->where('parent_id', $cat->id)
+                ->first();
 
             if (! $sub_category && ctype_digit((string) $subcat)) {
                 $sub_category = Category::query()
@@ -48,13 +52,11 @@ class CatalogRouteController extends Controller
             }
 
             if (! $sub_category && ! $prod) {
-                $prod = Product::where(function ($query) use ($subcat) {
-                    $query->where('slug', $subcat);
+                $prod = LocaleHelper::isEnglish()
+                    ? Product::query()->where('slug_en', $subcat)->first()
+                    : null;
 
-                    if (LocaleHelper::isEnglish()) {
-                        $query->orWhere('slug_en', $subcat);
-                    }
-                })->first();
+                $prod = $prod ?: Product::query()->where('slug', $subcat)->first();
 
                 if (! $prod && ctype_digit((string) $subcat)) {
                     $prod = Product::query()->whereKey((int) $subcat)->first();
@@ -799,7 +801,8 @@ class CatalogRouteController extends Controller
             if ($group) {
                 $normalizedGroup = $this->normalizeCategoryGroup($group);
 
-                $categories = Helper::resolveCache('categories')->remember($normalizedGroup, config('cache.life'), function () use ($normalizedGroup) {
+                $cacheKey = LocaleHelper::current() . '.group.' . $normalizedGroup;
+                $categories = Helper::resolveCache('categories')->remember($cacheKey, config('cache.life'), function () use ($normalizedGroup) {
                     return Category::active()
                         ->topList($normalizedGroup)
                         ->sortByName()
@@ -824,7 +827,8 @@ class CatalogRouteController extends Controller
 
         if ($cat && !$subcat) {
             if ($group) {
-                $items = Helper::resolveCache('categories')->remember($cat->id, config('cache.life'), function () use ($cat) {
+                $cacheKey = LocaleHelper::current() . '.parent.' . $cat->id;
+                $items = Helper::resolveCache('categories')->remember($cacheKey, config('cache.life'), function () use ($cat) {
                     return Category::active()
                         ->where('parent_id', $cat->id)
                         ->sortByName()
@@ -857,7 +861,7 @@ class CatalogRouteController extends Controller
 
             return [
                 'id' => $item['id'],
-                'title' => $item['title'],
+                'title' => LocaleHelper::localizedField($item, 'title'),
                 'count' => $item['products_count'] ?? 0,
                 'url' => $this->resolveCategoryUrl($item, $type, $target, $parentSlug),
             ];

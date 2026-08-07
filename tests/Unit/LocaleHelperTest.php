@@ -133,6 +133,8 @@ class LocaleHelperTest extends TestCase
 
         DB::connection('legacy_route_test')->table('legacy_route_products')->insert([
             ['id' => 69860, 'slug' => 'paralleli-militari-i-ii', 'slug_en' => null],
+            ['id' => 5521, 'slug' => 'der-adel-des-konigreichs-dalmatien', 'slug_en' => null],
+            ['id' => 19331, 'slug' => 'wappenbuch-des-konigreichs-dalmatien', 'slug_en' => 'der-adel-des-konigreichs-dalmatien'],
         ]);
 
         $originalLocale = app()->getLocale();
@@ -150,6 +152,13 @@ class LocaleHelperTest extends TestCase
 
             $this->assertSame(69860, $resolved->id);
             $this->assertSame('paralleli-militari-i-ii', $resolved->slug);
+
+            $localizedCollision = $provider->resolveForTest(
+                LegacyRouteProduct::class,
+                'der-adel-des-konigreichs-dalmatien'
+            );
+
+            $this->assertSame(19331, $localizedCollision->id);
         } finally {
             app()->setLocale($originalLocale);
             DB::purge('legacy_route_test');
@@ -170,6 +179,17 @@ class LocaleHelperTest extends TestCase
         $this->assertSame('Spiral-bound', LocaleHelper::localizedProductAttribute('binding', 'Spiralni', 'en'));
         $this->assertSame('Vrlo dobro', LocaleHelper::localizedProductAttribute('condition', 'Vrlo dobro', 'hr'));
         $this->assertSame('Nepoznata vrijednost', LocaleHelper::localizedProductAttribute('condition', 'Nepoznata vrijednost', 'en'));
+    }
+
+    public function testCachedCategoryArraysAreLocalizedForTheCurrentLanguage(): void
+    {
+        $cachedCategory = [
+            'title' => 'Povijest',
+            'title_en' => 'History',
+        ];
+
+        $this->assertSame('History', LocaleHelper::localizedField($cachedCategory, 'title', true, 'en'));
+        $this->assertSame('Povijest', LocaleHelper::localizedField($cachedCategory, 'title', true, 'hr'));
     }
 }
 
