@@ -203,7 +203,7 @@
                                            <li><strong>{{ __('front.product.availability') }}:</strong> <span class="badge bg-danger align-middle ">{{ __('front.product.sold_out') }}</span></li>
                                        @endif
                                            @if ($prod->condition)
-                                       <li><strong>{{ __('front.product.condition') }}:</strong> {{ $prod->condition }} </li>
+                                       <li><strong>{{ __('front.product.condition') }}:</strong> {{ \App\Helpers\LocaleHelper::localizedProductAttribute('condition', $prod->condition) }} </li>
                                            @endif
                                            @if ($prod->sku)
                                                <li><strong>{{ __('front.product.code') }}:</strong> {{ $prod->sku }} </li>
@@ -380,19 +380,19 @@
 
                                        @if ($prod->letter)
                                            <li class="d-flex justify-content-between pb-2 border-bottom">
-                                               <span class="text-muted">{{ __('front.product.script') }}:</span><span>{{ $prod->letter }}</span>
+                                               <span class="text-muted">{{ __('front.product.script') }}:</span><span>{{ \App\Helpers\LocaleHelper::localizedProductAttribute('letter', $prod->letter) }}</span>
                                            </li>
                                        @endif
 
                                        @if ($prod->condition)
                                            <li class="d-flex justify-content-between pb-2 border-bottom">
-                                               <span class="text-muted">{{ __('front.product.condition') }}:</span><span>{{ $prod->condition }}</span>
+                                               <span class="text-muted">{{ __('front.product.condition') }}:</span><span>{{ \App\Helpers\LocaleHelper::localizedProductAttribute('condition', $prod->condition) }}</span>
                                            </li>
                                        @endif
 
                                        @if ($prod->binding)
                                            <li class="d-flex justify-content-between pb-2 border-bottom">
-                                               <span class="text-muted">{{ __('front.product.binding') }}:</span><span>{{ $prod->binding }}</span>
+                                               <span class="text-muted">{{ __('front.product.binding') }}:</span><span>{{ \App\Helpers\LocaleHelper::localizedProductAttribute('binding', $prod->binding) }}</span>
                                            </li>
                                        @endif
 

@@ -40,7 +40,14 @@ class CatalogRouteController extends Controller
                 }
             })->where('parent_id', $cat->id)->first();
 
-            if (!$sub_category) {
+            if (! $sub_category && ctype_digit((string) $subcat)) {
+                $sub_category = Category::query()
+                    ->whereKey((int) $subcat)
+                    ->where('parent_id', $cat->id)
+                    ->first();
+            }
+
+            if (! $sub_category && ! $prod) {
                 $prod = Product::where(function ($query) use ($subcat) {
                     $query->where('slug', $subcat);
 
@@ -48,6 +55,10 @@ class CatalogRouteController extends Controller
                         $query->orWhere('slug_en', $subcat);
                     }
                 })->first();
+
+                if (! $prod && ctype_digit((string) $subcat)) {
+                    $prod = Product::query()->whereKey((int) $subcat)->first();
+                }
             }
 
             $subcat = $sub_category;

@@ -10,6 +10,7 @@ use App\Models\Front\Catalog\Publisher;
 use App\Models\Front\Page;
 use App\Models\Back\Settings\Settings;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 
@@ -95,6 +96,12 @@ class LocaleHelper
                 return (string) $value->getRawOriginal('slug_en');
             }
 
+            // Back-office models use their numeric ID as the route key, but
+            // localized front-end URLs must always use the stored slug.
+            if (self::hasFilledRawAttribute($value, 'slug')) {
+                return (string) $value->getRawOriginal('slug');
+            }
+
             return (string) $value->getRawOriginal($value->getRouteKeyName());
         }
 
@@ -167,6 +174,27 @@ class LocaleHelper
         return self::localizedField($model, 'description', ! self::isEnglish($locale), $locale);
     }
 
+    public static function localizedProductAttribute(string $attribute, $value, ?string $locale = null): ?string
+    {
+        if ($value === null || trim((string) $value) === '') {
+            return $value !== null ? (string) $value : null;
+        }
+
+        $locale = $locale ?: self::current();
+
+        if (! self::isEnglish($locale)) {
+            return (string) $value;
+        }
+
+        $attribute = $attribute === 'script' ? 'letter' : $attribute;
+        $normalizedValue = str_replace(['/', '|'], ' ', (string) $value);
+        $translationKey = 'front.product.attribute_values.' . $attribute . '.' . Str::slug($normalizedValue, '_');
+
+        return Lang::has($translationKey, $locale)
+            ? trans($translationKey, [], $locale)
+            : (string) $value;
+    }
+
     public static function localizedUrl(?string $path, ?string $locale = null): string
     {
         if (! $path) {
@@ -191,16 +219,7 @@ class LocaleHelper
         $locale = $locale ?: self::current();
 
         if (self::isEnglish($locale)) {
-            $urlEn = $product->getRawOriginal('url_en');
-
-            if ($urlEn) {
-                return trim($urlEn, '/');
-            }
-
-            $category = $product->relationLoaded('categories') ? $product->categories->firstWhere('parent_id', 0) : $product->category();
-            $subcategory = $product->relationLoaded('categories')
-                ? $product->categories->first(fn ($category) => (int) $category->parent_id !== 0)
-                : $product->subcategory();
+            [$category, $subcategory] = self::productCategoryPair($product);
 
             if ($category) {
                 $group = self::groupSlug((string) $category->getRawOriginal('group'), $locale);
@@ -212,6 +231,12 @@ class LocaleHelper
                 }
 
                 return 'en/' . $group . '/' . $catSlug . '/' . $productSlug;
+            }
+
+            $urlEn = $product->getRawOriginal('url_en');
+
+            if ($urlEn) {
+                return trim($urlEn, '/');
             }
         }
 
@@ -240,10 +265,7 @@ class LocaleHelper
             return $storedValue;
         }
 
-        $category = $product->relationLoaded('categories') ? $product->categories->firstWhere('parent_id', 0) : $product->category();
-        $subcategory = $product->relationLoaded('categories')
-            ? $product->categories->first(fn ($category) => (int) $category->parent_id !== 0)
-            : $product->subcategory();
+        [$category, $subcategory] = self::productCategoryPair($product);
 
         if (! $category) {
             return $storedValue;
@@ -357,6 +379,28 @@ class LocaleHelper
         $value = $model->getRawOriginal($field);
 
         return $value !== null && trim((string) $value) !== '';
+    }
+
+    private static function productCategoryPair(Product $product): array
+    {
+        if ($product->relationLoaded('categories')) {
+            $subcategory = $product->categories->first(fn ($category) => (int) $category->parent_id !== 0);
+            $category = $subcategory
+                ? $product->categories->firstWhere('id', (int) $subcategory->parent_id)
+                : null;
+            $category = $category ?: $product->categories->firstWhere('parent_id', 0);
+
+            if ($subcategory && (! $category || (int) $subcategory->parent_id !== (int) $category->id)) {
+                $subcategory = null;
+            }
+
+            return [$category, $subcategory];
+        }
+
+        $subcategory = $product->subcategory();
+        $category = $subcategory ? $subcategory->parent()->first() : $product->category();
+
+        return [$category, $subcategory];
     }
 
     private static function resolveRouteParameterModel(string $key, $value)

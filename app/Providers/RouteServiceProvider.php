@@ -150,7 +150,7 @@ class RouteServiceProvider extends ServiceProvider
         $model = new $class();
         $routeKey = $model->getRouteKeyName();
 
-        return $class::query()
+        $resolved = $class::query()
             ->where(function ($query) use ($routeKey, $value) {
                 if (LocaleHelper::isEnglish()) {
                     $query->where('slug_en', $value)
@@ -161,7 +161,19 @@ class RouteServiceProvider extends ServiceProvider
 
                 $query->where($routeKey, $value);
             })
-            ->firstOrFail();
+            ->first();
+
+        if ($resolved) {
+            return $resolved;
+        }
+
+        // English product URLs were previously persisted with numeric IDs.
+        // Keep those published links working while new links use slugs.
+        if (ctype_digit($value)) {
+            return $class::query()->whereKey((int) $value)->firstOrFail();
+        }
+
+        abort(404);
     }
 
     protected function isFrontendRoute(string $baseName): bool
