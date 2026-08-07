@@ -133,6 +133,7 @@ class Sitemap
             $this->addUrl(LocaleHelper::route('index', [], true, $locale), Carbon::now()->startOfMonth());
             $this->addUrl(LocaleHelper::route('kontakt', [], true, $locale), Carbon::now()->startOfYear());
             $this->addUrl(LocaleHelper::route('faq', [], true, $locale), Carbon::now()->startOfYear());
+            $this->addUrl(LocaleHelper::route('contract-withdrawal.create', [], true, $locale), Carbon::now()->startOfYear());
             $this->addUrl(LocaleHelper::route('otkup.knjiga', [], true, $locale), Carbon::now()->startOfYear());
         }
 

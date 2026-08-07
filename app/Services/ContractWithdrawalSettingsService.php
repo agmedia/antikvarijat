@@ -41,18 +41,37 @@ class ContractWithdrawalSettingsService
         return [
             'admin_email' => (string) config('mail.admin', 'info@antikvarijat-biblos.hr'),
             'return_address' => 'Antikvarijat Biblos, Palmotićeva 28, 10000 Zagreb',
+            'return_address_en' => 'Antikvarijat Biblos, Palmotićeva 28, 10000 Zagreb, Croatia',
             'return_cost_policy' => 'consumer',
-            'instructions' => 'Robu sigurno zapakirajte i pošaljite bez nepotrebnog odgađanja, a najkasnije u roku od 14 dana od slanja izjave o raskidu. U paket priložite broj narudžbe ili referencu zahtjeva.',
+            'instructions' => (string) trans('contract_withdrawal.default_instructions', [], 'hr'),
+            'instructions_en' => (string) trans('contract_withdrawal.default_instructions', [], 'en'),
         ];
     }
 
-    public function returnCostText(?array $settings = null): string
+    public function forLocale(?string $locale = null): array
+    {
+        $settings = $this->get();
+        $locale = $locale ?: app()->getLocale();
+        $locale = $locale === 'en' ? 'en' : 'hr';
+
+        if ($locale === 'en') {
+            $settings['return_address'] = trim((string) ($settings['return_address_en'] ?? ''))
+                ?: $settings['return_address'];
+            $settings['instructions'] = trim((string) ($settings['instructions_en'] ?? ''))
+                ?: $settings['instructions'];
+        }
+
+        return $settings;
+    }
+
+    public function returnCostText(?array $settings = null, ?string $locale = null): string
     {
         $settings = $settings ?: $this->get();
+        $locale = $locale === 'en' || ($locale === null && app()->getLocale() === 'en') ? 'en' : 'hr';
 
         return ($settings['return_cost_policy'] ?? 'consumer') === 'merchant'
-            ? 'Izravne troškove povrata robe snosi Antikvarijat Biblos.'
-            : 'Izravne troškove povrata robe snosite sami.';
+            ? (string) trans('contract_withdrawal.return_cost_merchant', [], $locale)
+            : (string) trans('contract_withdrawal.return_cost_consumer', [], $locale);
     }
 
     private function stored(): array
@@ -88,8 +107,10 @@ class ContractWithdrawalSettingsService
         return [
             'admin_email' => strtolower(trim((string) ($data['admin_email'] ?? ''))),
             'return_address' => trim((string) ($data['return_address'] ?? '')),
+            'return_address_en' => trim((string) ($data['return_address_en'] ?? '')),
             'return_cost_policy' => $returnCostPolicy,
             'instructions' => trim((string) ($data['instructions'] ?? '')),
+            'instructions_en' => trim((string) ($data['instructions_en'] ?? '')),
         ];
     }
 }

@@ -166,6 +166,8 @@ Route::middleware(['auth:sanctum', 'verified', 'no.customers'])->prefix('admin')
         Route::delete('vialibri/{vialibriBook}', [VialibriController::class, 'destroy'])->name('vialibri.destroy');
         // OTKUP KNJIGA
         Route::get('otkup-knjiga', [BookPurchaseController::class, 'index'])->name('book.purchases');
+        Route::get('otkup-knjiga/tekst/uredi', [BookPurchaseController::class, 'editContent'])->name('book.purchases.content.edit');
+        Route::patch('otkup-knjiga/tekst', [BookPurchaseController::class, 'updateContent'])->name('book.purchases.content.update');
         Route::get('otkup-knjiga/{purchase}', [BookPurchaseController::class, 'show'])->name('book.purchases.show');
         Route::delete('otkup-knjiga/{purchase}', [BookPurchaseController::class, 'destroy'])->name('book.purchases.destroy');
     });
@@ -422,6 +424,13 @@ Route::prefix('en')->as('en.')->group(function () {
     Route::get('/', [HomeController::class, 'index'])->name('index');
     Route::get('/contact', [HomeController::class, 'contact'])->name('kontakt');
     Route::post('/contact/send', [HomeController::class, 'sendContactMessage'])->name('poruka');
+    Route::get('/returns-and-complaints', [ContractWithdrawalController::class, 'create'])->name('contract-withdrawal.create');
+    Route::post('/returns-and-complaints', [ContractWithdrawalController::class, 'review'])
+        ->middleware('throttle:5,10')
+        ->name('contract-withdrawal.review');
+    Route::post('/returns-and-complaints/confirm', [ContractWithdrawalController::class, 'store'])
+        ->middleware('throttle:5,10')
+        ->name('contract-withdrawal.store');
     Route::get('/book-purchase', [HomeController::class, 'bookPurchase'])->name('otkup.knjiga');
     Route::post('/book-purchase/send', [HomeController::class, 'sendBookPurchaseMessage'])->name('otkup.knjiga.posalji');
     Route::post('/newsletter/subscribe', [HomeController::class, 'newsletter'])->name('newsletter.subscribe');

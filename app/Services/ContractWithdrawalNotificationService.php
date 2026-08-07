@@ -48,13 +48,15 @@ class ContractWithdrawalNotificationService
 
     public function sendConsumerReceipt(ContractWithdrawal $withdrawal): void
     {
-        $settings = $this->settings->get();
-
-        Mail::to($withdrawal->email)->send(new ContractWithdrawalReceiptMail(
+        $locale = $withdrawal->locale === 'en' ? 'en' : 'hr';
+        $settings = $this->settings->forLocale($locale);
+        $mail = new ContractWithdrawalReceiptMail(
             $withdrawal,
             $settings,
-            $this->settings->returnCostText($settings)
-        ));
+            $this->settings->returnCostText($settings, $locale)
+        );
+
+        Mail::to($withdrawal->email)->send($mail->locale($locale));
 
         $withdrawal->forceFill(['consumer_notified_at' => now()])->save();
     }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Front;
 
+use App\Helpers\LocaleHelper;
 use App\Http\Controllers\Controller;
 use App\Models\Back\Orders\Order;
 use App\Models\ContractWithdrawal;
@@ -30,12 +31,13 @@ class ContractWithdrawalController extends Controller
 
     public function create(Request $request)
     {
-        $settings = $this->settings->get();
+        $locale = app()->getLocale();
+        $settings = $this->settings->forLocale($locale);
 
         return view('front.contract-withdrawals.create', [
             'prefill' => $this->prefill($request),
             'withdrawalSettings' => $settings,
-            'returnCostText' => $this->settings->returnCostText($settings),
+            'returnCostText' => $this->settings->returnCostText($settings, $locale),
             'captchaEnabled' => $this->captchaEnabled(),
         ]);
     }
@@ -58,7 +60,7 @@ class ContractWithdrawalController extends Controller
         return view('front.contract-withdrawals.review', [
             'draftToken' => $token,
             'withdrawal' => $data,
-            'declaration' => $this->declaration($data['order_number']),
+            'declaration' => $this->declaration($data['order_number'], app()->getLocale()),
         ]);
     }
 
@@ -76,12 +78,13 @@ class ContractWithdrawalController extends Controller
             $request->session()->forget($draftKey);
 
             return redirect()
-                ->route('contract-withdrawal.create')
-                ->withErrors(['draft' => 'Pregled obrasca je istekao. Ponovno unesite podatke i potvrdite raskid ugovora.']);
+                ->to(LocaleHelper::route('contract-withdrawal.create'))
+                ->withErrors(['draft' => __('contract_withdrawal.expired')]);
         }
 
         $data = (array) ($draft['data'] ?? []);
-        $declaration = $this->declaration((string) ($data['order_number'] ?? ''));
+        $locale = (string) ($draft['locale'] ?? LocaleHelper::DEFAULT_LOCALE);
+        $declaration = $this->declaration((string) ($data['order_number'] ?? ''), $locale);
         $submittedAt = now();
         $snapshot = [
             'version' => '2026-07-29',
@@ -148,20 +151,19 @@ class ContractWithdrawalController extends Controller
         $withdrawal->refresh();
 
         $redirect = redirect()
-            ->route('contract-withdrawal.create')
+            ->to(LocaleHelper::route('contract-withdrawal.create', [], true, $locale))
             ->with(
                 'success',
-                'Vaša izjava o raskidu ugovora je zaprimljena. Referenca: '
-                .$withdrawal->reference
-                .'. Potvrda sa sadržajem te datumom i vremenom podnošenja poslana je na vaš e-mail.'
+                trans('contract_withdrawal.success', [
+                    'reference' => $withdrawal->reference,
+                ], $locale)
             )
             ->with('withdrawal_reference', $withdrawal->reference);
 
         if (! $withdrawal->consumer_notified_at) {
             $redirect->with(
                 'warning',
-                'Zahtjev je evidentiran, ali e-mail potvrda trenutačno nije mogla biti dostavljena. '
-                .'Sačuvajte referencu i javite se korisničkoj podršci.'
+                trans('contract_withdrawal.email_warning', [], $locale)
             );
         }
 
@@ -194,30 +196,16 @@ class ContractWithdrawalController extends Controller
                 'recaptcha' => [$captchaEnabled ? 'required' : 'nullable', 'string', 'max:4096'],
             ],
             [
-                'required' => 'Polje :attribute je obavezno.',
-                'email' => 'Polje :attribute mora biti ispravna e-mail adresa.',
-                'min.string' => 'Polje :attribute mora imati najmanje :min znaka.',
-                'max.string' => 'Polje :attribute ne smije imati više od :max znakova.',
-                'size' => 'Polje :attribute mora imati točno :size znaka.',
-                'date' => 'Polje :attribute mora sadržavati ispravan datum.',
-                'before_or_equal' => 'Polje :attribute ne smije biti datum u budućnosti.',
-                'after_or_equal' => 'Datum primitka ne može biti prije datuma narudžbe.',
+                'required' => __('contract_withdrawal.validation.required'),
+                'email' => __('contract_withdrawal.validation.email'),
+                'min.string' => __('contract_withdrawal.validation.min_string'),
+                'max.string' => __('contract_withdrawal.validation.max_string'),
+                'size' => __('contract_withdrawal.validation.size'),
+                'date' => __('contract_withdrawal.validation.date'),
+                'before_or_equal' => __('contract_withdrawal.validation.before_or_equal'),
+                'after_or_equal' => __('contract_withdrawal.validation.after_or_equal'),
             ],
-            [
-                'full_name' => 'ime i prezime',
-                'email' => 'e-mail',
-                'phone' => 'telefon',
-                'address_line' => 'ulica i kućni broj',
-                'postal_code' => 'poštanski broj',
-                'city' => 'mjesto',
-                'country_code' => 'oznaka države',
-                'order_number' => 'broj narudžbe / ugovora',
-                'contract_date' => 'datum narudžbe',
-                'received_date' => 'datum primitka robe',
-                'items' => 'proizvodi',
-                'note' => 'napomena',
-                'recaptcha' => 'sigurnosna provjera',
-            ]
+            trans('contract_withdrawal.attributes')
         );
     }
 
@@ -255,7 +243,7 @@ class ContractWithdrawalController extends Controller
                 ]);
         } catch (\Throwable $exception) {
             throw ValidationException::withMessages([
-                'recaptcha' => 'Sigurnosna provjera nije uspjela. Pokušajte ponovno.',
+                'recaptcha' => __('contract_withdrawal.captcha_failed'),
             ]);
         }
 
@@ -268,7 +256,7 @@ class ContractWithdrawalController extends Controller
             || ($action !== '' && $action !== 'contract_withdrawal')
         ) {
             throw ValidationException::withMessages([
-                'recaptcha' => 'Sigurnosna provjera nije uspjela. Pokušajte ponovno.',
+                'recaptcha' => __('contract_withdrawal.captcha_failed'),
             ]);
         }
     }
@@ -283,10 +271,11 @@ class ContractWithdrawalController extends Controller
             && trim((string) config('services.recaptcha.secret')) !== '';
     }
 
-    private function declaration(string $orderNumber): string
+    private function declaration(string $orderNumber, ?string $locale = null): string
     {
-        return 'Ovime nedvosmisleno izjavljujem da jednostrano raskidam ugovor sklopljen na daljinu '
-            .'za narudžbu/ugovor '.$orderNumber.' u odnosu na proizvode navedene u ovoj izjavi.';
+        return (string) trans('contract_withdrawal.declaration', [
+            'order_number' => $orderNumber,
+        ], $locale ?: app()->getLocale());
     }
 
     private function newReference(): string

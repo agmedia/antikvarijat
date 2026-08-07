@@ -45,20 +45,6 @@
                             </div>
 
                             <div class="form-group">
-                                <label for="withdrawal-return-address">Adresa za povrat robe *</label>
-                                <textarea
-                                    class="form-control @error('return_address') is-invalid @enderror"
-                                    id="withdrawal-return-address"
-                                    name="return_address"
-                                    rows="4"
-                                    required
-                                    maxlength="1000"
-                                >{{ old('return_address', $settings['return_address']) }}</textarea>
-                                @error('return_address') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                                <small class="form-text text-muted">Prikazuje se na obrascu i u potvrdi korisniku.</small>
-                            </div>
-
-                            <div class="form-group">
                                 <label for="withdrawal-cost-policy">Izravni trošak povrata robe *</label>
                                 <select
                                     class="form-control @error('return_cost_policy') is-invalid @enderror"
@@ -76,17 +62,66 @@
                                 @error('return_cost_policy') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
 
-                            <div class="form-group">
-                                <label for="withdrawal-instructions">Dodatne upute korisniku</label>
-                                <textarea
-                                    class="form-control @error('instructions') is-invalid @enderror"
-                                    id="withdrawal-instructions"
-                                    name="instructions"
-                                    rows="7"
-                                    maxlength="5000"
-                                >{{ old('instructions', $settings['instructions']) }}</textarea>
-                                @error('instructions') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                                <small class="form-text text-muted">Upute se šalju u potvrdi primitka izjave.</small>
+                            @include('back.layouts.partials.language-tabs', ['id' => 'withdrawal-settings-tabs'])
+
+                            <div class="tab-content">
+                                <div class="tab-pane active" id="withdrawal-settings-tabs-hr" role="tabpanel">
+                                    <div class="form-group">
+                                        <label for="withdrawal-return-address">Adresa za povrat robe *</label>
+                                        <textarea
+                                            class="form-control @error('return_address') is-invalid @enderror"
+                                            id="withdrawal-return-address"
+                                            name="return_address"
+                                            rows="4"
+                                            required
+                                            maxlength="1000"
+                                        >{{ old('return_address', $settings['return_address']) }}</textarea>
+                                        @error('return_address') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                        <small class="form-text text-muted">Prikazuje se na HR obrascu i u potvrdi korisniku.</small>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="withdrawal-instructions">Dodatne upute korisniku</label>
+                                        <textarea
+                                            class="form-control @error('instructions') is-invalid @enderror"
+                                            id="withdrawal-instructions"
+                                            name="instructions"
+                                            rows="7"
+                                            maxlength="5000"
+                                        >{{ old('instructions', $settings['instructions']) }}</textarea>
+                                        @error('instructions') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                        <small class="form-text text-muted">Upute se šalju u HR potvrdi primitka izjave.</small>
+                                    </div>
+                                </div>
+
+                                <div class="tab-pane" id="withdrawal-settings-tabs-en" role="tabpanel">
+                                    <div class="form-group">
+                                        <label for="withdrawal-return-address-en">Adresa za povrat robe EN *</label>
+                                        <textarea
+                                            class="form-control @error('return_address_en') is-invalid @enderror"
+                                            id="withdrawal-return-address-en"
+                                            name="return_address_en"
+                                            rows="4"
+                                            required
+                                            maxlength="1000"
+                                        >{{ old('return_address_en', $settings['return_address_en']) }}</textarea>
+                                        @error('return_address_en') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                        <small class="form-text text-muted">Prikazuje se na ENG obrascu i u potvrdi korisniku.</small>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="withdrawal-instructions-en">Dodatne upute korisniku EN</label>
+                                        <textarea
+                                            class="form-control @error('instructions_en') is-invalid @enderror"
+                                            id="withdrawal-instructions-en"
+                                            name="instructions_en"
+                                            rows="7"
+                                            maxlength="5000"
+                                        >{{ old('instructions_en', $settings['instructions_en']) }}</textarea>
+                                        @error('instructions_en') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                        <small class="form-text text-muted">Upute se šalju u ENG potvrdi primitka izjave.</small>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="block-content bg-body-light">

@@ -230,6 +230,7 @@ return [
         'items' => 'Items',
         'customers' => 'Customers',
         'purchase_terms' => 'Purchase terms',
+        'contract_withdrawal' => 'Contract withdrawal',
         'book_purchase' => 'Book purchase',
         'contact_us' => 'Contact us',
         'address' => 'Address',

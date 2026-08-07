@@ -6,6 +6,7 @@ use App\Mail\ContractWithdrawalAdminMail;
 use App\Mail\ContractWithdrawalReceiptMail;
 use App\Models\ContractWithdrawal;
 use App\Models\User;
+use App\Services\BookPurchaseContentService;
 use App\Services\ContractWithdrawalSettingsService;
 use Bouncer;
 use Illuminate\Contracts\Console\Kernel;
@@ -71,6 +72,99 @@ class ContractWithdrawalTest extends TestCase
             ->assertSee('Izravne troškove povrata robe snosite sami.')
             ->assertSee('Palmotićeva 28')
             ->assertSee('Potvrda sa sadržajem');
+    }
+
+    public function test_english_form_footer_review_confirmation_and_receipt_are_localized(): void
+    {
+        Mail::fake();
+
+        $form = $this->get(route('en.contract-withdrawal.create'));
+
+        $form->assertOk()
+            ->assertSee('Distance contract withdrawal form')
+            ->assertSee('Withdraw from contract')
+            ->assertSee('without giving a reason')
+            ->assertSee('You bear the direct cost of returning the goods.')
+            ->assertSee('Contract withdrawal')
+            ->assertSee(route('en.contract-withdrawal.create'), false);
+
+        $review = $this->post(route('en.contract-withdrawal.review'), $this->validPayload());
+
+        $review->assertOk()
+            ->assertSee('Review your withdrawal statement')
+            ->assertSee('Confirm contract withdrawal')
+            ->assertSee('I hereby unequivocally declare');
+
+        preg_match('/name="draft_token" value="([^"]+)"/', $review->getContent(), $matches);
+        $this->assertNotEmpty($matches[1] ?? null);
+
+        $store = $this->post(route('en.contract-withdrawal.store'), [
+            'draft_token' => $matches[1],
+        ]);
+
+        $store->assertRedirect(route('en.contract-withdrawal.create'))
+            ->assertSessionHas('success', function ($message) {
+                return strpos($message, 'Your contract withdrawal statement has been received.') !== false;
+            });
+
+        $withdrawal = ContractWithdrawal::query()->firstOrFail();
+        $this->assertSame('en', $withdrawal->locale);
+        $this->assertStringStartsWith('I hereby unequivocally declare', $withdrawal->declaration);
+
+        Mail::assertSent(ContractWithdrawalReceiptMail::class, function ($mail) {
+            return $mail->hasTo('kupac@example.test')
+                && strpos($mail->build()->subject, 'Confirmation of contract withdrawal') !== false;
+        });
+    }
+
+    public function test_admin_can_edit_hr_and_en_book_purchase_page_content(): void
+    {
+        $admin = User::factory()->create();
+        Bouncer::allow($admin)->everything();
+
+        $payload = [
+            'hr' => [
+                'title' => 'Otkup test HR',
+                'meta_description' => 'Meta opis HR',
+                'section_title' => 'Uvod HR',
+                'intro_1' => 'Prvi odlomak HR.',
+                'intro_2' => 'Drugi odlomak HR.',
+                'form_title' => 'Obrazac HR',
+            ],
+            'en' => [
+                'title' => 'Book purchase test EN',
+                'meta_description' => 'Meta description EN',
+                'section_title' => 'Introduction EN',
+                'intro_1' => 'First paragraph EN.',
+                'intro_2' => 'Second paragraph EN.',
+                'form_title' => 'Form EN',
+            ],
+        ];
+
+        $this->actingAs($admin)
+            ->patch(route('book.purchases.content.update'), $payload)
+            ->assertRedirect(route('book.purchases.content.edit'))
+            ->assertSessionHas('success');
+
+        $content = app(BookPurchaseContentService::class)->get();
+        $this->assertSame('Prvi odlomak HR.', $content['hr']['intro_1']);
+        $this->assertSame('First paragraph EN.', $content['en']['intro_1']);
+
+        $this->actingAs($admin)
+            ->get(route('book.purchases.content.edit'))
+            ->assertOk()
+            ->assertSee('Prvi odlomak HR.')
+            ->assertSee('First paragraph EN.');
+
+        $this->get(route('otkup.knjiga'))
+            ->assertOk()
+            ->assertSee('Otkup test HR')
+            ->assertSee('Prvi odlomak HR.');
+
+        $this->get(route('en.otkup.knjiga'))
+            ->assertOk()
+            ->assertSee('Book purchase test EN')
+            ->assertSee('First paragraph EN.');
     }
 
     public function test_withdrawal_is_reviewed_stored_with_evidence_and_emailed_to_both_parties(): void
@@ -156,8 +250,10 @@ class ContractWithdrawalTest extends TestCase
             ->patch(route('contract-withdrawal-settings.update'), [
                 'admin_email' => 'admin-raskidi@example.test',
                 'return_address' => 'Biblos, Nova adresa 2, Zagreb',
+                'return_address_en' => 'Biblos, New address 2, Zagreb, Croatia',
                 'return_cost_policy' => 'merchant',
                 'instructions' => 'Robu pošaljite preporučeno.',
+                'instructions_en' => 'Send the goods by registered mail.',
             ]);
 
         $settingsResponse
@@ -167,6 +263,8 @@ class ContractWithdrawalTest extends TestCase
         $settings = app(ContractWithdrawalSettingsService::class)->get();
         $this->assertSame('admin-raskidi@example.test', $settings['admin_email']);
         $this->assertSame('merchant', $settings['return_cost_policy']);
+        $this->assertSame('Biblos, New address 2, Zagreb, Croatia', $settings['return_address_en']);
+        $this->assertSame('Send the goods by registered mail.', $settings['instructions_en']);
 
         $withdrawal = $this->makeWithdrawal();
 

@@ -27,8 +27,12 @@ class ContractWithdrawalReceiptMail extends Mailable
 
     public function build()
     {
+        $locale = $this->withdrawal->locale === 'en' ? 'en' : 'hr';
+
         return $this
-            ->subject('Potvrda primitka raskida ugovora '.$this->withdrawal->reference)
+            ->subject(trans('contract_withdrawal.email.subject', [
+                'reference' => $this->withdrawal->reference,
+            ], $locale))
             ->view('emails.contract-withdrawals.receipt');
     }
 }

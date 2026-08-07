@@ -5,6 +5,9 @@
         <div class="content content-full">
             <div class="d-flex flex-column flex-sm-row justify-content-sm-between align-items-sm-center">
                 <h1 class="flex-sm-fill font-size-h2 font-w400 mt-2 mb-0 mb-sm-2">Otkup knjiga</h1>
+                <a class="btn btn-alt-primary mt-3 mt-sm-0" href="{{ route('book.purchases.content.edit') }}">
+                    <i class="fa fa-edit mr-1"></i>Uredi tekstove HR / EN
+                </a>
             </div>
         </div>
     </div>

@@ -186,6 +186,7 @@ return [
         'items' => 'Artikala',
         'customers' => 'Kupaca',
         'purchase_terms' => 'Uvjeti kupnje',
+        'contract_withdrawal' => 'Jednostrani raskid ugovora',
         'book_purchase' => 'Otkup knjiga',
         'contact_us' => 'Kontaktirajte nas',
         'address' => 'Adresa',

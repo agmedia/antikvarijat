@@ -1,7 +1,7 @@
 @extends('front.layouts.app')
 
-@section('title', __('front.book_purchase.title'))
-@section('description', __('front.book_purchase.meta_description'))
+@section('title', $bookPurchaseContent['title'])
+@section('description', $bookPurchaseContent['meta_description'])
 
 @push('css_after')
     <link rel="stylesheet" media="screen" href="{{ asset('js/simple-lightbox.css?v2.14.0') }}">
@@ -14,12 +14,12 @@
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb flex-lg-nowrap justify-content-center justify-content-lg-start">
                         <li class="breadcrumb-item"><a class="text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('index') }}"><i class="ci-home"></i> {{ __('front.nav.home') }}</a></li>
-                        <li class="breadcrumb-item text-nowrap active" aria-current="page">{{ __('front.book_purchase.title') }}</li>
+                        <li class="breadcrumb-item text-nowrap active" aria-current="page">{{ $bookPurchaseContent['title'] }}</li>
                     </ol>
                 </nav>
             </div>
             <div class="order-lg-1 pe-lg-4 text-center text-lg-start">
-                <h1 class="h3 mb-0">{{ __('front.book_purchase.title') }}</h1>
+                <h1 class="h3 mb-0">{{ $bookPurchaseContent['title'] }}</h1>
             </div>
         </div>
     </div>
@@ -44,11 +44,11 @@
             <div class="col-12">
                 <div class="card border-0 shadow-sm">
                     <div class="card-body">
-                        <h2 class="h5">{{ __('front.book_purchase.section_title') }}</h2>
+                        <h2 class="h5">{{ $bookPurchaseContent['section_title'] }}</h2>
                         <p class="mb-0 text-muted">
-                            {{ __('front.book_purchase.intro_1') }}</p>
+                            {{ $bookPurchaseContent['intro_1'] }}</p>
                         <p class="mb-0 text-muted">
-                            {{ __('front.book_purchase.intro_2') }}
+                            {{ $bookPurchaseContent['intro_2'] }}
                         </p>
                     </div>
                 </div>
@@ -106,7 +106,7 @@
 
         <div class="card border-0 shadow-sm">
             <div class="card-body p-4 p-lg-5">
-                <h2 class="h4 mb-3">{{ __('front.book_purchase.form_title') }}</h2>
+                <h2 class="h4 mb-3">{{ $bookPurchaseContent['form_title'] }}</h2>
 
                 <form id="book-purchase-form" action="{{ \App\Helpers\LocaleHelper::route('otkup.knjiga.posalji') }}" method="POST" enctype="multipart/form-data" novalidate>
                     @csrf

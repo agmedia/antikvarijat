@@ -14,6 +14,7 @@ use App\Models\Back\Marketing\NewsletterSubscriber;
 use App\Models\Back\Marketing\Wishlist;
 use App\Models\Front\Page;
 use App\Models\Sitemap;
+use App\Services\BookPurchaseContentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
@@ -132,7 +133,7 @@ class HomeController extends Controller
     /**
      * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
      */
-    public function bookPurchase()
+    public function bookPurchase(BookPurchaseContentService $contentService)
     {
         $defaults = [
             'full_name' => '',
@@ -157,7 +158,9 @@ class HomeController extends Controller
                 : (string) ($user->name ?? '');
         }
 
-        return view('front.book-purchase', compact('defaults'));
+        $bookPurchaseContent = $contentService->forLocale();
+
+        return view('front.book-purchase', compact('defaults', 'bookPurchaseContent'));
     }
 
 

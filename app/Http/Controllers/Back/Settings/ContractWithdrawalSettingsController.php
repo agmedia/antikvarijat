@@ -21,8 +21,10 @@ class ContractWithdrawalSettingsController extends Controller
         $validated = $request->validate([
             'admin_email' => ['required', 'email', 'max:191'],
             'return_address' => ['required', 'string', 'max:1000'],
+            'return_address_en' => ['nullable', 'string', 'max:1000'],
             'return_cost_policy' => ['required', Rule::in(['consumer', 'merchant'])],
             'instructions' => ['nullable', 'string', 'max:5000'],
+            'instructions_en' => ['nullable', 'string', 'max:5000'],
         ]);
 
         if ($settings->save($validated)) {

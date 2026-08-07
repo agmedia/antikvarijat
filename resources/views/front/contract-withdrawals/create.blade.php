@@ -1,7 +1,7 @@
 @extends('front.layouts.app')
 
-@section('title', 'Obrazac za jednostrani raskid ugovora - Antikvarijat Biblos')
-@section('description', 'Elektronički obrazac za jednostrani raskid ugovora sklopljenog na daljinu u Antikvarijatu Biblos.')
+@section('title', __('contract_withdrawal.meta_title'))
+@section('description', __('contract_withdrawal.meta_description'))
 
 @push('css_after')
     @include('front.contract-withdrawals.partials.styles')
@@ -12,19 +12,16 @@
         <nav class="mb-4" aria-label="breadcrumb">
             <ol class="breadcrumb flex-lg-nowrap">
                 <li class="breadcrumb-item">
-                    <a class="text-nowrap" href="{{ route('index') }}"><i class="ci-home"></i>Naslovnica</a>
+                    <a class="text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('index') }}"><i class="ci-home"></i> {{ __('front.nav.home') }}</a>
                 </li>
-                <li class="breadcrumb-item text-nowrap active" aria-current="page">Jednostrani raskid ugovora</li>
+                <li class="breadcrumb-item text-nowrap active" aria-current="page">{{ __('contract_withdrawal.breadcrumb') }}</li>
             </ol>
         </nav>
 
         <section class="d-md-flex justify-content-between align-items-center mb-4 pb-2">
             <div>
-                <h1 class="h2 mb-2">Obrazac za jednostrani raskid ugovora</h1>
-                <p class="withdrawal-page__intro">
-                    Ovim obrascem možete jednostavno i nedvosmisleno raskinuti ugovor sklopljen na daljinu.
-                    Razlog nije potrebno navesti, a potvrdu primitka bez odgađanja šaljemo na vaš e-mail.
-                </p>
+                <h1 class="h2 mb-2">{{ __('contract_withdrawal.page_title') }}</h1>
+                <p class="withdrawal-page__intro">{{ __('contract_withdrawal.intro') }}</p>
             </div>
         </section>
 
@@ -40,7 +37,7 @@
         @endif
         @if ($errors->any())
             <div class="alert alert-danger mb-4" role="alert">
-                <strong>Provjerite unesene podatke:</strong>
+                <strong>{{ __('contract_withdrawal.validation_heading') }}</strong>
                 <ul class="mb-0 mt-2">
                     @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
@@ -53,14 +50,13 @@
             <div class="withdrawal-card">
                 <div class="withdrawal-card__body">
                     <div class="withdrawal-scope-note">
-                        Ovaj obrazac služi za jednostrani raskid ugovora. Za reklamaciju neispravnog ili
-                        neusklađenog proizvoda javite se na
+                        {{ __('contract_withdrawal.scope_before') }}
                         <a href="mailto:info@antikvarijat-biblos.hr">info@antikvarijat-biblos.hr</a>.
                     </div>
 
                     <form
                         method="POST"
-                        action="{{ route('contract-withdrawal.review') }}"
+                        action="{{ \App\Helpers\LocaleHelper::route('contract-withdrawal.review') }}"
                         novalidate
                         data-withdrawal-form
                         data-recaptcha-enabled="{{ $captchaEnabled ? '1' : '0' }}"
@@ -71,12 +67,12 @@
                         <section class="withdrawal-section" aria-labelledby="withdrawal-consumer-title">
                             <h2 class="withdrawal-section__title" id="withdrawal-consumer-title">
                                 <span class="withdrawal-section__number">1</span>
-                                Podaci potrošača
+                                {{ __('contract_withdrawal.consumer_details') }}
                             </h2>
 
                             <div class="withdrawal-form-grid">
                                 <div class="withdrawal-form-grid__full">
-                                    <label class="form-label" for="withdrawal-full-name">Ime i prezime *</label>
+                                    <label class="form-label" for="withdrawal-full-name">{{ __('contract_withdrawal.full_name') }} *</label>
                                     <input
                                         class="form-control @error('full_name') is-invalid @enderror"
                                         id="withdrawal-full-name"
@@ -91,7 +87,7 @@
                                 </div>
 
                                 <div>
-                                    <label class="form-label" for="withdrawal-email">E-mail za potvrdu *</label>
+                                    <label class="form-label" for="withdrawal-email">{{ __('contract_withdrawal.confirmation_email') }} *</label>
                                     <input
                                         class="form-control @error('email') is-invalid @enderror"
                                         id="withdrawal-email"
@@ -103,11 +99,11 @@
                                         maxlength="191"
                                     >
                                     @error('email') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                                    <div class="withdrawal-field-help">Na ovu adresu šaljemo dokazivu potvrdu primitka.</div>
+                                    <div class="withdrawal-field-help">{{ __('contract_withdrawal.confirmation_email_help') }}</div>
                                 </div>
 
                                 <div>
-                                    <label class="form-label" for="withdrawal-phone">Telefon <span class="text-muted">(neobavezno)</span></label>
+                                    <label class="form-label" for="withdrawal-phone">{{ __('contract_withdrawal.phone') }} <span class="text-muted">({{ __('contract_withdrawal.optional') }})</span></label>
                                     <input
                                         class="form-control @error('phone') is-invalid @enderror"
                                         id="withdrawal-phone"
@@ -121,7 +117,7 @@
                                 </div>
 
                                 <div class="withdrawal-form-grid__full">
-                                    <label class="form-label" for="withdrawal-address">Ulica i kućni broj *</label>
+                                    <label class="form-label" for="withdrawal-address">{{ __('contract_withdrawal.address_line') }} *</label>
                                     <input
                                         class="form-control @error('address_line') is-invalid @enderror"
                                         id="withdrawal-address"
@@ -136,7 +132,7 @@
                                 </div>
 
                                 <div>
-                                    <label class="form-label" for="withdrawal-postal-code">Poštanski broj *</label>
+                                    <label class="form-label" for="withdrawal-postal-code">{{ __('contract_withdrawal.postal_code') }} *</label>
                                     <input
                                         class="form-control @error('postal_code') is-invalid @enderror"
                                         id="withdrawal-postal-code"
@@ -151,7 +147,7 @@
                                 </div>
 
                                 <div>
-                                    <label class="form-label" for="withdrawal-city">Mjesto *</label>
+                                    <label class="form-label" for="withdrawal-city">{{ __('contract_withdrawal.city') }} *</label>
                                     <input
                                         class="form-control @error('city') is-invalid @enderror"
                                         id="withdrawal-city"
@@ -166,7 +162,7 @@
                                 </div>
 
                                 <div>
-                                    <label class="form-label" for="withdrawal-country">Oznaka države *</label>
+                                    <label class="form-label" for="withdrawal-country">{{ __('contract_withdrawal.country_code') }} *</label>
                                     <input
                                         class="form-control text-uppercase @error('country_code') is-invalid @enderror"
                                         id="withdrawal-country"
@@ -187,12 +183,12 @@
                         <section class="withdrawal-section" aria-labelledby="withdrawal-contract-title">
                             <h2 class="withdrawal-section__title" id="withdrawal-contract-title">
                                 <span class="withdrawal-section__number">2</span>
-                                Podaci ugovora i robe
+                                {{ __('contract_withdrawal.contract_goods') }}
                             </h2>
 
                             <div class="withdrawal-form-grid">
                                 <div class="withdrawal-form-grid__full">
-                                    <label class="form-label" for="withdrawal-order-number">Broj narudžbe / ugovora *</label>
+                                    <label class="form-label" for="withdrawal-order-number">{{ __('contract_withdrawal.order_number') }} *</label>
                                     <input
                                         class="form-control @error('order_number') is-invalid @enderror"
                                         id="withdrawal-order-number"
@@ -206,7 +202,7 @@
                                 </div>
 
                                 <div>
-                                    <label class="form-label" for="withdrawal-contract-date">Datum narudžbe <span class="text-muted">(neobavezno)</span></label>
+                                    <label class="form-label" for="withdrawal-contract-date">{{ __('contract_withdrawal.contract_date') }} <span class="text-muted">({{ __('contract_withdrawal.optional') }})</span></label>
                                     <input
                                         class="form-control @error('contract_date') is-invalid @enderror"
                                         id="withdrawal-contract-date"
@@ -219,7 +215,7 @@
                                 </div>
 
                                 <div>
-                                    <label class="form-label" for="withdrawal-received-date">Datum primitka robe <span class="text-muted">(neobavezno)</span></label>
+                                    <label class="form-label" for="withdrawal-received-date">{{ __('contract_withdrawal.received_date') }} <span class="text-muted">({{ __('contract_withdrawal.optional') }})</span></label>
                                     <input
                                         class="form-control @error('received_date') is-invalid @enderror"
                                         id="withdrawal-received-date"
@@ -232,13 +228,13 @@
                                 </div>
 
                                 <div class="withdrawal-form-grid__full">
-                                    <label class="form-label" for="withdrawal-items">Proizvodi / dio ugovora koji raskidate *</label>
+                                    <label class="form-label" for="withdrawal-items">{{ __('contract_withdrawal.items') }} *</label>
                                     <textarea
                                         class="form-control @error('items') is-invalid @enderror"
                                         id="withdrawal-items"
                                         name="items"
                                         rows="6"
-                                        placeholder="Navedite naziv, šifru i količinu proizvoda ili napišite da raskidate cijelu narudžbu."
+                                        placeholder="{{ __('contract_withdrawal.items_placeholder') }}"
                                         required
                                         maxlength="5000"
                                     >{{ old('items') }}</textarea>
@@ -246,13 +242,13 @@
                                 </div>
 
                                 <div class="withdrawal-form-grid__full">
-                                    <label class="form-label" for="withdrawal-note">Dodatna napomena <span class="text-muted">(neobavezno)</span></label>
+                                    <label class="form-label" for="withdrawal-note">{{ __('contract_withdrawal.note') }} <span class="text-muted">({{ __('contract_withdrawal.optional') }})</span></label>
                                     <textarea
                                         class="form-control @error('note') is-invalid @enderror"
                                         id="withdrawal-note"
                                         name="note"
                                         rows="4"
-                                        placeholder="Razlog raskida nije potrebno navesti."
+                                        placeholder="{{ __('contract_withdrawal.note_placeholder') }}"
                                         maxlength="5000"
                                     >{{ old('note') }}</textarea>
                                     @error('note') <div class="invalid-feedback">{{ $message }}</div> @enderror
@@ -260,14 +256,11 @@
                             </div>
                         </section>
 
-                        <p class="withdrawal-field-help mt-4">
-                            Podaci se obrađuju radi izvršenja zakonskih obveza trgovca i evidencije vaše izjave o raskidu.
-                            U sljedećem koraku pregledat ćete nedvosmislenu izjavu prije konačnog slanja.
-                        </p>
+                        <p class="withdrawal-field-help mt-4">{{ __('contract_withdrawal.privacy_text') }}</p>
                         @error('recaptcha') <div class="text-danger small mt-2">{{ $message }}</div> @enderror
 
                         <button class="withdrawal-submit mt-3" type="submit" data-withdrawal-submit>
-                            Raskid ugovora
+                            {{ __('contract_withdrawal.submit') }}
                             <i class="ci-arrow-right ms-2" aria-hidden="true"></i>
                         </button>
                     </form>
@@ -276,21 +269,19 @@
 
             <aside class="withdrawal-card withdrawal-aside" aria-labelledby="withdrawal-important-title">
                 <div class="withdrawal-card__body">
-                    <h2 id="withdrawal-important-title">Važno prije slanja</h2>
+                    <h2 id="withdrawal-important-title">{{ __('contract_withdrawal.important_title') }}</h2>
                     <ul class="withdrawal-aside__list">
-                        <li>Ugovor sklopljen na daljinu u pravilu možete raskinuti u roku od 14 dana bez navođenja razloga.</li>
-                        <li>Za robu rok u pravilu počinje kada ste vi ili osoba koju ste odredili primili robu.</li>
-                        <li>Robu je potrebno vratiti bez nepotrebnog odgađanja, najkasnije 14 dana od slanja izjave.</li>
-                        <li>Povrat plaćenog iznosa, uključujući trošak najjeftinije standardne dostave, izvršava se najkasnije 14 dana od primitka izjave, istim sredstvom plaćanja i bez dodatnih naknada, osim ako je izričito dogovoreno drukčije.</li>
-                        <li>Povrat novca može se zadržati dok roba ne bude vraćena ili dok ne dostavite dokaz da ste je poslali.</li>
+                        @foreach (array_slice(__('contract_withdrawal.important'), 0, 5) as $importantItem)
+                            <li>{{ $importantItem }}</li>
+                        @endforeach
                         <li>{{ $returnCostText }}</li>
-                        <li>Odgovorni ste samo za umanjenje vrijednosti nastalo rukovanjem iznad onoga potrebnog za provjeru prirode, obilježja i funkcionalnosti robe.</li>
-                        <li>Zakonom su za određene vrste ugovora i robe propisane iznimke od prava na jednostrani raskid.</li>
-                        <li>Potvrda sa sadržajem izjave te datumom i vremenom podnošenja stiže na vaš e-mail.</li>
+                        @foreach (array_slice(__('contract_withdrawal.important'), 5) as $importantItem)
+                            <li>{{ $importantItem }}</li>
+                        @endforeach
                     </ul>
 
                     @if (($withdrawalSettings['return_address'] ?? '') !== '')
-                        <div class="withdrawal-address"><strong>Adresa za povrat robe</strong><br>{{ $withdrawalSettings['return_address'] }}</div>
+                        <div class="withdrawal-address"><strong>{{ __('contract_withdrawal.return_address') }}</strong><br>{{ $withdrawalSettings['return_address'] }}</div>
                     @endif
                 </div>
             </aside>

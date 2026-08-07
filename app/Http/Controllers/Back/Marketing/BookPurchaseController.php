@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Back\Marketing;
 
 use App\Http\Controllers\Controller;
 use App\Models\Back\Marketing\BookPurchaseRequest;
+use App\Services\BookPurchaseContentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 
@@ -61,6 +62,42 @@ class BookPurchaseController extends Controller
             ->first();
 
         return view('back.marketing.book-purchase.show', compact('purchase', 'previous', 'next'));
+    }
+
+    public function editContent(BookPurchaseContentService $content)
+    {
+        return view('back.marketing.book-purchase.edit-content', [
+            'content' => $content->get(),
+        ]);
+    }
+
+    public function updateContent(Request $request, BookPurchaseContentService $content)
+    {
+        $validated = $request->validate([
+            'hr.title' => ['required', 'string', 'max:120'],
+            'hr.meta_description' => ['required', 'string', 'max:255'],
+            'hr.section_title' => ['required', 'string', 'max:191'],
+            'hr.intro_1' => ['required', 'string', 'max:5000'],
+            'hr.intro_2' => ['required', 'string', 'max:5000'],
+            'hr.form_title' => ['required', 'string', 'max:191'],
+            'en.title' => ['required', 'string', 'max:120'],
+            'en.meta_description' => ['required', 'string', 'max:255'],
+            'en.section_title' => ['required', 'string', 'max:191'],
+            'en.intro_1' => ['required', 'string', 'max:5000'],
+            'en.intro_2' => ['required', 'string', 'max:5000'],
+            'en.form_title' => ['required', 'string', 'max:191'],
+        ]);
+
+        if ($content->save($validated)) {
+            return redirect()
+                ->route('book.purchases.content.edit')
+                ->with('success', 'Tekstovi stranice Otkup knjiga su spremljeni.');
+        }
+
+        return redirect()
+            ->back()
+            ->withInput()
+            ->with('error', 'Tekstove nije moguće spremiti.');
     }
 
     public function destroy(Request $request, BookPurchaseRequest $purchase)
