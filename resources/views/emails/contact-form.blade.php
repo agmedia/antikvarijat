@@ -1,45 +1,22 @@
-@extends('emails.layouts.base')
+@extends('emails.layouts.customer-notification')
+
+@section('email_title', __('front.email.contact_subject'))
+@section('preheader', __('front.email.contact_form_received'))
 
 @section('content')
-    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-        <tr>
-            <td style="padding: 20px 20px 10px 20px; font-family: sans-serif; font-size: 18px; font-weight: bold; line-height: 20px; color: #555555; text-align: center;">
-                {{ __('front.email.contact_form_message') }}<br>
-            </td>
-        </tr>
-        <tr>
-            <td style="padding: 20px 20px 0 20px; font-family: sans-serif; font-size: 15px; line-height: 20px; color: #555555;">
-                {{ __('front.email.contact_form_received') }}<br>
-                <br>
-                <table cellspacing="0" cellpadding="0" border="0" width="100%">
-                    <tr>
-                        <td style="width: 26%">{{ __('front.checkout.first_name') }}:</td>
-                        <td style="width: 74%"><b>{{ $contact['name'] }}</b></td>
-                    </tr>
-                    <tr>
-                        <td>Email:</td>
-                        <td><b>{{ $contact['email'] }}</b></td>
-                    </tr>
-                    @if ( ! empty($contact['phone']))
-                        <tr>
-                            <td>{{ __('front.checkout.phone') }}:</td>
-                            <td><b>{{ $contact['phone'] }}</b></td>
-                        </tr>
-                    @endif
-                </table>
-            </td>
-        </tr>
-        <tr>
-            <td style="padding: 5px 20px 30px 20px; font-family: sans-serif; font-size: 15px; line-height: 20px; color: #555555;">
-                <pre>{!! $contact['message'] !!}</pre>
-            </td>
-        </tr>
-        <tr>
-            <td style="padding: 20px; font-family: sans-serif; font-size: 15px; line-height: 20px; color: #555555; text-align: center;">
-                <a href="{{ \App\Helpers\LocaleHelper::route('index') }}" style="display: block; display: inline-block; width: 200px; min-height: 20px; padding: 10px; background-color: #a50000; border-radius: 3px; color: #ffffff; font-size: 15px; line-height: 25px; text-align: center; text-decoration: none; -webkit-text-size-adjust: none;">
-                    {{ __('front.general.go_to_site') }}
-                </a>
-            </td>
-        </tr>
+    <div style="margin:0 0 14px;font-size:11px;line-height:16px;font-weight:bold;letter-spacing:1.5px;text-transform:uppercase;color:#a17436;">Web kontakt</div>
+    <h1 style="margin:0 0 16px;font-family:Georgia,'Times New Roman',serif;font-size:31px;line-height:39px;font-weight:normal;color:#193827;">{{ __('front.email.contact_form_message') }}</h1>
+    <p style="margin:0 0 25px;font-size:15px;line-height:24px;color:#5e685f;">{{ __('front.email.contact_form_received') }}</p>
+
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background:#f8f6f0;border:1px solid #e6dfd2;border-radius:9px;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:20px;">
+        <tr><td style="width:30%;padding:14px 16px 7px;color:#7a817b;">{{ __('front.checkout.first_name') }}</td><td style="padding:14px 16px 7px;color:#25342b;font-weight:bold;">{{ $contact['name'] }}</td></tr>
+        <tr><td style="padding:7px 16px;color:#7a817b;">E-mail</td><td style="padding:7px 16px;color:#25342b;font-weight:bold;word-break:break-word;">{{ $contact['email'] }}</td></tr>
+        @if(! empty($contact['phone']))
+            <tr><td style="padding:7px 16px 14px;color:#7a817b;">{{ __('front.checkout.phone') }}</td><td style="padding:7px 16px 14px;color:#25342b;font-weight:bold;">{{ $contact['phone'] }}</td></tr>
+        @endif
     </table>
+
+    <div style="margin:22px 0;padding:19px 20px;border-left:4px solid #bd9456;background:#fbfaf7;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:23px;color:#36463c;white-space:pre-wrap;">{{ $contact['message'] }}</div>
+
+    <a href="mailto:{{ $contact['email'] }}" class="mail-button" style="display:inline-block;padding:13px 23px;background:#193827;border-radius:6px;color:#ffffff;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:bold;">{{ __('front.email.reply_to_message') }} &nbsp;→</a>
 @endsection

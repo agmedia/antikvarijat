@@ -91,4 +91,62 @@ class WishlistController extends Controller
 
         return back()->with($result['sent'] ? 'success' : 'error', $result['message']);
     }
+
+    public function sendSelected(Request $request)
+    {
+        $validated = $request->validate([
+            'wishlist_ids' => ['required', 'array', 'min:1', 'max:100'],
+            'wishlist_ids.*' => ['required', 'integer', 'distinct', 'exists:wishlist,id'],
+        ], [
+            'wishlist_ids.required' => 'Odaberite barem jednu wishlist obavijest.',
+            'wishlist_ids.min' => 'Odaberite barem jednu wishlist obavijest.',
+            'wishlist_ids.max' => 'Odjednom možete poslati najviše 100 obavijesti.',
+        ]);
+
+        if (! config('wishlist.emails_enabled')) {
+            return back()->with('error', 'Slanje wishlist mailova je isključeno u ovom okruženju.');
+        }
+
+        $wishlists = Wishlist::query()
+            ->whereIn('id', $validated['wishlist_ids'])
+            ->orderBy('id')
+            ->get()
+            ->keyBy('id');
+
+        $notifications = 0;
+        $entries = 0;
+        $skipped = 0;
+        $failed = 0;
+
+        foreach ($validated['wishlist_ids'] as $wishlistId) {
+            $wishlist = $wishlists->get((int) $wishlistId);
+            if (! $wishlist) {
+                $skipped++;
+                continue;
+            }
+
+            $result = $wishlist->sendNow();
+
+            if ($result['sent']) {
+                $notifications++;
+                $entries += $result['entries'];
+            } elseif (($result['reason'] ?? null) === 'failed') {
+                $failed++;
+            } else {
+                $skipped++;
+            }
+        }
+
+        Cache::forget('admin.notification_counts');
+
+        $message = "Poslano obavijesti: {$notifications}; obrađeno wishlist zapisa: {$entries}.";
+        if ($skipped > 0) {
+            $message .= " Preskočeno: {$skipped}.";
+        }
+        if ($failed > 0) {
+            $message .= " Neuspjelo: {$failed}.";
+        }
+
+        return back()->with($failed > 0 ? 'error' : 'success', $message);
+    }
 }

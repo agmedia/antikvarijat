@@ -248,14 +248,14 @@ class Wishlist extends Model
     public function sendNow(): array
     {
         if (! config('wishlist.emails_enabled')) {
-            return ['sent' => false, 'entries' => 0, 'message' => 'Slanje wishlist mailova je isključeno u ovom okruženju.'];
+            return ['sent' => false, 'entries' => 0, 'reason' => 'disabled', 'message' => 'Slanje wishlist mailova je isključeno u ovom okruženju.'];
         }
 
         $email = static::normalizeEmail($this->email);
         if (! static::isValidEmail($email)) {
             $this->forceFill(['status' => 0])->save();
 
-            return ['sent' => false, 'entries' => 0, 'message' => 'E-mail adresa nije ispravna.'];
+            return ['sent' => false, 'entries' => 0, 'reason' => 'invalid', 'message' => 'E-mail adresa nije ispravna.'];
         }
 
         $product = Product::query()
@@ -265,7 +265,7 @@ class Wishlist extends Model
             ->first();
 
         if (! $product || ! $this->status || $this->sent) {
-            return ['sent' => false, 'entries' => 0, 'message' => 'Artikl nije dostupan ili je obavijest već obrađena.'];
+            return ['sent' => false, 'entries' => 0, 'reason' => 'unavailable', 'message' => 'Artikl nije dostupan ili je obavijest već obrađena.'];
         }
 
         $entries = static::query()
@@ -285,7 +285,7 @@ class Wishlist extends Model
             ]);
             Cache::forget('admin.notification_counts');
 
-            return ['sent' => true, 'entries' => $entries->count(), 'message' => 'Wishlist obavijest je poslana.'];
+            return ['sent' => true, 'entries' => $entries->count(), 'reason' => null, 'message' => 'Wishlist obavijest je poslana.'];
         } catch (\Throwable $exception) {
             Log::warning('Manual wishlist notification mail failed.', [
                 'product_id' => $product->id,
@@ -293,7 +293,7 @@ class Wishlist extends Model
                 'error' => $exception->getMessage(),
             ]);
 
-            return ['sent' => false, 'entries' => 0, 'message' => 'Slanje nije uspjelo; zapis je ostao za novi pokušaj.'];
+            return ['sent' => false, 'entries' => 0, 'reason' => 'failed', 'message' => 'Slanje nije uspjelo; zapis je ostao za novi pokušaj.'];
         }
     }
 

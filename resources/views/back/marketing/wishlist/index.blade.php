@@ -87,10 +87,24 @@
                 @endif
 
                 @if ($activeTab === 'wishlists')
+                    <form id="wishlist-bulk-form" method="POST" action="{{ route('wishlists.send-selected') }}">
+                        @csrf
+                        <div class="admin-wishlist-bulkbar d-flex flex-wrap align-items-center justify-content-between mb-3">
+                            <div class="text-muted mb-2 mb-md-0">
+                                <i class="fa-duotone fa-square-check mr-1" aria-hidden="true"></i>
+                                Odabrano: <strong id="wishlist-selected-count">0</strong>
+                            </div>
+                            <button id="wishlist-send-selected" class="btn btn-primary text-nowrap" type="submit" disabled onclick="return confirm('Poslati sve odabrane wishlist obavijesti?');">
+                                <i class="fa-duotone fa-paper-plane mr-1" aria-hidden="true"></i> Pošalji odabrano
+                            </button>
+                        </div>
                     <div class="table-responsive">
                         <table class="table table-borderless table-striped table-vcenter admin-data-table admin-wishlist-table">
                             <thead>
                             <tr>
+                                <th class="text-center admin-wishlist-select-column">
+                                    <input id="wishlist-select-all" type="checkbox" aria-label="Odaberi sve spremne wishlist obavijesti na ovoj stranici" title="Odaberi sve spremne na ovoj stranici">
+                                </th>
                                 <th style="width: 72px;">Slika</th>
                                 <th>Artikl</th>
                                 <th>Šifra</th>
@@ -109,6 +123,13 @@
                                     $isReady = $product && $product->status && $product->quantity > 0 && !$wishlist->sent && $wishlist->status;
                                 @endphp
                                 <tr>
+                                    <td class="text-center" data-label="Odaberi">
+                                        @if($isReady && config('wishlist.emails_enabled'))
+                                            <input class="wishlist-row-checkbox" type="checkbox" name="wishlist_ids[]" value="{{ $wishlist->id }}" aria-label="Odaberi {{ $wishlist->email }} — {{ optional($product)->name }}">
+                                        @else
+                                            <input type="checkbox" disabled aria-label="Ova obavijest nije spremna za slanje">
+                                        @endif
+                                    </td>
                                     <td data-label="Slika">
                                         @if($product && $product->image)
                                             <img class="admin-wishlist-thumb" src="{{ \App\Support\AdminImage::url($product->image) }}" alt="{{ $product->name }}" loading="lazy">
@@ -145,12 +166,11 @@
                                     </td>
                                     <td class="text-nowrap" data-label="Dodano">{{ optional($wishlist->created_at)->format('d.m.Y. H:i') }}</td>
                                     <td class="text-nowrap" data-label="Poslano">{{ optional($wishlist->sent_at)->format('d.m.Y. H:i') ?: '—' }}</td>
-                                    <td class="text-right" data-label="Akcija">
+                                    <td class="text-right text-nowrap admin-wishlist-action" data-label="Akcija">
                                         @if($isReady && config('wishlist.emails_enabled'))
-                                            <form method="POST" action="{{ route('wishlists.send', $wishlist) }}" onsubmit="return confirm('Poslati wishlist obavijest ovom kupcu?');">
-                                                @csrf
-                                                <button class="btn btn-sm btn-primary" type="submit"><i class="fa-duotone fa-paper-plane mr-1" aria-hidden="true"></i> Pošalji</button>
-                                            </form>
+                                            <button class="btn btn-sm btn-primary admin-wishlist-send" type="submit" formaction="{{ route('wishlists.send', $wishlist) }}" formmethod="POST" formnovalidate onclick="return confirm('Poslati wishlist obavijest ovom kupcu?');">
+                                                <i class="fa-duotone fa-paper-plane mr-1" aria-hidden="true"></i> Pošalji
+                                            </button>
                                         @elseif($isReady)
                                             <span class="badge badge-secondary">Lokalno isključeno</span>
                                         @else
@@ -159,11 +179,12 @@
                                     </td>
                                 </tr>
                             @empty
-                                <tr><td class="text-center text-muted py-5" colspan="9">Nema zapisa za odabrane filtere.</td></tr>
+                                <tr><td class="text-center text-muted py-5" colspan="10">Nema zapisa za odabrane filtere.</td></tr>
                             @endforelse
                             </tbody>
                         </table>
                     </div>
+                    </form>
                     {{ $wishlists->appends(array_merge(request()->query(), ['tab' => 'wishlists']))->links() }}
                 @elseif ($activeTab === 'top-products')
                     <div class="table-responsive mt-3">
@@ -226,10 +247,47 @@
 
 @push('css_after')
     <style>
-        .admin-wishlist-table th:first-child, .admin-wishlist-table td:first-child { width: 5rem; }
+        .admin-wishlist-select-column { width: 3rem; }
         .admin-wishlist-thumb { width: 3.5rem; height: 4.6rem; border: 1px solid #d8d2c8; border-radius: .25rem; object-fit: cover; }
+        .admin-wishlist-action { min-width: 7.5rem; }
+        .admin-wishlist-send { min-width: 6.75rem; white-space: nowrap; }
+        .admin-wishlist-bulkbar { padding: .75rem 1rem; border: 1px solid #ddd7cd; border-radius: .35rem; background: #f7f5f1; }
         @media (max-width: 767.98px) {
-            .admin-wishlist-table th:first-child, .admin-wishlist-table td:first-child { width: 100%; }
+            .admin-wishlist-select-column { width: 100%; }
         }
     </style>
+@endpush
+
+@push('js_after')
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var selectAll = document.getElementById('wishlist-select-all');
+            var checkboxes = Array.prototype.slice.call(document.querySelectorAll('.wishlist-row-checkbox'));
+            var count = document.getElementById('wishlist-selected-count');
+            var sendButton = document.getElementById('wishlist-send-selected');
+
+            if (!selectAll || !count || !sendButton) {
+                return;
+            }
+
+            function refreshSelection() {
+                var selected = checkboxes.filter(function (checkbox) { return checkbox.checked; }).length;
+                count.textContent = selected;
+                sendButton.disabled = selected === 0;
+                selectAll.checked = checkboxes.length > 0 && selected === checkboxes.length;
+                selectAll.indeterminate = selected > 0 && selected < checkboxes.length;
+            }
+
+            selectAll.addEventListener('change', function () {
+                checkboxes.forEach(function (checkbox) { checkbox.checked = selectAll.checked; });
+                refreshSelection();
+            });
+
+            checkboxes.forEach(function (checkbox) {
+                checkbox.addEventListener('change', refreshSelection);
+            });
+
+            refreshSelection();
+        });
+    </script>
 @endpush

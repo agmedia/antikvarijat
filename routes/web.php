@@ -192,6 +192,7 @@ Route::middleware(['auth:sanctum', 'verified', 'no.customers'])->prefix('admin')
 
 
     Route::get('wishlists', [WishlistController::class, 'index'])->name('wishlists');
+    Route::post('wishlists/send-selected', [WishlistController::class, 'sendSelected'])->name('wishlists.send-selected');
     Route::post('wishlists/{wishlist}/send', [WishlistController::class, 'send'])->name('wishlists.send');
     Route::redirect('admin/wishlists', '/admin/wishlists');
 

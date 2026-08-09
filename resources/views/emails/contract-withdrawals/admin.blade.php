@@ -1,8 +1,8 @@
-@extends('emails.layouts.base')
+@extends('emails.layouts.customer-notification')
 
 @section('content')
-    <div class="ag-mail-tableset" style="padding: 30px;">
-        <h1 style="margin: 0 0 18px; color: #2b3445; font-size: 25px; line-height: 1.3;">
+    <div class="ag-mail-tableset" style="padding:0;">
+        <h1 style="margin:0 0 18px;font-family:Georgia,'Times New Roman',serif;color:#193827;font-size:29px;line-height:1.35;font-weight:normal;">
             Nova izjava o jednostranom raskidu ugovora
         </h1>
 
@@ -30,7 +30,7 @@
 
         <a
             href="{{ $adminUrl }}"
-            style="display: inline-block; margin-top: 24px; padding: 12px 20px; border-radius: 4px; background: #9f8545; color: #fff; font-weight: 700; text-decoration: none;"
+            style="display:inline-block;margin-top:24px;padding:13px 22px;border-radius:6px;background:#193827;color:#fff;font-weight:700;text-decoration:none;"
         >Otvori u administraciji</a>
     </div>
 @endsection

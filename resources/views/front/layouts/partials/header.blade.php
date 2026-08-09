@@ -2,7 +2,10 @@
     <!-- GORNJI RED: logo + VIDLJIV SEARCH + toolbar -->
     <div class="navbar navbar-expand-lg navbar-light bg-light paper-white-bck front-header-main">
         <div class="container front-header-row">
-            @php($isEnglish = app()->getLocale() === \App\Helpers\LocaleHelper::ENGLISH_LOCALE)
+            @php
+                $isEnglish = app()->getLocale() === \App\Helpers\LocaleHelper::ENGLISH_LOCALE;
+                $languageSwitcherUrls = $languageSwitcherUrls ?? \App\Helpers\LocaleHelper::languageSwitcherUrls();
+            @endphp
 
             <!-- Logo -->
             <a class="navbar-brand d-none d-sm-block flex-shrink-0 me-3 p-0" href="{{ \App\Helpers\LocaleHelper::route('index') }}">

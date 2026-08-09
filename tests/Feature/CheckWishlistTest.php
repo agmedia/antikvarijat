@@ -111,6 +111,40 @@ class CheckWishlistTest extends TestCase
         $this->assertNotNull(DB::table('wishlist')->where('id', 1)->value('sent_at'));
     }
 
+    public function test_admin_can_send_multiple_selected_ready_notifications(): void
+    {
+        Mail::fake();
+        $this->withoutMiddleware();
+        DB::table('wishlist')->insert($this->wish(8, 1, 'drugi@example.test'));
+
+        $response = $this->from('/admin/wishlists')->post(route('wishlists.send-selected'), [
+            'wishlist_ids' => [1, 8],
+        ]);
+
+        $response->assertRedirect('/admin/wishlists');
+        $response->assertSessionHas('success');
+        Mail::assertSent(WishlistArrived::class, 2);
+        $this->assertSame(1, (int) DB::table('wishlist')->where('id', 1)->value('sent'));
+        $this->assertSame(1, (int) DB::table('wishlist')->where('id', 2)->value('sent'));
+        $this->assertSame(1, (int) DB::table('wishlist')->where('id', 8)->value('sent'));
+        $this->assertSame(8, DB::table('wishlist')->count());
+    }
+
+    public function test_bulk_send_skips_selected_notification_without_stock(): void
+    {
+        Mail::fake();
+        $this->withoutMiddleware();
+
+        $response = $this->from('/admin/wishlists')->post(route('wishlists.send-selected'), [
+            'wishlist_ids' => [3],
+        ]);
+
+        $response->assertRedirect('/admin/wishlists');
+        $response->assertSessionHas('success', 'Poslano obavijesti: 0; obrađeno wishlist zapisa: 0. Preskočeno: 1.');
+        Mail::assertNothingSent();
+        $this->assertSame(0, (int) DB::table('wishlist')->where('id', 3)->value('sent'));
+    }
+
     private function product(int $id, int $quantity, int $status): array
     {
         return [
