@@ -50,6 +50,34 @@ class ProductSchemaTest extends TestCase
         $this->assertSame('Knjiga je stigla u točno opisanom stanju.', $schema['review'][0]['reviewBody']);
     }
 
+    public function test_product_schema_description_is_clean_plain_text(): void
+    {
+        app()->setLocale('hr');
+
+        $product = $this->product();
+        $product->description = '<p>&nbsp; Prvi&nbsp; red</p><div>Drugi &amp; treći<br>red</div>';
+        $product->syncOriginalAttribute('description');
+
+        $schema = (new Breadcrumb())->productBookSchema($product);
+
+        $this->assertSame('Prvi red Drugi & treći red', $schema['description']);
+        $this->assertStringNotContainsString('&nbsp;', $schema['description']);
+        $this->assertStringNotContainsString('<', $schema['description']);
+    }
+
+    public function test_product_schema_uses_product_name_when_description_has_no_text(): void
+    {
+        app()->setLocale('hr');
+
+        $product = $this->product();
+        $product->description = '<p>&nbsp;</p>';
+        $product->syncOriginalAttribute('description');
+
+        $schema = (new Breadcrumb())->productBookSchema($product);
+
+        $this->assertSame('Primjer knjige', $schema['description']);
+    }
+
     public function test_product_schema_contains_real_croatian_shipping_details(): void
     {
         config(['settings.free_shipping' => 70]);
@@ -105,6 +133,7 @@ class ProductSchemaTest extends TestCase
         $product->setRelation('author', null);
         $product->setRelation('publisher', null);
         $product->setRelation('categories', collect());
+        $product->syncOriginal();
 
         return $product;
     }

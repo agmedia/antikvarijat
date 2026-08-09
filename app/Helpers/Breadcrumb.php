@@ -193,14 +193,14 @@ class Breadcrumb
         }
 
         $url = url($prod->url);
-        $description = trim(strip_tags((string) $prod->description));
+        $description = $this->plainText((string) $prod->description);
         $schema = [
             '@context' => 'https://schema.org',
             '@type' => ['Product', 'Book'],
             '@id' => $url . '#product',
             'name' => $prod->name,
             'url' => $url,
-            'description' => $description ?: $prod->name,
+            'description' => $description !== '' ? Str::limit($description, 500, '') : $prod->name,
             'sku' => (string) $prod->sku,
             'inLanguage' => app()->getLocale(),
             'mainEntityOfPage' => [
@@ -303,6 +303,18 @@ class Breadcrumb
     private function hasMeaningfulEntityName($name): bool
     {
         return (bool) preg_match('/[\pL\pN]/u', trim((string) $name));
+    }
+
+    private function plainText(string $value): string
+    {
+        $value = (string) preg_replace(
+            '/<(?:br\s*\/?|\/\s*(?:p|div|li|ul|ol|h[1-6]|blockquote))\s*>/iu',
+            ' ',
+            $value
+        );
+        $value = html_entity_decode(strip_tags($value), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        return trim((string) preg_replace('/\s+/u', ' ', $value));
     }
 
 
