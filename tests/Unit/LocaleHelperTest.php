@@ -191,6 +191,31 @@ class LocaleHelperTest extends TestCase
         $this->assertSame('History', LocaleHelper::localizedField($cachedCategory, 'title', true, 'en'));
         $this->assertSame('Povijest', LocaleHelper::localizedField($cachedCategory, 'title', true, 'hr'));
     }
+
+    public function testWidgetUrlsConvertLegacyCroatianLinksToEnglishRoutes(): void
+    {
+        config(['app.url' => 'https://antlaravel.test']);
+
+        $this->assertSame('en/books', LocaleHelper::localizedUrl('knjige', 'en'));
+        $this->assertSame(
+            'en/books',
+            LocaleHelper::localizedUrl('https://www.antikvarijat-biblos.hr/knjige', 'en')
+        );
+        $this->assertSame(
+            'en/maps-and-views?sort=novi#ponuda',
+            LocaleHelper::localizedUrl('/zemljovidi-i-vedute?sort=novi#ponuda', 'en')
+        );
+        $this->assertSame('en/book-purchase', LocaleHelper::localizedUrl('/otkup-knjiga', 'en'));
+        $this->assertSame('en/books', LocaleHelper::localizedUrl('/en/knjige', 'en'));
+    }
+
+    public function testWidgetUrlsLeaveExternalDestinationsUnchanged(): void
+    {
+        $external = 'https://www.google.com/search?q=Biblos';
+
+        $this->assertSame($external, LocaleHelper::localizedUrl($external, 'en'));
+        $this->assertSame('mailto:info@antikvarijat-biblos.hr', LocaleHelper::localizedUrl('mailto:info@antikvarijat-biblos.hr', 'en'));
+    }
 }
 
 class LegacyRouteProduct extends Model

@@ -512,7 +512,7 @@ class Helper
             $prods->whereIn('id', $data['list']);
         }
 
-        return $prods->with(['author', 'action']);
+        return $prods->with(['author', 'action', 'categories']);
     }
 
 
@@ -627,7 +627,7 @@ class Helper
         if (!empty($data['popular']) && $data['popular'] === 'on') {
             $product->orderBy('viewed', 'desc'); // prilagodi prema tvojoj logici popularnosti
         }
-        return $product->with(['author', 'action'])->limit(15);
+        return $product->with(['author', 'action', 'categories'])->limit(15);
     }
 
 

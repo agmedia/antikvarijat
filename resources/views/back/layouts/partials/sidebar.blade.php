@@ -102,7 +102,7 @@
 
                 <li class="nav-main-item">
                     <a class="nav-main-link{{ request()->routeIs(['product-reviews.*']) ? ' active' : '' }}" href="{{ route('product-reviews.index') }}">
-                        <i class="nav-main-link-icon fa-duotone fa-star"></i>
+                        <i class="nav-main-link-icon fa-solid fa-comments"></i>
                         <span class="nav-main-link-name">Recenzije artikala</span>
                     </a>
                 </li>

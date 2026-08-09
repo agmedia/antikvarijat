@@ -24,7 +24,7 @@
                 <span class="font-w600">{{ $adminNotificationCounts['wishlist'] ?? 0 }}</span>
             </a>
             <a class="btn btn-dual mr-1" href="{{ route('product-reviews.index', ['status' => 'pending']) }}" title="Nove recenzije za moderaciju" aria-label="Nove recenzije za moderaciju: {{ $adminNotificationCounts['reviews'] ?? 0 }}">
-                <i class="fa-duotone fa-fw fa-star text-warning"></i>
+                <i class="fa-solid fa-fw fa-comments text-warning"></i>
                 <span class="font-w600">{{ $adminNotificationCounts['reviews'] ?? 0 }}</span>
             </a>
             <!-- User Dropdown -->

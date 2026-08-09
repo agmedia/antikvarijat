@@ -201,17 +201,45 @@ class LocaleHelper
             return self::isEnglish($locale) ? 'en' : '/';
         }
 
-        if (Str::startsWith($path, ['http://', 'https://'])) {
+        $locale = $locale ?: self::current();
+
+        if (Str::startsWith($path, ['#', 'mailto:', 'tel:'])) {
             return $path;
         }
 
-        $path = trim($path, '/');
+        if (Str::startsWith($path, ['http://', 'https://'])) {
+            if (! self::isEnglish($locale) || ! self::isInternalUrl($path)) {
+                return $path;
+            }
 
-        if (self::isEnglish($locale)) {
-            return Str::startsWith($path, 'en/') ? $path : 'en/' . $path;
+            $parts = parse_url($path);
+            $path = (string) ($parts['path'] ?? '/');
+            $path .= isset($parts['query']) ? '?' . $parts['query'] : '';
+            $path .= isset($parts['fragment']) ? '#' . $parts['fragment'] : '';
         }
 
-        return Str::startsWith($path, 'en/') ? trim(Str::after($path, 'en/'), '/') : $path;
+        $parts = parse_url($path);
+        $localizedPath = trim((string) ($parts['path'] ?? ''), '/');
+        $suffix = isset($parts['query']) ? '?' . $parts['query'] : '';
+        $suffix .= isset($parts['fragment']) ? '#' . $parts['fragment'] : '';
+
+        if (self::isEnglish($locale)) {
+            $segments = $localizedPath === '' ? [] : explode('/', $localizedPath);
+
+            if (($segments[0] ?? null) === 'en') {
+                array_shift($segments);
+            }
+
+            if ($segments) {
+                $segments[0] = self::englishPathSegment($segments[0]);
+            }
+
+            return trim('en/' . implode('/', $segments), '/') . $suffix;
+        }
+
+        return Str::startsWith($localizedPath, 'en/')
+            ? trim(Str::after($localizedPath, 'en/'), '/') . $suffix
+            : $localizedPath . $suffix;
     }
 
     public static function productPath(Product $product, ?string $storedPath = null, ?string $locale = null): string
@@ -386,6 +414,44 @@ class LocaleHelper
         $value = $model->getRawOriginal($field);
 
         return $value !== null && trim((string) $value) !== '';
+    }
+
+    private static function englishPathSegment(string $segment): string
+    {
+        foreach (config('localization.groups', []) as $group) {
+            if (($group['hr_slug'] ?? null) === $segment) {
+                return (string) $group['en_slug'];
+            }
+        }
+
+        return [
+            'autor' => 'authors',
+            'nakladnik' => 'publishers',
+            'snizenja' => 'sale',
+            'kontakt' => 'contact',
+            'otkup-knjiga' => 'book-purchase',
+            'forma-za-povrat-i-reklamacije' => 'returns-and-complaints',
+            'pretrazi' => 'search',
+            'kosarica' => 'cart',
+            'naplata' => 'checkout',
+            'pregled' => 'checkout/review',
+            'narudzba' => 'checkout/order',
+            'uspjeh' => 'checkout/success',
+            'greska' => 'checkout/error',
+        ][$segment] ?? $segment;
+    }
+
+    private static function isInternalUrl(string $url): bool
+    {
+        $host = strtolower((string) parse_url($url, PHP_URL_HOST));
+        $appHost = strtolower((string) parse_url((string) config('app.url'), PHP_URL_HOST));
+        $host = Str::after($host, 'www.');
+        $appHost = Str::after($appHost, 'www.');
+
+        return $host !== '' && in_array($host, array_filter([
+            $appHost,
+            'antikvarijat-biblos.hr',
+        ]), true);
     }
 
     private static function productCategoryPair(Product $product): array

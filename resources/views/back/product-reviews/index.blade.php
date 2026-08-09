@@ -5,7 +5,7 @@
         <div class="content content-full">
             <div class="admin-page-heading">
                 <div>
-                    <div class="admin-page-kicker"><i class="fa-duotone fa-star" aria-hidden="true"></i> Katalog</div>
+                    <div class="admin-page-kicker"><i class="fa-solid fa-comments" aria-hidden="true"></i> Katalog</div>
                     <h1 class="admin-page-title">Recenzije artikala</h1>
                     <p class="admin-page-description">Odobrite stvarne komentare kupaca prije prikaza na artiklu i u strukturiranim podacima.</p>
                 </div>

@@ -24,7 +24,7 @@
                 @foreach ($data['items'] as $item)
                     <!-- Product-->
                         <div class="article mb-grid-gutter">
-                            <a class="card border-0 shadow" href="{{ $item['group'] }}/{{ $item['slug'] }}">
+                            <a class="card border-0 shadow" href="{{ \App\Helpers\LocaleHelper::route('catalog.route', ['group' => $item->getRawOriginal('group'), 'cat' => $item]) }}">
                                 <span class="blog-entry-meta-label fs-sm"><i class="ci-book text-primary me-0"></i></span>
                                 <img class="card-img-top" loading="lazy" width="400" height="300" src="{{ $item['image'] }}" alt="{{ __('front.widgets.category_alt', ['title' => $item['title']]) }}">
                                 <div class="card-body py-2 text-center px-0">
