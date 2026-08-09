@@ -4,16 +4,22 @@ namespace App\Services;
 
 use App\Models\Back\Settings\Settings;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
 
 class ContractWithdrawalSettingsService
 {
     private const CODE = 'store';
     private const KEY = 'contract_withdrawal';
+    private const CACHE_KEY = 'settings.contract_withdrawal';
 
     public function get(): array
     {
-        return $this->normalize($this->stored());
+        return Cache::remember(
+            self::CACHE_KEY,
+            now()->addHours(6),
+            fn () => $this->normalize($this->stored())
+        );
     }
 
     public function save(array $data): bool
@@ -32,6 +38,10 @@ class ContractWithdrawalSettingsService
         $saved = $setting
             ? Settings::edit($setting->id, self::CODE, self::KEY, $value, true)
             : Settings::insert(self::CODE, self::KEY, $value, true);
+
+        if ($saved) {
+            Cache::forget(self::CACHE_KEY);
+        }
 
         return (bool) $saved;
     }

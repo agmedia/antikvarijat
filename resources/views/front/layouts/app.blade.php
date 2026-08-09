@@ -34,7 +34,19 @@
         $twitterCard = $ogImage ? 'summary_large_image' : 'summary';
         $imagesDomain = config('settings.images_domain');
         $schemaPageType = trim($__env->yieldContent('schema_page_type')) ?: 'WebPage';
-        $siteSchema = \App\Helpers\StructuredData::siteGraph($canonicalUrl, $title, $description, $locale, $schemaPageType);
+        $returnPolicySettings = app(\App\Services\ContractWithdrawalSettingsService::class)->get();
+        $returnPolicySchema = \App\Helpers\StructuredData::merchantReturnPolicy(
+            $returnPolicySettings,
+            \App\Helpers\LocaleHelper::route('contract-withdrawal.create')
+        );
+        $siteSchema = \App\Helpers\StructuredData::siteGraph(
+            $canonicalUrl,
+            $title,
+            $description,
+            $locale,
+            $schemaPageType,
+            $returnPolicySchema
+        );
     @endphp
     <meta charset="utf-8">
     <title>{{ $title }}</title>

@@ -50,6 +50,40 @@ class ProductSchemaTest extends TestCase
         $this->assertSame('Knjiga je stigla u točno opisanom stanju.', $schema['review'][0]['reviewBody']);
     }
 
+    public function test_product_schema_contains_real_croatian_shipping_details(): void
+    {
+        config(['settings.free_shipping' => 70]);
+
+        $shippingMethod = (object) [
+            'code' => 'gls',
+            'geo_zone' => 1,
+            'status' => true,
+            'data' => (object) [
+                'price' => 5,
+                'time' => '1-2 radna dana',
+            ],
+        ];
+        $croatia = (object) [
+            'id' => 1,
+            'title' => 'Hrvatska',
+            'state' => (object) ['2' => 'Croatia'],
+        ];
+
+        $schema = (new Breadcrumb())->productBookSchema(
+            $this->product(),
+            collect(),
+            [],
+            [$shippingMethod],
+            [$croatia]
+        );
+
+        $this->assertSame('5.00', $schema['offers']['shippingDetails'][0]['shippingRate']['value']);
+        $this->assertSame(
+            'HR',
+            $schema['offers']['shippingDetails'][0]['shippingDestination'][0]['addressCountry']
+        );
+    }
+
     private function product(): Product
     {
         $product = new Product([

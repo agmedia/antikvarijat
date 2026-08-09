@@ -49,6 +49,76 @@ class StructuredDataTest extends TestCase
         $this->assertSame('CollectionPage', $schema['@graph'][2]['@type']);
     }
 
+    public function testMerchantReturnPolicyUsesTheConfiguredReturnFeeResponsibility(): void
+    {
+        $consumerPolicy = StructuredData::merchantReturnPolicy(
+            ['return_cost_policy' => 'consumer'],
+            'https://www.antikvarijat-biblos.hr/forma-za-povrat-i-reklamacije'
+        );
+        $merchantPolicy = StructuredData::merchantReturnPolicy(
+            ['return_cost_policy' => 'merchant'],
+            'https://www.antikvarijat-biblos.hr/forma-za-povrat-i-reklamacije'
+        );
+
+        $this->assertSame(14, $consumerPolicy['merchantReturnDays']);
+        $this->assertSame('HR', $consumerPolicy['applicableCountry']);
+        $this->assertSame('https://schema.org/ReturnShippingFees', $consumerPolicy['returnFees']);
+        $this->assertSame('https://schema.org/FreeReturn', $merchantPolicy['returnFees']);
+    }
+
+    public function testSiteGraphIncludesTheMerchantReturnPolicy(): void
+    {
+        $policy = StructuredData::merchantReturnPolicy(
+            ['return_cost_policy' => 'consumer'],
+            'https://www.antikvarijat-biblos.hr/forma-za-povrat-i-reklamacije'
+        );
+        $schema = StructuredData::siteGraph(
+            'https://www.antikvarijat-biblos.hr/',
+            'Antikvarijat Biblos',
+            'Antikvarijat i online knjižara',
+            'hr',
+            'WebPage',
+            $policy
+        );
+
+        $this->assertSame($policy, $schema['@graph'][0]['hasMerchantReturnPolicy']);
+    }
+
+    public function testOfferShippingDetailsUseOnlyPricedDeliveryMethodsWithKnownCountries(): void
+    {
+        config(['settings.free_shipping' => 70]);
+
+        $croatia = (object) [
+            'id' => 1,
+            'title' => 'Hrvatska',
+            'state' => (object) ['2' => 'Croatia'],
+        ];
+        $world = (object) [
+            'id' => 3,
+            'title' => 'World',
+            'state' => (object) [],
+        ];
+        $methods = [
+            $this->shippingMethod('gls', 1, 5, '1-2 radna dana'),
+            $this->shippingMethod('gls_eu', 1, 3, '1-2 radna dana'),
+            $this->shippingMethod('pickup', 1, 0, null),
+            $this->shippingMethod('gls_world', 3, 0, '3-21 radna dana'),
+        ];
+
+        $details = StructuredData::offerShippingDetails($methods, [$croatia, $world], 20);
+
+        $this->assertCount(2, $details);
+        $this->assertSame('5.00', $details[0]['shippingRate']['value']);
+        $this->assertSame('HR', $details[0]['shippingDestination'][0]['addressCountry']);
+        $this->assertSame(1, $details[0]['deliveryTime']['transitTime']['minValue']);
+        $this->assertSame(2, $details[0]['deliveryTime']['transitTime']['maxValue']);
+        $this->assertSame('3.00', $details[1]['shippingRate']['value']);
+
+        $freeDetails = StructuredData::offerShippingDetails($methods, [$croatia, $world], 70.01);
+        $this->assertSame('0.00', $freeDetails[0]['shippingRate']['value']);
+        $this->assertSame('0.00', $freeDetails[1]['shippingRate']['value']);
+    }
+
     public function testItemListUsesTotalCountAndContinuousPaginatedPositions(): void
     {
         $paginator = new LengthAwarePaginator([
@@ -94,5 +164,18 @@ class StructuredDataTest extends TestCase
             '</script><script>alert("x")</script>',
             json_decode($json, true, 512, JSON_THROW_ON_ERROR)['name']
         );
+    }
+
+    private function shippingMethod(string $code, int $geoZone, float $price, ?string $time): object
+    {
+        return (object) [
+            'code' => $code,
+            'geo_zone' => $geoZone,
+            'status' => true,
+            'data' => (object) [
+                'price' => $price,
+                'time' => $time,
+            ],
+        ];
     }
 }

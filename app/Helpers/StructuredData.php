@@ -19,7 +19,8 @@ final class StructuredData
         string $title,
         string $description,
         string $locale,
-        string $pageType = 'WebPage'
+        string $pageType = 'WebPage',
+        array $merchantReturnPolicy = []
     ): array
     {
         $siteUrl = rtrim((string) config('app.url'), '/');
@@ -28,65 +29,71 @@ final class StructuredData
         $logoId = $siteUrl . '/#logo';
         $pageId = rtrim($canonicalUrl, '/') . '#webpage';
 
+        $organization = [
+            '@type' => 'BookStore',
+            '@id' => $organizationId,
+            'name' => 'Antikvarijat Biblos',
+            'url' => $siteUrl,
+            'logo' => [
+                '@type' => 'ImageObject',
+                '@id' => $logoId,
+                'url' => $siteUrl . '/apple-touch-icon.png',
+                'contentUrl' => $siteUrl . '/apple-touch-icon.png',
+                'width' => 180,
+                'height' => 180,
+                'caption' => 'Antikvarijat Biblos',
+            ],
+            'image' => ['@id' => $logoId],
+            'email' => 'info@antikvarijat-biblos.hr',
+            'telephone' => '+38514816574',
+            'priceRange' => '€€',
+            'currenciesAccepted' => 'EUR',
+            'sameAs' => [
+                'https://www.facebook.com/AntikvarijatBiblos/',
+                'https://www.instagram.com/antikvarijat_biblos/',
+            ],
+            'address' => [
+                '@type' => 'PostalAddress',
+                'streetAddress' => 'Palmotićeva 28',
+                'addressLocality' => 'Zagreb',
+                'postalCode' => '10000',
+                'addressCountry' => 'HR',
+            ],
+            'geo' => [
+                '@type' => 'GeoCoordinates',
+                'latitude' => 45.8106184,
+                'longitude' => 15.9795119,
+            ],
+            'openingHoursSpecification' => [
+                [
+                    '@type' => 'OpeningHoursSpecification',
+                    'dayOfWeek' => [
+                        'https://schema.org/Monday',
+                        'https://schema.org/Tuesday',
+                        'https://schema.org/Wednesday',
+                        'https://schema.org/Thursday',
+                        'https://schema.org/Friday',
+                    ],
+                    'opens' => '09:00',
+                    'closes' => '20:00',
+                ],
+                [
+                    '@type' => 'OpeningHoursSpecification',
+                    'dayOfWeek' => 'https://schema.org/Saturday',
+                    'opens' => '09:00',
+                    'closes' => '14:00',
+                ],
+            ],
+        ];
+
+        if ($merchantReturnPolicy) {
+            $organization['hasMerchantReturnPolicy'] = $merchantReturnPolicy;
+        }
+
         return [
             '@context' => 'https://schema.org',
             '@graph' => [
-                [
-                    '@type' => 'BookStore',
-                    '@id' => $organizationId,
-                    'name' => 'Antikvarijat Biblos',
-                    'url' => $siteUrl,
-                    'logo' => [
-                        '@type' => 'ImageObject',
-                        '@id' => $logoId,
-                        'url' => $siteUrl . '/apple-touch-icon.png',
-                        'contentUrl' => $siteUrl . '/apple-touch-icon.png',
-                        'width' => 180,
-                        'height' => 180,
-                        'caption' => 'Antikvarijat Biblos',
-                    ],
-                    'image' => ['@id' => $logoId],
-                    'email' => 'info@antikvarijat-biblos.hr',
-                    'telephone' => '+38514816574',
-                    'priceRange' => '€€',
-                    'currenciesAccepted' => 'EUR',
-                    'sameAs' => [
-                        'https://www.facebook.com/AntikvarijatBiblos/',
-                        'https://www.instagram.com/antikvarijat_biblos/',
-                    ],
-                    'address' => [
-                        '@type' => 'PostalAddress',
-                        'streetAddress' => 'Palmotićeva 28',
-                        'addressLocality' => 'Zagreb',
-                        'postalCode' => '10000',
-                        'addressCountry' => 'HR',
-                    ],
-                    'geo' => [
-                        '@type' => 'GeoCoordinates',
-                        'latitude' => 45.8106184,
-                        'longitude' => 15.9795119,
-                    ],
-                    'openingHoursSpecification' => [
-                        [
-                            '@type' => 'OpeningHoursSpecification',
-                            'dayOfWeek' => [
-                                'https://schema.org/Monday',
-                                'https://schema.org/Tuesday',
-                                'https://schema.org/Wednesday',
-                                'https://schema.org/Thursday',
-                                'https://schema.org/Friday',
-                            ],
-                            'opens' => '09:00',
-                            'closes' => '20:00',
-                        ],
-                        [
-                            '@type' => 'OpeningHoursSpecification',
-                            'dayOfWeek' => 'https://schema.org/Saturday',
-                            'opens' => '09:00',
-                            'closes' => '14:00',
-                        ],
-                    ],
-                ],
+                $organization,
                 [
                     '@type' => 'WebSite',
                     '@id' => $websiteId,
@@ -115,6 +122,86 @@ final class StructuredData
                 ],
             ],
         ];
+    }
+
+    public static function merchantReturnPolicy(array $settings, string $policyUrl): array
+    {
+        $merchantPaysReturn = ($settings['return_cost_policy'] ?? 'consumer') === 'merchant';
+
+        return [
+            '@type' => 'MerchantReturnPolicy',
+            'applicableCountry' => 'HR',
+            'returnPolicyCountry' => 'HR',
+            'returnPolicyCategory' => 'https://schema.org/MerchantReturnFiniteReturnWindow',
+            'merchantReturnDays' => 14,
+            'returnMethod' => 'https://schema.org/ReturnByMail',
+            'returnFees' => $merchantPaysReturn
+                ? 'https://schema.org/FreeReturn'
+                : 'https://schema.org/ReturnShippingFees',
+            'merchantReturnLink' => $policyUrl,
+        ];
+    }
+
+    public static function offerShippingDetails(
+        iterable $shippingMethods,
+        iterable $geoZones,
+        float $offerPrice
+    ): array {
+        $zones = collect($geoZones)->keyBy(fn ($zone) => (string) data_get($zone, 'id'));
+        $freeShippingThreshold = (float) config('settings.free_shipping', 0);
+
+        return collect($shippingMethods)
+            ->map(function ($method) use ($zones, $offerPrice, $freeShippingThreshold) {
+                $code = strtolower(trim((string) data_get($method, 'code')));
+
+                if (! data_get($method, 'status', true) || in_array($code, ['pickup', 'gls_world'], true)) {
+                    return null;
+                }
+
+                $price = data_get($method, 'data.price');
+                $days = self::shippingDays(
+                    (string) (data_get($method, 'data.time') ?: data_get($method, 'data.time_en'))
+                );
+                $zone = $zones->get((string) data_get($method, 'geo_zone'));
+                $countries = self::shippingCountryCodes($zone);
+
+                if (! is_numeric($price) || ! $days || ! $countries) {
+                    return null;
+                }
+
+                $shippingPrice = (float) $price;
+                if ($freeShippingThreshold > 0 && $offerPrice > $freeShippingThreshold) {
+                    $shippingPrice = 0;
+                }
+
+                return [
+                    '@type' => 'OfferShippingDetails',
+                    'shippingRate' => [
+                        '@type' => 'MonetaryAmount',
+                        'value' => number_format($shippingPrice, 2, '.', ''),
+                        'currency' => 'EUR',
+                    ],
+                    'shippingDestination' => collect($countries)
+                        ->map(fn (string $country) => [
+                            '@type' => 'DefinedRegion',
+                            'addressCountry' => $country,
+                        ])
+                        ->values()
+                        ->all(),
+                    'deliveryTime' => [
+                        '@type' => 'ShippingDeliveryTime',
+                        'transitTime' => [
+                            '@type' => 'QuantitativeValue',
+                            'minValue' => $days[0],
+                            'maxValue' => $days[1],
+                            'unitCode' => 'DAY',
+                        ],
+                    ],
+                ];
+            })
+            ->filter()
+            ->values()
+            ->all();
     }
 
     public static function itemList(
@@ -190,5 +277,39 @@ final class StructuredData
     public static function toJson(array $schema): string
     {
         return json_encode($schema, self::JSON_FLAGS);
+    }
+
+    private static function shippingDays(string $deliveryTime): ?array
+    {
+        if (! preg_match('/(\d+)\s*(?:[-–]\s*(\d+))?/u', $deliveryTime, $matches)) {
+            return null;
+        }
+
+        $minimum = (int) $matches[1];
+        $maximum = isset($matches[2]) && $matches[2] !== '' ? (int) $matches[2] : $minimum;
+
+        return [$minimum, max($minimum, $maximum)];
+    }
+
+    private static function shippingCountryCodes($zone): array
+    {
+        if (! $zone) {
+            return [];
+        }
+
+        $countryNames = collect(data_get($zone, 'state', []))
+            ->values()
+            ->push(data_get($zone, 'title'));
+        $countryCodes = [
+            'croatia' => 'HR',
+            'hrvatska' => 'HR',
+        ];
+
+        return $countryNames
+            ->map(fn ($country) => $countryCodes[strtolower(trim((string) $country))] ?? null)
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
     }
 }

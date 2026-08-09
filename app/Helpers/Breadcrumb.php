@@ -180,7 +180,13 @@ class Breadcrumb
      *
      * @return array
      */
-    public function productBookSchema(?Product $prod = null, ?Collection $reviews = null, array $reviewStats = [])
+    public function productBookSchema(
+        ?Product $prod = null,
+        ?Collection $reviews = null,
+        array $reviewStats = [],
+        iterable $shippingMethods = [],
+        iterable $geoZones = []
+    )
     {
         if (! $prod) {
             return [];
@@ -217,6 +223,15 @@ class Breadcrumb
 
         if ($prod->image) {
             $schema['image'] = [$prod->image];
+        }
+
+        $shippingDetails = StructuredData::offerShippingDetails(
+            $shippingMethods,
+            $geoZones,
+            (float) $prod->special()
+        );
+        if ($shippingDetails) {
+            $schema['offers']['shippingDetails'] = $shippingDetails;
         }
 
         if ($prod->isbn) {

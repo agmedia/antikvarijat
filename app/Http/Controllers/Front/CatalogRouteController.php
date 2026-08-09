@@ -132,9 +132,15 @@ class CatalogRouteController extends Controller
 
             $bc = new Breadcrumb();
             $crumbs = $bc->product($group, $cat, $subcat, $prod)->resolve();
-            $bookscheme = $bc->productBookSchema($prod, $reviews, $reviewStats);
-
             $shipping_methods = Settings::getList('shipping', 'list.%', true);
+            $geo_zones = Settings::getList('geo_zone', 'list', true);
+            $bookscheme = $bc->productBookSchema(
+                $prod,
+                $reviews,
+                $reviewStats,
+                $shipping_methods,
+                $geo_zones
+            );
             $payment_methods = Settings::getList('payment', 'list.%', true);
 
             return view('front.catalog.product.index', compact(

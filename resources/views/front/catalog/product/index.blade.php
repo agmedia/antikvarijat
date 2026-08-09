@@ -172,7 +172,7 @@
                            <div class="alert-icon">
                                <i class="ci-gift"></i>
                            </div>
-                           <div>{{ __('front.product.free_delivery_notice') }}</div>
+                           <div>{{ __('front.product.free_delivery_notice', ['amount' => config('settings.free_shipping')]) }}</div>
                        </div>
 
                    <!-- Product panels-->
@@ -218,17 +218,35 @@
                                <div class="accordion-body fs-sm">
 
                                    @foreach($shipping_methods as $shipping_method)
+                                       @php
+                                           $shippingTime = \App\Helpers\LocaleHelper::localizedSettingDataField($shipping_method, 'time');
+                                           $shippingDescription = \App\Helpers\LocaleHelper::localizedSettingDataField($shipping_method, 'short_description');
+                                           $shippingPrice = (float) data_get($shipping_method, 'data.price', 0);
+                                           $isQuotedShipping = $shipping_method->code === 'gls_world';
+                                           $isFreeShipping = ! $isQuotedShipping && (
+                                               $shippingPrice <= 0
+                                               || (float) $prod->special() > (float) config('settings.free_shipping')
+                                           );
+                                       @endphp
                                        <div class="d-flex justify-content-between  py-2">
                                            <div>
                                                <div class="fw-semibold text-dark">{{ \App\Helpers\LocaleHelper::localizedSettingField($shipping_method, 'title') }}</div>
-                                               {{--  <div class="fs-sm text-muted"> Besplatna dostava za narudžbe iznad {{ config('settings.free_shipping') }}€</div>--}}
-                                               @if ($prod->shipping_time)
-
-                                                   <span class=" fs-sm text-muted me-1">{{ __('front.product.delivery_time') }}: {{ $prod->shipping_time }}</span>
-
+                                               @if ($shippingTime)
+                                                   <div class="fs-sm text-muted me-1">{{ __('front.product.delivery_time') }}: {{ $shippingTime }}</div>
+                                               @endif
+                                               @if ($shippingDescription)
+                                                   <div class="fs-sm text-muted me-1">{{ $shippingDescription }}</div>
                                                @endif
                                            </div>
-                                           <div>{{ $shipping_method->data->price }}€ </div>
+                                           <div class="text-end ms-3">
+                                               @if ($isQuotedShipping)
+                                                   {{ __('front.product.shipping_price_on_request') }}
+                                               @elseif ($isFreeShipping)
+                                                   {{ __('front.product.shipping_free') }}
+                                               @else
+                                                   {{ number_format($shippingPrice, 2, ',', '.') }} €
+                                               @endif
+                                           </div>
                                        </div>
                                    @endforeach
 
