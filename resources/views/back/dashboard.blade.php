@@ -10,7 +10,7 @@
                     <p class="text-muted mb-0">Pregled prodaje, narudžbi i zadnjih aktivnosti</p>
                 </div>
                 @if($canViewSales)
-                    <a class="btn btn-primary dashboard-statistics-button mt-3 mt-sm-0" href="{{ route('statistics') }}">
+                    <a class="btn btn-primary dashboard-statistics-button mt-3 mt-sm-0" href="{{ url('/admin/statistike') }}">
                         <i class="fa-duotone fa-chart-mixed" aria-hidden="true"></i>
                         <span>Detaljne statistike</span>
                         <i class="fa-duotone fa-arrow-right" aria-hidden="true"></i>
