@@ -2,17 +2,15 @@
 @section ('title', $seo['title'])
 @section ('description', $seo['description'])
 @section('og_type', 'product')
-@section('og_image', asset($prod->image))
+@section('og_image', $prod->image)
+@section('og_image_type', 'image/webp')
+@section('og_image_alt', $prod->image_alt ?: $prod->name)
 @section('canonical', url($prod->url))
 @push('meta_tags')
     <meta property="og:updated_time" content="{{ $prod->updated_at  }}" />
-    <meta property="og:image:width" content="640" />
-    <meta property="og:image:height" content="480" />
-    <meta property="og:image:type" content="image/jpeg" />
-    <meta property="og:image:alt" content="{{ $prod->image_alt }}" />
-    <meta property="product:price:amount" content="{{ $prod->main_price }}" />
+    <meta property="product:price:amount" content="{{ number_format((float) $prod->special(), 2, '.', '') }}" />
     <meta property="product:price:currency" content="EUR" />
-    <meta property="product:availability" content="instock" />
+    <meta property="product:availability" content="{{ $prod->quantity > 0 ? 'in stock' : 'out of stock' }}" />
     <meta property="product:retailer_item_id" content="{{ $prod->sku }}" />
 @endpush
 

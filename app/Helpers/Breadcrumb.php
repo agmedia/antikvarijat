@@ -115,6 +115,9 @@ class Breadcrumb
             'description' => $description ?: $prod->name,
             'sku' => (string) $prod->sku,
             'inLanguage' => app()->getLocale(),
+            'mainEntityOfPage' => [
+                '@id' => $url . '#webpage',
+            ],
             'offers' => [
                 '@type' => 'Offer',
                 'url' => $url,
@@ -125,9 +128,7 @@ class Breadcrumb
                     : 'https://schema.org/OutOfStock',
                 'itemCondition' => 'https://schema.org/UsedCondition',
                 'seller' => [
-                    '@type' => 'BookStore',
-                    'name' => 'Antikvarijat Biblos',
-                    'url' => config('settings.images_domain'),
+                    '@id' => rtrim((string) config('app.url'), '/') . '/#organization',
                 ],
             ],
         ];
@@ -138,6 +139,11 @@ class Breadcrumb
 
         if ($prod->isbn) {
             $schema['isbn'] = (string) $prod->isbn;
+
+            $isbnDigits = preg_replace('/\D+/', '', (string) $prod->isbn);
+            if (strlen($isbnDigits) === 13) {
+                $schema['gtin13'] = $isbnDigits;
+            }
         }
 
         if ($prod->author && $this->hasMeaningfulEntityName($prod->author->title)) {

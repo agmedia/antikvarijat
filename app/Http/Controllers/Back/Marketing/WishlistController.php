@@ -4,12 +4,13 @@ namespace App\Http\Controllers\Back\Marketing;
 
 use App\Http\Controllers\Controller;
 use App\Models\Back\Marketing\Wishlist;
+use App\Services\WishlistAttributionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
 class WishlistController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request, WishlistAttributionService $attributionService)
     {
         $activeTab = in_array($request->input('tab'), ['wishlists', 'top-products', 'statistics'], true)
             ? $request->input('tab')
@@ -71,6 +72,9 @@ class WishlistController extends Controller
             'unique_emails' => Wishlist::query()->selectRaw('LOWER(TRIM(email)) AS normalized_email')->distinct()->count('email'),
             'this_month' => Wishlist::query()->where('created_at', '>=', now()->startOfMonth())->count(),
         ];
+        $attribution = $activeTab === 'statistics'
+            ? $attributionService->statistics()
+            : null;
 
         $wishlists = $query->orderByDesc('created_at')->paginate(30, ['*'], 'wishlist_page');
 
@@ -79,6 +83,7 @@ class WishlistController extends Controller
             'search',
             'stock',
             'stats',
+            'attribution',
             'wishlists',
             'topProducts'
         ));

@@ -7,6 +7,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\URL;
 use App\Models\Back\Marketing\Wishlist;
 use Tests\TestCase;
 
@@ -40,6 +41,8 @@ class CheckWishlistTest extends TestCase
             $table->unsignedBigInteger('product_id');
             $table->boolean('sent')->default(false);
             $table->timestamp('sent_at')->nullable();
+            $table->timestamp('clicked_at')->nullable();
+            $table->unsignedInteger('click_count')->default(0);
             $table->boolean('status')->default(true);
             $table->timestamps();
         });
@@ -109,6 +112,31 @@ class CheckWishlistTest extends TestCase
         $this->assertSame(1, (int) DB::table('wishlist')->where('id', 1)->value('sent'));
         $this->assertSame(1, (int) DB::table('wishlist')->where('id', 2)->value('sent'));
         $this->assertNotNull(DB::table('wishlist')->where('id', 1)->value('sent_at'));
+    }
+
+    public function test_sent_mail_uses_signed_tracking_link_and_records_unique_click(): void
+    {
+        Mail::fake();
+
+        Wishlist::query()->findOrFail(1)->sendNow();
+
+        Mail::assertSent(WishlistArrived::class, function (WishlistArrived $mail) {
+            $mail->build();
+            $trackingUrl = (string) ($mail->viewData['trackingUrl'] ?? '');
+
+            $this->assertStringContainsString('/wishlist-obavijest/1', $trackingUrl);
+            $this->assertStringContainsString('signature=', $trackingUrl);
+
+            return true;
+        });
+
+        $url = URL::signedRoute('wishlist.track', ['wishlist' => 1, 'locale' => 'hr']);
+        $response = $this->get($url);
+
+        $response->assertRedirect();
+        $this->assertStringContainsString('utm_source=wishlist', (string) $response->headers->get('Location'));
+        $this->assertNotNull(DB::table('wishlist')->where('id', 1)->value('clicked_at'));
+        $this->assertSame(1, (int) DB::table('wishlist')->where('id', 1)->value('click_count'));
     }
 
     public function test_admin_can_send_multiple_selected_ready_notifications(): void

@@ -7,6 +7,7 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\URL;
 
 class WishlistArrived extends Mailable
 {
@@ -18,13 +19,19 @@ class WishlistArrived extends Mailable
     private $product;
 
     /**
+     * @var int|null
+     */
+    private $wishlistId;
+
+    /**
      * Create a new message instance.
      *
      * @param $contact
      */
-    public function __construct($product)
+    public function __construct($product, $wishlist = null)
     {
         $this->product = $product;
+        $this->wishlistId = $wishlist ? (int) $wishlist->id : null;
     }
 
 
@@ -35,10 +42,20 @@ class WishlistArrived extends Mailable
      */
     public function build()
     {
+        $trackingUrl = $this->wishlistId
+            ? URL::signedRoute('wishlist.track', [
+                'wishlist' => $this->wishlistId,
+                'locale' => app()->getLocale(),
+            ])
+            : url($this->product['url']);
+
         return $this->subject(__('front.email.wishlist_subject', [
             'product' => $this->product['name'],
         ]))
             ->view('emails.wishlist-arrived')
-            ->with(['product' => $this->product]);
+            ->with([
+                'product' => $this->product,
+                'trackingUrl' => $trackingUrl,
+            ]);
     }
 }

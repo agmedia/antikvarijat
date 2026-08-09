@@ -30,6 +30,8 @@ class Wishlist extends Model
         'sent' => 'boolean',
         'status' => 'boolean',
         'sent_at' => 'datetime',
+        'clicked_at' => 'datetime',
+        'click_count' => 'integer',
     ];
 
     /**
@@ -220,7 +222,7 @@ class Wishlist extends Model
                 }
 
                 try {
-                    Mail::to($email)->send(new WishlistArrived($product));
+                    Mail::to($email)->send(new WishlistArrived($product, $entries->first()));
                     static::query()->whereIn('id', $entries->pluck('id'))->update([
                         'sent' => 1,
                         'status' => 0,
@@ -276,7 +278,7 @@ class Wishlist extends Model
             ->get();
 
         try {
-            Mail::to($email)->send(new WishlistArrived($product));
+            Mail::to($email)->send(new WishlistArrived($product, $entries->first()));
             static::query()->whereIn('id', $entries->pluck('id'))->update([
                 'sent' => 1,
                 'status' => 0,

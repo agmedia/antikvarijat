@@ -16,39 +16,11 @@
         $robots = trim($__env->yieldContent('robots')) ?: $seoMeta['robots'];
         $ogType = trim($__env->yieldContent('og_type')) ?: 'website';
         $ogImage = trim($__env->yieldContent('og_image'));
+        $ogImageAlt = trim($__env->yieldContent('og_image_alt')) ?: $title;
+        $ogImageType = trim($__env->yieldContent('og_image_type')) ?: \App\Helpers\StructuredData::imageMimeType($ogImage);
         $twitterCard = $ogImage ? 'summary_large_image' : 'summary';
         $imagesDomain = config('settings.images_domain');
-        $organizationSchema = [
-            '@context' => 'https://schema.org',
-            '@type' => 'Organization',
-            'name' => 'Antikvarijat Biblos',
-            'url' => $imagesDomain,
-            'logo' => $imagesDomain . 'apple-touch-icon.png',
-            'email' => 'info@antikvarijat-biblos.hr',
-            'telephone' => '+38514816574',
-            'sameAs' => [
-                'https://www.facebook.com/AntikvarijatBiblos/',
-                'https://www.instagram.com/antikvarijat_biblos/',
-            ],
-            'address' => [
-                '@type' => 'PostalAddress',
-                'streetAddress' => 'Palmoticeva 28',
-                'addressLocality' => 'Zagreb',
-                'postalCode' => '10000',
-                'addressCountry' => 'HR',
-            ],
-        ];
-        $webSiteSchema = [
-            '@context' => 'https://schema.org',
-            '@type' => 'WebSite',
-            'name' => 'Antikvarijat Biblos',
-            'url' => $imagesDomain,
-            'potentialAction' => [
-                '@type' => 'SearchAction',
-                'target' => \App\Helpers\LocaleHelper::route('pretrazi') . '?' . config('settings.search_keyword') . '={search_term_string}',
-                'query-input' => 'required name=search_term_string',
-            ],
-        ];
+        $siteSchema = \App\Helpers\StructuredData::siteGraph($canonicalUrl, $title, $description, $locale);
     @endphp
     <meta charset="utf-8">
     <title>{{ $title }}</title>
@@ -72,12 +44,15 @@
     @if ($ogImage)
         <meta property="og:image" content="{{ $ogImage }}">
         <meta property="og:image:secure_url" content="{{ $ogImage }}">
+        @if ($ogImageType)<meta property="og:image:type" content="{{ $ogImageType }}">@endif
+        <meta property="og:image:alt" content="{{ $ogImageAlt }}">
     @endif
     <meta name="twitter:card" content="{{ $twitterCard }}">
     <meta name="twitter:title" content="{{ $title }}">
     <meta name="twitter:description" content="{{ $description }}">
     @if ($ogImage)
         <meta name="twitter:image" content="{{ $ogImage }}">
+        <meta name="twitter:image:alt" content="{{ $ogImageAlt }}">
     @endif
     <meta name="author" content="Biblos">
     @stack('meta_tags')
@@ -93,8 +68,7 @@
     <link rel="mask-icon" href="{{ $imagesDomain . 'safari-pinned-tab.svg' }}" color="#314837">
     <meta name="msapplication-TileColor" content="#314837">
     <meta name="theme-color" content="#ffffff">
-    <script type="application/ld+json">{!! json_encode($organizationSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
-    <script type="application/ld+json">{!! json_encode($webSiteSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+    <script type="application/ld+json">{!! json_encode($siteSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
 
     <!-- Vendor Styles including: Font Icons, Plugins, etc.-->
     <link rel="preconnect" href="https://fonts.gstatic.com">

@@ -5,7 +5,7 @@
 
 @section('content')
     @php
-        $productUrl = url($product['url']);
+        $productUrl = $trackingUrl ?? url($product['url']);
         $productImage = method_exists($product, 'getRawOriginal') && $product->getRawOriginal('image')
             ? $product['image']
             : null;

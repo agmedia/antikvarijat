@@ -20,6 +20,9 @@ class ProductSchemaTest extends TestCase
 
         $this->assertSame(['Product', 'Book'], $schema['@type']);
         $this->assertSame('9780306406157', $schema['isbn']);
+        $this->assertSame('9780306406157', $schema['gtin13']);
+        $this->assertSame('http://antlaravel.test/#organization', $schema['offers']['seller']['@id']);
+        $this->assertSame($schema['url'] . '#webpage', $schema['mainEntityOfPage']['@id']);
         $this->assertArrayNotHasKey('aggregateRating', $schema);
         $this->assertArrayNotHasKey('review', $schema);
     }

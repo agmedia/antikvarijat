@@ -3,4 +3,5 @@
 return [
     'emails_enabled' => env('WISHLIST_EMAILS_ENABLED', env('APP_ENV') === 'production'),
     'notification_batch_size' => (int) env('WISHLIST_NOTIFICATION_BATCH_SIZE', 50),
+    'attribution_days' => max(1, (int) env('WISHLIST_ATTRIBUTION_DAYS', 30)),
 ];

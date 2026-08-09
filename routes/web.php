@@ -41,6 +41,7 @@ use App\Http\Controllers\Front\CustomerController;
 use App\Http\Controllers\Front\HomeController;
 use App\Http\Controllers\Front\ProductReviewController;
 use App\Http\Controllers\Front\VialibriFeedController;
+use App\Http\Controllers\Front\WishlistTrackingController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Back\Marketing\WishlistController;
 
@@ -409,6 +410,9 @@ Route::post('/newsletter/prijava', [HomeController::class, 'newsletter'])->name(
 Route::get('/faq', [CatalogRouteController::class, 'faq'])->name('faq');
 //
 Route::post('/dodaj-u-listu-zelja', [HomeController::class, 'wishlist'])->name('wishlist');
+Route::get('/wishlist-obavijest/{wishlist}', WishlistTrackingController::class)
+    ->middleware(['signed', 'throttle:60,1'])
+    ->name('wishlist.track');
 Route::post('/recenzije', [ProductReviewController::class, 'store'])
     ->middleware('throttle:5,10')
     ->name('product-reviews.store');

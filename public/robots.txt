@@ -10,6 +10,7 @@ Disallow: /login
 Disallow: /register
 Disallow: /forgot-password
 Disallow: /reset-password
+Disallow: /wishlist-obavijest/
 
 Sitemap: https://www.antikvarijat-biblos.hr/sitemap
 Sitemap: https://www.antikvarijat-biblos.hr/image-sitemap

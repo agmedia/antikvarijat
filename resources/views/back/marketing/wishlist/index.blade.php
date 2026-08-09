@@ -241,6 +241,44 @@
                             </div>
                         @endforeach
                     </div>
+
+                    @if($attribution)
+                        <div class="d-flex flex-wrap align-items-end justify-content-between mt-2 mb-3">
+                            <div>
+                                <h3 class="font-size-h4 mb-1">Učinak wishlist mailova</h3>
+                                <p class="text-muted mb-0">
+                                    Kupnja se pripisuje kada isti e-mail kupi isti artikl u valjanoj narudžbi unutar {{ $attribution['days'] }} dana od slanja.
+                                </p>
+                            </div>
+                            <span class="badge badge-primary mt-2">Praćenje od uvođenja sent_at zapisa</span>
+                        </div>
+
+                        <div class="row">
+                            @foreach([
+                                ['label' => 'Praćena slanja', 'value' => number_format($attribution['tracked_sends'], 0, ',', '.'), 'hint' => 'Slanja s datumom', 'icon' => 'fa-envelope-circle-check'],
+                                ['label' => 'Jedinstveni klikovi', 'value' => number_format($attribution['clicked'], 0, ',', '.'), 'hint' => number_format($attribution['click_rate'], 1, ',', '.') . '% slanja', 'icon' => 'fa-arrow-pointer'],
+                                ['label' => 'Narudžbe nakon slanja', 'value' => number_format($attribution['orders_after_send'], 0, ',', '.'), 'hint' => 'Isti e-mail i artikl', 'icon' => 'fa-cart-shopping'],
+                                ['label' => 'Narudžbe nakon klika', 'value' => number_format($attribution['orders_after_click'], 0, ',', '.'), 'hint' => 'Stroža atribucija', 'icon' => 'fa-computer-mouse'],
+                                ['label' => 'Kupljeni artikli', 'value' => number_format($attribution['items_after_send'], 0, ',', '.'), 'hint' => 'Količina iz narudžbi', 'icon' => 'fa-books'],
+                                ['label' => 'Prihod artikala', 'value' => number_format($attribution['revenue_after_send'], 2, ',', '.') . ' €', 'hint' => 'Bez dostave', 'icon' => 'fa-euro-sign'],
+                                ['label' => 'Konverzija slanja', 'value' => number_format($attribution['conversion_rate'], 1, ',', '.') . '%', 'hint' => number_format($attribution['converted_messages'], 0, ',', '.') . ' mailova dovelo do kupnje', 'icon' => 'fa-chart-line-up'],
+                            ] as $card)
+                                <div class="col-sm-6 col-xl-4">
+                                    <div class="block block-rounded admin-wishlist-attribution-card">
+                                        <div class="block-content d-flex align-items-center py-4">
+                                            <span class="admin-section-icon mr-3"><i class="fa-duotone {{ $card['icon'] }}" aria-hidden="true"></i></span>
+                                            <div>
+                                                <div class="font-size-h3 font-w700">{{ $card['value'] }}</div>
+                                                <div class="font-w600">{{ $card['label'] }}</div>
+                                                <div class="font-size-sm text-muted">{{ $card['hint'] }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+
                     <a class="btn btn-primary mb-4" href="{{ route('wishlists', ['tab' => 'wishlists', 'stock' => 'ready']) }}"><i class="fa-duotone fa-paper-plane mr-1"></i> Otvori spremne za slanje</a>
                 @endif
             </div>
@@ -271,6 +309,7 @@
         .admin-wishlist-select-all { display: inline-flex; align-items: center; gap: .45rem; color: #314837; font-weight: 600; cursor: pointer; }
         .admin-wishlist-select-all input { width: 1rem; height: 1rem; margin: 0; }
         #wishlist-send-selected:disabled { opacity: .42; cursor: not-allowed; box-shadow: none; }
+        .admin-wishlist-attribution-card { border: 1px solid #d9d3c8; background: linear-gradient(135deg, #fbfaf7 0%, #f3f0e8 100%); }
         @media (max-width: 767.98px) {
             .admin-wishlist-select-column { width: 100%; }
             #main-container .admin-wishlist-table td.admin-wishlist-action {
