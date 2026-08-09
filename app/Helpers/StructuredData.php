@@ -3,6 +3,7 @@
 namespace App\Helpers;
 
 use App\Models\Front\Blog;
+use App\Models\Front\Page;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
@@ -352,6 +353,18 @@ final class StructuredData
             'inLanguage' => $locale,
             'mainEntity' => $questions,
         ];
+    }
+
+    public static function contentPageType(Page $page): string
+    {
+        $slugs = collect([
+            $page->getRawOriginal('slug'),
+            $page->getRawOriginal('slug_en'),
+        ])->filter()->map(fn ($slug) => Str::slug((string) $slug));
+
+        return $slugs->intersect(['o-nama', 'about-us'])->isNotEmpty()
+            ? 'AboutPage'
+            : 'WebPage';
     }
 
     public static function imageMimeType(?string $url): ?string

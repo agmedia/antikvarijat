@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use App\Helpers\StructuredData;
 use App\Models\Front\Blog;
+use App\Models\Front\Page;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Tests\TestCase;
 
@@ -209,6 +210,18 @@ class StructuredDataTest extends TestCase
         $this->assertCount(1, $schema['mainEntity']);
         $this->assertSame('Kako naručiti?', $schema['mainEntity'][0]['name']);
         $this->assertSame('Dodajte artikl u košaricu. Potvrdite narudžbu.', $schema['mainEntity'][0]['acceptedAnswer']['text']);
+    }
+
+    public function testContentPageTypeRecognizesAboutPageInEitherLocale(): void
+    {
+        $about = new Page();
+        $about->setRawAttributes(['slug' => 'o-nama', 'slug_en' => 'about-us'], true);
+
+        $terms = new Page();
+        $terms->setRawAttributes(['slug' => 'opci-uvjeti-kupnje', 'slug_en' => 'terms'], true);
+
+        $this->assertSame('AboutPage', StructuredData::contentPageType($about));
+        $this->assertSame('WebPage', StructuredData::contentPageType($terms));
     }
 
     private function shippingMethod(string $code, int $geoZone, float $price, ?string $time): object

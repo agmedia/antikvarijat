@@ -1,5 +1,7 @@
 @extends('front.layouts.app')
-@php($isEnglish = \App\Helpers\LocaleHelper::isEnglish())
+@php
+    $isEnglish = \App\Helpers\LocaleHelper::isEnglish();
+@endphp
 @if (request()->routeIs(['index', 'en.index']))
     @section ( 'title', __('front.meta.default_title') )
 @section ( 'description', __('front.meta.default_description') )
@@ -17,8 +19,13 @@
 @endpush
 
 @else
-    @section ( 'title', $page->title. ' - Antikvarijat Biblos' )
-@section ( 'description', $page->meta_description )
+    @php
+        $pageMetaDescription = $page->meta_description
+            ?: \Illuminate\Support\Str::limit(trim(strip_tags((string) $page->short_description)), 160, '');
+    @endphp
+    @section('title', $page->meta_title ?: $page->title . ' - Antikvarijat Biblos')
+    @section('description', $pageMetaDescription)
+    @section('schema_page_type', \App\Helpers\StructuredData::contentPageType($page))
 @endif
 
 @section('content')
