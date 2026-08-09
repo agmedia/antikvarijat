@@ -11,6 +11,8 @@ Disallow: /register
 Disallow: /forgot-password
 Disallow: /reset-password
 Disallow: /wishlist-obavijest/
+Disallow: /kosarica/vrati/
+Disallow: /en/cart/restore/
 
 Sitemap: https://www.antikvarijat-biblos.hr/sitemap
 Sitemap: https://www.antikvarijat-biblos.hr/image-sitemap

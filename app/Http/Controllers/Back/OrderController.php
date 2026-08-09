@@ -18,6 +18,9 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Models\Back\Orders\OrderTotal;
+use App\Models\AbandonedCartReminder;
+use App\Services\AbandonedCartReminderService;
+use Illuminate\Support\Facades\Schema;
 
 class OrderController extends Controller
 {
@@ -26,21 +29,35 @@ class OrderController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request, Order $order)
+    public function index(Request $request, Order $order, AbandonedCartReminderService $reminders)
     {
         $perPage = (int) config('settings.pagination.back');
+        $select = [
+            'id',
+            'created_at',
+            'order_status_id',
+            'payment_method',
+            'shipping_fname',
+            'shipping_lname',
+            'total',
+            'printed',
+        ];
+
+        if ($reminders->isAvailable()) {
+            $select = array_merge($select, [
+                'payment_email',
+                'locale',
+                'unfinished_at',
+            ]);
+        }
+
         $query = $order->filter($request)
-            ->select([
-                'id',
-                'created_at',
-                'order_status_id',
-                'payment_method',
-                'shipping_fname',
-                'shipping_lname',
-                'total',
-                'printed',
-            ])
+            ->select($select)
             ->withCount('orderProducts');
+
+        if ($reminders->isAvailable()) {
+            $query->with('abandonedCartReminders');
+        }
 
         $hasActiveFilters = $request->filled('status')
             || $request->filled('dashboard_group')
@@ -68,6 +85,12 @@ class OrderController extends Controller
                     'query' => $request->query(),
                 ]
             );
+        }
+
+        if ($reminders->isAvailable()) {
+            $orders->getCollection()->each(function (Order $listedOrder) use ($reminders) {
+                $listedOrder->setAttribute('abandoned_cart_state', $reminders->adminState($listedOrder));
+            });
         }
 
         $statuses = Settings::get('order', 'statuses');
@@ -218,9 +241,13 @@ class OrderController extends Controller
             $orders = explode(',', substr($request->input('orders'), 1, -1));
             $statusId = (int) $request->input('selected');
 
-            Order::whereIn('id', $orders)->update([
-                'order_status_id' => $statusId
-            ]);
+            $updates = ['order_status_id' => $statusId];
+            if ($statusId === (int) config('settings.order.status.unfinished', 8)
+                && Schema::hasColumn('orders', 'unfinished_at')) {
+                $updates['unfinished_at'] = now();
+            }
+
+            Order::whereIn('id', $orders)->update($updates);
 
             if ($statusId) {
                 Order::query()
@@ -239,9 +266,13 @@ class OrderController extends Controller
             $orderId = (int) $request->input('order_id');
 
             if ($request->has('status') && $request->input('status')) {
-                Order::where('id', $orderId)->update([
-                    'order_status_id' => $statusId
-                ]);
+                $updates = ['order_status_id' => $statusId];
+                if ($statusId === (int) config('settings.order.status.unfinished', 8)
+                    && Schema::hasColumn('orders', 'unfinished_at')) {
+                    $updates['unfinished_at'] = now();
+                }
+
+                Order::where('id', $orderId)->update($updates);
             }
 
             $order = Order::query()->find($orderId);
@@ -269,6 +300,34 @@ class OrderController extends Controller
         }
 
         return response()->json(['error' => 'Greška..! Molimo pokušajte ponovo ili kontaktirajte administratora..']);
+    }
+
+    public function sendAbandonedCartReminder(
+        Order $order,
+        AbandonedCartReminderService $reminders
+    ) {
+        try {
+            $state = $reminders->adminState($order);
+            $sequence = (int) ($state['next_sequence'] ?? 0);
+
+            if (! ($state['available'] ?? false) || $sequence < 1) {
+                return back()->with('error', $state['error'] ?? 'Podsjetnik nije moguće poslati.');
+            }
+
+            $sent = $reminders->send($order, $sequence, AbandonedCartReminder::SOURCE_MANUAL);
+
+            return back()->with(
+                'success',
+                sprintf('%d. podsjetnik uspješno je poslan %s.', $sequence, $sent->recipient_email)
+            );
+        } catch (\Throwable $exception) {
+            Log::warning('Manual abandoned cart reminder failed', [
+                'order_id' => $order->id,
+                'error' => $exception->getMessage(),
+            ]);
+
+            return back()->with('error', 'Podsjetnik nije poslan: ' . $exception->getMessage());
+        }
     }
 
     private function sendStatusNotification(?Order $order, int $statusId): void

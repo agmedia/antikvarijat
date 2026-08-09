@@ -11,7 +11,17 @@
     @foreach ($order->products as $product)
         @php
             $catalogProduct = $product->product;
-            $productImage = $catalogProduct && $catalogProduct->getRawOriginal('image') ? $catalogProduct->image : null;
+            $rawProductImage = $catalogProduct ? trim((string) $catalogProduct->getRawOriginal('image')) : '';
+            $productImage = null;
+            if ($rawProductImage !== '') {
+                if (preg_match('#^https?://#i', $rawProductImage)) {
+                    $productImage = $rawProductImage;
+                } else {
+                    $imageHost = rtrim((string) (config('settings.images_domain') ?: config('app.url')), '/');
+                    $imagePath = preg_replace('/\.jpg$/i', '.webp', ltrim($rawProductImage, '/'));
+                    $productImage = $imageHost . '/' . $imagePath;
+                }
+            }
         @endphp
         <tr>
             <td style="padding:11px 10px;border-bottom:1px solid #e8e3da;color:#25342b;">

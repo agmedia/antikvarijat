@@ -177,6 +177,10 @@
                         </thead>
                         <tbody>
                         @forelse ($orders as $order)
+                            @php
+                                $abandonedCartState = $order->abandoned_cart_state ?? [];
+                                $isUnfinishedOrder = (int) $order->order_status_id === (int) config('settings.order.status.unfinished', 8);
+                            @endphp
                             <tr>
                                 <td class="text-center" data-label="Odaberi">
                                     <div class="form-group">
@@ -195,6 +199,24 @@
                                     <div class="admin-order-status-stack">
                                         <span class="badge badge-pill badge-{{ $order->status->color }}">{{ $order->status->title }}</span>
                                         <small>{{ $order->payment_method }}</small>
+                                        @if(! empty($abandonedCartState['first_sent_at']))
+                                            <small class="admin-reminder-sent">
+                                                <i class="fa-duotone fa-envelope-circle-check mr-1" aria-hidden="true"></i>
+                                                1. podsjetnik: {{ $abandonedCartState['first_sent_at']->format('d.m.Y. H:i') }}
+                                            </small>
+                                        @endif
+                                        @if(! empty($abandonedCartState['second_sent_at']))
+                                            <small class="admin-reminder-sent">
+                                                <i class="fa-duotone fa-envelope-circle-check mr-1" aria-hidden="true"></i>
+                                                2. podsjetnik: {{ $abandonedCartState['second_sent_at']->format('d.m.Y. H:i') }}
+                                            </small>
+                                        @endif
+                                        @if($isUnfinishedOrder && ! empty($abandonedCartState['available']) && ! empty($abandonedCartState['next_scheduled_at']))
+                                            <small class="admin-reminder-scheduled">
+                                                <i class="fa-duotone fa-clock mr-1" aria-hidden="true"></i>
+                                                {{ $abandonedCartState['next_sequence'] }}. automatski: {{ $abandonedCartState['next_scheduled_at']->format('d.m.Y. H:i') }}
+                                            </small>
+                                        @endif
                                     </div>
                                 </td>
                                 <td data-label="Kupac" class="admin-order-customer">
@@ -220,6 +242,21 @@
                                     <a class="btn btn-sm btn-alt-info" href="{{ route('orders.edit', ['order' => $order]) }}" title="Uredi" aria-label="Uredi narudžbu {{ $order->id }}">
                                         <i class="fa-duotone fa-pen-to-square"></i>
                                     </a>
+                                    @if($isUnfinishedOrder && ! empty($abandonedCartState['available']))
+                                        <form class="admin-reminder-form" method="POST" action="{{ route('orders.abandoned-cart-reminder.send', ['order' => $order]) }}" onsubmit="return confirm('Poslati {{ $abandonedCartState['next_sequence'] }}. podsjetnik kupcu sada?');">
+                                            @csrf
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-alt-primary"
+                                                    title="Pošalji {{ $abandonedCartState['next_sequence'] }}. podsjetnik sada"
+                                                    aria-label="Pošalji {{ $abandonedCartState['next_sequence'] }}. podsjetnik za narudžbu {{ $order->id }} sada">
+                                                <i class="fa-duotone fa-envelope-open-text"></i>
+                                            </button>
+                                        </form>
+                                    @elseif($isUnfinishedOrder && ! empty($abandonedCartState['complete']))
+                                        <button type="button" class="btn btn-sm btn-light disabled" disabled title="Poslana su oba podsjetnika" aria-label="Poslana su oba podsjetnika za narudžbu {{ $order->id }}">
+                                            <i class="fa-duotone fa-envelope-circle-check text-success"></i>
+                                        </button>
+                                    @endif
                                     @if($order->printed)
                                        <button type="button" class="btn btn-light btn-sm disabled" disabled title="Poslano u GLS"><i class="fa-duotone fa-check text-success"></i></button>
                                     @else
@@ -279,14 +316,16 @@
         .admin-orders-table { width: 100%; min-width: 0; table-layout: fixed; }
         .admin-orders-table th:nth-child(1) { width: 5%; }
         .admin-orders-table th:nth-child(2) { width: 14%; }
-        .admin-orders-table th:nth-child(3) { width: 22%; }
-        .admin-orders-table th:nth-child(4) { width: 25%; }
-        .admin-orders-table th:nth-child(5) { width: 18%; }
-        .admin-orders-table th:nth-child(6) { width: 16%; }
+        .admin-orders-table th:nth-child(3) { width: 24%; }
+        .admin-orders-table th:nth-child(4) { width: 22%; }
+        .admin-orders-table th:nth-child(5) { width: 16%; }
+        .admin-orders-table th:nth-child(6) { width: 19%; }
         .admin-orders-table th, .admin-orders-table td { padding: .75rem .65rem; }
         .admin-order-number small,
         .admin-order-status-payment small { display: block; margin-top: .32rem; color: #657168; font-size: var(--admin-type-xs); line-height: 1.3; }
         .admin-order-status-payment small { overflow: hidden; text-overflow: ellipsis; }
+        .admin-order-status-payment .admin-reminder-sent { color: #39714e; font-weight: 700; }
+        .admin-order-status-payment .admin-reminder-scheduled { color: #8b621f; }
         .admin-order-status-stack { min-width: 0; }
         .admin-order-customer a { display: -webkit-box; overflow: hidden; line-height: 1.35; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
         .admin-order-summary { font-variant-numeric: tabular-nums; }
@@ -296,6 +335,7 @@
         .admin-order-summary span { margin-bottom: .22rem; color: #657168; font-size: var(--admin-type-xs); }
         .admin-order-summary strong { color: #26342d; font-size: var(--admin-type-body); }
         .admin-orders-table .admin-row-actions { display: inline-flex; gap: .35rem; }
+        .admin-reminder-form { display: inline-flex; margin: 0; }
         .admin-orders-table .admin-row-actions .btn { width: 2.25rem; padding: 0; }
         @media (max-width: 767.98px) {
             .admin-orders-header { align-items: center !important; flex-direction: row !important; gap: .5rem !important; }

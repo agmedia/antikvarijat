@@ -16,6 +16,7 @@ use App\Models\Back\Orders\Order;
 use App\Models\ContractWithdrawal;
 use App\Models\Front\Catalog\Product;
 use App\Models\ProductReviewInvitation;
+use App\Services\AbandonedCartReminderService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
@@ -25,6 +26,7 @@ class SendTestEmailDesigns extends Command
     protected $signature = 'mail:test-design
                             {recipient : Adresa na koju se šalju testni mailovi}
                             {--only=all : all ili popis odvojen zarezom}
+                            {--locale=hr : Jezik testa: hr ili en}
                             {--send : Potvrda stvarnog slanja}';
 
     protected $description = 'Šalje sigurne testne primjerke email predložaka bez promjene poslovnih zapisa';
@@ -44,10 +46,19 @@ class SendTestEmailDesigns extends Command
             return 1;
         }
 
-        app()->setLocale('hr');
+        $locale = mb_strtolower(trim((string) $this->option('locale')));
+        if (! in_array($locale, ['hr', 'en'], true)) {
+            $this->error('Jezik mora biti hr ili en.');
+
+            return 1;
+        }
+
+        app()->setLocale($locale);
 
         $available = [
             'wishlist',
+            'abandoned-cart-1',
+            'abandoned-cart-2',
             'review',
             'order-customer',
             'order-admin',
@@ -74,7 +85,15 @@ class SendTestEmailDesigns extends Command
             return 1;
         }
 
-        $orderTemplates = ['review', 'order-customer', 'order-admin', 'order-paid', 'order-canceled'];
+        $orderTemplates = [
+            'abandoned-cart-1',
+            'abandoned-cart-2',
+            'review',
+            'order-customer',
+            'order-admin',
+            'order-paid',
+            'order-canceled',
+        ];
         $needsOrder = count(array_intersect($selected, $orderTemplates)) > 0;
         $order = $needsOrder
             ? Order::query()
@@ -97,7 +116,7 @@ class SendTestEmailDesigns extends Command
                 'order_id' => $order->id,
                 'recipient_email' => $recipient,
                 'recipient_name' => 'Tomislav',
-                'locale' => 'hr',
+                'locale' => $locale,
                 'eligible_at' => now(),
             ]);
         }
@@ -117,23 +136,30 @@ class SendTestEmailDesigns extends Command
             'items' => 'Testni artikl — ovaj zapis nije spremljen u bazu.',
             'note' => 'Vizualni test email predloška.',
             'declaration' => 'Ovo je testni prikaz izjave o jednostranom raskidu ugovora.',
-            'locale' => 'hr',
+            'locale' => $locale,
             'submitted_at' => now(),
         ]);
 
         $jobs = [
-            'wishlist' => fn () => Mail::to($recipient)->send((new WishlistArrived($product))->locale('hr')),
+            'wishlist' => fn () => Mail::to($recipient)->send((new WishlistArrived($product))->locale($locale)),
+            'abandoned-cart-1' => fn () => app(AbandonedCartReminderService::class)
+                ->sendTest($order, $recipient, $locale, 1),
+            'abandoned-cart-2' => fn () => app(AbandonedCartReminderService::class)
+                ->sendTest($order, $recipient, $locale, 2),
             'review' => fn () => Mail::to($recipient)->send((new ProductReviewRequestMail(
                 $invitation,
                 config('app.url')
-            ))->locale('hr')),
-            'order-customer' => fn () => Mail::to($recipient)->send((new OrderSent($order))->locale('hr')),
-            'order-admin' => fn () => Mail::to($recipient)->send((new OrderReceived($order))->locale('hr')),
-            'order-paid' => fn () => Mail::to($recipient)->send((new StatusPaid($order))->locale('hr')),
-            'order-canceled' => fn () => Mail::to($recipient)->send((new StatusCanceled($order))->locale('hr')),
-            'password' => function () use ($recipient) {
-                Mail::send('emails.forget-password', ['token' => Str::random(64)], function ($message) use ($recipient) {
-                    $message->to($recipient)->subject('[TEST] Resetiranje lozinke — Antikvarijat Biblos');
+            ))->locale($locale)),
+            'order-customer' => fn () => Mail::to($recipient)->send((new OrderSent($order))->locale($locale)),
+            'order-admin' => fn () => Mail::to($recipient)->send((new OrderReceived($order))->locale($locale)),
+            'order-paid' => fn () => Mail::to($recipient)->send((new StatusPaid($order))->locale($locale)),
+            'order-canceled' => fn () => Mail::to($recipient)->send((new StatusCanceled($order))->locale($locale)),
+            'password' => function () use ($recipient, $locale) {
+                Mail::send('emails.forget-password', ['token' => Str::random(64)], function ($message) use ($recipient, $locale) {
+                    $subject = $locale === 'en'
+                        ? '[TEST] Password reset — Antikvarijat Biblos'
+                        : '[TEST] Resetiranje lozinke — Antikvarijat Biblos';
+                    $message->to($recipient)->subject($subject);
                 });
             },
             'contact' => fn () => Mail::to($recipient)->send((new ContactFormMessage([
@@ -141,7 +167,7 @@ class SendTestEmailDesigns extends Command
                 'email' => $recipient,
                 'phone' => '+385 91 000 0000',
                 'message' => "Ovo je testna poruka kontakt forme.\nNijedan stvarni upit nije stvoren.",
-            ]))->locale('hr')),
+            ]))->locale($locale)),
             'book-purchase' => fn () => Mail::to($recipient)->send((new BookPurchaseMessage([
                 'full_name' => 'Tomislav — testni prikaz',
                 'postal_code' => '10000 Zagreb',
@@ -153,7 +179,7 @@ class SendTestEmailDesigns extends Command
                     'name' => 'Testna fotografija (poveznica vodi na naslovnicu)',
                     'url' => config('app.url'),
                 ]],
-            ]))->locale('hr')),
+            ]))->locale($locale)),
             'withdrawal-receipt' => fn () => Mail::to($recipient)->send((new ContractWithdrawalReceiptMail(
                 $withdrawal,
                 [
@@ -161,11 +187,11 @@ class SendTestEmailDesigns extends Command
                     'instructions' => 'Testna uputa za prikaz predloška.',
                 ],
                 'Trošak povrata snosi kupac.'
-            ))->locale('hr')),
+            ))->locale($locale)),
             'withdrawal-admin' => fn () => Mail::to($recipient)->send((new ContractWithdrawalAdminMail(
                 $withdrawal,
                 config('app.url') . '/admin/contract-withdrawals'
-            ))->locale('hr')),
+            ))->locale($locale)),
         ];
 
         $sent = 0;

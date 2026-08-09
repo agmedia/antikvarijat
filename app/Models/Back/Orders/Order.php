@@ -4,6 +4,7 @@ namespace App\Models\Back\Orders;
 
 use App\Helpers\LocaleHelper;
 use App\Helpers\Session\CheckoutSession;
+use App\Models\AbandonedCartReminder;
 use App\Models\Back\Settings\Settings;
 use App\Models\Back\Users\Client;
 use App\User;
@@ -29,6 +30,10 @@ class Order extends Model
      * @var array
      */
     protected $guarded = ['id', 'created_at', 'updated_at'];
+
+    protected $casts = [
+        'unfinished_at' => 'datetime',
+    ];
 
     /**
      * @var Request
@@ -101,6 +106,63 @@ class Order extends Model
     public function totals()
     {
         return $this->hasMany(OrderTotal::class, 'order_id')->orderBy('sort_order');
+    }
+
+    public function abandonedCartReminders()
+    {
+        return $this->hasMany(AbandonedCartReminder::class, 'order_id')->orderBy('sequence');
+    }
+
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class, 'order_id')->latest('id');
+    }
+
+    public function resolvedLocale(): string
+    {
+        $locale = mb_strtolower(trim((string) $this->getAttribute('locale')));
+
+        if (in_array($locale, [LocaleHelper::DEFAULT_LOCALE, LocaleHelper::ENGLISH_LOCALE], true)) {
+            return $locale;
+        }
+
+        $transaction = $this->relationLoaded('transactions')
+            ? $this->transactions->first()
+            : $this->transactions()->first();
+        $transactionLocale = mb_strtolower(trim((string) optional($transaction)->lang));
+
+        if (in_array($transactionLocale, [LocaleHelper::DEFAULT_LOCALE, LocaleHelper::ENGLISH_LOCALE], true)) {
+            return $transactionLocale;
+        }
+
+        // Narudžbe nastale prije spremanja locale polja još uvijek možemo
+        // prepoznati po lokaliziranom nazivu odabranog plaćanja ili dostave.
+        try {
+            $titles = [
+                [
+                    'stored' => (string) $this->payment_method,
+                    'english' => LocaleHelper::paymentTitle($this->payment_code, null, LocaleHelper::ENGLISH_LOCALE),
+                    'croatian' => LocaleHelper::paymentTitle($this->payment_code, null, LocaleHelper::DEFAULT_LOCALE),
+                ],
+                [
+                    'stored' => (string) $this->shipping_method,
+                    'english' => LocaleHelper::shippingTitle($this->shipping_code, null, LocaleHelper::ENGLISH_LOCALE),
+                    'croatian' => LocaleHelper::shippingTitle($this->shipping_code, null, LocaleHelper::DEFAULT_LOCALE),
+                ],
+            ];
+
+            foreach ($titles as $title) {
+                if ($title['english'] !== ''
+                    && $title['english'] !== $title['croatian']
+                    && trim($title['stored']) === trim($title['english'])) {
+                    return LocaleHelper::ENGLISH_LOCALE;
+                }
+            }
+        } catch (\Throwable $exception) {
+            // Na instalaciji bez tablice postavki siguran je hrvatski fallback.
+        }
+
+        return LocaleHelper::DEFAULT_LOCALE;
     }
 
 

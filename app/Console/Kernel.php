@@ -29,6 +29,9 @@ class Kernel extends ConsoleKernel
             // Tri pokušaja unutar istog (točno 30.) dana; uspješno poslani se preskaču.
             ->cron('15 10,14,18 * * *')
             ->withoutOverlapping();
+        $schedule->command('orders:send-abandoned-cart-reminders')
+            ->everyMinute()
+            ->withoutOverlapping();
     }
 
     /**

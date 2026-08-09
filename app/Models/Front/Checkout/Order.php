@@ -13,6 +13,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 class Order extends Model
 {
@@ -120,7 +121,7 @@ class Order extends Model
         if ( ! empty($this->order) && isset($this->order['cart'])) {
             $user_id = auth()->user() ? auth()->user()->id : 0;
 
-            $order_id = \App\Models\Back\Orders\Order::insertGetId([
+            $orderData = [
                 'user_id'          => $user_id,
                 'affiliate_id'     => 0,
                 'order_status_id'  => $this->order['order_status_id'],
@@ -155,7 +156,16 @@ class Order extends Model
                 'napomena'          => $this->order['napomena'],
                 'created_at'       => Carbon::now(),
                 'updated_at'       => Carbon::now()
-            ]);
+            ];
+
+            if (Schema::hasColumn('orders', 'locale')) {
+                $orderData['locale'] = LocaleHelper::current();
+            }
+            if (Schema::hasColumn('orders', 'unfinished_at')) {
+                $orderData['unfinished_at'] = Carbon::now();
+            }
+
+            $order_id = \App\Models\Back\Orders\Order::insertGetId($orderData);
 
             if ($order_id) {
                 // HISTORY
@@ -189,7 +199,7 @@ class Order extends Model
             $this->order = $data;
         }
 
-        $updated = \App\Models\Back\Orders\Order::where('id', $data['id'])->update([
+        $orderData = [
             'payment_fname'    => $this->order['address']['fname'],
             'payment_lname'    => $this->order['address']['lname'],
             'payment_address'  => $this->order['address']['address'],
@@ -218,7 +228,13 @@ class Order extends Model
             'napomena'          => $this->order['napomena'],
             'oib'              => $this->order['address']['oib'],
             'updated_at'       => Carbon::now()
-        ]);
+        ];
+
+        if (Schema::hasColumn('orders', 'locale')) {
+            $orderData['locale'] = LocaleHelper::current();
+        }
+
+        $updated = \App\Models\Back\Orders\Order::where('id', $data['id'])->update($orderData);
 
         if ($updated) {
             $this->updateProducts($data['id']);

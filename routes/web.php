@@ -35,6 +35,7 @@ use App\Http\Controllers\Back\UserController;
 use App\Http\Controllers\Back\Widget\WidgetController;
 use App\Http\Controllers\Back\Widget\WidgetGroupController;
 use App\Http\Controllers\Front\CatalogRouteController;
+use App\Http\Controllers\Front\AbandonedCartRecoveryController;
 use App\Http\Controllers\Front\CheckoutController;
 use App\Http\Controllers\Front\ContractWithdrawalController;
 use App\Http\Controllers\Front\CustomerController;
@@ -133,6 +134,8 @@ Route::middleware(['auth:sanctum', 'verified', 'no.customers'])->prefix('admin')
     Route::get('order/{order}', [OrderController::class, 'show'])->name('orders.show');
     Route::get('order/{order}/edit', [OrderController::class, 'edit'])->name('orders.edit');
     Route::patch('order/{order}', [OrderController::class, 'update'])->name('orders.update');
+    Route::post('order/{order}/abandoned-cart-reminder', [OrderController::class, 'sendAbandonedCartReminder'])
+        ->name('orders.abandoned-cart-reminder.send');
 
     Route::get('/orders/export', [OrderController::class, 'export'])->name('orders.export');
 
@@ -424,6 +427,9 @@ Route::post('/zahtjev-za-recenziju/{token}', [ProductReviewController::class, 's
     ->name('product-review-invitations.store');
 
 Route::get('/kosarica', [CheckoutController::class, 'cart'])->name('kosarica');
+Route::get('/kosarica/vrati/{order}', AbandonedCartRecoveryController::class)
+    ->middleware(['signed', 'throttle:30,1'])
+    ->name('abandoned-cart.restore');
 Route::get('/naplata', [CheckoutController::class, 'checkout'])->name('naplata');
 Route::get('/pregled', [CheckoutController::class, 'view'])->name('pregled');
 Route::get('/narudzba', [CheckoutController::class, 'order'])->name('checkout');
@@ -466,6 +472,9 @@ Route::prefix('en')->as('en.')->group(function () {
         ->name('product-reviews.store');
 
     Route::get('/cart', [CheckoutController::class, 'cart'])->name('kosarica');
+    Route::get('/cart/restore/{order}', AbandonedCartRecoveryController::class)
+        ->middleware(['signed', 'throttle:30,1'])
+        ->name('abandoned-cart.restore');
     Route::get('/checkout', [CheckoutController::class, 'checkout'])->name('naplata');
     Route::get('/checkout/review', [CheckoutController::class, 'view'])->name('pregled');
     Route::get('/checkout/order', [CheckoutController::class, 'order'])->name('checkout');
