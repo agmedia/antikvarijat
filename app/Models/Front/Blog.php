@@ -26,6 +26,13 @@ class Blog extends Model
      */
     protected $guarded = ['id', 'created_at', 'updated_at'];
 
+    /**
+     * @var array
+     */
+    protected $casts = [
+        'hide_from_home_widget' => 'boolean',
+    ];
+
 
     /**
      * Get the route key for the model.

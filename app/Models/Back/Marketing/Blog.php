@@ -26,6 +26,13 @@ class Blog extends Model
     protected $guarded = ['id', 'created_at', 'updated_at'];
 
     /**
+     * @var array
+     */
+    protected $casts = [
+        'hide_from_home_widget' => 'boolean',
+    ];
+
+    /**
      * @var Request
      */
     protected $request;
@@ -76,6 +83,7 @@ class Blog extends Model
             'keywords_en'       => $this->request->keywords_en ?: null,
             'publish_date'      => $this->request->publish_date ? Carbon::make($this->request->publish_date) : null,
             'keywords'          => false,
+            'hide_from_home_widget' => $this->request->input('hide_from_home_widget') === 'on',
             'status'            => (isset($this->request->status) and $this->request->status == 'on') ? 1 : 0,
             'created_at'        => Carbon::now(),
             'updated_at'        => Carbon::now()
@@ -115,6 +123,7 @@ class Blog extends Model
             'keywords_en'       => $this->request->keywords_en ?: null,
             'publish_date'      => $this->request->publish_date ? Carbon::make($this->request->publish_date) : null,
             'keywords'          => false,
+            'hide_from_home_widget' => $this->request->input('hide_from_home_widget') === 'on',
             'status'            => (isset($this->request->status) and $this->request->status == 'on') ? 1 : 0,
             'updated_at'        => Carbon::now()
         ]);

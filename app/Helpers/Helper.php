@@ -529,6 +529,7 @@ class Helper
         $blogs->active();
 
         if ($includeNew) {
+            $blogs->where('hide_from_home_widget', false);
             $blogs->last();
         } elseif (isset($data['popular']) && $data['popular'] == 'on') {
             $blogs->popular();

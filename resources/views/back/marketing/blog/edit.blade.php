@@ -28,7 +28,11 @@
                     <a class="btn btn-light" href="{{ back()->getTargetUrl() }}">
                         <i class="fa fa-arrow-left mr-1"></i> Povratak
                     </a>
-                    <div class="block-options">
+                    <div class="block-options d-flex flex-wrap align-items-center justify-content-end">
+                        <div class="custom-control custom-switch custom-control-warning mr-4">
+                            <input type="checkbox" class="custom-control-input" id="hide-from-home-widget" name="hide_from_home_widget" {{ (isset($blog) and $blog->hide_from_home_widget) ? 'checked' : '' }}>
+                            <label class="custom-control-label" for="hide-from-home-widget" title="Objava ostaje aktivna na Blog stranici.">Sakrij iz widgeta na naslovnici</label>
+                        </div>
                         <div class="custom-control custom-switch custom-control-success">
                             <input type="checkbox" class="custom-control-input" id="dm-post-edit-active" name="status" {{ (isset($blog) and $blog->status) ? 'checked' : '' }}>
                             <label class="custom-control-label" for="dm-post-edit-active">Aktiviraj</label>
@@ -50,7 +54,7 @@
                                     <div class="form-group">
                                         <label for="short-description-input">Sažetak</label>
                                         <textarea class="form-control" id="short-description-input" name="short_description" rows="3" placeholder="Enter an excerpt..">{{ isset($blog) ? $blog->short_description : old('title') }}</textarea>
-                                        <div class="form-text text-muted font-size-sm font-italic">Vidljivo na početnoj stranici</div>
+                                        <div class="form-text text-muted font-size-sm font-italic">Prikazuje se u kartici widgeta ako objava nije skrivena s naslovnice.</div>
                                     </div>
                                     <div class="form-group row mb-4">
                                         <div class="col-md-12">
