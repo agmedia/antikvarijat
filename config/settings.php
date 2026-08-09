@@ -26,7 +26,7 @@ return [
     'publisher_path' => 'nakladnik',
     'default_category'  => 40,
     'group_path'           => 'Knjige',
-    'images_domain' => env('APP_IMAGE_DOMAIN', env('APP_URL')),
+    'images_domain' => rtrim((string) env('APP_IMAGE_DOMAIN', env('APP_URL')), '/') . '/',
 
     'image_default'        => 'media/avatars/blank.png',
 

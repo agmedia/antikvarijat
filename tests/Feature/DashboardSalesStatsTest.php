@@ -230,6 +230,14 @@ class DashboardSalesStatsTest extends TestCase
         $this->assertStringNotContainsString('Zamatanje', $html);
     }
 
+    public function test_dashboard_statistics_link_does_not_require_the_named_route_during_view_compilation(): void
+    {
+        $source = file_get_contents(resource_path('views/back/dashboard.blade.php'));
+
+        $this->assertStringContainsString("url('/admin/statistike')", $source);
+        $this->assertStringNotContainsString("route('statistics')", $source);
+    }
+
     public function test_editor_cannot_access_or_see_sales_statistics(): void
     {
         $editor = User::query()->create([
