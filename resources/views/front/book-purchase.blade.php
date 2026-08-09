@@ -1,7 +1,25 @@
 @extends('front.layouts.app')
 
-@section('title', $bookPurchaseContent['title'])
+@php
+    $bookPurchaseMetaTitle = \Illuminate\Support\Str::contains(
+        \Illuminate\Support\Str::lower($bookPurchaseContent['title']),
+        'antikvarijat biblos'
+    ) ? $bookPurchaseContent['title'] : $bookPurchaseContent['title'] . ' - Antikvarijat Biblos';
+    $bookPurchaseSchema = \App\Helpers\LandingPageStructuredData::bookPurchaseService(
+        \App\Helpers\LocaleHelper::route('otkup.knjiga'),
+        $bookPurchaseContent['title'],
+        $bookPurchaseContent['meta_description'],
+        __('front.book_purchase.service_type'),
+        app()->getLocale()
+    );
+@endphp
+
+@section('title', $bookPurchaseMetaTitle)
 @section('description', $bookPurchaseContent['meta_description'])
+
+@push('meta_tags')
+    <script type="application/ld+json">{!! \App\Helpers\StructuredData::toJson($bookPurchaseSchema) !!}</script>
+@endpush
 
 @push('css_after')
     <link rel="stylesheet" media="screen" href="{{ asset('js/simple-lightbox.css?v2.14.0') }}">

@@ -396,7 +396,10 @@ return [
 
     'contact' => [
         'title' => 'Contact us',
+        'meta_title' => 'Contact - Antikvarijat Biblos Zagreb',
+        'meta_description' => 'Contact Antikvarijat Biblos at Palmoticeva 28 in Zagreb. Phone +385 1 48 16 574, email info@antikvarijat-biblos.hr.',
         'breadcrumb' => 'Contact',
+        'map_title' => 'Location of Antikvarijat Biblos on the map',
         'form_title' => 'Send inquiry',
         'name' => 'Your name',
         'phone' => 'Phone number',
@@ -411,6 +414,7 @@ return [
 
     'book_purchase' => [
         'title' => 'Book purchase',
+        'service_type' => 'Purchase of books and magazines',
         'meta_description' => 'Send a book and magazine purchase request.',
         'section_title' => 'Donations and purchases',
         'intro_1' => 'Antikvarijat Biblos always accepts book donations, whether you are moving, reorganizing your home or simply running out of space.',

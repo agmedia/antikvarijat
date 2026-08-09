@@ -1,4 +1,7 @@
 @extends('front.layouts.app')
+@section('title', __('front.contact.meta_title'))
+@section('description', __('front.contact.meta_description'))
+@section('schema_page_type', 'ContactPage')
 
 @section('content')
 
@@ -70,7 +73,7 @@
     <div class="container-fluid px-0" id="map">
         <div class="row g-0">
             <div class="col-lg-6 iframe-full-height-wrap">
-                <iframe class="iframe-full-height" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2781.031954941899!2d15.979511851748862!3d45.810618418178656!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4765d7aac4f8b023%3A0xb60bceb791b31ede!2sAntikvarijat%20Biblos!5e0!3m2!1sen!2sua!4v1629710903017!5m2!1sen!2sua" width="600" height="350" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                <iframe class="iframe-full-height" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2781.031954941899!2d15.979511851748862!3d45.810618418178656!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4765d7aac4f8b023%3A0xb60bceb791b31ede!2sAntikvarijat%20Biblos!5e0!3m2!1sen!2sua!4v1629710903017!5m2!1sen!2sua" width="600" height="350" style="border:0;" title="{{ __('front.contact.map_title') }}" allowfullscreen="" loading="lazy"></iframe>
             </div>
             <div class="col-lg-6 px-4 px-xl-5 py-5 border-top">
                 <h2 class="h4 mb-4">{{ __('front.contact.form_title') }}</h2>
