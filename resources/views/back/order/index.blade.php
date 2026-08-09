@@ -359,11 +359,11 @@
             .admin-orders-table td:nth-child(2)::before { display: none; }
             .admin-orders-table td:nth-child(3), .admin-orders-table td:nth-child(4) { grid-column: 1 / -1; }
             .admin-orders-table td:nth-child(5) { grid-column: 1 / -1; }
-            .admin-orders-table td:last-child { grid-column: 1 / -1; padding-top: .45rem !important; border-top: 1px solid #e6e2da !important; }
+            .admin-orders-table td:last-child { display: block; grid-column: 1 / -1; padding-top: .45rem !important; border-top: 1px solid #e6e2da !important; }
             .admin-orders-table td:last-child::before { display: none; }
             .admin-orders-table .admin-order-status-stack,
             .admin-orders-table .admin-order-summary-stack { min-width: 0; }
-            .admin-orders-table .admin-row-actions { width: 100%; justify-content: flex-end; }
+            .admin-orders-table .admin-row-actions { width: 100%; max-width: 100%; flex-wrap: wrap; justify-content: flex-end; }
         }
     </style>
 @endpush
