@@ -47,6 +47,25 @@
     @if (! empty($crumbs))
         <script type="application/ld+json">{!! \App\Helpers\StructuredData::toJson($crumbs) !!}</script>
     @endif
+    @if ($author && ! $cat && ! $subcat)
+        <script type="application/ld+json">{!! \App\Helpers\StructuredData::toJson(
+            \App\Helpers\CatalogEntityStructuredData::author(
+                $author,
+                \App\Helpers\Metatags::canonical(request()),
+                app()->getLocale(),
+                $listingDescription
+            )
+        ) !!}</script>
+    @elseif ($publisher && ! $cat && ! $subcat)
+        <script type="application/ld+json">{!! \App\Helpers\StructuredData::toJson(
+            \App\Helpers\CatalogEntityStructuredData::publisher(
+                $publisher,
+                \App\Helpers\Metatags::canonical(request()),
+                app()->getLocale(),
+                $listingDescription
+            )
+        ) !!}</script>
+    @endif
     @include('front.layouts.partials.collection-schema', [
         'collectionPaginator' => $initialProductsPaginator ?? null,
         'collectionName' => $listingTitle,
