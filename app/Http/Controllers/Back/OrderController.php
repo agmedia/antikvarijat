@@ -43,6 +43,7 @@ class OrderController extends Controller
             ->withCount('orderProducts');
 
         $hasActiveFilters = $request->filled('status')
+            || $request->filled('dashboard_group')
             || $request->filled('search')
             || $request->filled('date_from')
             || $request->filled('date_to');

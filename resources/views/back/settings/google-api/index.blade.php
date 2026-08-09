@@ -1,37 +1,41 @@
 @extends('back.layouts.backend')
 
 @section('content')
-    <div class="bg-body-light">
+    <div class="admin-page-hero">
         <div class="content content-full">
-            <div class="d-flex flex-column flex-sm-row justify-content-sm-between align-items-sm-center">
-                <h1 class="flex-sm-fill font-size-h2 font-w400 mt-2 mb-0 mb-sm-2">Google API</h1>
-                <nav class="flex-sm-00-auto ml-sm-3" aria-label="breadcrumb">
-                    <ol class="breadcrumb mb-0">
-                        <li class="breadcrumb-item">Postavke</li>
-                        <li class="breadcrumb-item active" aria-current="page">Google API</li>
-                    </ol>
-                </nav>
+            <div class="admin-page-heading">
+                <div>
+                    <div class="admin-page-kicker"><i class="fa-duotone fa-language"></i> Integracije</div>
+                    <h1 class="admin-page-title">Google prijevod</h1>
+                    <p class="admin-page-description">Kontrolirano prevedite odabrane podatke kataloga s hrvatskog na engleski jezik.</p>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="content content-full">
+    <div class="content">
         @include('back.layouts.partials.session')
 
         <div class="row">
             <div class="col-xl-8">
                 <div class="block block-rounded">
                     <div class="block-header block-header-default">
-                        <h3 class="block-title">HR -> EN prijevod</h3>
+                        <div class="d-flex align-items-center min-width-0">
+                            <span class="admin-section-icon mr-3"><i class="fa-duotone fa-list-check"></i></span>
+                            <div>
+                                <h2 class="block-title mb-1">Polja za prijevod</h2>
+                                <span class="admin-count">Hrvatski → engleski</span>
+                            </div>
+                        </div>
                         <div class="block-options">
                             <button type="button" class="btn btn-sm btn-alt-secondary" id="select-default-fields">
-                                Zadano
+                                <i class="fa-duotone fa-wand-magic-sparkles mr-1"></i> Zadano
                             </button>
                             <button type="button" class="btn btn-sm btn-alt-secondary" id="select-all-fields">
-                                Sve
+                                <i class="fa-duotone fa-check-double mr-1"></i> Sve
                             </button>
                             <button type="button" class="btn btn-sm btn-alt-secondary" id="select-no-fields">
-                                Ništa
+                                <i class="fa-duotone fa-xmark mr-1"></i> Ništa
                             </button>
                         </div>
                     </div>
@@ -101,10 +105,10 @@
                         </div>
 
                         <button type="button" class="btn btn-success" id="start-translation">
-                            <i class="fa fa-language mr-1"></i> Pokreni HR -> EN
+                            <i class="fa-duotone fa-language mr-1"></i> Pokreni prijevod
                         </button>
                         <button type="button" class="btn btn-alt-danger d-none" id="cancel-translation">
-                            Prekini
+                            <i class="fa-duotone fa-stop mr-1"></i> Prekini
                         </button>
                     </div>
                 </div>
@@ -186,6 +190,18 @@
         </div>
     </div>
 @endsection
+
+@push('css_after')
+    <style>
+        .js-target-toggle + .custom-control-label { color: var(--admin-ink); }
+        .js-translate-field + .custom-control-label { line-height: 1.35; }
+        #translation-messages { max-height: 14rem; overflow-y: auto; line-height: 1.5; }
+        #translation-targets td { padding: .65rem .75rem; }
+        @media (max-width: 575.98px) {
+            #select-default-fields, #select-all-fields, #select-no-fields { padding-right: .5rem; padding-left: .5rem; }
+        }
+    </style>
+@endpush
 
 @push('js_after')
     <script>

@@ -120,14 +120,55 @@ class Order extends Model
      *
      * @return mixed
      */
-    public function scopeLast($query, $count = 10)
+    public function scopeLast($query, $count = 9)
     {
-        return $query->whereIn('order_status_id', [1,2,3,4, 5, 6, 7,8])->orderBy('created_at', 'desc')->limit($count);
+        return $query
+            ->whereIn('order_status_id', static::latestDashboardStatusIds())
+            ->orderByDesc('created_at')
+            ->limit($count);
     }
 
     public function scopeFinished($query, $count = 9)
     {
-        return $query->whereIn('order_status_id', [1, 2, 3, 4 ])->orderBy('created_at', 'desc')->limit($count);
+        return $query
+            ->whereIn('order_status_id', static::dashboardCompletedStatusIds())
+            ->orderByDesc('created_at')
+            ->limit($count);
+    }
+
+    /**
+     * Business definition of a completed/valid dashboard sale.
+     *
+     * COD orders stay in "Novo" until they are processed, while card orders
+     * become "Plaćeno". Both must therefore count as completed sales.
+     */
+    public static function dashboardCompletedStatusIds(): array
+    {
+        return static::statusIds([
+            config('settings.order.status.new'),
+            config('settings.order.status.paid'),
+            config('settings.order.status.send'),
+        ]);
+    }
+
+    public static function latestDashboardStatusIds(): array
+    {
+        return static::statusIds(array_merge([
+            config('settings.order.status.awaiting_payment', 2),
+        ], static::dashboardCompletedStatusIds()));
+    }
+
+    public function scopeDashboardSales(Builder $query): Builder
+    {
+        return $query->whereIn('order_status_id', static::dashboardCompletedStatusIds());
+    }
+
+    private static function statusIds(array $statuses): array
+    {
+        return array_values(array_unique(array_map(
+            'intval',
+            array_filter($statuses, static fn ($status) => $status !== null)
+        )));
     }
 
 
@@ -141,7 +182,8 @@ class Order extends Model
     public function scopeChartData($query, array $params)
     {
         return $query
-            ->whereBetween('created_at', [$params['from'], $params['to']])->whereIn('order_status_id', [4, 1, 2, 3])
+            ->whereBetween('created_at', [$params['from'], $params['to']])
+            ->dashboardSales()
             ->orderBy('created_at')
             ->get()
             ->groupBy(function ($val) use ($params) {
@@ -485,6 +527,10 @@ class Order extends Model
     public function filter(Request $request): \Illuminate\Database\Eloquent\Builder
     {
         $query = $this->newQuery();
+
+        if ($request->input('dashboard_group') === 'sales') {
+            $query->dashboardSales();
+        }
 
         // STATUS
         if ($request->filled('status')) {

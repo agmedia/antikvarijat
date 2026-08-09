@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Back;
 
-use App\Helpers\Chart;
 use App\Helpers\Helper;
 use App\Helpers\Import;
 use App\Helpers\ProductHelper;
@@ -20,11 +19,13 @@ use App\Models\Back\Catalog\Publisher;
 
 use App\Models\Back\Orders\Order;
 use App\Models\Back\Orders\OrderProduct;
+use App\Models\Back\Settings\Settings;
 use App\Models\User;
 use App\Models\UserDetail;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Bouncer;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -33,49 +34,87 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class DashboardController extends Controller
 {
-
     /**
      * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
      */
     public function index()
     {
-        $data['today']      = Order::whereDate('created_at', Carbon::today())->count();
-        $data['proccess']   = Order::whereIn('order_status_id', [1, 2, 3])->count();
-        $data['finished']   = Order::whereIn('order_status_id', [4, 5, 6, 7])->count();
+        $canViewSales = ! (auth()->check() && Bouncer::is(auth()->user())->an('editor'));
+        $now = Carbon::now();
+        $todayStart = $now->copy()->startOfDay();
+        $todayEnd = $now->copy()->endOfDay();
+        $monthStart = $now->copy()->startOfMonth();
+        $monthEnd = $now->copy()->endOfMonth();
+        $yearStart = $now->copy()->startOfYear();
+        $yearEnd = $now->copy()->endOfYear();
 
-        // broj narudžbi u TEKUĆEM mjesecu
-        $data['this_month'] = Order::whereYear('created_at', Carbon::now()->year)
-            ->whereMonth('created_at', Carbon::now()->month)
-            ->count();
+        $todayOrders = Order::query()
+            ->whereBetween('orders.created_at', [$todayStart, $todayEnd])
+            ->dashboardSales();
+        $finishedOrders = Order::query()
+            ->whereBetween('orders.created_at', [$yearStart, $yearEnd])
+            ->dashboardSales();
+        $thisMonthOrders = Order::query()
+            ->whereBetween('orders.created_at', [$monthStart, $monthEnd])
+            ->dashboardSales();
 
-        $orders   = Order::last()->with('products')->get();
-        $products = $orders->map(function ($item) {
-            return $item->products()->get();
-        })->flatten();
+        $todayStats = $this->orderStats($todayOrders);
+        $finishedStats = $this->orderStats($finishedOrders);
+        $thisMonthStats = $this->orderStats($thisMonthOrders);
 
-        $chart     = new Chart();
-        $this_year = json_encode($chart->setDataByYear(
-            Order::chartData($chart->setQueryParams())
-        ));
-        $last_year = json_encode($chart->setDataByYear(
-            Order::chartData($chart->setQueryParams(true))
-        ));
+        $data['today'] = $todayStats['orders'];
+        $data['today_total'] = $todayStats['total'];
+        $data['today_items_average'] = $this->averageItems(
+            $this->productItemQuantity($todayOrders),
+            $todayStats['orders']
+        );
+        $data['finished'] = $finishedStats['orders'];
+        $data['finished_total'] = $finishedStats['total'];
+        $data['finished_items_average'] = $this->averageItems(
+            $this->productItemQuantity($finishedOrders),
+            $finishedStats['orders']
+        );
+        $data['this_month'] = $thisMonthStats['orders'];
+        $data['this_month_total'] = $thisMonthStats['total'];
+        $data['this_month_items_average'] = $this->averageItems(
+            $this->productItemQuantity($thisMonthOrders),
+            $thisMonthStats['orders']
+        );
 
-        // ---- NOVO: samo GODINE koje zaista imaju podatke (bar 1 narudžba) ----
-        $yearsWithOrders = Order::query()
-            ->selectRaw('YEAR(created_at) as year')
-            ->whereNotNull('created_at')
-            ->groupBy('year')
-            ->orderBy('year', 'desc')
-            ->pluck('year');
+        $orders = Order::query()
+            ->select(['id', 'payment_fname', 'payment_lname', 'total', 'order_status_id', 'created_at'])
+            ->last()
+            ->get();
+
+        $products = OrderProduct::query()
+            ->select(['id', 'product_id', 'name', 'price', 'created_at'])
+            ->where('product_id', '>', 0)
+            ->orderByDesc('created_at')
+            ->limit(9)
+            ->get();
+
+        $yearsWithOrders = Cache::remember('dashboard.years_with_orders', now()->addMinutes(30), function () {
+            return Order::query()
+                ->selectRaw('YEAR(created_at) as year')
+                ->whereNotNull('created_at')
+                ->groupBy('year')
+                ->orderBy('year', 'desc')
+                ->pluck('year')
+                ->map(function ($year) {
+                    return (int) $year;
+                });
+        });
+
+        if (! $yearsWithOrders->contains((int) $now->year)) {
+            $yearsWithOrders->prepend((int) $now->year);
+        }
 
         return view('back.dashboard', compact(
             'data',
             'orders',
             'products',
-            'this_year',
-            'last_year',
-            'yearsWithOrders' // <— prosljeđeno u view
+            'yearsWithOrders',
+            'canViewSales'
         ));
     }
 
@@ -460,31 +499,84 @@ class DashboardController extends Controller
     }
 
 
+    /**
+     * Return turnover and order counts per day for a selected month.
+     */
     public function chartByMonth(Request $request)
     {
-        $year  = $request->get('year', Carbon::now()->year);
-        $month = $request->get('month', Carbon::now()->month);
+        $year = (int) $request->get('year', Carbon::now()->year);
+        $month = max(1, min(12, (int) $request->get('month', Carbon::now()->month)));
 
-        $data = Order::query()
-            ->selectRaw('DAY(created_at) as day, SUM(total) as total, COUNT(id) as orders')
-            ->whereYear('created_at', $year)
-            ->whereMonth('created_at', $month)
-            ->whereNotIn('order_status_id', [5, 7, 8, 6]) // isključi statuse
+        $from = Carbon::create($year, $month, 1)->startOfMonth();
+        $to = $from->copy()->endOfMonth();
+
+        $monthOrders = Order::query()
+            ->whereBetween('orders.created_at', [$from, $to])
+            ->dashboardSales();
+
+        $days = (clone $monthOrders)
+            ->selectRaw('DAY(orders.created_at) as day, SUM(orders.total) as total, COUNT(orders.id) as orders')
             ->groupBy('day')
             ->orderBy('day')
             ->get();
 
-        return response()->json($data);
+        $itemQuantities = (clone $monthOrders)
+            ->join('order_products', 'order_products.order_id', '=', 'orders.id')
+            ->where('order_products.product_id', '>', 0)
+            ->selectRaw('DAY(orders.created_at) as day, SUM(order_products.quantity) as item_quantity')
+            ->groupBy('day')
+            ->pluck('item_quantity', 'day');
+
+        $days = $days->map(function ($row) use ($itemQuantities) {
+            $row->item_quantity = (int) ($itemQuantities[(int) $row->day] ?? 0);
+            $row->avg_items = $row->orders > 0
+                ? round($row->item_quantity / $row->orders, 2)
+                : 0;
+
+            return $row;
+        });
+
+        return response()->json([
+            'days' => $days,
+            'summary' => $this->salesSummary($monthOrders),
+        ]);
+    }
+
+    /**
+     * Return turnover and order counts per month for a selected year.
+     */
+    public function chartByYear(Request $request)
+    {
+        $year = (int) $request->get('year', Carbon::now()->year);
+        $from = Carbon::create($year, 1, 1)->startOfYear();
+        $to = $from->copy()->endOfYear();
+
+        $yearOrders = Order::query()
+            ->whereBetween('orders.created_at', [$from, $to])
+            ->dashboardSales();
+
+        $months = (clone $yearOrders)
+            ->selectRaw('MONTH(orders.created_at) as month, SUM(orders.total) as total, COUNT(orders.id) as orders')
+            ->groupBy('month')
+            ->orderBy('month')
+            ->get();
+
+        return response()->json([
+            'months' => $months,
+            'summary' => $this->salesSummary($yearOrders),
+        ]);
     }
 
     public function chartByDay(Request $request)
     {
         $date = $request->get('date', Carbon::today()->toDateString());
+        $from = Carbon::parse($date)->startOfDay();
+        $to = Carbon::parse($date)->endOfDay();
 
         $data = Order::query()
             ->selectRaw('HOUR(created_at) as hour, SUM(total) as total, COUNT(id) as orders')
-            ->whereDate('created_at', $date)
-            ->whereNotIn('order_status_id', [5, 7, 8, 6]) // isključi statuse
+            ->whereBetween('created_at', [$from, $to])
+            ->dashboardSales()
             ->groupBy('hour')
             ->orderBy('hour')
             ->get();
@@ -495,20 +587,109 @@ class DashboardController extends Controller
     public function chartByRange(Request $request)
     {
         $from = $request->get('from');
-        $to   = $request->get('to');
+        $to = $request->get('to');
 
         $data = Order::query()
             ->selectRaw('DATE(created_at) as date, SUM(total) as total, COUNT(id) as orders')
             ->whereBetween('created_at', [
                 Carbon::parse($from)->startOfDay(),
-                Carbon::parse($to)->endOfDay()
+                Carbon::parse($to)->endOfDay(),
             ])
-            ->whereNotIn('order_status_id', [5, 7, 8, 6]) // isključi statuse
+            ->dashboardSales()
             ->groupBy('date')
             ->orderBy('date')
             ->get();
 
         return response()->json($data);
+    }
+
+    private function orderStats($ordersQuery): array
+    {
+        $stats = (clone $ordersQuery)
+            ->selectRaw('COUNT(orders.id) as orders_count, COALESCE(SUM(orders.total), 0) as total')
+            ->first();
+
+        return [
+            'orders' => (int) ($stats->orders_count ?? 0),
+            'total' => (float) ($stats->total ?? 0),
+        ];
+    }
+
+    private function averageItems(int $itemQuantity, int $orders): float
+    {
+        return $orders > 0 ? round($itemQuantity / $orders, 2) : 0;
+    }
+
+    private function productItemQuantity($ordersQuery): int
+    {
+        $filteredOrders = (clone $ordersQuery)->select('orders.id');
+
+        return (int) DB::query()
+            ->fromSub($filteredOrders, 'filtered_orders')
+            ->join('order_products', 'order_products.order_id', '=', 'filtered_orders.id')
+            ->where('order_products.product_id', '>', 0)
+            ->sum('order_products.quantity');
+    }
+
+    private function salesSummary($ordersQuery): array
+    {
+        $stats = $this->orderStats($ordersQuery);
+        $items = $this->productItemQuantity($ordersQuery);
+
+        return [
+            'total' => $stats['total'],
+            'orders' => $stats['orders'],
+            'item_quantity' => $items,
+            'avg_items' => $this->averageItems($items, $stats['orders']),
+            'payment_methods' => $this->breakdown($ordersQuery, 'orders.payment_method'),
+            'shipping_methods' => $this->breakdown($ordersQuery, 'orders.shipping_method'),
+            'statuses' => $this->statusBreakdown($ordersQuery),
+        ];
+    }
+
+    private function breakdown($ordersQuery, string $column): array
+    {
+        $label = "COALESCE(NULLIF(TRIM({$column}), ''), 'Nepoznato')";
+
+        return (clone $ordersQuery)
+            ->selectRaw("{$label} as label, COUNT(orders.id) as orders, SUM(orders.total) as total")
+            ->groupByRaw($label)
+            ->orderByDesc('orders')
+            ->orderBy('label')
+            ->get()
+            ->map(function ($row) {
+                return [
+                    'label' => (string) $row->label,
+                    'orders' => (int) $row->orders,
+                    'total' => (float) $row->total,
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    private function statusBreakdown($ordersQuery): array
+    {
+        $statuses = collect(Settings::get('order', 'statuses'))->keyBy(function ($status) {
+            return (int) ($status->id ?? 0);
+        });
+
+        return (clone $ordersQuery)
+            ->selectRaw('orders.order_status_id as status_id, COUNT(orders.id) as orders, SUM(orders.total) as total')
+            ->groupBy('orders.order_status_id')
+            ->orderByDesc('orders')
+            ->get()
+            ->map(function ($row) use ($statuses) {
+                $status = $statuses->get((int) $row->status_id);
+
+                return [
+                    'label' => $status->title ?? ('Status #' . $row->status_id),
+                    'orders' => (int) $row->orders,
+                    'total' => (float) $row->total,
+                ];
+            })
+            ->values()
+            ->all();
     }
 
 }

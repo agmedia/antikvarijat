@@ -85,7 +85,7 @@
                     </div>
                     <div class="block-content">
                         <div class="row justify-content-center mb-3">
-                            <div class="col-md-10">
+                            <div class="col-md-12">
                                 <div class="form-group">
                                     <label for="status-title">Naslov (HR)</label>
                                     <input type="text" class="form-control" id="status-title" name="title">
@@ -146,7 +146,7 @@
                     </div>
                     <div class="block-content">
                         <div class="row justify-content-center mb-3">
-                            <div class="col-md-10">
+                            <div class="col-md-12">
                                 <h4>Jeste li sigurni da želite obrisati status?</h4>
                                 <input type="hidden" id="delete-status-id" value="0">
                             </div>

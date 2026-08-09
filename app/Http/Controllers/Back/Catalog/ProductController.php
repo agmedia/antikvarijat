@@ -90,10 +90,20 @@ class ProductController extends Controller
                     ]);
 
                 if ($request->input('status') === 'with_action') {
-                    $base->whereNotNull('special')->where('special', '>', 0);
+                    $base->whereNotNull('special')
+                        ->where('special', '>', 0)
+                        ->where(function ($q) {
+                            $q->whereNull('special_from')->orWhere('special_from', '<=', now());
+                        })
+                        ->where(function ($q) {
+                            $q->whereNull('special_to')->orWhere('special_to', '>=', now());
+                        });
                 } else {
                     $base->where(function ($q) {
-                        $q->whereNull('special')->orWhere('special', '<=', 0);
+                        $q->whereNull('special')
+                            ->orWhere('special', '<=', 0)
+                            ->orWhere('special_from', '>', now())
+                            ->orWhere('special_to', '<', now());
                     });
                 }
 

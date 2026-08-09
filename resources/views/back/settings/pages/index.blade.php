@@ -2,92 +2,88 @@
 
 @section('content')
 
-    <div class="bg-body-light">
+    <div class="admin-page-hero">
         <div class="content content-full">
-            <div class="d-flex flex-column flex-sm-row justify-content-sm-between align-items-sm-center">
-                <h1 class="flex-sm-fill font-size-h2 font-w400 mt-2 mb-0 mb-sm-2">Info Stranice</h1>
-                <a class="btn btn-hero-success my-2" href="{{ route('pages.create') }}">
-                    <i class="far fa-fw fa-plus-square"></i><span class="d-none d-sm-inline ml-1"> Nova stranica</span>
-                </a>
+            <div class="admin-page-heading">
+                <div>
+                    <div class="admin-page-kicker"><i class="fa-duotone fa-file-lines" aria-hidden="true"></i> Postavke</div>
+                    <h1 class="admin-page-title">Info stranice</h1>
+                    <p class="admin-page-description">Uredite sadržajne stranice, podgrupe i njihovu vidljivost.</p>
+                </div>
+                <div class="admin-page-actions">
+                    <a class="btn btn-primary" href="{{ route('pages.create') }}">
+                        <i class="fa-duotone fa-plus mr-1" aria-hidden="true"></i> Nova stranica
+                    </a>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Page Content -->
-    <div class="content content-full">
+    <div class="content">
     @include('back.layouts.partials.session')
 
 
         <!-- Posts -->
-        <div class="block">
+        <div class="block block-rounded">
             <div class="block-header block-header-default">
-                <h3 class="block-title">Objave</h3>
-                <div class="block-options">
-                    <!-- Search Form -->
-                    <form action="{{ route('pages') }}" method="GET">
-                        <div class="block-options-item">
-                            <input type="text" class="form-control" id="search-input" name="search" placeholder="Pretraži stranice..." value="{{ request()->query('search') }}">
-                        </div>
-                        <div class="block-options-item">
-                            <a href="{{ route('pages') }}" class="btn btn-hero-sm btn-secondary"><i class="fa fa-search-minus"></i> Očisti</a>
-                        </div>
-                    </form>
+                <div class="d-flex align-items-center min-width-0">
+                    <span class="admin-section-icon mr-3"><i class="fa-duotone fa-files" aria-hidden="true"></i></span>
+                    <div>
+                        <h2 class="block-title mb-1">Stranice</h2>
+                        <span class="admin-count">{{ number_format($pages->total(), 0, ',', '.') }} stranica</span>
+                    </div>
                 </div>
+                <form action="{{ route('pages') }}" method="GET" class="admin-toolbar-group admin-directory-search">
+                    <div class="admin-search">
+                        <i class="fa-regular fa-magnifying-glass" aria-hidden="true"></i>
+                        <input type="search" class="form-control" id="search-input" name="search" placeholder="Naziv stranice" value="{{ request()->query('search') }}">
+                    </div>
+                    <button type="submit" class="btn btn-primary"><i class="fa-duotone fa-magnifying-glass mr-1" aria-hidden="true"></i> Pretraži</button>
+                    @if(request()->filled('search'))
+                        <a href="{{ route('pages') }}" class="btn btn-secondary"><i class="fa-regular fa-xmark mr-1" aria-hidden="true"></i> Očisti</a>
+                    @endif
+                </form>
             </div>
             <div class="block-content">
-                <table class="table table-striped table-borderless table-vcenter">
-                    <thead class="thead-light">
+                <div class="table-responsive">
+                <table class="table table-striped table-borderless table-vcenter admin-data-table">
+                    <thead>
                     <tr>
-                        <th style="width: 5%;" class="text-center">#</th>
-                      <!--  <th style="width: 27px;" class="text-center">Slika</th>-->
                         <th>Naziv</th>
                         <th>Podgrupa</th>
                         <th class="text-center">Status</th>
-                       <!-- <th class="text-center">Featured</th> -->
-                        <th style="width: 100px;" class="text-center">Uredi</th>
+                        <th class="text-right">Radnje</th>
                     </tr>
                     </thead>
                     <tbody>
                     @forelse ($pages as $page)
                         <tr>
-                            <td class="text-center">{{ $loop->iteration }}.</td>
-                          <!--  <td class="text-center">
-                                <a href="{{ route('pages.edit', ['page' => $page]) }}">
-                                    <img src="{{ asset($page->image) }}" height="45px"/>
-                                </a>
-                            </td>-->
-                            <td>
-                                <i class="fa fa-eye text-success mr-1"></i>
+                            <td data-label="Naziv">
                                 <a href="{{ route('pages.edit', ['page' => $page]) }}">{{ $page->title }}</a>
                             </td>
-                            <td>{{ $page->subgroup }}</td>
-                            <td class="text-center">
+                            <td data-label="Podgrupa">{{ $page->subgroup ?: '—' }}</td>
+                            <td class="text-center" data-label="Status">
                                 @if ($page->status)
-                                    <i class="fa fa-check-circle text-success"></i>
+                                    <span class="text-success font-w600"><i class="fa-duotone fa-circle-check mr-1" aria-hidden="true"></i> Aktivna</span>
                                 @else
-                                    <i class="fa fa-times-circle text-danger"></i>
+                                    <span class="text-muted font-w600"><i class="fa-duotone fa-circle-xmark mr-1" aria-hidden="true"></i> Neaktivna</span>
                                 @endif
                             </td>
-                          <!--  <td class="text-center">
-                                @if ($page->featured)
-                                    <i class="fa fa-check-circle text-success"></i>
-                                @else
-                                    <i class="fa fa-times-circle text-danger"></i>
-                                @endif
-                            </td>-->
-                            <td class="text-right font-size-sm">
-                                <a class="btn btn-sm btn-alt-secondary" href="{{ route('pages.edit', ['page' => $page]) }}">
-                                    <i class="fa fa-fw fa-pencil-alt"></i>
+                            <td class="text-right" data-label="Radnje">
+                                <a class="btn btn-sm btn-alt-secondary" href="{{ route('pages.edit', ['page' => $page]) }}" title="Uredi stranicu" aria-label="Uredi {{ $page->title }}">
+                                    <i class="fa-duotone fa-pen-to-square" aria-hidden="true"></i>
                                 </a>
                             </td>
                         </tr>
                     @empty
-                        <tr class="text-center">
-                            <td colspan="3">Nema info stranica...</td>
+                        <tr>
+                            <td class="text-center text-muted py-5" colspan="4">Nema info stranica.</td>
                         </tr>
                     @endforelse
                     </tbody>
                 </table>
+                </div>
                 {{ $pages->links() }}
             </div>
         </div>

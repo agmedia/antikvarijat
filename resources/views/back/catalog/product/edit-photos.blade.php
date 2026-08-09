@@ -1,55 +1,15 @@
-@push('product_css')
-    <style>
-        .fileContainer {
-            overflow: hidden;
-            position: relative;
-        }
-
-        .fileContainer [type=file] {
-            cursor: inherit;
-            display: block;
-            font-size: 999px;
-            filter: alpha(opacity=0);
-            min-height: 34px;
-            min-width: 100%;
-            opacity: 0;
-            position: absolute;
-            right: 0;
-            text-align: right;
-            top: 0;
-        }
-
-        .fileContainer {
-            background: #E3E3E3;
-            float: left;
-            padding: .5em 1.5rem;
-            height: 34px;
-        }
-
-        .fileContainer [type=file] {
-            cursor: pointer;
-        }
-
-        img.preview {
-            width: 200px;
-            background-color: white;
-            border: 1px solid #DDD;
-            padding: 5px;
-        }
-    </style>
-@endpush
-
-<div>
-    <div class="row">
-        <div class="col-12">
-            <div class="file-drop-area">
-                <label for="files" style="display: block;padding: 1rem 2rem;border: 1px solid #CCCCCC;background-color: #eee;text-align: center;cursor: pointer;">Odaberite fotografiju proizvoda... Ili više njih...</label>
-                <input name="files[][image]" id="files" type="file" multiple>
-            </div>
+<div class="product-photo-manager">
+    <div class="file-drop-area product-photo-dropzone" tabindex="0" role="button" aria-controls="files">
+        <div class="product-photo-dropzone-icon"><i class="fa-duotone fa-cloud-arrow-up"></i></div>
+        <div>
+            <strong>Dodajte fotografije artikla</strong>
+            <span>Povucite datoteke ovdje ili ih odaberite s uređaja. Možete dodati više fotografija odjednom.</span>
         </div>
+        <label for="files" class="btn btn-secondary mb-0"><i class="fa-duotone fa-images mr-1"></i> Odaberi fotografije</label>
+        <input name="files[][image]" id="files" type="file" accept="image/*" multiple>
     </div>
 
-    <div class="row items-push" id="sortable">
+    <div class="row items-push product-photo-list" id="sortable">
         <div class="col-sm-12">
             @if (isset($product))
                 <div
@@ -60,8 +20,9 @@
                     data-loading="false"
                 >
                     <div class="col-12">
-                        <div class="alert alert-info mb-3">
-                            Postojeće slike učitavaju se tek kad otvoriš ovaj tab, da se edit artikla otvori brže.
+                        <div class="product-photo-loading">
+                            <i class="fa-duotone fa-spinner-third fa-spin"></i>
+                            <span>Fotografije će se učitati nakon otvaranja ovog taba.</span>
                         </div>
                     </div>
                 </div>
@@ -107,14 +68,28 @@
 
         // listen to events for dragging and dropping
         fileDropArea.addEventListener('dragover', handleDragOver);
+        fileDropArea.addEventListener('dragleave', function () { fileDropArea.classList.remove('is-dragover'); });
         fileDropArea.addEventListener('drop', handleDrop);
         fileInput.addEventListener('change', handleFileSelect);
+        fileDropArea.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                fileInput.click();
+            }
+        });
+        fileDropArea.addEventListener('click', function (event) {
+            if (!event.target.closest('label')) {
+                fileInput.click();
+            }
+        });
 
         function handleDragOver(e) {
             e.preventDefault();
+            fileDropArea.classList.add('is-dragover');
         }
         function handleDrop(e) {
             e.preventDefault();
+            fileDropArea.classList.remove('is-dragover');
             handleFileItems(e.dataTransfer.items || e.dataTransfer.files);
         }
         function handleFileSelect(e) {
@@ -150,22 +125,18 @@
             let holder = document.getElementById('new-images');
 
             let col = document.createElement('div');
-            col.className = 'col-lg-3 col-md-4 animated fadeIn mb-5 p-3 ribbon ribbon-left ribbon-bookmark ribbon-crystal';
+            col.className = 'col-lg-4 col-md-6 animated fadeIn mb-3 product-photo-card product-photo-card-new';
 
             let cropper = document.createElement('div');
 
             // insert this element after the file drop area
             col.insertAdjacentElement('afterbegin', cropper);
-            col.insertAdjacentHTML('beforeend', '<div class="row form-group mt-2">\n' +
-                '                                    <div class="col-sm-4" style="padding-right: 0;">\n' +
-                '                                        <input type="text" class="form-control js-tooltip-enabled" name="files[' + created_id + '][sort_order]" value="' + blocks + '" data-toggle="tooltip" data-placement="top" title="Sort Order">\n' +
-                '                                    </div>\n' +
-                '                                    <div class="col-sm-8 text-right">\n' +
-                '                                        <label class="css-control css-control-primary css-radio mt-2">\n' +
-                '                                            <input type="radio" class="css-control-input" name="files[default]" value="image/' + file.name + '">\n' +
-                '                                            <span class="mr-2">Default</span> <span class="css-control-indicator"></span>\n' +
-                '                                        </label>\n' +
-                '                                    </div>\n' +
+            col.insertAdjacentHTML('beforeend', '<div class="product-photo-new-controls">\n' +
+                '                                    <label>Redoslijed<input type="number" min="0" class="form-control" name="files[' + created_id + '][sort_order]" value="' + blocks + '"></label>\n' +
+                '                                    <label class="custom-control custom-radio mb-0">\n' +
+                '                                        <input type="radio" class="custom-control-input" id="new-main-photo-' + created_id + '" name="files[default]" value="image/' + file.name + '">\n' +
+                '                                        <span class="custom-control-label">Postavi kao glavnu</span>\n' +
+                '                                    </label>\n' +
                 '                                </div>');
 
             holder.insertAdjacentElement('beforeend', col);
@@ -202,7 +173,6 @@
         function handleXHRRequest(xhr) {
             xhr.setRequestHeader('X-CSRF-TOKEN', "{{ csrf_token() }}");
 
-            console.log(fileInput)
         }
 
         function removeImage(data, slim) {
@@ -250,9 +220,7 @@
 
                 root.dataset.loading = 'true';
                 root.innerHTML = `
-                    <div class="col-12">
-                        <div class="alert alert-secondary mb-3">Učitavam postojeće slike...</div>
-                    </div>
+                    <div class="col-12"><div class="product-photo-loading"><i class="fa-duotone fa-spinner-third fa-spin"></i><span>Učitavam postojeće fotografije...</span></div></div>
                 `;
 
                 try {
@@ -276,9 +244,7 @@
                     initMainPhotoTitleCounter(root);
                 } catch (error) {
                     root.innerHTML = `
-                        <div class="col-12">
-                            <div class="alert alert-warning mb-3">Postojeće slike se trenutno ne mogu učitati. Pokušaj ponovo otvoriti tab.</div>
-                        </div>
+                        <div class="col-12"><div class="alert alert-warning mb-3">Postojeće fotografije se trenutno ne mogu učitati. Pokušajte ponovno otvoriti tab.</div></div>
                     `;
                 } finally {
                     root.dataset.loading = 'false';
@@ -296,6 +262,7 @@
                 photosTabLink.addEventListener('click', function () {
                     window.setTimeout(loadExistingProductImages, 0);
                 });
+
             });
         </script>
     @endif

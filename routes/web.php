@@ -10,6 +10,7 @@ use App\Http\Controllers\Back\Catalog\PublisherController;
 use App\Http\Controllers\Back\ContractWithdrawalController as AdminContractWithdrawalController;
 use App\Http\Controllers\Back\DashboardController;
 use App\Http\Controllers\Back\OrderController;
+use App\Http\Controllers\Back\StatisticsController;
 use App\Http\Controllers\Back\Marketing\ActionController;
 use App\Http\Controllers\Back\Marketing\BlogController;
 use App\Http\Controllers\Back\Marketing\BookPurchaseController;
@@ -63,11 +64,15 @@ use App\Http\Controllers\Back\Marketing\WishlistController;
 Route::middleware(['auth:sanctum', 'verified', 'no.customers'])->prefix('admin')->group(function () {
     Route::match(['get', 'post'], '/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    Route::prefix('dashboard')->name('dashboard.')->group(function () {
+    Route::prefix('dashboard')->name('dashboard.')->middleware('not.editor')->group(function () {
         Route::get('/chart/month', [DashboardController::class, 'chartByMonth'])->name('chart.month');
+        Route::get('/chart/year', [DashboardController::class, 'chartByYear'])->name('chart.year');
         Route::get('/chart/day', [DashboardController::class, 'chartByDay'])->name('chart.day');
     });
-    Route::get('/dashboard/chart/range', [DashboardController::class, 'chartByRange'])->name('dashboard.chart.range');
+    Route::get('/dashboard/chart/range', [DashboardController::class, 'chartByRange'])->middleware('not.editor')->name('dashboard.chart.range');
+
+    Route::get('statistike', [StatisticsController::class, 'index'])->middleware('not.editor')->name('statistics');
+    Route::get('statistike/podaci', [StatisticsController::class, 'data'])->middleware('not.editor')->name('statistics.data');
 
     Route::get('setRoles', [DashboardController::class, 'setRoles'])->name('roles.set');
     Route::get('import', [DashboardController::class, 'import'])->name('import.initial');
@@ -180,9 +185,8 @@ Route::middleware(['auth:sanctum', 'verified', 'no.customers'])->prefix('admin')
     Route::patch('user/{user}', [UserController::class, 'update'])->name('users.update');
 
 
-    Route::prefix('admin')->middleware(['auth'])->group(function () {
-        Route::get('/wishlists', [WishlistController::class, 'index'])->name('wishlists');
-    });
+    Route::get('wishlists', [WishlistController::class, 'index'])->name('wishlists');
+    Route::redirect('admin/wishlists', '/admin/wishlists');
 
     // WIDGETS
     Route::prefix('widgets')->group(function () {

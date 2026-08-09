@@ -13,23 +13,18 @@
     @php
         $selectedCategoryIds = $selectedCategoryIds ?? [];
         $selectedSubcategoryId = $selectedSubcategoryId ?? null;
+        $hasActiveSpecial = isset($product) && (float) $product->special > 0 && $product->special() !== false;
+        $productPhotoCount = ($existingImagesCount ?? 0) + ((isset($product) && ! empty($product->image)) ? 1 : 0);
     @endphp
 
-    <div class="bg-body-light">
-        <div class="content content-full">
-            <div class="d-flex flex-column flex-sm-row justify-content-sm-between align-items-sm-center">
-                <h1 class="flex-sm-fill font-size-h2 font-w400 mt-2 mb-0 mb-sm-2">Artikl edit</h1>
-                <nav class="flex-sm-00-auto ml-sm-3" aria-label="breadcrumb">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{{ route('products') }}">Artikli</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">Novi artikl</li>
-                    </ol>
-                </nav>
-            </div>
-        </div>
-    </div>
+    @include('back.catalog.partials.editor-hero', [
+        'icon' => 'fa-book-open-cover',
+        'title' => isset($product) ? 'Uredi artikl' : 'Novi artikl',
+        'description' => isset($product) ? $product->name : 'Unesite bibliografske podatke, fotografije, zalihe i SEO sadržaj.',
+        'backUrl' => route('products'),
+    ])
     <!-- Page Content -->
-    <div class="content content-full">
+    <div class="content content-full admin-form-page">
         @include('back.layouts.partials.session')
 
         <form action="{{ isset($product) ? route('products.update', ['product' => $product]) : route('products.store') }}" method="POST" enctype="multipart/form-data">
@@ -38,56 +33,71 @@
                 {{ method_field('PATCH') }}
             @endif
 
-            <div class="block">
-                <div class="block-header block-header-default">
-                    <a class="btn btn-light" href="{{ route('products') }}">
-                        <i class="fa fa-arrow-left mr-1"></i> Povratak
-                    </a>
-                    <div class="block-options">
+            <div class="block block-rounded product-editor-shell">
+                <div class="product-editor-overview">
+                    <div class="product-editor-identity">
+                        <div class="product-editor-cover">
+                            @if (isset($product) && ! empty($product->image))
+                                <img src="{{ \App\Support\AdminImage::url($product->image) }}" alt="{{ $product->name }}">
+                            @else
+                                <i class="fa-duotone fa-book-open-cover"></i>
+                            @endif
+                        </div>
+                        <div class="product-editor-summary">
+                            <span class="product-editor-eyebrow">{{ isset($product) ? 'Artikl #' . $product->id : 'Novi zapis' }}</span>
+                            <strong>{{ isset($product) ? $product->name : 'Novi artikl' }}</strong>
+                            <div class="product-editor-meta">
+                                <span><i class="fa-duotone fa-barcode"></i> Šifra: {{ isset($product) && $product->sku ? $product->sku : '—' }}</span>
+                                <span><i class="fa-duotone fa-boxes-stacked"></i> Zaliha: {{ isset($product) ? $product->quantity : 1 }}</span>
+                                <span><i class="fa-duotone fa-tag"></i> {{ isset($product) && $product->price !== null ? number_format((float) $product->price, 2, ',', '.') . ' €' : 'Cijena nije unesena' }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="product-editor-status">
+                        <div>
+                            <span class="product-editor-eyebrow">Vidljivost artikla</span>
+                            <strong id="product-status-label">{{ (isset($product->status) && $product->status) ? 'Aktivan' : 'Neaktivan' }}</strong>
+                        </div>
                         <div class="custom-control custom-switch custom-control-success">
                             <input type="checkbox" class="custom-control-input" id="product-switch" name="status"{{ (isset($product->status) and $product->status) ? 'checked' : '' }}>
-                            <label class="custom-control-label" for="product-switch">Aktiviraj</label>
+                            <label class="custom-control-label" for="product-switch"><span class="sr-only">Promijeni vidljivost artikla</span></label>
                         </div>
                     </div>
                 </div>
 
-            </div>
-
-
-            <div class="block block-rounded">
-
-                <ul class="nav nav-tabs nav-tabs-block" data-toggle="tabs" role="tablist">
+                <ul class="nav nav-tabs nav-tabs-block product-editor-tabs" data-toggle="tabs" role="tablist" aria-label="Uređivanje artikla">
                     <li class="nav-item">
-                        <a class="nav-link active" href="#osnovno"><i class="si si-settings"></i> {{ __('Info') }}</a>
+                        <a class="nav-link active" href="#osnovno"><i class="fa-duotone fa-book-open-cover"></i> {{ __('Sadržaj i podaci') }}</a>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" href="#slike"><i class="si si-picture"></i> {{ __('Slike') }}</a>
+                        <a class="nav-link" href="#slike"><i class="fa-duotone fa-images"></i> {{ __('Fotografije') }} <span class="product-tab-count">{{ $productPhotoCount }}</span></a>
                     </li>
 
                     <li class="nav-item ">
                         <a class="nav-link" href="#seo">
-                            <i class="si si-link"></i> {{ __('SEO') }}
+                            <i class="fa-duotone fa-magnifying-glass-chart"></i> {{ __('SEO') }}
                         </a>
                     </li>
 
                     <li class="nav-item ">
                         <a class="nav-link" href="#promjene">
-                            <i class="si si-hourglass"></i> {{ __('Povijest promjena') }}
+                            <i class="fa-duotone fa-clock-rotate-left"></i> {{ __('Promjene') }} <span class="product-tab-count">{{ isset($logs) ? $logs->count() : 0 }}</span>
                         </a>
                     </li>
                 </ul>
 
-                <div class="block-content tab-content">
-                    <div class="tab-pane active" id="osnovno" role="tabpanel">
-                    <div class="block">
-                        <div class="block-header block-header-default">
-                            <h3 class="block-title">Osnovno</h3>
-                        </div>
-
-                    <div class="block-content">
-                        <div class="row justify-content-center push">
-                            <div class="col-md-12">
+                <div class="block-content tab-content product-editor-content">
+                    <div class="tab-pane active product-editor-pane" id="osnovno" role="tabpanel">
+                        <section class="product-edit-section">
+                            <div class="product-edit-section-heading">
+                                <div class="product-edit-section-icon"><i class="fa-duotone fa-align-left"></i></div>
+                                <div>
+                                    <h3>Naziv i opis</h3>
+                                    <p>Glavni sadržaj koji kupac vidi na stranici artikla.</p>
+                                </div>
+                            </div>
+                            <div class="product-edit-section-body">
                                 @include('back.layouts.partials.language-tabs', ['id' => 'product-content-tabs'])
                                 <div class="tab-content">
                                     <div class="tab-pane active" id="product-content-tabs-hr" role="tabpanel">
@@ -129,6 +139,19 @@
                                     </div>
                                 </div>
 
+                            </div>
+                        </section>
+
+                        <section class="product-edit-section">
+                            <div class="product-edit-section-heading">
+                                <div class="product-edit-section-icon"><i class="fa-duotone fa-cash-register"></i></div>
+                                <div>
+                                    <h3>Prodaja i zaliha</h3>
+                                    <p>Cijena, dostupnost, lokacija i vremenski ograničena akcija.</p>
+                                </div>
+                            </div>
+                            <div class="product-edit-section-body">
+
                                 <div class="form-group row items-push mb-3">
                                     <div class="col-md-2">
                                         <label for="quantity-input">Količina <span class="text-danger">*</span></label>
@@ -139,10 +162,10 @@
                                     </div>
 
                                     <div class="col-md-2">
-                                        <label for="skl-input">Skl</label>
+                                        <label for="skl-input">Skladište</label>
                                         <input type="text" class="form-control" id="skl-input" name="skl" placeholder="Upišite skladište" value="{{ old('skl', isset($product) ? $product->skl : '') }}">
                                         @error('skl')
-                                        <span class="text-danger font-italic">Skl mora biti cijeli broj...</span>
+                                        <span class="text-danger font-italic">Skladište mora biti cijeli broj.</span>
                                         @enderror
                                     </div>
 
@@ -157,12 +180,12 @@
                                         @enderror
                                     </div>
 
-                                    <div class="col-md-3">
+                                    <div class="col-md-2">
                                         <label for="polica-input">Šifra police </label>
                                         <input type="text" class="form-control" id="polica-input" name="polica" placeholder="Upišite šifru police" value="{{ isset($product) ? $product->polica : old('polica') }}" >
                                     </div>
 
-                                    <div class="col-md-3">
+                                    <div class="col-md-2">
                                         <label for="price-input">Cijena <span class="text-danger">*</span> <span class="small text-gray">(S PDV-om)</span></label>
                                         <div class="input-group">
                                             <input type="text" class="form-control" id="price-input" name="price" placeholder="00.00" value="{{ isset($product) ? $product->price : old('price') }}">
@@ -173,6 +196,15 @@
                                         @error('price')
                                         <span class="text-danger font-italic">Cijena je potrebna...</span>
                                         @enderror
+                                    </div>
+                                    <div class="col-md-2">
+                                        <label for="tax-select">Porez</label>
+                                        <select class="js-select2 form-control" id="tax-select" name="tax_id" style="width: 100%;" data-placeholder="Odaberite porez...">
+                                            <option></option>
+                                            @foreach ($data['taxes'] as $tax)
+                                                <option value="{{ $tax->id }}" {{ ((isset($product)) and ($tax->id == $product->tax_id)) ? 'selected' : (( ! isset($product) and ($tax->id == 1)) ? 'selected' : '') }}>{{ $tax->title }}</option>
+                                            @endforeach
+                                        </select>
                                     </div>
                                 </div>
 
@@ -192,36 +224,51 @@
                                 {{--                                </div>--}}
                                 {{--                            @endif--}}
 
-                                <div class="form-group row items-push mb-3">
-                                    <div class="col-md-3">
-                                        <label for="special-input">Akcija</label>
+                                @if ($hasActiveSpecial)
+                                    <input type="hidden" name="action" value="{{ (int) $product->action_id }}">
+                                    <div class="product-special-notice is-active">
+                                        <i class="fa-duotone fa-badge-percent"></i>
+                                        <div>
+                                            <strong>Akcijska cijena je aktivna</strong>
+                                            <span>Webshop trenutačno koristi ovu cijenu u navedenom razdoblju.</span>
+                                        </div>
+                                    </div>
+
+                                <div class="form-group row items-push mb-3 product-active-special-fields">
+                                    <div class="col-md-4">
+                                        <label for="special-input">Akcijska cijena</label>
                                         <div class="input-group">
-                                            <input type="text" class="form-control" id="special-input" name="special" placeholder="00.00" value="{{ isset($product) ? $product->special : old('special') }}">
+                                            <input type="text" class="form-control" id="special-input" name="special" placeholder="00.00" value="{{ old('special', $hasActiveSpecial ? $product->special : '') }}">
                                             <div class="input-group-append">
                                                 <span class="input-group-text">EUR</span>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <label for="special-from-input">Akcija vrijedi</label>
+                                    <div class="col-md-8">
+                                        <label for="special-from-input">Razdoblje primjene</label>
                                         <div class="input-daterange input-group" data-date-format="mm/dd/yyyy" data-week-start="1" data-autoclose="true" data-today-highlight="true">
-                                            <input type="text" class="form-control" id="special-from-input" name="special_from" placeholder="od" value="{{ isset($product->special_from) ? \Carbon\Carbon::make($product->special_from)->format('d.m.Y') : '' }}" data-week-start="1" data-autoclose="true" data-today-highlight="true">
+                                            <input type="text" class="form-control" id="special-from-input" name="special_from" placeholder="od" value="{{ old('special_from', $hasActiveSpecial && isset($product->special_from) ? \Carbon\Carbon::make($product->special_from)->format('d.m.Y') : '') }}" data-week-start="1" data-autoclose="true" data-today-highlight="true">
                                             <div class="input-group-prepend input-group-append">
                                                 <span class="input-group-text font-w600"><i class="fa fa-fw fa-arrow-right"></i></span>
                                             </div>
-                                            <input type="text" class="form-control" id="special-to-input" name="special_to" placeholder="do" value="{{ isset($product->special_to) ? \Carbon\Carbon::make($product->special_to)->format('d.m.Y') : '' }}" data-week-start="1" data-autoclose="true" data-today-highlight="true">
+                                            <input type="text" class="form-control" id="special-to-input" name="special_to" placeholder="do" value="{{ old('special_to', $hasActiveSpecial && isset($product->special_to) ? \Carbon\Carbon::make($product->special_to)->format('d.m.Y') : '') }}" data-week-start="1" data-autoclose="true" data-today-highlight="true">
                                         </div>
                                     </div>
-                                    <div class="col-md-3">
-                                        <label for="price-input">Porez</label>
-                                        <select class="js-select2 form-control" id="tax-select" name="tax_id" style="width: 100%;" data-placeholder="Odaberite porez...">
-                                            <option></option>
-                                            @foreach ($data['taxes'] as $tax)
-                                                <option value="{{ $tax->id }}" {{ ((isset($product)) and ($tax->id == $product->tax_id)) ? 'selected' : (( ! isset($product) and ($tax->id == 1)) ? 'selected' : '') }}>{{ $tax->title }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
                                 </div>
+                                @endif
+
+                            </div>
+                        </section>
+
+                        <section class="product-edit-section">
+                            <div class="product-edit-section-heading">
+                                <div class="product-edit-section-icon"><i class="fa-duotone fa-books"></i></div>
+                                <div>
+                                    <h3>Klasifikacija</h3>
+                                    <p>Kategorija, autor, izdavač i podaci koji olakšavaju pretraživanje kataloga.</p>
+                                </div>
+                            </div>
+                            <div class="product-edit-section-body">
                                 <div class="form-group row mb-4">
                                     <div class="col-md-12">
                                         <label for="tagInput">Tagovi</label>
@@ -255,17 +302,26 @@
                                 <div class="form-group row items-push mb-4">
                                     <div class="col-md-4">
                                         <label for="dm-post-edit-slug">Kategorija <span class="text-danger">*</span></label>
-                                        <select class="js-select2 form-control" id="category-select" name="category" style="width: 100%;" data-placeholder="Odaberite kategoriju">
+                                        <select class="js-select2 form-control admin-category-select" id="category-select" name="category" style="width: 100%;" data-placeholder="Odaberite kategoriju">
                                             <option></option>
                                             @foreach ($data['categories'] as $group => $cats)
-                                                @foreach ($cats as $id => $category)
-                                                    <option value="{{ $id }}" class="font-weight-bold small" {{ in_array((int) $id, $selectedCategoryIds, true) ? 'selected' : '' }}>{{ $group . ' >> ' . $category['title'] }}</option>
-                                                    @if ( ! empty($category['subs']))
-                                                        @foreach ($category['subs'] as $sub_id => $subcategory)
-                                                            <option value="{{ $sub_id }}" class="pl-3 text-sm" {{ (int) $sub_id === (int) $selectedSubcategoryId ? 'selected' : '' }}>{{ $subcategory['title'] }}</option>
-                                                        @endforeach
-                                                    @endif
-                                                @endforeach
+                                                <optgroup label="{{ $group }}">
+                                                    @foreach ($cats as $id => $category)
+                                                        <option value="{{ $id }}"
+                                                                data-level="0"
+                                                                data-group="{{ $group }}"
+                                                                {{ in_array((int) $id, $selectedCategoryIds, true) ? 'selected' : '' }}>{{ $category['title'] }}</option>
+                                                        @if ( ! empty($category['subs']))
+                                                            @foreach ($category['subs'] as $sub_id => $subcategory)
+                                                                <option value="{{ $sub_id }}"
+                                                                        data-level="1"
+                                                                        data-group="{{ $group }}"
+                                                                        data-parent="{{ $category['title'] }}"
+                                                                        {{ (int) $sub_id === (int) $selectedSubcategoryId ? 'selected' : '' }}>{{ $subcategory['title'] }}</option>
+                                                            @endforeach
+                                                        @endif
+                                                    @endforeach
+                                                </optgroup>
                                             @endforeach
                                         </select>
                                         @error('category')
@@ -318,6 +374,18 @@
                                     </div>
                                 </div>
 
+                            </div>
+                        </section>
+
+                        <section class="product-edit-section">
+                            <div class="product-edit-section-heading">
+                                <div class="product-edit-section-icon"><i class="fa-duotone fa-book-bookmark"></i></div>
+                                <div>
+                                    <h3>Bibliografski podaci</h3>
+                                    <p>Podaci o izdanju i fizičkim karakteristikama knjige.</p>
+                                </div>
+                            </div>
+                            <div class="product-edit-section-body">
                                 <div class="form-group row items-push mb-3">
                                     <div class="col-md-3">
                                         <label for="origin-input">Mjesto izdavanja</label>
@@ -338,42 +406,41 @@
                                 </div>
 
                             </div>
-                        </div>
+                        </section>
                     </div>
-                    </div>
-                    </div>
-                    <div class="tab-pane" id="slike" role="tabpanel">
-                    <div class="block">
-                        <div class="block-header block-header-default">
-                            <h3 class="block-title">Slike</h3>
-                        </div>
-                        <div class="block-content block-content-full">
-                            <div class="row justify-content-center">
-                                <div class="col-md-12">
-                                    <!-- Dropzone (functionality is auto initialized by the plugin itself in js/plugins/dropzone/dropzone.min.js) -->
-                                    <!-- For more info and examples you can check out http://www.dropzonejs.com/#usage -->
-        <!--                            <div class="dropzone">
-                                        <div class="dz-message" data-dz-message><span>Klikni ovdje ili dovuci slike za uplad</span></div>
-                                    </div>-->
-                                    @include('back.catalog.product.edit-photos')
+                    <div class="tab-pane product-editor-pane" id="slike" role="tabpanel">
+                        <section class="product-edit-section">
+                            <div class="product-edit-section-heading">
+                                <div class="product-edit-section-icon"><i class="fa-duotone fa-images"></i></div>
+                                <div>
+                                    <h3>Fotografije artikla</h3>
+                                    <p>Dodajte više prikaza, odaberite glavnu fotografiju i uredite opis slike.</p>
                                 </div>
                             </div>
-                        </div>
+                            <div class="product-edit-section-body">
+                                @include('back.catalog.product.edit-photos')
+                            </div>
+                        </section>
                     </div>
-                    </div>
-                    <div class="tab-pane" id="promjene" role="tabpanel">
-                    <div class="block block-rounded mt-4">
-                        <div class="block-header block-header-default">
-                            <h3 class="block-title">Povijest promjena</h3>
-                        </div>
-                        <div class="block-content">
-                            <div class="row justify-content-center">
-                                <div class="col-md-12">
+                    <div class="tab-pane product-editor-pane" id="promjene" role="tabpanel">
+                        <section class="product-edit-section">
+                            <div class="product-edit-section-heading">
+                                <div class="product-edit-section-icon"><i class="fa-duotone fa-clock-rotate-left"></i></div>
+                                <div>
+                                    <h3>Povijest promjena</h3>
+                                    <p>Zabilježene izmjene artikla, korisnik i vrijeme promjene.</p>
+                                </div>
+                            </div>
+                            <div class="product-edit-section-body">
                             @if($logs->isEmpty())
-                                <p class="text-muted">Za ovaj artikl nema zabilježenih promjena.</p>
+                                <div class="admin-empty-state py-5">
+                                    <i class="fa-duotone fa-clock-rotate-left"></i>
+                                    <h3>Nema zabilježenih promjena</h3>
+                                    <p class="text-muted mb-0">Za ovaj artikl još nema zapisa u povijesti.</p>
+                                </div>
                             @else
                                 <div class="table-responsive">
-                                    <table class="table table-striped table-sm">
+                                    <table class="table table-hover table-sm product-history-table">
                                         <thead>
                                         <tr>
                                             <th>Korisnik</th>
@@ -396,56 +463,49 @@
                                     </table>
                                 </div>
                             @endif
-                                </div>
                             </div>
-                        </div>
-                    </div>
+                        </section>
                     </div>
 
-                    <div class="tab-pane" id="seo" role="tabpanel">
-                    <div class="block">
-                <div class="block-header block-header-default">
-                    <h3 class="block-title">Meta Data - SEO</h3>
-                </div>
-                <div class="block-content">
-                    <div class="row justify-content-center">
-                        <div class="col-md-12">
+                    <div class="tab-pane product-editor-pane" id="seo" role="tabpanel">
+                        <section class="product-edit-section">
+                            <div class="product-edit-section-heading">
+                                <div class="product-edit-section-icon"><i class="fa-duotone fa-magnifying-glass-chart"></i></div>
+                                <div>
+                                    <h3>SEO podaci</h3>
+                                    <p>Naslov, opis i adresa koji se prikazuju u tražilicama.</p>
+                                </div>
+                            </div>
+                            <div class="product-edit-section-body product-seo-fields">
                             @include('back.layouts.partials.language-tabs', ['id' => 'product-seo-tabs'])
                             <div class="tab-content">
                                 <div class="tab-pane active" id="product-seo-tabs-hr" role="tabpanel">
                                     <div class="form-group">
                                         <label for="meta-title-input">Meta naslov</label>
-                                        <input type="text" class="js-maxlength form-control" id="meta-title-input" name="meta_title" value="{{ isset($product) ? $product->meta_title : old('meta_title') }}" maxlength="70" data-always-show="true" data-placement="top">
-                                        <small class="form-text text-muted">
-                                            70 znakova max
-                                        </small>
+                                        <input type="text" class="js-maxlength form-control" id="meta-title-input" name="meta_title" value="{{ isset($product) ? $product->meta_title : old('meta_title') }}" maxlength="70" data-always-show="true" data-placement="bottom-right" placeholder="Naslov rezultata u tražilici">
+                                        <small class="form-text text-muted">Preporučeno do 70 znakova.</small>
                                     </div>
                                     <div class="form-group">
                                         <label for="meta-description-input">Meta opis</label>
-                                        <textarea class="js-maxlength form-control" id="meta-description-input" name="meta_description" rows="4" maxlength="160" data-always-show="true" data-placement="top">{{ isset($product) ? $product->meta_description : old('meta_description') }}</textarea>
-                                        <small class="form-text text-muted">
-                                            160 znakova max
-                                        </small>
+                                        <textarea class="js-maxlength form-control" id="meta-description-input" name="meta_description" rows="4" maxlength="160" data-always-show="true" data-placement="bottom-right" placeholder="Kratak opis koji potiče korisnika na klik">{{ isset($product) ? $product->meta_description : old('meta_description') }}</textarea>
+                                        <small class="form-text text-muted">Preporučeno do 160 znakova.</small>
                                     </div>
                                     <div class="form-group">
                                         <label for="slug-input">SEO link (url)</label>
                                         <input type="text" class="form-control" id="slug-input" name="slug" value="{{ isset($product) ? $product->slug : old('slug') }}" disabled>
+                                        <small class="form-text text-muted">Automatski se izrađuje iz naziva artikla.</small>
                                     </div>
                                 </div>
                                 <div class="tab-pane" id="product-seo-tabs-en" role="tabpanel">
                                     <div class="form-group">
                                         <label for="meta-title-en-input">Meta naslov EN</label>
-                                        <input type="text" class="js-maxlength form-control" id="meta-title-en-input" name="meta_title_en" value="{{ old('meta_title_en', isset($product) ? $product->meta_title_en : '') }}" maxlength="70" data-always-show="true" data-placement="top">
-                                        <small class="form-text text-muted">
-                                            70 znakova max
-                                        </small>
+                                        <input type="text" class="js-maxlength form-control" id="meta-title-en-input" name="meta_title_en" value="{{ old('meta_title_en', isset($product) ? $product->meta_title_en : '') }}" maxlength="70" data-always-show="true" data-placement="bottom-right" placeholder="English search result title">
+                                        <small class="form-text text-muted">Preporučeno do 70 znakova.</small>
                                     </div>
                                     <div class="form-group">
                                         <label for="meta-description-en-input">Meta opis EN</label>
-                                        <textarea class="js-maxlength form-control" id="meta-description-en-input" name="meta_description_en" rows="4" maxlength="160" data-always-show="true" data-placement="top">{{ old('meta_description_en', isset($product) ? $product->meta_description_en : '') }}</textarea>
-                                        <small class="form-text text-muted">
-                                            160 znakova max
-                                        </small>
+                                        <textarea class="js-maxlength form-control" id="meta-description-en-input" name="meta_description_en" rows="4" maxlength="160" data-always-show="true" data-placement="bottom-right" placeholder="English description shown in search results">{{ old('meta_description_en', isset($product) ? $product->meta_description_en : '') }}</textarea>
+                                        <small class="form-text text-muted">Preporučeno do 160 znakova.</small>
                                     </div>
                                     <div class="form-group">
                                         <label for="slug-en-input">SEO link EN</label>
@@ -456,29 +516,21 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                            </div>
+                        </section>
                     </div>
                 </div>
 
-            </div>
-                    </div>
-                </div>
-
-                <div class="block-content bg-body-light">
-                    <div class="row justify-content-center push">
-                        <div class="col-md-6">
-                            <button type="submit" class="btn btn-hero-success my-2">
-                                <i class="fas fa-save mr-1"></i> Snimi
-                            </button>
-                        </div>
-                        <div class="col-md-6 text-right">
+                <div class="admin-form-actions product-editor-actions">
+                            <span class="product-save-note"><i class="fa-duotone fa-circle-info"></i> Promjene se primjenjuju tek nakon spremanja.</span>
                             @if (isset($product))
-                                <a href="{{ route('products.destroy', ['product' => $product]) }}" type="submit" class="btn btn-hero-danger my-2 js-tooltip-enabled" data-toggle="tooltip" title="" data-original-title="Obriši" onclick="event.preventDefault(); document.getElementById('delete-product-form{{ $product->id }}').submit();">
-                                    <i class="fa fa-trash-alt"></i> Obriši
+                                <a href="{{ route('products.destroy', ['product' => $product]) }}" class="btn btn-outline-danger product-delete-action js-tooltip-enabled" data-toggle="tooltip" title="" data-original-title="Obriši artikl" onclick="event.preventDefault(); document.getElementById('delete-product-form{{ $product->id }}').submit();">
+                                    <i class="fa-duotone fa-trash-can mr-1"></i> Obriši
                                 </a>
                             @endif
-                        </div>
-                    </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa-duotone fa-floppy-disk mr-1"></i> Spremi artikl
+                            </button>
                 </div>
             </div>
 
@@ -578,7 +630,46 @@
                 });
             });
 
-            $('#category-select').select2({});
+            const categorySelectOptions = {
+                placeholder: 'Odaberite kategoriju',
+                width: '100%',
+                dropdownCssClass: 'admin-category-dropdown',
+                templateResult: function (item) {
+                    if (!item.id) {
+                        return item.text;
+                    }
+
+                    const element = $(item.element);
+                    const level = Number(element.data('level') || 0);
+                    const parent = element.data('parent') || '';
+                    const icon = level > 0 ? 'fa-turn-down-right' : 'fa-folder';
+                    const row = $('<span class="admin-category-option"></span>');
+
+                    row.toggleClass('is-subcategory', level > 0);
+                    row.append($('<i class="fa-solid ' + icon + ' admin-category-option-icon" aria-hidden="true"></i>'));
+                    row.append($('<span class="admin-category-option-copy"></span>')
+                        .append($('<strong></strong>').text(item.text))
+                        .append(parent ? $('<small></small>').text(parent) : $('<small></small>').text('Glavna')));
+
+                    return row;
+                },
+                templateSelection: function (item) {
+                    if (!item.id) {
+                        return item.text;
+                    }
+
+                    const element = $(item.element);
+                    const group = element.data('group') || '';
+                    const parent = element.data('parent') || '';
+                    const path = [group, parent, item.text].filter(Boolean).join(' / ');
+
+                    return $('<span class="admin-category-selection"></span>')
+                        .append($('<i class="fa-solid fa-folder-tree" aria-hidden="true"></i>'))
+                        .append($('<span></span>').text(path));
+                }
+            };
+
+            $('#category-select').select2(categorySelectOptions);
             $('#tax-select').select2({});
             $('#action-select').select2({
                 placeholder: 'Odaberite...',
@@ -599,6 +690,26 @@
             $('#condition-select').select2({
                 tags: true
             });
+
+            const productStatusSwitch = document.getElementById('product-switch');
+            const productStatusLabel = document.getElementById('product-status-label');
+            if (productStatusSwitch && productStatusLabel) {
+                productStatusSwitch.addEventListener('change', function () {
+                    productStatusLabel.textContent = this.checked ? 'Aktivan' : 'Neaktivan';
+                });
+            }
+
+            const productTabLinks = $('.product-editor-tabs a[data-toggle="tab"], .product-editor-tabs a[href^="#"]');
+            const defaultProductTab = productTabLinks.filter('[href="#osnovno"]');
+
+            // Uređivanje svakog artikla uvijek počinje na osnovnim podacima.
+            // Aktivni tab ne smije se prenositi s prethodno otvorenog artikla.
+            if (defaultProductTab.length) {
+                defaultProductTab.tab('show');
+            }
+            if (window.location.hash && productTabLinks.filter('[href="' + window.location.hash + '"]').length && window.history && window.history.replaceState) {
+                window.history.replaceState(null, document.title, window.location.pathname + window.location.search);
+            }
 
             Livewire.on('success_alert', () => {
 

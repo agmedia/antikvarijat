@@ -6,21 +6,14 @@
 
 @section('content')
 
-    <div class="bg-body-light">
-        <div class="content content-full">
-            <div class="d-flex flex-column flex-sm-row justify-content-sm-between align-items-sm-center">
-                <h1 class="flex-sm-fill font-size-h2 font-w400 mt-2 mb-0 mb-sm-2">Kategorija edit</h1>
-                <nav class="flex-sm-00-auto ml-sm-3" aria-label="breadcrumb">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{{ route('categories') }}">Kategorije</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">Nova kategorija</li>
-                    </ol>
-                </nav>
-            </div>
-        </div>
-    </div>
+    @include('back.catalog.partials.editor-hero', [
+        'icon' => 'fa-folder-bookmark',
+        'title' => isset($category) ? 'Uredi kategoriju' : 'Nova kategorija',
+        'description' => isset($category) ? $category->title : 'Dodajte novu cjelinu u strukturu kataloga.',
+        'backUrl' => route('categories'),
+    ])
 
-    <div class="content content-full content-boxed">
+    <div class="content content-full content-boxed admin-form-page">
         <!-- END Page Content -->
     @include('back.layouts.partials.session')
         <!-- New Post -->
@@ -31,9 +24,7 @@
             @endif
             <div class="block">
                 <div class="block-header block-header-default">
-                    <a class="btn btn-light" href="{{ back()->getTargetUrl() }}">
-                        <i class="fa fa-arrow-left mr-1"></i> Povratak
-                    </a>
+                    <h2 class="block-title"><i class="fa-duotone fa-sliders mr-2"></i> Osnovne postavke</h2>
                     <div class="block-options">
                         <div class="custom-control custom-switch custom-control-success">
                             <input type="checkbox" class="custom-control-input" id="category-switch" name="status" {{ (isset($category->status) and $category->status) ? 'checked' : '' }}>
@@ -43,7 +34,7 @@
                 </div>
                 <div class="block-content">
                     <div class="row justify-content-center push">
-                        <div class="col-md-10">
+                        <div class="col-md-12">
 
                             <div class="form-group">
                                 <label for="group-select">Grupa</label>
@@ -105,7 +96,7 @@
                 </div>
                 <div class="block-content">
                     <div class="row justify-content-center">
-                        <div class="col-md-10">
+                        <div class="col-md-12">
                             @include('back.layouts.partials.language-tabs', ['id' => 'category-seo-tabs'])
                             <div class="tab-content">
                                 <div class="tab-pane active" id="category-seo-tabs-hr" role="tabpanel">
@@ -152,7 +143,7 @@
                                         <label class="custom-file-label" for="image-input">Odaberite sliku</label>
                                     </div>
                                     <div class="mt-2">
-                                        <img class="img-fluid" id="image-view" src="{{ isset($category) ? asset($category->image) : asset('media/img/lightslider.webp') }}" alt="">
+                                        <img class="img-fluid" id="image-view" src="{{ \App\Support\AdminImage::url(isset($category) ? $category->image : null, 'media/img/lightslider.webp') }}" alt="">
                                     </div>
                                     <div class="form-text text-muted font-size-sm font-italic">Slika koja se pokazuje kada se link dijeli (facebook, twitter, itd.)</div>
                                 </div>
@@ -160,21 +151,15 @@
                         </div>
                     </div>
                 </div>
-                <div class="block-content bg-body-light">
-                    <div class="row justify-content-center push">
-                        <div class="col-md-5">
-                            <button type="submit" class="btn btn-hero-success my-2">
+                <div class="admin-form-actions">
+                            <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save mr-1"></i> Snimi
                             </button>
-                        </div>
                         @if (isset($category))
-                            <div class="col-md-5 text-right">
-                                <a href="{{ route('category.destroy', ['category' => $category]) }}" type="submit" class="btn btn-hero-danger my-2 js-tooltip-enabled" data-toggle="tooltip" title="" data-original-title="Obriši" onclick="event.preventDefault(); document.getElementById('delete-category-form{{ $category->id }}').submit();">
+                                <a href="{{ route('category.destroy', ['category' => $category]) }}" class="btn btn-outline-danger js-tooltip-enabled" data-toggle="tooltip" title="" data-original-title="Obriši" onclick="event.preventDefault(); document.getElementById('delete-category-form{{ $category->id }}').submit();">
                                     <i class="fa fa-trash-alt"></i> Obriši
                                 </a>
-                            </div>
                         @endif
-                    </div>
                 </div>
             </div>
         </form>

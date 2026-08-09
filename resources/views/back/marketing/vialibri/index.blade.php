@@ -12,8 +12,8 @@
             display: none;
             background: #fff;
             border: 1px solid rgba(0, 0, 0, .15);
-            border-radius: .25rem;
-            box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15);
+            border-radius: var(--admin-radius-sm);
+            box-shadow: none;
             max-height: 470px;
             overflow-y: auto;
         }
@@ -22,7 +22,7 @@
         .vialibri-live-search .vialibri-search-head {
             padding: .75rem 1rem;
             border-bottom: 1px solid rgba(0, 0, 0, .08);
-            font-size: 13px;
+            font-size: var(--admin-type-sm);
             color: #495057;
         }
         .vialibri-live-search .table { margin-bottom: 0; }
@@ -40,20 +40,26 @@
             display: block;
         }
         .vialibri-live-search .vialibri-main { vertical-align: middle; }
-        .vialibri-live-search .vialibri-meta { font-size: 12px; color: #6c757d; }
+        .vialibri-live-search .vialibri-meta { font-size: var(--admin-type-xs); color: #59665e; }
         .vialibri-live-search .vialibri-action { width: 170px; text-align: right; vertical-align: middle; padding-right: .75rem !important; }
         .vialibri-search-empty { padding: .75rem; text-align: center; color: #6c757d; }
     </style>
 @endpush
 
 @section('content')
-    <div class="bg-body-light">
+    <div class="admin-page-hero">
         <div class="content content-full">
-            <div class="d-flex flex-column flex-sm-row justify-content-sm-between align-items-sm-center">
-                <h1 class="flex-sm-fill font-size-h2 font-w400 mt-2 mb-0 mb-sm-2">ViaLibri Harvest</h1>
-                <a href="{{ route('vialibri.config') }}" class="btn btn-primary my-2">
-                    <i class="si si-settings mr-1"></i> Config
-                </a>
+            <div class="admin-page-heading">
+                <div>
+                    <div class="admin-page-kicker"><i class="fa-duotone fa-globe" aria-hidden="true"></i> Marketing</div>
+                    <h1 class="admin-page-title">ViaLibri</h1>
+                    <p class="admin-page-description">Odaberite naslove, pripremite prijevode i upravljajte izvozom kataloga.</p>
+                </div>
+                <div class="admin-page-actions">
+                    <a href="{{ route('vialibri.config') }}" class="btn btn-outline-primary">
+                        <i class="fa-duotone fa-gear mr-1" aria-hidden="true"></i> Postavke
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -63,7 +69,13 @@
 
         <div class="block block-rounded mb-4">
             <div class="block-header block-header-default">
-                <h3 class="block-title">Dodaj novi naslov</h3>
+                <div class="d-flex align-items-center min-width-0">
+                    <span class="admin-section-icon mr-3"><i class="fa-duotone fa-book-circle-plus" aria-hidden="true"></i></span>
+                    <div>
+                        <h2 class="block-title mb-1">Dodajte naslov</h2>
+                        <span class="admin-count">Pretražite postojeći katalog</span>
+                    </div>
+                </div>
             </div>
             <div class="block-content pb-4">
                 <div class="form-group mb-0">
@@ -71,7 +83,7 @@
                     <div class="vialibri-search-wrap">
                         <div class="input-group">
                             <div class="input-group-prepend">
-                                <span class="input-group-text"><i class="fa fa-search"></i></span>
+                                <span class="input-group-text"><i class="fa-duotone fa-magnifying-glass" aria-hidden="true"></i></span>
                             </div>
                             <input id="vialibri-search-box"
                                    type="text"
@@ -79,7 +91,7 @@
                                    autocomplete="off"
                                    placeholder="Upiši najmanje 3 slova">
                             <div class="input-group-append">
-                                <button type="button" class="btn btn-light" id="vialibri-search-clear">Očisti</button>
+                                <button type="button" class="btn btn-secondary" id="vialibri-search-clear"><i class="fa-regular fa-xmark mr-1" aria-hidden="true"></i> Očisti</button>
                             </div>
                         </div>
                         <div id="vialibri-search-result" class="vialibri-live-search"></div>
@@ -90,9 +102,15 @@
 
         <div class="block block-rounded">
             <div class="block-header block-header-default">
-                <h3 class="block-title">Odabrani naslovi</h3>
+                <div class="d-flex align-items-center min-width-0">
+                    <span class="admin-section-icon mr-3"><i class="fa-duotone fa-books" aria-hidden="true"></i></span>
+                    <div>
+                        <h2 class="block-title mb-1">Odabrani naslovi</h2>
+                        <span class="admin-count">{{ number_format($selectedBooks->total(), 0, ',', '.') }} naslova</span>
+                    </div>
+                </div>
                 <div class="block-options">
-                    <span class="badge badge-info">Za export: {{ $exportableCount }}</span>
+                    <span class="admin-count"><i class="fa-duotone fa-file-export mr-1" aria-hidden="true"></i>{{ number_format($exportableCount, 0, ',', '.') }} za izvoz</span>
                 </div>
             </div>
             <div class="block-content">
@@ -124,7 +142,7 @@
                                     @endif
 
                                     <a href="{{ route('vialibri.edit', ['vialibriBook' => $item]) }}" class="btn btn-sm btn-primary">
-                                        Uredi / Prevedi
+                                        <i class="fa-duotone fa-language mr-1" aria-hidden="true"></i> Uredi / prevedi
                                     </a>
                                 </div>
                             </div>

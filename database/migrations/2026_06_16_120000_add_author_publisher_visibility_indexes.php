@@ -56,6 +56,13 @@ class AddAuthorPublisherVisibilityIndexes extends Migration
 
     private function hasIndex(string $table, string $indexName): bool
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return collect(DB::select("pragma index_list('{$table}')"))
+                ->contains(function ($index) use ($indexName) {
+                    return ($index->name ?? null) === $indexName;
+                });
+        }
+
         $database = DB::getDatabaseName();
 
         $result = DB::selectOne(

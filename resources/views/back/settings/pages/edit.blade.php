@@ -44,7 +44,7 @@
                 </div>
                 <div class="block-content">
                     <div class="row justify-content-center push">
-                        <div class="col-md-10">
+                        <div class="col-md-12">
 
                             <div class="form-group">
                                 <label for="group-select">Grupa</label>
@@ -63,7 +63,7 @@
                                         <label class="custom-file-label" for="image-input">Odaberite sliku</label>
                                     </div>
                                     <div class="mt-2">
-                                        <img class="img-fluid" id="image-view" src="{{ isset($page) ? asset($page->image) : asset('media/img/lightslider.webp') }}" alt="">
+                                        <img class="img-fluid" id="image-view" src="{{ \App\Support\AdminImage::url(isset($page) ? $page->image : null, 'media/img/lightslider.webp') }}" alt="">
                                     </div>
                                 </div>
                             </div>
@@ -107,7 +107,7 @@
                 </div>
                 <div class="block-content">
                     <div class="row justify-content-center">
-                        <div class="col-md-10 ">
+                        <div class="col-md-12 ">
                             @include('back.layouts.partials.language-tabs', ['id' => 'page-seo-tabs'])
                             <div class="tab-content">
                                 <div class="tab-pane active" id="page-seo-tabs-hr" role="tabpanel">

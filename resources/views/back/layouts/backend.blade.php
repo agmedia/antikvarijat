@@ -20,8 +20,12 @@
 
         <!-- Fonts and Styles -->
         @stack('css_before')
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
         <link rel="stylesheet" id="css-main" href="{{ asset('css/dashmix.css') }}">
+        <link rel="stylesheet" href="{{ asset('vendor/fontawesome-pro/css/fontawesome.min.css') }}">
+        <link rel="stylesheet" href="{{ asset('vendor/fontawesome-pro/css/solid.min.css') }}">
+        <link rel="stylesheet" href="{{ asset('vendor/fontawesome-pro/css/duotone.min.css') }}">
+        <link rel="stylesheet" href="{{ asset('css/admin-refresh.css') }}?v={{ filemtime(public_path('css/admin-refresh.css')) }}">
 
         <!-- You can include a specific file from public/css/themes/ folder to alter the default color theme of the template. eg: -->
         <!-- <link rel="stylesheet" id="css-theme" href="{{ asset('css/themes/xwork.css') }}"> -->
@@ -34,7 +38,7 @@
     </head>
     <body>
 
-        <div id="page-container" class="sidebar-o enable-page-overlay sidebar-dark side-scroll page-header-fixed main-content-narrow">
+        <div id="page-container" class="sidebar-o enable-page-overlay sidebar-dark side-scroll page-header-fixed">
 
             @include('back.layouts.partials.aside')
 
@@ -49,15 +53,20 @@
             <!-- END Main Container -->
 
             <!-- Footer -->
-            <footer id="page-footer" class="bg-body-light">
-                <div class="content py-0">
-                    <div class="row font-size-sm">
-                        <div class="col-sm-6 order-sm-2 mb-1 mb-sm-0 text-center text-sm-right">
-                            Crafted with <i class="fa fa-heart text-danger"></i> by <a class="font-w600" href="https://www.agmedia.hr" target="_blank">AG media</a>
-                        </div>
-                        <div class="col-sm-6 order-sm-1 text-center text-sm-left">
-                            <a class="font-w600" href="https://www.antikvarijat-biblos.hr" target="_blank">Antikvarijat Biblos</a> &copy; <span data-toggle="year-copy"></span>
-                        </div>
+            <footer id="page-footer" class="admin-footer">
+                <div class="content">
+                    <div class="admin-footer-inner">
+                        <a class="admin-footer-brand" href="https://www.antikvarijat-biblos.hr" target="_blank" rel="noopener">
+                            <i class="fa-duotone fa-books" aria-hidden="true"></i>
+                            <span>Antikvarijat Biblos</span>
+                            <small>&copy; <span data-toggle="year-copy"></span></small>
+                        </a>
+                        <a class="admin-footer-credit" href="https://www.agmedia.hr" target="_blank" rel="noopener">
+                            <span>Made with</span>
+                            <i class="fa-duotone fa-heart admin-footer-heart" aria-hidden="true"></i>
+                            <span>by</span>
+                            <strong>AG media</strong>
+                        </a>
                     </div>
                 </div>
             </footer>
@@ -118,6 +127,14 @@
         </script>
 
         <script>
+            $(document).on('select2:open', function () {
+                $('.select2-container--open .select2-search__field')
+                    .attr('placeholder', 'Pretraži opcije…')
+                    .attr('aria-label', 'Pretraži opcije');
+            });
+        </script>
+
+        <script>
             /**
              *
              */
@@ -161,5 +178,6 @@
         </script>
 
         @stack('js_after')
+        <script src="{{ asset('js/admin-editor-ux.js') }}?v={{ filemtime(public_path('js/admin-editor-ux.js')) }}"></script>
     </body>
 </html>

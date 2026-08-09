@@ -162,7 +162,7 @@
                 </div>
                 <div class="block-content bg-body-light">
                     <div class="row justify-content-center push">
-                        <div class="col-md-10">
+                        <div class="col-md-12">
                             <button type="submit" class="btn btn-hero-success my-2">
                                 <i class="fas fa-save mr-1"></i> Snimi
                             </button>

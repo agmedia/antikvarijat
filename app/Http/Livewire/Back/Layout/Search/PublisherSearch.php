@@ -65,6 +65,11 @@ class PublisherSearch extends Component
     public function viewAddWindow()
     {
         $this->show_add_window = ! $this->show_add_window;
+
+        if ($this->show_add_window) {
+            $this->new['title'] = trim($this->search);
+            $this->search_results = [];
+        }
     }
 
 
@@ -75,10 +80,13 @@ class PublisherSearch extends Component
     {
         $this->search         = $value;
         $this->search_results = [];
+        $this->show_add_window = false;
+        $this->publisher_id = 0;
 
-        if ($this->search != '') {
-            $this->search_results = (new Publisher())->where('title', 'LIKE', '' . $this->search . '%')
-                                                  ->limit(10)
+        if (mb_strlen(trim($this->search)) >= 2) {
+            $this->search_results = (new Publisher())->where('title', 'LIKE', '%' . $this->search . '%')
+                                                  ->orderBy('title')
+                                                  ->limit(6)
                                                   ->get();
         }
     }
@@ -90,6 +98,10 @@ class PublisherSearch extends Component
     public function addPublisher($id)
     {
         $publisher = (new Publisher())->where('id', $id)->first();
+
+        if ( ! $publisher) {
+            return;
+        }
 
         $this->search_results = [];
         $this->search         = $publisher->title;
@@ -134,8 +146,9 @@ class PublisherSearch extends Component
 
             $this->publisher_id = $publisher->id;
             $this->search     = $publisher->title;
+            $this->new['title'] = '';
 
-            return $this->emit('success_alert', ['message' => 'Autor je uspješno dodan..!']);
+            return $this->emit('success_alert', ['message' => 'Izdavač je uspješno dodan.']);
         }
 
         return $this->emit('error_alert');

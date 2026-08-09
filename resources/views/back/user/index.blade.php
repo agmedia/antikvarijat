@@ -8,11 +8,17 @@
 
 @section('content')
 
-    <div class="bg-body-light">
+    <div class="admin-page-hero">
         <div class="content content-full">
-            <div class="d-flex flex-column flex-sm-row justify-content-sm-between align-items-sm-center">
-                <h1 class="flex-sm-fill font-size-h2 font-w400 mt-2 mb-0 mb-sm-2">Korisnici</h1>
-
+            <div class="admin-page-heading">
+                <div>
+                    <div class="admin-page-kicker"><i class="fa-duotone fa-users" aria-hidden="true"></i> Administracija</div>
+                    <h1 class="admin-page-title">Korisnici</h1>
+                    <p class="admin-page-description">Pretražite korisničke račune i uredite njihove pristupne uloge.</p>
+                </div>
+                <div class="admin-page-actions">
+                    <a class="btn btn-primary" href="{{ route('users.create') }}"><i class="fa-duotone fa-user-plus mr-1" aria-hidden="true"></i> Novi korisnik</a>
+                </div>
             </div>
         </div>
     </div>
@@ -26,26 +32,38 @@
         <!-- All Orders -->
         <div class="block block-rounded">
             <div class="block-header block-header-default">
-                <h3 class="block-title">Svi korisnici ({{ $users->total() }})</h3>
-                <div class="block-options">
-                    <!-- Search Form -->
-                    <form action="{{ route('users') }}" method="GET">
-                        <div class="block-options-item">
-                            <input type="text" class="form-control" id="search-input" name="search" placeholder="Pretraži korisnike" value="{{ request()->query('search') }}">
-                        </div>
-                        <div class="block-options-item">
-                            <a href="{{ route('users') }}" class="btn btn-hero-sm btn-secondary"><i class="fa fa-search-minus"></i> Očisti</a>
-                        </div>
-                    </form>
+                <div class="d-flex align-items-center min-width-0">
+                    <span class="admin-section-icon mr-3"><i class="fa-duotone fa-address-book" aria-hidden="true"></i></span>
+                    <div>
+                        <h2 class="block-title mb-1">Svi korisnici</h2>
+                        <span class="admin-count">{{ number_format($users->total(), 0, ',', '.') }} {{ $users->total() === 1 ? 'korisnik' : 'korisnika' }}</span>
+                    </div>
                 </div>
+                <form action="{{ route('users') }}" method="GET" class="admin-toolbar-group admin-directory-search admin-user-filters">
+                    <div class="admin-search">
+                        <i class="fa-regular fa-magnifying-glass" aria-hidden="true"></i>
+                        <input type="search" class="form-control" id="search-input" name="search" placeholder="Ime ili e-mail" value="{{ request()->query('search') }}" aria-label="Pretraži korisnike">
+                    </div>
+                    <label class="sr-only" for="role-select">Uloga korisnika</label>
+                    <select class="form-control admin-user-role-select" id="role-select" name="role" aria-label="Filtriraj korisnike po ulozi">
+                        <option value="">Sve uloge</option>
+                        @foreach($roleOptions as $role => $label)
+                            <option value="{{ $role }}" {{ request('role') === $role ? 'selected' : '' }}>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    <button type="submit" class="btn btn-primary"><i class="fa-duotone fa-magnifying-glass mr-1" aria-hidden="true"></i> Pretraži</button>
+                    @if(request()->filled('search') || request()->filled('role'))
+                        <a href="{{ route('users') }}" class="btn btn-secondary admin-user-filter-clear" title="Očisti filtere" aria-label="Očisti filtere"><i class="fa-regular fa-xmark" aria-hidden="true"></i></a>
+                    @endif
+                </form>
             </div>
             <div class="block-content">
                 <!-- All Orders Table -->
                 <div class="table-responsive">
-                    <table class="table table-borderless table-striped table-vcenter font-size-sm">
+                    <table class="table table-borderless table-striped table-vcenter admin-data-table">
                         <thead>
                         <tr>
-                            <th>Kupac</th>
+                            <th>Korisnik</th>
                             <th>Email</th>
                             <th class="text-center">Status</th>
                             <th class="text-center">Uloga</th>
@@ -55,19 +73,24 @@
                         <tbody>
                         @foreach ($users as $user)
                             <tr>
-                                <td>
+                                <td data-label="Korisnik">
                                     <a class="font-w600" href="{{ route('users.edit', ['user' => $user]) }}">{{ $user->name }}</a>
                                 </td>
-                                <td>{{ $user->email }}</td>
-                                <td class="text-center font-size-sm">
-                                    <i class="fa fa-fw fa-check text-success"></i>
+                                <td data-label="E-mail">{{ $user->email }}</td>
+                                <td class="text-center" data-label="Status">
+                                    @if(optional($user->details)->status)
+                                        <span class="text-success font-w600"><i class="fa-duotone fa-circle-check mr-1" aria-hidden="true"></i> Aktivan</span>
+                                    @else
+                                        <span class="text-muted font-w600"><i class="fa-duotone fa-circle-minus mr-1" aria-hidden="true"></i> Neaktivan</span>
+                                    @endif
                                 </td>
-                                <td class="text-center font-size-sm">
-                                    {{ $user->details->role }}
+                                <td class="text-center" data-label="Uloga">
+                                    @php($userRole = optional($user->details)->role)
+                                    {{ $roleLabels[$userRole] ?? ($userRole ? ucfirst($userRole) : 'Nije dodijeljena') }}
                                 </td>
-                                <td class="text-right font-size-base">
-                                    <a class="btn btn-sm btn-alt-secondary" href="{{ route('users.edit', ['user' => $user]) }}">
-                                        <i class="fa fa-fw fa-pencil-alt"></i>
+                                <td class="text-right" data-label="Radnje">
+                                    <a class="btn btn-sm btn-alt-secondary" href="{{ route('users.edit', ['user' => $user]) }}" title="Uredi korisnika" aria-label="Uredi korisnika">
+                                        <i class="fa-duotone fa-pen-to-square" aria-hidden="true"></i>
                                     </a>
                                 </td>
                             </tr>
@@ -85,20 +108,20 @@
 
 @endsection
 
-@push('js_after')
-    <script src="{{ asset('js/plugins/select2/js/select2.full.min.js') }}"></script>
-    <script>
-        $(() => {
-            $('#status-select').select2({
-                placeholder: 'Promjenite status'
-            });
-
-        })
-    </script>
-    <script>
-        $("#checkAll").click(function () {
-            $('input:checkbox').not(this).prop('checked', this.checked);
-        });
-    </script>
-
+@push('css_after')
+    <style>
+        .admin-user-filters { width: min(100%, 42rem); flex-wrap: nowrap; }
+        .admin-user-filters .admin-search { min-width: 16rem; flex: 1 1 21rem; }
+        .admin-user-role-select { width: 11.5rem; flex: 0 0 11.5rem; }
+        .admin-user-filter-clear { width: 2.5rem; flex: 0 0 2.5rem; padding: 0 !important; }
+        @media (max-width: 991.98px) {
+            .admin-user-filters { display: grid; width: 100%; grid-template-columns: minmax(0, 1fr) 11rem auto; }
+        }
+        @media (max-width: 575.98px) {
+            .admin-user-filters { grid-template-columns: 1fr 1fr; }
+            .admin-user-filters .admin-search { min-width: 0; grid-column: 1 / -1; }
+            .admin-user-role-select { width: 100%; min-width: 0; }
+            .admin-user-filters .btn { width: 100%; }
+        }
+    </style>
 @endpush

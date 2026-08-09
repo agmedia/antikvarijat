@@ -1,54 +1,76 @@
-<div class="mb-0 input-group">
-    <input type="search" wire:model.debounce.300ms="search" class="form-control  @error('publisher_id') is-invalid @enderror" id="publisher-input" placeholder="{{ !$list ? 'Dodaj nakladnika...' : 'Odaberi nakladnika...' }}" autocomplete="off">
-    @if ( ! $list)
-        <input type="hidden" wire:model="publisher_id" name="publisher_id">
-        <span class="input-group-append" data-toggle="modal" data-target="#new-publisher-modal">
-            <a href="javascript:void(0)" wire:click="viewAddWindow" class="btn btn-secondary btn-search py-0"><i class="fa fa-plus pt-2"></i></a>
-        </span>
+<div class="admin-entity-picker" wire:keydown.escape="$set('show_add_window', false)">
+    <div class="admin-entity-picker-control{{ $list ? ' admin-entity-picker-control-list' : '' }}">
+        <i class="fa-duotone fa-magnifying-glass admin-entity-picker-search-icon" aria-hidden="true"></i>
+        <input type="search"
+               wire:model.debounce.300ms="search"
+               class="form-control admin-entity-picker-input @error('publisher_id') is-invalid @enderror"
+               id="publisher-input"
+               placeholder="{{ ! $list ? 'Pretraži ili dodaj izdavača' : 'Pretraži izdavača' }}"
+               aria-label="Pretraži izdavača"
+               autocomplete="off">
 
-        <div class="autocomplete p-3" @if( ! $show_add_window) hidden @endif style="position:absolute; z-index:10; top:38px; background-color: #f6f6f6; border: 1px solid #d7d7d7;">
-            <div class="row">
-                <div class="mb-4 col-sm-12 col-md-12">
-                    <label class="form-label required" for="input-title">Ime nakladnika</label>
-                    <input type="text" class="form-control  @if (session()->has('title')) is-invalid @endif" id="input-title" wire:model.defer="new.title" placeholder="">
-                    @if (session()->has('title')) <label class="small text-danger">Ime nakladnika je obvezno...</label> @endif
-                </div>
+        @if ( ! $list)
+            <input type="hidden" wire:model="publisher_id" name="publisher_id">
+            <button type="button"
+                    wire:click="viewAddWindow"
+                    class="btn admin-entity-picker-add"
+                    title="Dodaj novog izdavača"
+                    aria-label="Dodaj novog izdavača"
+                    aria-expanded="{{ $show_add_window ? 'true' : 'false' }}">
+                <i class="fa-solid fa-plus" aria-hidden="true"></i>
+            </button>
+        @endif
+    </div>
 
-                <div class="mb-0 mt-4 col-md-12 text-right">
-                    <a href="javascript:void(0)" wire:click="makeNewPublisher" class="btn btn-primary btn-save shadow-sm">
-                        <i class="align-middle" data-feather="save">&nbsp;</i> Snimi
-                    </a>
-                </div>
-            </div>
+    @if ( ! empty($search_results) && ! $show_add_window)
+        <div class="admin-entity-picker-menu" role="listbox" aria-label="Rezultati pretraživanja izdavača">
+            @foreach ($search_results as $publisher)
+                <button type="button"
+                        class="admin-entity-picker-option"
+                        role="option"
+                        wire:key="publisher-result-{{ $publisher->id }}"
+                        wire:click="addPublisher('{{ $publisher->id }}')">
+                    <span class="admin-entity-picker-option-icon"><i class="fa-duotone fa-building" aria-hidden="true"></i></span>
+                    <span>
+                        <strong>{{ $publisher->title }}</strong>
+                        <small>Izdavač</small>
+                    </span>
+                    <i class="fa-solid fa-chevron-right admin-entity-picker-option-arrow" aria-hidden="true"></i>
+                </button>
+            @endforeach
         </div>
     @endif
 
-    @if( ! empty($search_results))
-        <div class="autocomplete pt-1" style="position:absolute; z-index:10; top:38px; background-color: #f6f6f6; border: 1px solid #d7d7d7;width:100%">
-            <div id="myInputautocomplete-list" class="autocomplete-items">
-                @foreach($search_results as $publisher)
-                    <div style="cursor: pointer;border-bottom: 1px solid #d7d7d7;padding-bottom: 10px;padding-left: 10px;font-size: 16px" wire:click="addPublisher('{{ $publisher->id }}')">
-                        <small class="font-weight-lighter">Ime: <strong>{{ $publisher->title }}</small>
-                    </div>
-                @endforeach
+    @if ( ! $list && $show_add_window)
+        <div class="admin-entity-picker-create" role="group" aria-labelledby="new-publisher-title">
+            <div class="admin-entity-picker-create-header">
+                <div>
+                    <strong id="new-publisher-title">Novi izdavač</strong>
+                    <small>Unesite naziv izdavača i odmah ga odaberite za ovaj artikl.</small>
+                </div>
+                <button type="button" wire:click="viewAddWindow" class="btn admin-entity-picker-close" aria-label="Zatvori">
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                </button>
+            </div>
+            <div class="admin-entity-picker-create-body">
+                <label for="new-publisher-name">Naziv izdavača</label>
+                <input type="text"
+                       class="form-control @if (session()->has('title')) is-invalid @endif"
+                       id="new-publisher-name"
+                       wire:model.defer="new.title"
+                       wire:keydown.enter.prevent="makeNewPublisher"
+                       placeholder="npr. Školska knjiga"
+                       autocomplete="off">
+                @if (session()->has('title'))
+                    <small class="text-danger">Naziv izdavača je obvezan.</small>
+                @endif
+            </div>
+            <div class="admin-entity-picker-create-actions">
+                <button type="button" wire:click="viewAddWindow" class="btn btn-alt-secondary">Odustani</button>
+                <button type="button" wire:click="makeNewPublisher" wire:loading.attr="disabled" wire:target="makeNewPublisher" class="btn btn-primary">
+                    <i class="fa-solid fa-floppy-disk mr-1" aria-hidden="true"></i> Snimi izdavača
+                </button>
             </div>
         </div>
     @endif
-
-    @push('scripts')
-        <script>
-            document.addEventListener('livewire:load', function () {
-
-            });
-
-            Livewire.on('success_alert', () => {
-
-            });
-
-            Livewire.on('error_alert', (e) => {
-
-            });
-        </script>
-    @endpush
-
 </div>

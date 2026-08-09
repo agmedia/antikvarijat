@@ -2,22 +2,15 @@
 
 @section('content')
 
-    <div class="bg-body-light">
-        <div class="content content-full">
-            <div class="d-flex flex-column flex-sm-row justify-content-sm-between align-items-sm-center">
-                <h1 class="flex-sm-fill font-size-h2 font-w400 mt-2 mb-0 mb-sm-2">Izdavač edit</h1>
-                <nav class="flex-sm-00-auto ml-sm-3" aria-label="breadcrumb">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{{ route('publishers') }}">Izdavači</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">Novi izdavačr</li>
-                    </ol>
-                </nav>
-            </div>
-        </div>
-    </div>
+    @include('back.catalog.partials.editor-hero', [
+        'icon' => 'fa-building-columns',
+        'title' => isset($publisher) ? 'Uredi izdavača' : 'Novi izdavač',
+        'description' => isset($publisher) ? $publisher->title : 'Dodajte izdavača i podatke koji se prikazuju uz artikle.',
+        'backUrl' => route('publishers'),
+    ])
 
     <!-- Page Content -->
-    <div class="content content-full content-boxed">
+    <div class="content content-full content-boxed admin-form-page">
 
         <!-- END Page Content -->
     @include('back.layouts.partials.session')
@@ -29,9 +22,7 @@
             @endif
             <div class="block">
                 <div class="block-header block-header-default">
-                    <a class="btn btn-light" href="{{ back()->getTargetUrl() }}">
-                        <i class="fa fa-arrow-left mr-1"></i> Povratak
-                    </a>
+                    <h2 class="block-title"><i class="fa-duotone fa-building-columns mr-2"></i> Podaci izdavača</h2>
                     <div class="block-options d-inline-block">
                         <div class="custom-control custom-switch d-inline-block custom-control-success mr-5">
                             <input type="checkbox" class="custom-control-input" id="featured-switch" name="featured"{{ (isset($publisher->featured) and $publisher->featured) ? 'checked' : '' }}>
@@ -45,7 +36,7 @@
                 </div>
                 <div class="block-content">
                     <div class="row justify-content-center push">
-                        <div class="col-md-10">
+                        <div class="col-md-12">
 
                             @include('back.layouts.partials.language-tabs', ['id' => 'publisher-content-tabs'])
                             <div class="tab-content">
@@ -94,7 +85,7 @@
                 </div>
                 <div class="block-content">
                     <div class="row justify-content-center">
-                        <div class="col-md-10 ">
+                        <div class="col-md-12 ">
                             @include('back.layouts.partials.language-tabs', ['id' => 'publisher-seo-tabs'])
                             <div class="tab-content">
                                 <div class="tab-pane active" id="publisher-seo-tabs-hr" role="tabpanel">
@@ -141,7 +132,7 @@
                                         <label class="custom-file-label" for="image-input">Odaberite sliku</label>
                                     </div>
                                     <div class="mt-2">
-                                        <img class="img-fluid" id="image-view" src="{{ isset($publisher) ? asset($publisher->image) : asset('media/img/lightslider.webp') }}" alt="">
+                                        <img class="img-fluid" id="image-view" src="{{ \App\Support\AdminImage::url(isset($publisher) ? $publisher->image : null, 'media/img/lightslider.webp') }}" alt="">
                                     </div>
                                     <div class="form-text text-muted font-size-sm font-italic">Slika koja se pokazuje kada se link dijeli (facebook, twitter, itd.)</div>
                                 </div>
@@ -149,21 +140,15 @@
                         </div>
                     </div>
                 </div>
-                <div class="block-content bg-body-light">
-                    <div class="row justify-content-center push">
-                        <div class="col-md-5">
-                            <button type="submit" class="btn btn-hero-success my-2">
+                <div class="admin-form-actions">
+                            <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save mr-1"></i> Snimi
                             </button>
-                        </div>
                         @if (isset($publisher))
-                            <div class="col-md-5 text-right">
-                                <a href="{{ route('publishers.destroy', ['publisher' => $publisher]) }}" type="submit" class="btn btn-hero-danger my-2 js-tooltip-enabled" data-toggle="tooltip" title="" data-original-title="Obriši" onclick="event.preventDefault(); document.getElementById('delete-publisher-form{{ $publisher->id }}').submit();">
+                                <a href="{{ route('publishers.destroy', ['publisher' => $publisher]) }}" class="btn btn-outline-danger js-tooltip-enabled" data-toggle="tooltip" title="" data-original-title="Obriši" onclick="event.preventDefault(); document.getElementById('delete-publisher-form{{ $publisher->id }}').submit();">
                                     <i class="fa fa-trash-alt"></i> Obriši
                                 </a>
-                            </div>
                         @endif
-                    </div>
                 </div>
             </div>
         </form>

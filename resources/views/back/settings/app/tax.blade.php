@@ -74,7 +74,7 @@
                     </div>
                     <div class="block-content">
                         <div class="row justify-content-center mb-3">
-                            <div class="col-md-10">
+                            <div class="col-md-12">
                                 <div class="form-group mb-4">
                                     <label for="tax-title">Naslov</label>
                                     <input type="text" class="form-control" id="tax-title" name="title">
@@ -134,7 +134,7 @@
                     </div>
                     <div class="block-content">
                         <div class="row justify-content-center mb-3">
-                            <div class="col-md-10">
+                            <div class="col-md-12">
                                 <h4>Jeste li sigurni da želite obrisati porez?</h4>
                                 <input type="hidden" id="delete-tax-id" value="0">
                             </div>

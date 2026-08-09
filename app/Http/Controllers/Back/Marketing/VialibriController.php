@@ -97,7 +97,7 @@ class VialibriController extends Controller
                 'name' => $product->name,
                 'sku' => $product->sku,
                 'author_title' => optional($product->author)->title,
-                'image_url' => $product->image ? asset($product->image) : asset('media/avatars/avatar0.jpg'),
+                'image_url' => \App\Support\AdminImage::url($product->image),
                 'price_text' => number_format((float) $product->price, 2, ',', '.') . ' EUR',
                 'quantity' => (int) $product->quantity,
                 'categories' => $product->categories->pluck('title')->values()->all(),

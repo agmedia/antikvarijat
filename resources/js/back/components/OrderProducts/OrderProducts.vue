@@ -1,63 +1,57 @@
 <template>
     <div class="OrderProducts">
-        <div class="row mb-4">
-            <div class="col-sm-12 col-md-3 text-right"><label class="pt-2">Upišite Proizvod za Dodati</label></div>
-            <div class="col-sm-12 col-md-9">
-                <input type="text" v-model="query" @keyup="autoComplete" class="form-control">
-                <div class="panel-footer" v-if="results.length">
-                    <ul class="list-group agm">
+        <div class="admin-order-product-search mb-4">
+            <label for="order-product-search">Dodaj artikl</label>
+            <input id="order-product-search" type="search" v-model="query" @keyup="autoComplete" class="form-control" placeholder="Upišite naziv ili šifru artikla" autocomplete="off">
+                <div class="admin-order-autocomplete" v-if="results.length">
+                    <ul class="list-group">
                         <li class="list-group-item" v-for="result in results" @click="select(result)">
                             {{ result.name }} -  {{ result.sku }}
                         </li>
                     </ul>
                 </div>
-            </div>
         </div>
 
-        <div class="block black mt-50" v-if="items.length">
-            <!--<div class="block-header block-header-default">
-                Proizvodi
-            </div>-->
-            <div class="block-content-full">
-                <table class="table table-hover table-vcenter">
+        <div class="admin-order-products-table-wrap table-responsive" v-if="items.length">
+                <table class="table table-hover table-vcenter admin-order-products-table">
                     <thead>
-                    <tr class="bg-light">
+                    <tr>
                         <th class="text-center px-0" style="width: 3%;"></th>
                         <th class="text-center" style="width: 5%;">#</th>
-                        <th>Ime</th>
+                        <th>Artikl</th>
                         <th class="text-center" style="width: 7%;">Kol.</th>
-                        <th class="text-center" style="width: 12%;">Jed.Cijena</th>
+                        <th class="text-center" style="width: 12%;">Jed. cijena</th>
                         <th class="text-center" style="width: 12%;">Iznos</th>
                         <th class="text-center" style="width: 12%;">Rabat</th>
-                        <th class="text-center" style="width: 12%;">Total</th>
+                        <th class="text-center" style="width: 12%;">Ukupno</th>
                     </tr>
                     </thead>
                     <tbody>
-                    <tr v-for="(product, index) in items">
-                        <td class="text-center px-0">
-                            <i class="si si-trash text-danger float-right" style="margin-top: 2px; cursor: pointer;" @click="removeRow(index)"></i>
+                    <tr v-for="(product, index) in items" class="admin-order-product-row">
+                        <td class="text-center px-0 admin-order-product-remove">
+                            <button type="button" class="btn btn-sm btn-link text-danger" title="Ukloni artikl" aria-label="Ukloni artikl" @click="removeRow(index)">
+                                <i class="fa-duotone fa-trash-can"></i>
+                            </button>
                         </td>
-                        <td class="text-center">{{ index + 1 }}</td>
-                        <td>{{ product.name }}</td>
-                        <td class="text-center">
-                            <div class="form-material" style="padding-top: 0;">
-                                <input type="text" class="form-control py-0" style="height: 26px;" :value="product.quantity" @keyup="ChangeQty(product.id, $event)" @blur="Recalculate()">
-                            </div>
+                        <td class="text-center admin-order-product-index">{{ index + 1 }}</td>
+                        <td class="admin-order-product-name" data-label="Artikl">{{ product.name }}</td>
+                        <td class="text-center" data-label="Količina">
+                            <input type="text" class="form-control form-control-sm text-center" :value="product.quantity" @keyup="ChangeQty(product.id, $event)" @blur="Recalculate()" aria-label="Količina">
                         </td>
-                        <td class="text-right">
-                            <input v-if="product.edit" type="text" class="form-control py-0" style="height: 26px;" :value="product.org_price" @keyup.enter="product.edit=false; $emit('update')" @blur="product.edit=false; ChangePrice(product.id, $event); $emit('update')">
+                        <td class="text-right" data-label="Jed. cijena">
+                            <input v-if="product.edit" type="text" class="form-control form-control-sm text-right" :value="product.org_price" @keyup.enter="product.edit=false; $emit('update')" @blur="product.edit=false; ChangePrice(product.id, $event); $emit('update')" aria-label="Jedinična cijena">
                             <span v-else @click="product.edit=true;">{{ Number(product.org_price).toLocaleString(localization, currency_style) }}</span>
                         </td>
-                        <td class="text-right">{{ Number(product.org_price * product.quantity).toLocaleString(localization, currency_style) }}</td>
-                        <td class="text-right">
-                            <input v-if="product.edit" type="text" class="form-control py-0" style="height: 26px;" :value="product.rabat" @keyup.enter="product.edit=false; $emit('update')" @blur="product.edit=false; ChangeRabat(product.id, $event); $emit('update')">
+                        <td class="text-right" data-label="Iznos">{{ Number(product.org_price * product.quantity).toLocaleString(localization, currency_style) }}</td>
+                        <td class="text-right" data-label="Rabat">
+                            <input v-if="product.edit" type="text" class="form-control form-control-sm text-right" :value="product.rabat" @keyup.enter="product.edit=false; $emit('update')" @blur="product.edit=false; ChangeRabat(product.id, $event); $emit('update')" aria-label="Rabat">
                             <span v-else @click="product.edit=true;">-{{ Number((product.rabat) * product.quantity).toLocaleString(localization, currency_style) }}</span>
                         </td>
-                        <td class="text-right font-w600">{{ Number(product.total).toLocaleString(localization, currency_style) }}</td>
+                        <td class="text-right font-w600" data-label="Ukupno">{{ Number(product.total).toLocaleString(localization, currency_style) }}</td>
                     </tr>
 
                     <!-- Totals -->
-                    <tr v-if="sums.length" v-for="(total, index) in sums">
+                    <tr v-if="sums.length" v-for="(total, index) in sums" class="admin-order-total-row">
                         <td colspan="6" class="text-right">{{ total.name }}:</td>
                         <td colspan="2" class="text-right font-w600">{{ Number(total.value).toLocaleString(localization, currency_style) }}</td>
                     </tr>
@@ -68,7 +62,6 @@
                     </tbody>
                 </table>
 
-            </div>
         </div>
     </div>
 </template>
@@ -306,18 +299,125 @@ export default {
 </script>
 
 <style>
-.panel-footer {
-    width: 100%;
-    position: absolute;
-    z-index: 999;
-    padding-right: 30px;
+.admin-order-product-search {
+    position: relative;
 }
 
-ul li agm {
+.admin-order-autocomplete {
+    position: absolute;
+    z-index: 1075;
+    top: calc(100% + .25rem);
+    right: 0;
+    left: 0;
+    max-height: 18rem;
+    overflow-y: auto;
+    border: 1px solid #c9c5bc;
+    border-radius: .24rem;
+    background: #fff;
+}
+
+.admin-order-autocomplete .list-group-item {
+    padding: .7rem .8rem;
+    border-width: 0 0 1px;
+    border-color: #e3dfd6;
+    color: #202a24;
     cursor: pointer;
 }
 
-ul li:hover agm {
-    background-color: #eeeeee;
+.admin-order-autocomplete .list-group-item:last-child {
+    border-bottom: 0;
+}
+
+.admin-order-autocomplete .list-group-item:hover {
+    color: #fff;
+    background: #315344;
+}
+
+.admin-order-products-table {
+    min-width: 780px;
+    margin-bottom: 0;
+}
+
+.admin-order-products-table thead th {
+    background: #f5f3ee;
+}
+
+@media (max-width: 767.98px) {
+    .admin-order-products-table {
+        min-width: 0;
+    }
+
+    .admin-order-products-table thead {
+        display: none;
+    }
+
+    .admin-order-products-table tbody,
+    .admin-order-products-table .admin-order-product-row,
+    .admin-order-products-table .admin-order-product-row td {
+        display: block;
+        width: 100%;
+    }
+
+    .admin-order-products-table .admin-order-product-row {
+        position: relative;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: .65rem 1rem;
+        padding: .85rem;
+        border-bottom: 1px solid #c9c5bc;
+    }
+
+    .admin-order-products-table .admin-order-product-row td {
+        padding: 0 !important;
+        border: 0;
+        text-align: left !important;
+    }
+
+    .admin-order-products-table .admin-order-product-row td[data-label]::before {
+        display: block;
+        margin-bottom: .2rem;
+        color: #59665e;
+        content: attr(data-label);
+        font-size: .72rem;
+        font-weight: 800;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+    }
+
+    .admin-order-products-table .admin-order-product-name {
+        grid-column: 1 / -1;
+        padding-right: 2.5rem !important;
+        font-weight: 700;
+    }
+
+    .admin-order-products-table .admin-order-product-index {
+        display: none !important;
+    }
+
+    .admin-order-products-table .admin-order-product-remove {
+        position: absolute;
+        top: .55rem;
+        right: .55rem;
+        width: auto !important;
+    }
+
+    .admin-order-products-table .admin-order-total-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: .75rem;
+        padding: .55rem .85rem;
+        border-bottom: 1px solid #e3dfd6;
+    }
+
+    .admin-order-products-table .admin-order-total-row td {
+        display: block;
+        width: auto;
+        padding: 0 !important;
+        border: 0;
+    }
+
+    .admin-order-products-table .admin-order-total-row td:first-child {
+        text-align: left !important;
+    }
 }
 </style>

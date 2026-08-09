@@ -74,7 +74,7 @@
                     </div>
 
                     <div class="col-md-6">
-                        <form method="post" action="{{ route('vialibri.update', ['vialibriBook' => $vialibriBook]) }}">
+                        <form id="vialibri-edit-form-{{ $vialibriBook->id }}" method="post" action="{{ route('vialibri.update', ['vialibriBook' => $vialibriBook]) }}">
                             @csrf
                             @method('PATCH')
 
@@ -126,27 +126,28 @@
                                 </div>
                             </div>
 
-                            <div class="form-group mb-0">
-                                <button type="submit" class="btn btn-success mr-2">
-                                    Snimi
+                        </form>
+
+                        <div class="admin-form-actions vialibri-actions">
+                            <form method="post" action="{{ route('vialibri.destroy', ['vialibriBook' => $vialibriBook]) }}" class="mr-auto mb-0">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-outline-danger" title="Ukloni ovaj naslov iz ViaLibri liste">
+                                    <i class="fa-duotone fa-circle-minus mr-1" aria-hidden="true"></i> Ukloni iz liste
                                 </button>
-                            </div>
-                        </form>
+                            </form>
 
-                        <form method="post" action="{{ route('vialibri.translate', ['vialibriBook' => $vialibriBook]) }}" class="mt-3">
-                            @csrf
-                            <button type="submit" class="btn btn-info">
-                                Google Translate HR -> EN
-                            </button>
-                        </form>
+                            <form method="post" action="{{ route('vialibri.translate', ['vialibriBook' => $vialibriBook]) }}" class="mb-0">
+                                @csrf
+                                <button type="submit" class="btn btn-secondary" title="Prevedi hrvatski sadržaj na engleski pomoću Google Translatea">
+                                    <i class="fa-duotone fa-language mr-1" aria-hidden="true"></i> Prevedi HR → EN
+                                </button>
+                            </form>
 
-                        <form method="post" action="{{ route('vialibri.destroy', ['vialibriBook' => $vialibriBook]) }}" class="mt-3">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-danger">
-                                Makni iz ViaLibri liste
+                            <button type="submit" class="btn btn-primary" form="vialibri-edit-form-{{ $vialibriBook->id }}">
+                                <i class="fa-duotone fa-floppy-disk mr-1" aria-hidden="true"></i> Snimi
                             </button>
-                        </form>
+                        </div>
                     </div>
                 </div>
             </div>

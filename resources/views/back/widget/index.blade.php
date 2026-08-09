@@ -6,42 +6,49 @@
 
 @section('content')
 
-    <div class="bg-body-light">
+    <div class="admin-page-hero">
         <div class="content content-full">
-            <div class="d-flex flex-column flex-sm-row justify-content-sm-between align-items-sm-center">
-                <h1 class="flex-sm-fill font-size-h2 font-w400 mt-2 mb-0 mb-sm-2">Widgets ({{ $groups->total() }})</h1>
-                <a class="btn btn-hero-success my-2" href="{{ route('widget.group.create') }}">
-                    <i class="far fa-fw fa-plus-square"></i><span class="d-none d-sm-inline ml-1"> Nova Widget Grupa</span>
-                </a>
-                <button type="button" class="btn btn-hero-success my-2 ml-3" data-toggle="modal" data-target="#modal-block-popout">
-                    <i class="far fa-fw fa-plus-square"></i><span class="d-none d-sm-inline ml-1"> Novi Widget
-                </button>
+            <div class="admin-page-heading">
+                <div>
+                    <div class="admin-page-kicker"><i class="fa-duotone fa-puzzle-piece" aria-hidden="true"></i> Aplikacija</div>
+                    <h1 class="admin-page-title">Widgeti</h1>
+                    <p class="admin-page-description">Organizirajte sadržajne blokove i njihove grupe za prikaz na web-stranici.</p>
+                </div>
+                <div class="admin-page-actions admin-toolbar-group">
+                    <a class="btn btn-outline-primary" href="{{ route('widget.group.create') }}">
+                        <i class="fa-duotone fa-folder-plus mr-1" aria-hidden="true"></i> Nova grupa
+                    </a>
+                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modal-block-popout">
+                        <i class="fa-duotone fa-plus mr-1" aria-hidden="true"></i> Novi widget
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
     <div class="row no-gutters flex-md-10-auto">
-        <div class="col-md-12 order-md-0 bg-body-dark">
+        <div class="col-md-12 order-md-0">
             <!-- Main Content -->
-            <div class="content content-full">
+            <div class="content">
                 @include('back.layouts.partials.session')
 
                 <div id="accordion" role="tablist" aria-multiselectable="true">
                     @forelse($groups as $group)
-                        <div class="block block-rounded mb-1">
+                        <div class="block block-rounded mb-3">
                             <div class="block-header block-header-default" role="tab" id="accordion_h{{ $group->id }}">
-                                <a class="h3 block-title" data-toggle="collapse" data-parent="#accordion" href="#accordion_q{{ $group->id }}" aria-expanded="@if($loop->first) true @else false @endif" aria-controls="accordion_q{{ $group->id }}">
+                                <a class="block-title" data-toggle="collapse" data-parent="#accordion" href="#accordion_q{{ $group->id }}" aria-expanded="@if($loop->first) true @else false @endif" aria-controls="accordion_q{{ $group->id }}">
+                                    <i class="fa-duotone fa-folder-open mr-2" aria-hidden="true"></i>
                                     {{ $group->title }}
                                     @if ($group->status)
-                                        <i class="si si-check text-success ml-3"></i>
+                                        <span class="text-success font-size-sm ml-2"><i class="fa-duotone fa-circle-check mr-1" aria-hidden="true"></i>Aktivna</span>
                                     @else
-                                        <i class="si si-ban text-danger"></i>
+                                        <span class="text-muted font-size-sm ml-2"><i class="fa-duotone fa-circle-xmark mr-1" aria-hidden="true"></i>Neaktivna</span>
                                     @endif
                                 </a>
                                 <div class="block-options">
                                     <div class="btn-group">
                                         <a href="{{ route('widget.group.edit', ['widget' => $group]) }}" class="btn btn-sm btn-secondary js-tooltip-enabled" data-toggle="tooltip" title="" data-original-title="Uredi">
-                                            <i class="fa fa-pencil-alt"></i>
+                                            <i class="fa-duotone fa-pen-to-square" aria-hidden="true"></i>
                                         </a>
                                     </div>
                                 </div>
@@ -51,17 +58,17 @@
                                     <div class="block-content pb-4">
                                         <div class="row">
                                             <div class="col-md-4">
-                                                <p class="small">Da biste implementirali widget, umetnite bilo koju od dolje oznaka u opis stranice.</p>
-                                                <p class="h4 small font-weight-bold">++{{ $group->slug }}++<br>++{{ $group->id }}++</p>
+                                                <p class="text-muted">Za umetanje grupe u opis stranice upotrijebite jednu od oznaka.</p>
+                                                <p class="font-weight-bold mb-0"><code>++{{ $group->slug }}++</code><br><code>++{{ $group->id }}++</code></p>
                                             </div>
                                             <div class="col-md-8">
-                                                <h4>Lista Widgeta</h4>
+                                                <h3 class="font-size-h4 mb-3">Widgeti u grupi</h3>
                                                 <div class="row">
                                                     @foreach($group->widgets()->get() as $widget)
                                                         <div class="col-md-4">
                                                             <a class="block block-rounded block-link-pop text-center" href="{{ route('widget.edit', ['widget' => $widget])  }}">
                                                                 @if ($widget->image)
-                                                                    <div class="block-content block-content-full bg-image" style="background-image: url({{ asset($widget->image) }}); height: 100px;"></div>
+                                                                    <div class="block-content block-content-full bg-image" style="background-image: url({{ \App\Support\AdminImage::url($widget->image) }}); height: 100px;"></div>
                                                                 @endif
                                                                 <div class="block-content block-content-full bg-black-5">
                                                                     <p class="font-w600 mb-0">{{ $widget->title }}</p>
@@ -94,10 +101,10 @@
                 <form action="{{ route('widget.create') }}" method="get" enctype="multipart/form-data">
                     <div class="block block-themed block-transparent mb-0">
                         <div class="block-header bg-primary-dark">
-                            <h3 class="block-title">Odaberi Grupu Widgeta</h3>
+                            <h3 class="block-title">Odaberite grupu widgeta</h3>
                             <div class="block-options">
                                 <button type="button" class="btn-block-option" data-dismiss="modal" aria-label="Close">
-                                    <i class="fa fa-fw fa-times"></i>
+                                    <i class="fa-duotone fa-xmark" aria-hidden="true"></i>
                                 </button>
                             </div>
                         </div>
@@ -113,8 +120,8 @@
                             </div>
                         </div>
                         <div class="block-content block-content-full text-right bg-light">
-                            <button type="button" class="btn btn-sm btn-light" data-dismiss="modal">Poništi</button>
-                            <button type="submit" class="btn btn-sm btn-primary">Nastavi</button>
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Odustani</button>
+                            <button type="submit" class="btn btn-primary"><i class="fa-duotone fa-arrow-right mr-1" aria-hidden="true"></i> Nastavi</button>
                         </div>
                     </div>
                 </form>

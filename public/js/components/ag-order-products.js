@@ -2298,10 +2298,12 @@ var render = function render() {
   return _c("div", {
     staticClass: "OrderProducts"
   }, [_c("div", {
-    staticClass: "row mb-4"
-  }, [_vm._m(0), _vm._v(" "), _c("div", {
-    staticClass: "col-sm-12 col-md-9"
-  }, [_c("input", {
+    staticClass: "admin-order-product-search mb-4"
+  }, [_c("label", {
+    attrs: {
+      "for": "order-product-search"
+    }
+  }, [_vm._v("Dodaj artikl")]), _vm._v(" "), _c("input", {
     directives: [{
       name: "model",
       rawName: "v-model",
@@ -2310,7 +2312,10 @@ var render = function render() {
     }],
     staticClass: "form-control",
     attrs: {
-      type: "text"
+      id: "order-product-search",
+      type: "search",
+      placeholder: "Upišite naziv ili šifru artikla",
+      autocomplete: "off"
     },
     domProps: {
       value: _vm.query
@@ -2323,9 +2328,9 @@ var render = function render() {
       }
     }
   }), _vm._v(" "), _vm.results.length ? _c("div", {
-    staticClass: "panel-footer"
+    staticClass: "admin-order-autocomplete"
   }, [_c("ul", {
-    staticClass: "list-group agm"
+    staticClass: "list-group"
   }, _vm._l(_vm.results, function (result) {
     return _c("li", {
       staticClass: "list-group-item",
@@ -2335,42 +2340,46 @@ var render = function render() {
         }
       }
     }, [_vm._v("\n                        " + _vm._s(result.name) + " -  " + _vm._s(result.sku) + "\n                    ")]);
-  }), 0)]) : _vm._e()])]), _vm._v(" "), _vm.items.length ? _c("div", {
-    staticClass: "block black mt-50"
-  }, [_c("div", {
-    staticClass: "block-content-full"
+  }), 0)]) : _vm._e()]), _vm._v(" "), _vm.items.length ? _c("div", {
+    staticClass: "admin-order-products-table-wrap table-responsive"
   }, [_c("table", {
-    staticClass: "table table-hover table-vcenter"
-  }, [_vm._m(1), _vm._v(" "), _c("tbody", [_vm._l(_vm.items, function (product, index) {
-    return _c("tr", [_c("td", {
-      staticClass: "text-center px-0"
-    }, [_c("i", {
-      staticClass: "si si-trash text-danger float-right",
-      staticStyle: {
-        "margin-top": "2px",
-        cursor: "pointer"
+    staticClass: "table table-hover table-vcenter admin-order-products-table"
+  }, [_vm._m(0), _vm._v(" "), _c("tbody", [_vm._l(_vm.items, function (product, index) {
+    return _c("tr", {
+      staticClass: "admin-order-product-row"
+    }, [_c("td", {
+      staticClass: "text-center px-0 admin-order-product-remove"
+    }, [_c("button", {
+      staticClass: "btn btn-sm btn-link text-danger",
+      attrs: {
+        type: "button",
+        title: "Ukloni artikl",
+        "aria-label": "Ukloni artikl"
       },
       on: {
         click: function click($event) {
           return _vm.removeRow(index);
         }
       }
-    })]), _vm._v(" "), _c("td", {
-      staticClass: "text-center"
-    }, [_vm._v(_vm._s(index + 1))]), _vm._v(" "), _c("td", [_vm._v(_vm._s(product.name))]), _vm._v(" "), _c("td", {
-      staticClass: "text-center"
-    }, [_c("div", {
-      staticClass: "form-material",
-      staticStyle: {
-        "padding-top": "0"
+    }, [_c("i", {
+      staticClass: "fa-duotone fa-trash-can"
+    })])]), _vm._v(" "), _c("td", {
+      staticClass: "text-center admin-order-product-index"
+    }, [_vm._v(_vm._s(index + 1))]), _vm._v(" "), _c("td", {
+      staticClass: "admin-order-product-name",
+      attrs: {
+        "data-label": "Artikl"
+      }
+    }, [_vm._v(_vm._s(product.name))]), _vm._v(" "), _c("td", {
+      staticClass: "text-center",
+      attrs: {
+        "data-label": "Količina"
       }
     }, [_c("input", {
-      staticClass: "form-control py-0",
-      staticStyle: {
-        height: "26px"
-      },
+      staticClass: "form-control form-control-sm text-center",
       attrs: {
-        type: "text"
+        type: "text",
+        "aria-label": "Količina"
       },
       domProps: {
         value: product.quantity
@@ -2383,15 +2392,16 @@ var render = function render() {
           return _vm.Recalculate();
         }
       }
-    })])]), _vm._v(" "), _c("td", {
-      staticClass: "text-right"
-    }, [product.edit ? _c("input", {
-      staticClass: "form-control py-0",
-      staticStyle: {
-        height: "26px"
-      },
+    })]), _vm._v(" "), _c("td", {
+      staticClass: "text-right",
       attrs: {
-        type: "text"
+        "data-label": "Jed. cijena"
+      }
+    }, [product.edit ? _c("input", {
+      staticClass: "form-control form-control-sm text-right",
+      attrs: {
+        type: "text",
+        "aria-label": "Jedinična cijena"
       },
       domProps: {
         value: product.org_price
@@ -2415,16 +2425,20 @@ var render = function render() {
         }
       }
     }, [_vm._v(_vm._s(Number(product.org_price).toLocaleString(_vm.localization, _vm.currency_style)))])]), _vm._v(" "), _c("td", {
-      staticClass: "text-right"
-    }, [_vm._v(_vm._s(Number(product.org_price * product.quantity).toLocaleString(_vm.localization, _vm.currency_style)))]), _vm._v(" "), _c("td", {
-      staticClass: "text-right"
-    }, [product.edit ? _c("input", {
-      staticClass: "form-control py-0",
-      staticStyle: {
-        height: "26px"
-      },
+      staticClass: "text-right",
       attrs: {
-        type: "text"
+        "data-label": "Iznos"
+      }
+    }, [_vm._v(_vm._s(Number(product.org_price * product.quantity).toLocaleString(_vm.localization, _vm.currency_style)))]), _vm._v(" "), _c("td", {
+      staticClass: "text-right",
+      attrs: {
+        "data-label": "Rabat"
+      }
+    }, [product.edit ? _c("input", {
+      staticClass: "form-control form-control-sm text-right",
+      attrs: {
+        type: "text",
+        "aria-label": "Rabat"
       },
       domProps: {
         value: product.rabat
@@ -2448,10 +2462,15 @@ var render = function render() {
         }
       }
     }, [_vm._v("-" + _vm._s(Number(product.rabat * product.quantity).toLocaleString(_vm.localization, _vm.currency_style)))])]), _vm._v(" "), _c("td", {
-      staticClass: "text-right font-w600"
+      staticClass: "text-right font-w600",
+      attrs: {
+        "data-label": "Ukupno"
+      }
     }, [_vm._v(_vm._s(Number(product.total).toLocaleString(_vm.localization, _vm.currency_style)))])]);
   }), _vm._v(" "), _vm._l(_vm.sums, function (total, index) {
-    return _vm.sums.length ? _c("tr", [_c("td", {
+    return _vm.sums.length ? _c("tr", {
+      staticClass: "admin-order-total-row"
+    }, [_c("td", {
       staticClass: "text-right",
       attrs: {
         colspan: "6"
@@ -2478,22 +2497,12 @@ var render = function render() {
     domProps: {
       value: JSON.stringify(_vm.sums)
     }
-  })], 2)])])]) : _vm._e()]);
+  })], 2)])]) : _vm._e()]);
 };
 var staticRenderFns = [function () {
   var _vm = this,
     _c = _vm._self._c;
-  return _c("div", {
-    staticClass: "col-sm-12 col-md-3 text-right"
-  }, [_c("label", {
-    staticClass: "pt-2"
-  }, [_vm._v("Upišite Proizvod za Dodati")])]);
-}, function () {
-  var _vm = this,
-    _c = _vm._self._c;
-  return _c("thead", [_c("tr", {
-    staticClass: "bg-light"
-  }, [_c("th", {
+  return _c("thead", [_c("tr", [_c("th", {
     staticClass: "text-center px-0",
     staticStyle: {
       width: "3%"
@@ -2503,7 +2512,7 @@ var staticRenderFns = [function () {
     staticStyle: {
       width: "5%"
     }
-  }, [_vm._v("#")]), _vm._v(" "), _c("th", [_vm._v("Ime")]), _vm._v(" "), _c("th", {
+  }, [_vm._v("#")]), _vm._v(" "), _c("th", [_vm._v("Artikl")]), _vm._v(" "), _c("th", {
     staticClass: "text-center",
     staticStyle: {
       width: "7%"
@@ -2513,7 +2522,7 @@ var staticRenderFns = [function () {
     staticStyle: {
       width: "12%"
     }
-  }, [_vm._v("Jed.Cijena")]), _vm._v(" "), _c("th", {
+  }, [_vm._v("Jed. cijena")]), _vm._v(" "), _c("th", {
     staticClass: "text-center",
     staticStyle: {
       width: "12%"
@@ -2528,7 +2537,7 @@ var staticRenderFns = [function () {
     staticStyle: {
       width: "12%"
     }
-  }, [_vm._v("Total")])])]);
+  }, [_vm._v("Ukupno")])])]);
 }];
 render._withStripped = true;
 
@@ -2552,7 +2561,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_laravel_mix_node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(function(i){return i[1]});
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "\n.panel-footer {\n    width: 100%;\n    position: absolute;\n    z-index: 999;\n    padding-right: 30px;\n}\nul li agm {\n    cursor: pointer;\n}\nul li:hover agm {\n    background-color: #eeeeee;\n}\n", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, "\n.admin-order-product-search {\n    position: relative;\n}\n.admin-order-autocomplete {\n    position: absolute;\n    z-index: 1075;\n    top: calc(100% + .25rem);\n    right: 0;\n    left: 0;\n    max-height: 18rem;\n    overflow-y: auto;\n    border: 1px solid #c9c5bc;\n    border-radius: .24rem;\n    background: #fff;\n}\n.admin-order-autocomplete .list-group-item {\n    padding: .7rem .8rem;\n    border-width: 0 0 1px;\n    border-color: #e3dfd6;\n    color: #202a24;\n    cursor: pointer;\n}\n.admin-order-autocomplete .list-group-item:last-child {\n    border-bottom: 0;\n}\n.admin-order-autocomplete .list-group-item:hover {\n    color: #fff;\n    background: #315344;\n}\n.admin-order-products-table {\n    min-width: 780px;\n    margin-bottom: 0;\n}\n.admin-order-products-table thead th {\n    background: #f5f3ee;\n}\n@media (max-width: 767.98px) {\n.admin-order-products-table {\n        min-width: 0;\n}\n.admin-order-products-table thead {\n        display: none;\n}\n.admin-order-products-table tbody,\n    .admin-order-products-table .admin-order-product-row,\n    .admin-order-products-table .admin-order-product-row td {\n        display: block;\n        width: 100%;\n}\n.admin-order-products-table .admin-order-product-row {\n        position: relative;\n        display: grid;\n        grid-template-columns: repeat(2, minmax(0, 1fr));\n        gap: .65rem 1rem;\n        padding: .85rem;\n        border-bottom: 1px solid #c9c5bc;\n}\n.admin-order-products-table .admin-order-product-row td {\n        padding: 0 !important;\n        border: 0;\n        text-align: left !important;\n}\n.admin-order-products-table .admin-order-product-row td[data-label]::before {\n        display: block;\n        margin-bottom: .2rem;\n        color: #59665e;\n        content: attr(data-label);\n        font-size: .72rem;\n        font-weight: 800;\n        letter-spacing: .04em;\n        text-transform: uppercase;\n}\n.admin-order-products-table .admin-order-product-name {\n        grid-column: 1 / -1;\n        padding-right: 2.5rem !important;\n        font-weight: 700;\n}\n.admin-order-products-table .admin-order-product-index {\n        display: none !important;\n}\n.admin-order-products-table .admin-order-product-remove {\n        position: absolute;\n        top: .55rem;\n        right: .55rem;\n        width: auto !important;\n}\n.admin-order-products-table .admin-order-total-row {\n        display: grid;\n        grid-template-columns: minmax(0, 1fr) auto;\n        gap: .75rem;\n        padding: .55rem .85rem;\n        border-bottom: 1px solid #e3dfd6;\n}\n.admin-order-products-table .admin-order-total-row td {\n        display: block;\n        width: auto;\n        padding: 0 !important;\n        border: 0;\n}\n.admin-order-products-table .admin-order-total-row td:first-child {\n        text-align: left !important;\n}\n}\n", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 

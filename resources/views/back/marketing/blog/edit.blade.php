@@ -36,8 +36,8 @@
                     </div>
                 </div>
                 <div class="block-content">
-                    <div class="row justify-content-center push">
-                        <div class="col-md-10">
+                    <div class="row push">
+                        <div class="col-12">
 
                             @include('back.layouts.partials.language-tabs', ['id' => 'blog-content-tabs'])
                             <div class="tab-content">
@@ -86,7 +86,7 @@
                                         <label class="custom-file-label" for="image-input">Odaberite sliku</label>
                                     </div>
                                     <div class="mt-2">
-                                        <img class="img-fluid" id="image-view" src="{{ isset($blog) ? asset($blog->image) : asset('media/img/lightslider.webp') }}" alt="">
+                                        <img class="img-fluid" id="image-view" src="{{ \App\Support\AdminImage::url(isset($blog) ? $blog->image : null, 'media/img/lightslider.webp') }}" alt="">
                                     </div>
                                 </div>
                             </div>
@@ -108,8 +108,8 @@
                     <h3 class="block-title">Meta Data - SEO</h3>
                 </div>
                 <div class="block-content">
-                    <div class="row justify-content-center">
-                        <div class="col-md-10 ">
+                    <div class="row">
+                        <div class="col-12">
                             @include('back.layouts.partials.language-tabs', ['id' => 'blog-seo-tabs'])
                             <div class="tab-content">
                                 <div class="tab-pane active" id="blog-seo-tabs-hr" role="tabpanel">
@@ -160,21 +160,15 @@
                         </div>
                     </div>
                 </div>
-                <div class="block-content bg-body-light">
-                    <div class="row justify-content-center push">
-                        <div class="col-md-5">
-                            <button type="submit" class="btn btn-hero-success my-2">
-                                <i class="fas fa-save mr-1"></i> Snimi
-                            </button>
-                        </div>
-                        @if (isset($blog))
-                            <div class="col-md-5 text-right">
-                                <a href="{{ route('blogs.destroy', ['blog' => $blog]) }}" type="submit" class="btn btn-hero-danger my-2 js-tooltip-enabled" data-toggle="tooltip" title="" data-original-title="Obriši" onclick="event.preventDefault(); document.getElementById('delete-blog-form{{ $blog->id }}').submit();">
-                                    <i class="fa fa-trash-alt"></i> Obriši
-                                </a>
-                            </div>
-                        @endif
-                    </div>
+                <div class="admin-form-actions">
+                    @if (isset($blog))
+                        <a href="{{ route('blogs.destroy', ['blog' => $blog]) }}" class="btn btn-outline-danger mr-auto js-tooltip-enabled" data-toggle="tooltip" title="" data-original-title="Obriši" onclick="event.preventDefault(); document.getElementById('delete-blog-form{{ $blog->id }}').submit();">
+                            <i class="fa-duotone fa-trash-can mr-1" aria-hidden="true"></i> Obriši
+                        </a>
+                    @endif
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-duotone fa-floppy-disk mr-1" aria-hidden="true"></i> Snimi
+                    </button>
                 </div>
             </div>
         </form>

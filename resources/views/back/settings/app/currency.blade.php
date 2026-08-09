@@ -85,7 +85,7 @@
                     </div>
                     <div class="block-content">
                         <div class="row justify-content-center mb-3">
-                            <div class="col-md-10">
+                            <div class="col-md-12">
                                 <div class="form-group mb-4">
                                     <label for="currency-title">Naslov</label>
                                     <input type="text" class="form-control" id="currency-title" name="title">
@@ -171,7 +171,7 @@
                     </div>
                     <div class="block-content">
                         <div class="row justify-content-center mb-3">
-                            <div class="col-md-10 mt-3">
+                            <div class="col-md-12 mt-3">
                                 <div class="form-group">
                                     <select class="js-select2 form-control" id="currency-main-select" name="currency_main_select" style="width: 100%;" data-placeholder="Odaberite glavnu valutu">
                                         <option></option>
@@ -216,7 +216,7 @@
                     </div>
                     <div class="block-content">
                         <div class="row justify-content-center mb-3">
-                            <div class="col-md-10">
+                            <div class="col-md-12">
                                 <h4>Jeste li sigurni da želite obrisati valutu?</h4>
                                 <input type="hidden" id="delete-currency-id" value="0">
                             </div>

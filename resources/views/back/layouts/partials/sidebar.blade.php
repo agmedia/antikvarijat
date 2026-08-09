@@ -15,13 +15,8 @@
     <div class="bg-header-dark">
         <div class="content-header bg-white-10">
             <!-- Logo -->
-            <a class="font-w600 text-white tracking-wide" href="/">
-                            <span class="smini-visible">
-                                B<span class="opacity-75">x</span>
-                            </span>
-                <span class="smini-hidden">
-                                ANTIKVARIJAT<span class="opacity-75">BIBLOS</span>
-                            </span>
+            <a class="admin-brand" href="/" aria-label="Antikvarijat Biblos">
+                <img class="admin-brand-logo" src="{{ asset('media/img/logobijeli.svg') }}" alt="Antikvarijat Biblos">
             </a>
             <!-- END Logo -->
 
@@ -38,7 +33,7 @@
                 <!-- Close Sidebar, Visible only on mobile screens -->
                 <!-- Layout API, functionality initialized in Template._uiApiLayout() -->
                 <a class="d-lg-none text-white ml-2" data-toggle="layout" data-action="sidebar_close" href="javascript:void(0)">
-                    <i class="fa fa-times-circle"></i>
+                    <i class="fa-duotone fa-circle-xmark"></i>
                 </a>
                 <!-- END Close Sidebar -->
             </div>
@@ -55,8 +50,8 @@
                 {{--<li class="nav-main-heading">Katalog</li>--}}
 
                 <li class="nav-main-item">
-                    <a class="nav-main-link{{ request()->routeIs('dashboard') ? ' active' : '' }}" href="{{ route('dashboard') }}">
-                        <i class="nav-main-link-icon si si-grid"></i>
+                    <a class="nav-main-link{{ request()->routeIs(['dashboard', 'statistics', 'statistics.*']) ? ' active' : '' }}" href="{{ route('dashboard') }}">
+                        <i class="nav-main-link-icon fa-duotone fa-grid-2"></i>
                         <span class="nav-main-link-name">Dashboard</span>
                         {{--<span class="nav-main-link-badge badge badge-pill badge-success">5</span>--}}
                     </a>
@@ -64,7 +59,7 @@
                 {{--<li class="nav-main-heading">Various</li>--}}
                 <li class="nav-main-item{{ request()->is(['admin/catalog/*']) ? ' open' : '' }}">
                     <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="true" href="#">
-                        <i class="nav-main-link-icon si si-layers"></i>
+                        <i class="nav-main-link-icon fa-duotone fa-books"></i>
                         <span class="nav-main-link-name">Katalog</span>
                     </a>
                     <ul class="nav-main-submenu">
@@ -93,21 +88,21 @@
 
                 <li class="nav-main-item">
                     <a class="nav-main-link{{ request()->routeIs(['orders', 'orders.*']) ? ' active' : '' }}" href="{{ route('orders') }}">
-                        <i class="nav-main-link-icon si si-basket-loaded"></i>
+                        <i class="nav-main-link-icon fa-duotone fa-cart-shopping"></i>
                         <span class="nav-main-link-name">Narudžbe</span>
                     </a>
                 </li>
 
                 <li class="nav-main-item">
                     <a class="nav-main-link{{ request()->routeIs(['contract-withdrawals.*']) ? ' active' : '' }}" href="{{ route('contract-withdrawals.index') }}">
-                        <i class="nav-main-link-icon si si-docs"></i>
+                        <i class="nav-main-link-icon fa-duotone fa-file-signature"></i>
                         <span class="nav-main-link-name">Raskidi ugovora</span>
                     </a>
                 </li>
 
-                <li class="nav-main-item{{ request()->is(['admin/marketing/*']) ? ' open' : '' }}">
-                    <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="true" href="#">
-                        <i class="nav-main-link-icon si si-bar-chart"></i>
+                <li class="nav-main-item{{ (request()->is(['admin/marketing/*']) || request()->routeIs(['wishlists', 'wishlists.*'])) ? ' open' : '' }}">
+                    <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="{{ (request()->is(['admin/marketing/*']) || request()->routeIs(['wishlists', 'wishlists.*'])) ? 'true' : 'false' }}" href="#">
+                        <i class="nav-main-link-icon fa-duotone fa-megaphone"></i>
                         <span class="nav-main-link-name">Marketing</span>
                     </a>
                     <ul class="nav-main-submenu">
@@ -146,7 +141,7 @@
 
                 <li class="nav-main-item">
                     <a class="nav-main-link{{ request()->routeIs(['users', 'users.*']) ? ' active' : '' }}" href="{{ route('users') }}">
-                        <i class="nav-main-link-icon si si-users"></i>
+                        <i class="nav-main-link-icon fa-duotone fa-user-group"></i>
                         <span class="nav-main-link-name">Korisnici</span>
                     </a>
                 </li>
@@ -155,21 +150,21 @@
 
                 <li class="nav-main-item">
                     <a class="nav-main-link{{ request()->routeIs(['profile', 'profile.*']) ? ' active' : '' }}" href="{{ route('profile.show') }}">
-                        <i class="nav-main-link-icon si si-user"></i>
+                        <i class="nav-main-link-icon fa-duotone fa-user"></i>
                         <span class="nav-main-link-name">Moj Profil</span>
                     </a>
                 </li>
 
                 <li class="nav-main-item">
                     <a class="nav-main-link{{ request()->routeIs(['widgets', 'widgets.*']) ? ' active' : '' }}" href="{{ route('widgets') }}">
-                        <i class="nav-main-link-icon si si-chemistry"></i>
+                        <i class="nav-main-link-icon fa-duotone fa-puzzle-piece"></i>
                         <span class="nav-main-link-name">Widgets</span>
                     </a>
                 </li>
 
                 <li class="nav-main-item{{ request()->is(['admin/settings/*']) ? ' open' : '' }}">
                     <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="true" href="#">
-                        <i class="nav-main-link-icon si si-settings"></i>
+                        <i class="nav-main-link-icon fa-duotone fa-gear"></i>
                         <span class="nav-main-link-name">Postavke</span>
                     </a>
                     <ul class="nav-main-submenu">

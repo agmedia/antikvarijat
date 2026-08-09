@@ -32,7 +32,7 @@
                 </div>
                 <div class="block-content">
                     <div class="row justify-content-center push">
-                        <div class="col-md-10">
+                        <div class="col-md-12">
 
                             @include('back.layouts.partials.language-tabs', ['id' => 'faq-content-tabs'])
                             <div class="tab-content">

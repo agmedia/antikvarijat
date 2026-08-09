@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Back;
 use App\Http\Controllers\Controller;
 use App\Models\Roles\Role;
 use App\Models\User;
+use App\Models\UserDetail;
 use Illuminate\Http\Request;
 
 class UserController extends Controller
@@ -17,15 +18,50 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $query = (new User())->newQuery();
+        $search = trim((string) $request->input('search'));
 
-        if ($request->has('search') && ! empty($request->search)) {
-            $query->where('name', 'like', '%' . $request->search . '%')
-                  ->orWhere('email', 'like', '%' . $request->search . '%');
+        $roleLabels = [
+            'admin' => 'Administrator',
+            'editor' => 'Editor',
+            'customer' => 'Kupac',
+        ];
+
+        $availableRoles = UserDetail::query()
+            ->whereNotNull('role')
+            ->where('role', '!=', '')
+            ->distinct()
+            ->pluck('role')
+            ->filter()
+            ->unique()
+            ->sortBy(function ($role) {
+                $position = array_search($role, ['admin', 'editor', 'customer'], true);
+
+                return $position !== false ? $position : 100;
+            });
+
+        $roleOptions = $availableRoles->mapWithKeys(function ($role) use ($roleLabels) {
+            return [$role => $roleLabels[$role] ?? ucfirst($role)];
+        });
+
+        if ($search !== '') {
+            $query->where(function ($userQuery) use ($search) {
+                $userQuery->where('name', 'like', '%' . $search . '%')
+                    ->orWhere('email', 'like', '%' . $search . '%');
+            });
         }
 
-        $users = $query->with('details')->paginate(config('settings.pagination.back'));
+        if ($request->filled('role') && $roleOptions->has($request->input('role'))) {
+            $query->whereHas('details', function ($detailsQuery) use ($request) {
+                $detailsQuery->where('role', $request->input('role'));
+            });
+        }
 
-        return view('back.user.index', compact('users'));
+        $users = $query
+            ->with('details')
+            ->paginate(config('settings.pagination.back'))
+            ->appends($request->query());
+
+        return view('back.user.index', compact('users', 'roleOptions', 'roleLabels'));
     }
     
     

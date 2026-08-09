@@ -1,53 +1,76 @@
-<div class="mb-0 input-group">
-    <input type="search" wire:model.debounce.300ms="search" class="form-control  @error('author_id') is-invalid @enderror" id="author-input" placeholder="{{ !$list ? 'Dodaj autora...' : 'Odaberi autora...' }}" autocomplete="off">
-    @if ( ! $list)
-        <input type="hidden" wire:model="author_id" name="author_id">
-        <span class="input-group-append" data-toggle="modal" data-target="#new-author-modal">
-            <a href="javascript:void(0)" wire:click="viewAddWindow" class="btn btn-secondary btn-search py-0"><i class="fa fa-plus pt-2"></i></a>
-        </span>
-        <div class="autocomplete p-3" @if( ! $show_add_window) hidden @endif style="position:absolute; z-index:10; top:38px; background-color: #f6f6f6; border: 1px solid #d7d7d7;">
-            <div class="row">
-                <div class="mb-4 col-sm-12 col-md-12">
-                    <label class="form-label required" for="input-title">Ime autora</label>
-                    <input type="text" class="form-control  @if (session()->has('title')) is-invalid @endif" id="input-title" wire:model.defer="new.title" placeholder="">
-                    @if (session()->has('title')) <label class="small text-danger">Ime autora je obvezno...</label> @endif
-                </div>
+<div class="admin-entity-picker" wire:keydown.escape="$set('show_add_window', false)">
+    <div class="admin-entity-picker-control{{ $list ? ' admin-entity-picker-control-list' : '' }}">
+        <i class="fa-duotone fa-magnifying-glass admin-entity-picker-search-icon" aria-hidden="true"></i>
+        <input type="search"
+               wire:model.debounce.300ms="search"
+               class="form-control admin-entity-picker-input @error('author_id') is-invalid @enderror"
+               id="author-input"
+               placeholder="{{ ! $list ? 'Pretraži ili dodaj autora' : 'Pretraži autora' }}"
+               aria-label="Pretraži autora"
+               autocomplete="off">
 
-                <div class="mb-0 mt-1 col-md-12 text-right">
-                    <a href="javascript:void(0)" wire:click="makeNewAuthor" class="btn btn-primary btn-save shadow-sm">
-                        <i class="align-middle" data-feather="save">&nbsp;</i> Snimi
-                    </a>
-                </div>
-            </div>
+        @if ( ! $list)
+            <input type="hidden" wire:model="author_id" name="author_id">
+            <button type="button"
+                    wire:click="viewAddWindow"
+                    class="btn admin-entity-picker-add"
+                    title="Dodaj novog autora"
+                    aria-label="Dodaj novog autora"
+                    aria-expanded="{{ $show_add_window ? 'true' : 'false' }}">
+                <i class="fa-duotone fa-user-plus" aria-hidden="true"></i>
+            </button>
+        @endif
+    </div>
+
+    @if ( ! empty($search_results) && ! $show_add_window)
+        <div class="admin-entity-picker-menu" role="listbox" aria-label="Rezultati pretraživanja autora">
+            @foreach ($search_results as $author)
+                <button type="button"
+                        class="admin-entity-picker-option"
+                        role="option"
+                        wire:key="author-result-{{ $author->id }}"
+                        wire:click="addAuthor('{{ $author->id }}')">
+                    <span class="admin-entity-picker-option-icon"><i class="fa-duotone fa-user-pen" aria-hidden="true"></i></span>
+                    <span>
+                        <strong>{{ $author->title }}</strong>
+                        <small>Autor</small>
+                    </span>
+                    <i class="fa-solid fa-chevron-right admin-entity-picker-option-arrow" aria-hidden="true"></i>
+                </button>
+            @endforeach
         </div>
     @endif
 
-    @if( ! empty($search_results))
-        <div class="autocomplete pt-1" style="position:absolute; z-index:10; top:38px; background-color: #f6f6f6; border: 1px solid #d7d7d7;width:100%">
-            <div id="myInputautocomplete-list" class="autocomplete-items">
-                @foreach($search_results as $author)
-                    <div style="cursor: pointer;border-bottom: 1px solid #d7d7d7;padding-bottom: 10px;padding-left: 10px;font-size: 16px" wire:click="addAuthor('{{ $author->id }}')">
-                        <small class="font-weight-lighter">Ime: <strong>{{ $author->title }}</strong></small>
-                    </div>
-                @endforeach
+    @if ( ! $list && $show_add_window)
+        <div class="admin-entity-picker-create" role="group" aria-labelledby="new-author-title">
+            <div class="admin-entity-picker-create-header">
+                <div>
+                    <strong id="new-author-title">Novi autor</strong>
+                    <small>Unesite ime autora i odmah ga odaberite za ovaj artikl.</small>
+                </div>
+                <button type="button" wire:click="viewAddWindow" class="btn admin-entity-picker-close" aria-label="Zatvori">
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                </button>
+            </div>
+            <div class="admin-entity-picker-create-body">
+                <label for="new-author-name">Ime autora</label>
+                <input type="text"
+                       class="form-control @if (session()->has('title')) is-invalid @endif"
+                       id="new-author-name"
+                       wire:model.defer="new.title"
+                       wire:keydown.enter.prevent="makeNewAuthor"
+                       placeholder="npr. William Shakespeare"
+                       autocomplete="off">
+                @if (session()->has('title'))
+                    <small class="text-danger">Ime autora je obvezno.</small>
+                @endif
+            </div>
+            <div class="admin-entity-picker-create-actions">
+                <button type="button" wire:click="viewAddWindow" class="btn btn-alt-secondary">Odustani</button>
+                <button type="button" wire:click="makeNewAuthor" wire:loading.attr="disabled" wire:target="makeNewAuthor" class="btn btn-primary">
+                    <i class="fa-solid fa-floppy-disk mr-1" aria-hidden="true"></i> Snimi autora
+                </button>
             </div>
         </div>
     @endif
-
-    @push('scripts')
-        <script>
-            document.addEventListener('livewire:load', function () {
-
-            });
-
-            Livewire.on('success_alert', () => {
-
-            });
-
-            Livewire.on('error_alert', (e) => {
-
-            });
-        </script>
-    @endpush
-
 </div>

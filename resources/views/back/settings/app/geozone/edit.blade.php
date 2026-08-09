@@ -36,7 +36,7 @@
                 </div>
                 <div class="block-content">
                     <div class="row justify-content-center push">
-                        <div class="col-md-10">
+                        <div class="col-md-12">
 
                             <div class="form-group mb-4">
                                 <label for="title-input">Naslov</label>
@@ -57,7 +57,7 @@
                 </div>
                 <div class="block-content bg-body-light">
                     <div class="row justify-content-center push">
-                        <div class="col-md-10">
+                        <div class="col-md-12">
                             <button type="submit" class="btn btn-hero-success">
                                 <i class="fas fa-save mr-1"></i> Snimi
                             </button>

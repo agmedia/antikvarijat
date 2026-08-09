@@ -5,17 +5,24 @@
 
 @section('content')
 
-    <div class="bg-body-light">
+    <div class="admin-page-hero">
         <div class="content content-full">
-            <div class="d-flex flex-column flex-sm-row justify-content-sm-between align-items-sm-center">
-                <h1 class="flex-sm-fill font-size-h2 font-w400 mt-2 mb-0 mb-sm-2">Narudžba edit <small class="font-weight-light">#_</small><strong>{{ $order->id }}</strong></h1>
+            <div class="admin-page-heading">
+                <div>
+                    <div class="admin-page-kicker"><i class="fa-duotone fa-receipt"></i> Narudžbe</div>
+                    <h1 class="admin-page-title">Uredi narudžbu #{{ $order->id }}</h1>
+                    <p class="admin-page-description">Ažurirajte artikle, podatke kupca, plaćanje, dostavu i povijest obrade.</p>
+                </div>
+                <div class="admin-page-actions">
+                    <a class="btn btn-secondary" href="{{ route('orders.show', ['order' => $order]) }}"><i class="fa-duotone fa-arrow-left mr-1"></i> Pregled narudžbe</a>
+                </div>
             </div>
         </div>
     </div>
 
 
     <!-- Page Content -->
-    <div class="content">
+    <div class="content admin-form-page admin-order-edit">
         @include('back.layouts.partials.session')
 
         <form action="{{ isset($order) ? route('orders.update', ['order' => $order]) : route('orders.store') }}" method="POST" enctype="multipart/form-data">
@@ -159,15 +166,15 @@
 
             <!-- Log Messages -->
             <div class="block block-rounded">
-                <div class="block-header block-header-default">
+                <div class="block-header block-header-default admin-order-history-header">
                     <h3 class="block-title">Povijest narudžbe</h3>
-                    <div class="block-options">
+                    <div class="admin-order-history-actions">
+                        <button type="button" class="btn btn-secondary" id="btn-add-comment">
+                            <i class="fa-duotone fa-message-plus mr-1"></i> Dodaj komentar
+                        </button>
                         <div class="dropdown">
-                            <button type="button" class="btn btn-alt-secondary" id="btn-add-comment">
-                                Dodaj komentar
-                            </button>
-                            <button type="button" class="btn btn-light" id="dropdown-ecom-filters" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                Promjeni status
+                            <button type="button" class="btn btn-secondary" id="dropdown-ecom-filters" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fa-duotone fa-arrows-rotate mr-1"></i> Promijeni status
                                 <i class="fa fa-angle-down ml-1"></i>
                             </button>
                             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown-ecom-filters">
@@ -182,7 +189,7 @@
                 </div>
 
                 <div class="block-content">
-                    <table class="table table-borderless table-striped table-vcenter font-size-sm">
+                    <table class="table table-borderless table-striped table-vcenter admin-order-history-table">
                         <tbody id="order-history-list">
                         @foreach ($order->history as $record)
                             @include('back.order.partials.history-row')
@@ -192,16 +199,11 @@
                 </div>
             </div>
 
-            <div class="block">
-                <div class="block-content">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <button type="submit" class="btn btn-hero-success mb-3">
-                                <i class="fas fa-save mr-1"></i> Snimi
-                            </button>
-                        </div>
-                    </div>
-                </div>
+            <div class="admin-form-actions">
+                <a class="btn btn-secondary" href="{{ route('orders.show', ['order' => $order]) }}">Odustani</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-duotone fa-floppy-disk mr-1"></i> Spremi narudžbu
+                </button>
             </div>
 
         </form>
@@ -225,7 +227,7 @@
                     </div>
                     <div class="block-content">
                         <div class="row justify-content-center mb-3">
-                            <div class="col-md-10">
+                            <div class="col-md-12">
                                 <div class="form-group mb-4">
                                     <label for="status-select">Promjeni status</label>
                                     <select class="js-select2 form-control" id="status-select" name="status" style="width: 100%;" data-placeholder="Promjeni status narudžbe">

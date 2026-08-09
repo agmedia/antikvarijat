@@ -6,7 +6,7 @@
             <!-- Toggle Sidebar -->
             <!-- Layout API, functionality initialized in Template._uiApiLayout()-->
             <button type="button" class="btn btn-dual" data-toggle="layout" data-action="sidebar_toggle">
-                <i class="fa fa-fw fa-bars"></i>
+                <i class="fa-duotone fa-fw fa-bars"></i>
             </button>
             <!-- END Toggle Sidebar -->
 
@@ -22,9 +22,9 @@
             <!-- User Dropdown -->
             <div class="dropdown d-inline-block">
                 <button type="button" class="btn btn-dual" id="page-header-user-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <i class="fa fa-fw fa-user d-sm-none"></i>
+                    <i class="fa-duotone fa-fw fa-user d-sm-none"></i>
                     <span class="d-none d-sm-inline-block">Admin</span>
-                    <i class="fa fa-fw fa-angle-down ml-1 d-none d-sm-inline-block"></i>
+                    <i class="fa-duotone fa-fw fa-angle-down ml-1 d-none d-sm-inline-block"></i>
                 </button>
                 <div class="dropdown-menu dropdown-menu-right p-0" aria-labelledby="page-header-user-dropdown">
                     <div class="bg-primary-darker rounded-top font-w600 text-white text-center p-3">
@@ -32,27 +32,27 @@
                     </div>
                     <div class="p-2">
                         <a class="dropdown-item text-info" href="{{ route('index') }}" target="_blank">
-                            <i class="si si-screen-desktop mr-1"></i> Početna stranica
+                            <i class="fa-duotone fa-display mr-1"></i> Početna stranica
                         </a>
                         <a class="dropdown-item text-warning" href="{{ route('cache') }}">
-                            <span><i class="si si-magic-wand mr-1"></i> Očisti Cache</span>
+                            <span><i class="fa-duotone fa-wand-magic-sparkles mr-1"></i> Očisti Cache</span>
                         </a>
 
                         <div role="separator" class="dropdown-divider"></div>
 
                         @if (auth()->user()->can('*'))
                             <a class="dropdown-item text-danger" href="{{ route('maintenance.on') }}">
-                                <i class="si si-ban mr-1"></i> Održavanje ON
+                                <i class="fa-duotone fa-ban mr-1"></i> Održavanje ON
                             </a>
                             <a class="dropdown-item text-success" href="{{ route('maintenance.off') }}">
-                                <i class="si si-control-play mr-1"></i> Održavanje OFF
+                                <i class="fa-duotone fa-play mr-1"></i> Održavanje OFF
                             </a>
 
                             <div role="separator" class="dropdown-divider"></div>
                         @endif
 
                         <a class="dropdown-item text-danger-light" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                            <i class="si si-logout mr-1"></i> Odjava
+                            <i class="fa-duotone fa-arrow-right-from-bracket mr-1"></i> Odjava
                         </a>
                         <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
                             @csrf

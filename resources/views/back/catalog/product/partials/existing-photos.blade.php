@@ -1,10 +1,10 @@
 @if (! empty($product->image))
-    <div class="col-sm-12 animated fadeIn mb-0 p-3 ribbon ribbon-left ribbon-bookmark ribbon-crystal" id="{{ 'image_0' }}">
-        <div class="row form-group mt-2">
-            <div class="col-sm-3">
-                <div class="options-container fx-item-zoom-in fx-overlay-zoom-out">
-                    <div class="ribbon-box" style="background-color: #c3c3c3">
-                        <i class="fa fa-check"></i> Glavna Slika
+    <div class="col-12 animated fadeIn product-photo-card product-photo-card-main" id="{{ 'image_0' }}">
+        <div class="row product-photo-card-layout">
+            <div class="col-lg-3 col-md-4">
+                <div class="options-container fx-item-zoom-in fx-overlay-zoom-out product-photo-preview">
+                    <div class="product-photo-primary-badge">
+                        <i class="fa-duotone fa-star"></i> Glavna fotografija
                     </div>
                     <div class="slim"
                          data-ratio="free"
@@ -13,7 +13,7 @@
                          data-meta-type_id="{{ $product->id }}"
                          data-will-remove="removeImage">
                         <img
-                            src="{{ asset($product->image) }}"
+                            src="{{ \App\Support\AdminImage::url($product->image) }}"
                             alt="{{ 'image_' . $product->id }}"
                             loading="lazy"
                             decoding="async"
@@ -23,26 +23,24 @@
                     </div>
                 </div>
             </div>
-            <div class="col-sm-9">
-                <div class="row mb-2">
-                    <label class="col-sm-3 text-right font-size-sm pt-2">Naziv fotografije</label>
-                    <div class="col-sm-9">
-                        <input type="text" id="max" class="form-control js-tooltip-enabled" name="slim[0][title]" value="{{ $product->imageName() }}" data-toggle="tooltip" data-placement="top" title="Image Title" placeholder="Naziv fotografije">
+            <div class="col-lg-9 col-md-8 product-photo-fields">
+                <div class="form-group mb-3">
+                    <label for="max">Naziv fotografije</label>
+                    <div>
+                        <input type="text" id="max" class="form-control" name="slim[0][title]" value="{{ $product->imageName() }}" placeholder="Naziv fotografije">
                     </div>
                 </div>
-                <div class="row mb-4">
-                    <label class="col-sm-3 text-right font-size-sm pt-2">Alt. tekst</label>
-                    <div class="col-sm-9 font-size-sm pt-2">
+                <div class="product-photo-help mb-3">
+                    <i class="fa-duotone fa-circle-info"></i>
+                    <span>
+                        <strong>Alternativni tekst</strong>
                         Alternativni tekst glavne fotografije je jednak nazivu knjige + autor.
-                    </div>
+                    </span>
                 </div>
-                <div class="row">
-                    <div class="col-md-12 text-right">
-                        <label class="css-control css-control-primary css-radio">
-                            <input type="radio" class="css-control-input" name="slim[default]" checked>
-                            Glavna fotografija<span class="css-control-indicator"></span>
-                        </label>
-                    </div>
+                <div class="product-photo-state">
+                    <i class="fa-duotone fa-circle-check"></i>
+                    Ova fotografija trenutačno je glavna.
+                    <input type="radio" class="d-none" name="slim[default]" checked>
                 </div>
             </div>
         </div>
@@ -50,10 +48,10 @@
 @endif
 
 @foreach($images as $image)
-    <div class="col-sm-12 animated fadeIn mb-0 p-3 ribbon ribbon-left ribbon-bookmark ribbon-crystal" id="{{ 'image_id_' . $image['id'] }}">
-        <div class="row form-group mt-2">
-            <div class="col-md-2 col-sm-3">
-                <div class="options-container fx-item-zoom-in fx-overlay-zoom-out">
+    <div class="col-12 animated fadeIn product-photo-card" id="{{ 'image_id_' . $image['id'] }}">
+        <div class="row product-photo-card-layout">
+            <div class="col-lg-3 col-md-4">
+                <div class="options-container fx-item-zoom-in fx-overlay-zoom-out product-photo-preview">
                     <div class="slim"
                          data-ratio="free"
                          data-max-file-size="2"
@@ -62,7 +60,7 @@
                          data-meta-image_id="{{ $image['id'] }}"
                          data-will-remove="removeImage">
                         <img
-                            src="{{ asset($image['image']) }}"
+                            src="{{ \App\Support\AdminImage::url($image['image']) }}"
                             alt="{{ 'image_' . $image['id'] }}"
                             loading="lazy"
                             decoding="async"
@@ -72,38 +70,28 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-10 col-sm-9">
-                <div class="row mb-2">
-                    <label class="col-sm-3 text-right font-size-sm pt-2">Naziv fotografije</label>
-                    <div class="col-sm-9">
-                        <input type="text" class="form-control js-tooltip-enabled" name="slim[{{ $image['id'] }}][title]" value="{{ $image['title'] }}" data-toggle="tooltip" data-placement="top" title="Image Title" placeholder="Naziv fotografije">
-                    </div>
+            <div class="col-lg-9 col-md-8 product-photo-fields">
+                <div class="form-group mb-3">
+                    <label>Naziv fotografije</label>
+                    <input type="text" class="form-control" name="slim[{{ $image['id'] }}][title]" value="{{ $image['title'] }}" placeholder="Naziv fotografije">
                 </div>
-                <div class="row mb-4">
-                    <label class="col-sm-3 text-right font-size-sm pt-2">Alt. tekst</label>
-                    <div class="col-sm-9">
-                        <input type="text" class="form-control js-tooltip-enabled" name="slim[{{ $image['id'] }}][alt]" value="{{ $image['alt'] }}" data-toggle="tooltip" data-placement="top" title="Image Alt Text" placeholder="Alternativni tekst fotografije">
-                    </div>
+                <div class="form-group mb-3">
+                    <label>Alternativni tekst</label>
+                    <input type="text" class="form-control" name="slim[{{ $image['id'] }}][alt]" value="{{ $image['alt'] }}" placeholder="Opišite što se nalazi na fotografiji">
                 </div>
 
-                <div class="row mb-3">
-                    <label class="col-sm-9 text-right font-size-sm pt-2">Redosljed</label>
-                    <div class="col-sm-3">
-                        <input type="text" class="form-control js-tooltip-enabled" name="slim[{{ $image['id'] }}][sort_order]" value="{{ $image['sort_order'] }}" data-toggle="tooltip" data-placement="top" title="Sort Order">
+                <div class="product-photo-controls">
+                    <div class="form-group mb-0 product-photo-order">
+                        <label>Redoslijed</label>
+                        <input type="number" min="0" class="form-control" name="slim[{{ $image['id'] }}][sort_order]" value="{{ $image['sort_order'] }}">
                     </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-12 text-right mb-2">
-                        <div class="custom-control custom-radio mb-1">
-                            <input type="radio" class="custom-control-input" id="radio-default-{{ $image['id'] }}" name="slim[default]" value="{{ $image['id'] }}">
-                            <label class="custom-control-label" for="radio-default-{{ $image['id'] }}">Glavna fotografija</label>
-                        </div>
+                    <div class="custom-control custom-radio">
+                        <input type="radio" class="custom-control-input" id="radio-default-{{ $image['id'] }}" name="slim[default]" value="{{ $image['id'] }}">
+                        <label class="custom-control-label" for="radio-default-{{ $image['id'] }}">Postavi kao glavnu</label>
                     </div>
-                    <div class="col-md-12 text-right">
-                        <div class="custom-control custom-checkbox custom-checkbox-square custom-control-success mb-1">
-                            <input type="checkbox" class="custom-control-input" id="check-published-{{ $image['id'] }}" name="slim[{{ $image['id'] }}][published]" @if($image['published']) checked @endif>
-                            <label class="custom-control-label" for="check-published-{{ $image['id'] }}">Vidljivost foto.</label>
-                        </div>
+                    <div class="custom-control custom-checkbox custom-checkbox-square custom-control-success">
+                        <input type="checkbox" class="custom-control-input" id="check-published-{{ $image['id'] }}" name="slim[{{ $image['id'] }}][published]" @if($image['published']) checked @endif>
+                        <label class="custom-control-label" for="check-published-{{ $image['id'] }}">Fotografija je vidljiva</label>
                     </div>
                 </div>
             </div>

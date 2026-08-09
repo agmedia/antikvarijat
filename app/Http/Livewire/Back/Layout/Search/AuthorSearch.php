@@ -65,6 +65,11 @@ class AuthorSearch extends Component
     public function viewAddWindow()
     {
         $this->show_add_window = ! $this->show_add_window;
+
+        if ($this->show_add_window) {
+            $this->new['title'] = trim($this->search);
+            $this->search_results = [];
+        }
     }
 
 
@@ -75,10 +80,13 @@ class AuthorSearch extends Component
     {
         $this->search         = $value;
         $this->search_results = [];
+        $this->show_add_window = false;
+        $this->author_id = 0;
 
-        if ($this->search != '') {
+        if (mb_strlen(trim($this->search)) >= 2) {
             $this->search_results = (new Author())->where('title', 'LIKE', '%' . $this->search . '%')
-                                                  ->limit(5)
+                                                  ->orderBy('title')
+                                                  ->limit(6)
                                                   ->get();
         }
     }
@@ -90,6 +98,10 @@ class AuthorSearch extends Component
     public function addAuthor($id)
     {
         $author = (new Author())->where('id', $id)->first();
+
+        if ( ! $author) {
+            return;
+        }
 
         $this->search_results = [];
         $this->search         = $author->title;
@@ -134,6 +146,7 @@ class AuthorSearch extends Component
 
             $this->author_id = $author->id;
             $this->search     = $author->title;
+            $this->new['title'] = '';
 
             return $this->emit('success_alert', ['message' => 'Autor je uspješno dodan..!']);
         }

@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Intervention\Image\Facades\Image;
 
@@ -32,9 +33,27 @@ class HomeController extends Controller
      */
     public function index(Request $request)
     {
-        $page = Cache::remember('page.homepage', config('cache.life'), function () {
-            return Page::where('slug', 'homepage')->first();
-        });
+        $page = null;
+
+        if (Schema::hasTable((new Page())->getTable())) {
+            $page = Cache::remember('page.homepage', config('cache.life'), function () {
+                return Page::where('slug', 'homepage')->first();
+            });
+        }
+
+        // Keep the storefront usable if the CMS table or homepage record has not
+        // yet been restored. The canonical content below mirrors the backup row.
+        if (! $page) {
+            $page = (new Page())->forceFill([
+                'title' => 'Homepage',
+                'title_en' => 'Homepage',
+                'slug' => 'homepage',
+                'slug_en' => 'homepage',
+                'description' => '<p>++homepage-izdvojeno++</p><p>++homepage-novo++</p><p>++recenzije++</p><p>++knjizevnost++</p><p>++homepage-zemljovidi-i-vedute++</p><p>++banneri++</p><p>++homepage-iz-medija++</p>',
+                'description_en' => '<p>++homepage-izdvojeno++</p><p>++homepage-novo++</p><p>++recenzije++</p><p>++knjizevnost++</p><p>++homepage-zemljovidi-i-vedute++</p><p>++banneri++</p><p>++homepage-iz-medija++</p>',
+                'status' => true,
+            ]);
+        }
 
         $page->setAttribute('rendered_description', Helper::setDescription((string) $page->description));
 

@@ -1,10 +1,19 @@
 @extends('back.layouts.backend')
 
 @section('content')
-    <div class="bg-body-light">
+    <div class="admin-page-hero">
         <div class="content content-full">
-            <div class="d-flex flex-column flex-sm-row justify-content-sm-between align-items-sm-center">
-                <h1 class="flex-sm-fill font-size-h2 font-w400 mt-2 mb-0 mb-sm-2">Jednostrani raskidi ugovora</h1>
+            <div class="admin-page-heading">
+                <div>
+                    <div class="admin-page-kicker"><i class="fa-duotone fa-file-signature" aria-hidden="true"></i> Prodaja</div>
+                    <h1 class="admin-page-title">Jednostrani raskidi ugovora</h1>
+                    <p class="admin-page-description">Pregledajte zaprimljene izjave, povezane narudžbe i tijek obrade zahtjeva.</p>
+                </div>
+                <div class="admin-page-actions">
+                    <a class="btn btn-outline-primary" href="{{ route('contract-withdrawal-settings.edit') }}">
+                        <i class="fa-duotone fa-gear mr-1" aria-hidden="true"></i> Postavke
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -14,14 +23,12 @@
 
         <div class="block block-rounded">
             <div class="block-header block-header-default">
-                <h3 class="block-title">
-                    Zaprimljene izjave
-                    <small class="font-weight-light">{{ $withdrawals->total() }}</small>
-                </h3>
-                <div class="block-options">
-                    <a class="btn btn-sm btn-alt-secondary" href="{{ route('contract-withdrawal-settings.edit') }}">
-                        <i class="si si-settings mr-1"></i>Postavke
-                    </a>
+                <div class="d-flex align-items-center min-width-0">
+                    <span class="admin-section-icon mr-3"><i class="fa-duotone fa-inbox-in" aria-hidden="true"></i></span>
+                    <div>
+                        <h2 class="block-title mb-1">Zaprimljene izjave</h2>
+                        <span class="admin-count">{{ number_format($withdrawals->total(), 0, ',', '.') }} zahtjeva</span>
+                    </div>
                 </div>
             </div>
 
@@ -29,8 +36,10 @@
                 <form method="GET" action="{{ route('contract-withdrawals.index') }}">
                     <div class="form-row align-items-center">
                         <div class="col-md-7 mb-2">
+                            <label class="admin-filter-label" for="withdrawal-search">Pretraživanje</label>
                             <input
                                 class="form-control"
+                                id="withdrawal-search"
                                 type="search"
                                 name="search"
                                 value="{{ $search }}"
@@ -38,7 +47,8 @@
                             >
                         </div>
                         <div class="col-md-3 mb-2">
-                            <select class="form-control" name="status">
+                            <label class="admin-filter-label" for="withdrawal-status">Status</label>
+                            <select class="form-control" id="withdrawal-status" name="status">
                                 <option value="">Svi statusi</option>
                                 @foreach ($statuses as $value => $label)
                                     <option value="{{ $value }}" @if($selectedStatus === $value) selected @endif>{{ $label }}</option>
@@ -46,8 +56,9 @@
                             </select>
                         </div>
                         <div class="col-md-2 mb-2">
+                            <span class="admin-filter-label d-none d-md-block" aria-hidden="true">&nbsp;</span>
                             <button class="btn btn-primary btn-block" type="submit">
-                                <i class="fa fa-search mr-1"></i>Pretraži
+                                <i class="fa-duotone fa-magnifying-glass mr-1"></i> Pretraži
                             </button>
                         </div>
                     </div>
@@ -56,7 +67,7 @@
 
             <div class="block-content">
                 <div class="table-responsive">
-                    <table class="table table-borderless table-striped table-vcenter font-size-sm">
+                    <table class="table table-borderless table-striped table-vcenter admin-data-table">
                         <thead>
                             <tr>
                                 <th>Referenca</th>
@@ -70,37 +81,37 @@
                         <tbody>
                             @forelse ($withdrawals as $withdrawal)
                                 <tr>
-                                    <td>
+                                    <td data-label="Referenca">
                                         <a class="font-w600" href="{{ route('contract-withdrawals.show', $withdrawal) }}">
                                             {{ $withdrawal->reference }}
                                         </a>
                                     </td>
-                                    <td class="text-nowrap">
+                                    <td class="text-nowrap" data-label="Podneseno">
                                         {{ optional($withdrawal->submitted_at)->format('d.m.Y. H:i') }}
                                     </td>
-                                    <td>
+                                    <td data-label="Status">
                                         <span class="badge badge-{{ $statusColors[$withdrawal->status] ?? 'secondary' }}">
                                             {{ $statuses[$withdrawal->status] ?? $withdrawal->status }}
                                         </span>
                                     </td>
-                                    <td>
+                                    <td data-label="Kupac">
                                         <div class="font-w600">{{ $withdrawal->full_name }}</div>
                                         <a href="mailto:{{ $withdrawal->email }}">{{ $withdrawal->email }}</a>
                                     </td>
-                                    <td>
+                                    <td data-label="Narudžba">
                                         @if ($withdrawal->order)
                                             <a href="{{ route('orders.show', $withdrawal->order) }}">#{{ $withdrawal->order->id }}</a>
                                         @else
                                             {{ $withdrawal->order_number }}
                                         @endif
                                     </td>
-                                    <td class="text-center">
+                                    <td class="text-center" data-label="Radnje">
                                         <a
                                             class="btn btn-sm btn-alt-primary"
                                             href="{{ route('contract-withdrawals.show', $withdrawal) }}"
                                             title="Otvori zahtjev"
                                         >
-                                            <i class="fa fa-eye"></i>
+                                            <i class="fa-duotone fa-eye" aria-hidden="true"></i>
                                         </a>
                                     </td>
                                 </tr>
@@ -115,9 +126,7 @@
                     </table>
                 </div>
 
-                <div class="d-flex justify-content-center">
-                    {{ $withdrawals->links() }}
-                </div>
+                {{ $withdrawals->links() }}
             </div>
         </div>
     </div>
