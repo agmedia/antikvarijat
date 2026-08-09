@@ -25,7 +25,7 @@
 
             <div class="block">
                 <div class="block-header block-header-default">
-                    <a class="btn btn-light" href="{{ back()->getTargetUrl() }}">
+                    <a class="btn btn-light" href="{{ route('blogs') }}">
                         <i class="fa fa-arrow-left mr-1"></i> Povratak
                     </a>
                     <div class="block-options d-flex flex-wrap align-items-center justify-content-end">

@@ -133,6 +133,14 @@ class BlogWidgetTest extends TestCase
         $this->assertFalse($updated->hide_from_home_widget);
     }
 
+    public function testBlogEditBackButtonAlwaysPointsToTheBlogList(): void
+    {
+        $source = file_get_contents(resource_path('views/back/marketing/blog/edit.blade.php'));
+
+        $this->assertStringContainsString("href=\"{{ route('blogs') }}\"", $source);
+        $this->assertStringNotContainsString("back()->getTargetUrl()", $source);
+    }
+
     private function blogWidgetQuery(array $data)
     {
         $reflection = new ReflectionClass(Helper::class);
