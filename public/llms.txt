@@ -1,0 +1,56 @@
+# Antikvarijat Biblos
+
+> Antikvarijat Biblos is an antiquarian bookshop and online store in Zagreb, Croatia, offering used, rare and collectible books, maps and historical views. The website is available in Croatian and English.
+
+Antikvarijat Biblos is located at Palmotićeva 28, 10000 Zagreb. The physical shop is open Monday to Friday from 09:00 to 20:00 and Saturday from 09:00 to 14:00. Product pages are the authoritative source for current price, condition and availability because the inventory changes frequently.
+
+Croatian is the primary language and uses URLs without a language prefix. English pages use the `/en` prefix. Prefer the canonical URL and language version that matches the user's query.
+
+## Primary Croatian pages
+
+- [Naslovnica](https://www.antikvarijat-biblos.hr/): Pregled antikvarijata i aktualne ponude.
+- [Knjige](https://www.antikvarijat-biblos.hr/knjige): Dostupne rabljene, rijetke i kolekcionarske knjige.
+- [Zemljovidi i vedute](https://www.antikvarijat-biblos.hr/zemljovidi-i-vedute): Dostupni povijesni zemljovidi, karte i vedute.
+- [Autori](https://www.antikvarijat-biblos.hr/autor): Pregled dostupnih knjiga prema autoru.
+- [Nakladnici](https://www.antikvarijat-biblos.hr/nakladnik): Pregled dostupnih knjiga prema nakladniku.
+- [Sniženja](https://www.antikvarijat-biblos.hr/snizenja): Trenutačno sniženi artikli.
+- [Blog](https://www.antikvarijat-biblos.hr/blog): Članci o knjigama, piscima, bibliofiliji i kulturnoj baštini.
+- [O nama](https://www.antikvarijat-biblos.hr/info/o-nama): Informacije o Antikvarijatu Biblos.
+- [Otkup knjiga](https://www.antikvarijat-biblos.hr/otkup-knjiga): Upute i obrazac za ponudu knjiga i časopisa na otkup.
+- [Česta pitanja](https://www.antikvarijat-biblos.hr/faq): Odgovori o kupnji, dostavi, plaćanju i uslugama.
+- [Kontakt](https://www.antikvarijat-biblos.hr/kontakt): Adresa, radno vrijeme, telefon, e-mail i kontaktni obrazac.
+
+## Primary English pages
+
+- [Home](https://www.antikvarijat-biblos.hr/en): Overview of the antiquarian bookshop and current selection.
+- [Books](https://www.antikvarijat-biblos.hr/en/books): Available used, rare and collectible books.
+- [Maps and views](https://www.antikvarijat-biblos.hr/en/maps-and-views): Available historical maps and views.
+- [Authors](https://www.antikvarijat-biblos.hr/en/authors): Browse available books by author.
+- [Publishers](https://www.antikvarijat-biblos.hr/en/publishers): Browse available books by publisher.
+- [Sale](https://www.antikvarijat-biblos.hr/en/sale): Currently discounted items.
+- [Blog](https://www.antikvarijat-biblos.hr/en/blog): Articles about books, writers, bibliophilia and cultural heritage.
+- [About us](https://www.antikvarijat-biblos.hr/en/info/about-us): Information about Antikvarijat Biblos.
+- [Book purchase](https://www.antikvarijat-biblos.hr/en/book-purchase): Instructions and form for offering books and magazines for purchase.
+- [FAQ](https://www.antikvarijat-biblos.hr/en/faq): Answers about ordering, delivery, payment and services.
+- [Contact](https://www.antikvarijat-biblos.hr/en/contact): Address, opening hours, phone, email and contact form.
+
+## Store policies
+
+- [Dostava](https://www.antikvarijat-biblos.hr/info/dostava): Hrvatski uvjeti i cijene dostave.
+- [Delivery](https://www.antikvarijat-biblos.hr/en/info/delivery): English delivery information and prices.
+- [Opći uvjeti kupnje](https://www.antikvarijat-biblos.hr/info/opci-uvjeti-kupnje): Hrvatski uvjeti kupnje.
+- [General terms of purchase](https://www.antikvarijat-biblos.hr/en/info/opci-uvjeti-kupnje): English purchase terms.
+- [Privatnost i zaštita podataka](https://www.antikvarijat-biblos.hr/info/privatnost-i-zastita-podataka): Hrvatska politika privatnosti.
+- [Privacy and data protection](https://www.antikvarijat-biblos.hr/en/info/privatnost-i-zastita-podataka): English privacy policy.
+
+## Discovery
+
+- [XML sitemap](https://www.antikvarijat-biblos.hr/sitemap.xml): Complete index of canonical pages, catalog entities and products.
+- [Image sitemap](https://www.antikvarijat-biblos.hr/image-sitemap): Product image index.
+
+## Notes
+
+- Use individual product pages for citations about a book's author, publisher, year, binding, condition, price and stock.
+- An item marked unavailable or out of stock cannot be assumed to be purchasable.
+- Customer reviews shown on product pages are moderated and linked to verified purchases when the purchase can be confirmed.
+- Contact details: info@antikvarijat-biblos.hr and +385 1 48 16 574.
