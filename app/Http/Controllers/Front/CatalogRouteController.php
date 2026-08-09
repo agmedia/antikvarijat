@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Front;
 use App\Helpers\Breadcrumb;
 use App\Helpers\Helper;
 use App\Helpers\LocaleHelper;
+use App\Helpers\StructuredData;
 use App\Http\Controllers\Controller;
 use App\Imports\ProductImport;
 use App\Models\Back\Settings\Settings;
@@ -561,8 +562,13 @@ class CatalogRouteController extends Controller
             return view('front.blog', compact('blogs'));
         }
 
-        $gdl = TagManager::getGoogleBlogDataLayer($blog);
-        return view('front.blog', compact('blog', 'gdl'));
+        $blogSchema = StructuredData::blogPosting(
+            $blog,
+            LocaleHelper::route('catalog.route.blog', ['blog' => $blog]),
+            app()->getLocale()
+        );
+
+        return view('front.blog', compact('blog', 'blogSchema'));
     }
 
     public function faq()

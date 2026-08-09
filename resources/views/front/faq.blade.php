@@ -1,4 +1,21 @@
 @extends('front.layouts.app')
+@section('title', __('front.faq.meta_title'))
+@section('description', __('front.faq.meta_description'))
+@section('schema_page_type', 'FAQPage')
+
+@php
+    $faqSchema = \App\Helpers\StructuredData::faqPage(
+        \App\Helpers\LocaleHelper::route('faq'),
+        $faq,
+        app()->getLocale()
+    );
+@endphp
+
+@if (! empty($faqSchema['mainEntity']))
+    @push('meta_tags')
+        <script type="application/ld+json">{!! \App\Helpers\StructuredData::toJson($faqSchema) !!}</script>
+    @endpush
+@endif
 
 @section('content')
 

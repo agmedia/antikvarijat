@@ -292,6 +292,8 @@ return [
 
     'faq' => [
         'title' => 'FAQ',
+        'meta_title' => 'Frequently asked questions - Antikvarijat Biblos',
+        'meta_description' => 'Answers to frequently asked questions about ordering, payment, delivery, returns and selling books to Antikvarijat Biblos.',
     ],
 
     'authors' => [

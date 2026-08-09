@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Helpers\StructuredData;
+use App\Models\Front\Blog;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Tests\TestCase;
 
@@ -164,6 +165,50 @@ class StructuredDataTest extends TestCase
             '</script><script>alert("x")</script>',
             json_decode($json, true, 512, JSON_THROW_ON_ERROR)['name']
         );
+    }
+
+    public function testBlogPostingConnectsTheArticleToTheCanonicalPageAndSiteEntities(): void
+    {
+        config(['app.url' => 'https://www.antikvarijat-biblos.hr/']);
+        $blog = new Blog();
+        $blog->setRawAttributes([
+            'title' => 'Naslov članka',
+            'meta_description' => 'Kratak opis članka.',
+            'description' => '<p>Tekst članka s više riječi.</p>',
+            'image' => 'media/img/blog/clanak.jpg',
+            'publish_date' => '2026-08-01 10:00:00',
+            'created_at' => '2026-08-01 10:00:00',
+            'updated_at' => '2026-08-09 12:00:00',
+        ], true);
+        $url = 'https://www.antikvarijat-biblos.hr/blog/naslov-clanka';
+
+        $schema = StructuredData::blogPosting($blog, $url, 'hr');
+
+        $this->assertSame('BlogPosting', $schema['@type']);
+        $this->assertSame($url . '#article', $schema['@id']);
+        $this->assertSame($url . '#webpage', $schema['mainEntityOfPage']['@id']);
+        $this->assertSame('https://www.antikvarijat-biblos.hr/#organization', $schema['publisher']['@id']);
+        $this->assertSame('hr', $schema['inLanguage']);
+        $this->assertArrayHasKey('dateModified', $schema);
+        $this->assertSame('Tekst članka s više riječi.', html_entity_decode(strip_tags($blog->description)));
+    }
+
+    public function testFaqPageContainsOnlyVisibleQuestionsWithAnswers(): void
+    {
+        $schema = StructuredData::faqPage(
+            'https://www.antikvarijat-biblos.hr/faq',
+            [
+                ['title' => 'Kako naručiti?', 'description' => '<p>Dodajte artikl u <strong>košaricu</strong>.</p><ul><li>Potvrdite narudžbu.</li></ul>'],
+                ['title' => 'Prazno pitanje', 'description' => ''],
+            ],
+            'hr'
+        );
+
+        $this->assertSame('FAQPage', $schema['@type']);
+        $this->assertSame('https://www.antikvarijat-biblos.hr/faq#webpage', $schema['@id']);
+        $this->assertCount(1, $schema['mainEntity']);
+        $this->assertSame('Kako naručiti?', $schema['mainEntity'][0]['name']);
+        $this->assertSame('Dodajte artikl u košaricu. Potvrdite narudžbu.', $schema['mainEntity'][0]['acceptedAnswer']['text']);
     }
 
     private function shippingMethod(string $code, int $geoZone, float $price, ?string $time): object

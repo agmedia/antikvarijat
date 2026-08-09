@@ -2,9 +2,13 @@
 @if(isset($blogs))
     @section ( 'title', __('front.blog.meta_title') )
     @section ( 'description', __('front.blog.meta_description') )
+    @section('schema_page_type', 'CollectionPage')
 @else
-    @section ( 'title', $blog->title. ' - Antikvarijat Biblos' )
-    @section ( 'description', $blog->meta_description )
+    @section('title', $blog->meta_title ?: $blog->title . ' - Antikvarijat Biblos')
+    @section('description', $blog->meta_description ?: $blog->short_description)
+    @section('og_type', 'article')
+    @section('og_image', $blog->image)
+    @section('og_image_alt', $blog->title)
 
 @endif
 
@@ -12,6 +16,10 @@
     @if (isset($blogs))
         <script src="{{ asset('js/imagesloaded/imagesloaded.pkgd.min.js') }}"></script>
         <script src="{{ asset('js/shufflejs/dist/shuffle.min.js') }}"></script>
+    @else
+        <meta property="article:published_time" content="{{ optional(\Illuminate\Support\Carbon::make($blog->publish_date ?: $blog->created_at))->toAtomString() }}">
+        <meta property="article:modified_time" content="{{ optional(\Illuminate\Support\Carbon::make($blog->updated_at))->toAtomString() }}">
+        <script type="application/ld+json">{!! \App\Helpers\StructuredData::toJson($blogSchema) !!}</script>
     @endif
 @endpush
 
@@ -20,14 +28,6 @@
         <link rel="stylesheet" media="screen" href="{{ asset('js/simple-lightbox.css?v2.14.0') }}">
     @endif
 @endpush
-
-@if (isset($gdl))
-    @section('google_data_layer')
-        <script type="application/ld+json">
-                <?php echo json_encode($gdl); ?>
-        </script>
-    @endsection
-@endif
 
 @section('content')
     <!-- Page Title-->

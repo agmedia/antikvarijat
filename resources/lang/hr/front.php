@@ -248,6 +248,8 @@ return [
 
     'faq' => [
         'title' => 'Česta pitanja',
+        'meta_title' => 'Česta pitanja - Antikvarijat Biblos',
+        'meta_description' => 'Odgovori na česta pitanja o naručivanju, plaćanju, dostavi, povratu i otkupu knjiga u Antikvarijatu Biblos.',
     ],
 
     'authors' => [

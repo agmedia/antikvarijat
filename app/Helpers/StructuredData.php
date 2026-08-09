@@ -2,7 +2,10 @@
 
 namespace App\Helpers;
 
+use App\Models\Front\Blog;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 
 final class StructuredData
 {
@@ -259,6 +262,98 @@ final class StructuredData
         ];
     }
 
+    public static function blogPosting(Blog $blog, string $canonicalUrl, string $locale): array
+    {
+        $siteUrl = rtrim((string) config('app.url'), '/');
+        $published = Carbon::make($blog->publish_date ?: $blog->created_at);
+        $modified = Carbon::make($blog->updated_at) ?: $published;
+        $description = self::plainText(
+            (string) ($blog->meta_description ?: $blog->short_description ?: $blog->description)
+        );
+        $articleBody = self::plainText((string) $blog->description);
+
+        $schema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'BlogPosting',
+            '@id' => rtrim($canonicalUrl, '/') . '#article',
+            'url' => $canonicalUrl,
+            'headline' => self::plainText((string) $blog->title),
+            'description' => Str::limit($description, 500, ''),
+            'mainEntityOfPage' => [
+                '@type' => 'WebPage',
+                '@id' => rtrim($canonicalUrl, '/') . '#webpage',
+            ],
+            'author' => [
+                '@id' => $siteUrl . '/#organization',
+            ],
+            'publisher' => [
+                '@id' => $siteUrl . '/#organization',
+            ],
+            'isPartOf' => [
+                '@id' => $siteUrl . '/#website',
+            ],
+            'inLanguage' => $locale,
+            'isAccessibleForFree' => true,
+        ];
+
+        if ($blog->image) {
+            $schema['image'] = [
+                '@type' => 'ImageObject',
+                'url' => $blog->image,
+                'contentUrl' => $blog->image,
+                'caption' => self::plainText((string) $blog->title),
+            ];
+        }
+
+        if ($published) {
+            $schema['datePublished'] = $published->toAtomString();
+        }
+
+        if ($modified) {
+            $schema['dateModified'] = $modified->toAtomString();
+        }
+
+        if ($articleBody !== '') {
+            $schema['wordCount'] = str_word_count($articleBody);
+        }
+
+        return $schema;
+    }
+
+    public static function faqPage(string $canonicalUrl, iterable $items, string $locale): array
+    {
+        $questions = collect($items)
+            ->map(function ($item) {
+                $question = self::plainText((string) data_get($item, 'title'));
+                $answer = self::plainText((string) data_get($item, 'description'));
+
+                if ($question === '' || $answer === '') {
+                    return null;
+                }
+
+                return [
+                    '@type' => 'Question',
+                    'name' => $question,
+                    'acceptedAnswer' => [
+                        '@type' => 'Answer',
+                        'text' => $answer,
+                    ],
+                ];
+            })
+            ->filter()
+            ->values()
+            ->all();
+
+        return [
+            '@context' => 'https://schema.org',
+            '@type' => 'FAQPage',
+            '@id' => rtrim($canonicalUrl, '/') . '#webpage',
+            'url' => $canonicalUrl,
+            'inLanguage' => $locale,
+            'mainEntity' => $questions,
+        ];
+    }
+
     public static function imageMimeType(?string $url): ?string
     {
         $path = parse_url((string) $url, PHP_URL_PATH);
@@ -277,6 +372,18 @@ final class StructuredData
     public static function toJson(array $schema): string
     {
         return json_encode($schema, self::JSON_FLAGS);
+    }
+
+    private static function plainText(string $value): string
+    {
+        $value = (string) preg_replace(
+            '/<(?:br\s*\/?|\/\s*(?:p|div|li|ul|ol|h[1-6]|blockquote))\s*>/iu',
+            ' ',
+            $value
+        );
+        $value = html_entity_decode(strip_tags($value), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        return trim((string) preg_replace('/\s+/u', ' ', $value));
     }
 
     private static function shippingDays(string $deliveryTime): ?array
