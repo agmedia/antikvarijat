@@ -64,5 +64,6 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'no.customers' => \App\Http\Middleware\RedirectCustomer::class,
         'not.editor' => \App\Http\Middleware\RejectEditor::class,
+        'review.backfill.admin' => \App\Http\Middleware\RequireProductReviewBackfillAdmin::class,
     ];
 }

@@ -10,4 +10,5 @@ return [
     'backfill_default_interval_seconds' => (int) env('REVIEW_BACKFILL_INTERVAL_SECONDS', 5),
     'backfill_interval_options' => [1, 2, 5, 10, 15, 30, 60],
     'backfill_run_seconds' => (int) env('REVIEW_BACKFILL_RUN_SECONDS', 58),
+    'backfill_admin_email' => env('REVIEW_BACKFILL_ADMIN_EMAIL', 'tomislav@agmedia.hr'),
 ];

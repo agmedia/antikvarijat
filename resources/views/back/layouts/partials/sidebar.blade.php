@@ -107,14 +107,14 @@
                     </a>
                 </li>
 
-                @unless(auth()->check() && Bouncer::is(auth()->user())->an('editor'))
+                @if(\App\Support\ProductReviewBackfillAccess::allows(auth()->user()))
                     <li class="nav-main-item">
                         <a class="nav-main-link{{ request()->routeIs(['product-review-backfills.*']) ? ' active' : '' }}" href="{{ route('product-review-backfills.index') }}">
                             <i class="nav-main-link-icon fa-solid fa-paper-plane"></i>
                             <span class="nav-main-link-name">Pozivi za recenzije</span>
                         </a>
                     </li>
-                @endunless
+                @endif
 
                 <li class="nav-main-item{{ (request()->is(['admin/marketing/*']) || request()->routeIs(['wishlists', 'wishlists.*'])) ? ' open' : '' }}">
                     <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="{{ (request()->is(['admin/marketing/*']) || request()->routeIs(['wishlists', 'wishlists.*'])) ? 'true' : 'false' }}" href="#">

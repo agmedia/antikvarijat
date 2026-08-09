@@ -149,7 +149,7 @@ Route::middleware(['auth:sanctum', 'verified', 'no.customers'])->prefix('admin')
     // RECENZIJE ARTIKALA
     Route::get('product-reviews', [AdminProductReviewController::class, 'index'])->name('product-reviews.index');
     Route::patch('product-reviews/{review}', [AdminProductReviewController::class, 'update'])->name('product-reviews.update');
-    Route::middleware('not.editor')->group(function () {
+    Route::middleware(['not.editor', 'review.backfill.admin'])->group(function () {
         Route::get('product-review-requests', [AdminProductReviewBackfillController::class, 'index'])
             ->name('product-review-backfills.index');
         Route::post('product-review-requests', [AdminProductReviewBackfillController::class, 'store'])
