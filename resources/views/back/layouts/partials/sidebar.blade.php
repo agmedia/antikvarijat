@@ -100,6 +100,13 @@
                     </a>
                 </li>
 
+                <li class="nav-main-item">
+                    <a class="nav-main-link{{ request()->routeIs(['product-reviews.*']) ? ' active' : '' }}" href="{{ route('product-reviews.index') }}">
+                        <i class="nav-main-link-icon fa-duotone fa-star"></i>
+                        <span class="nav-main-link-name">Recenzije artikala</span>
+                    </a>
+                </li>
+
                 <li class="nav-main-item{{ (request()->is(['admin/marketing/*']) || request()->routeIs(['wishlists', 'wishlists.*'])) ? ' open' : '' }}">
                     <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="{{ (request()->is(['admin/marketing/*']) || request()->routeIs(['wishlists', 'wishlists.*'])) ? 'true' : 'false' }}" href="#">
                         <i class="nav-main-link-icon fa-duotone fa-megaphone"></i>

@@ -29,7 +29,7 @@ class Recaptcha
      */
     public function __construct()
     {
-        $this->remote_ip  = $_SERVER['REMOTE_ADDR'];
+        $this->remote_ip  = $_SERVER['REMOTE_ADDR'] ?? request()->ip() ?? '127.0.0.1';
         $this->verify_url = config('services.recaptcha.verify_url');
     }
 
@@ -41,7 +41,7 @@ class Recaptcha
      */
     public function check(array $data)
     {
-        if (app()->environment('local') && config('services.recaptcha.bypass_local', true)) {
+        if (app()->environment(['local', 'testing']) && config('services.recaptcha.bypass_local', true)) {
             $this->result = (object)['success' => true, 'score' => 0.9, 'bypassed' => true];
             return $this;
         }

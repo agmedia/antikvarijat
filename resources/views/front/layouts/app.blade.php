@@ -9,31 +9,11 @@
         $defaultDescription = __('front.meta.default_description');
         $title = trim($__env->yieldContent('title')) ?: $defaultTitle;
         $description = trim($__env->yieldContent('description')) ?: $defaultDescription;
-        $canonicalUrl = trim($__env->yieldContent('canonical')) ?: request()->url();
+        $seoMeta = \App\Helpers\Metatags::resolve(request());
+        $canonicalUrl = trim($__env->yieldContent('canonical')) ?: $seoMeta['canonical'];
         $alternateUrls = \App\Helpers\LocaleHelper::currentAlternateUrls();
         $languageSwitcherUrls = \App\Helpers\LocaleHelper::languageSwitcherUrls();
-        $defaultNoIndexRoutes = [
-            'kosarica',
-            'naplata',
-            'pregled',
-            'checkout',
-            'checkout.success',
-            'checkout.error',
-            'moj-racun',
-            'moje-narudzbe',
-            'login',
-            'register',
-            'verification.notice',
-            'password.request',
-            'password.reset',
-        ];
-        $robots = trim($__env->yieldContent('robots'));
-        if (! $robots) {
-            $localizedNoIndexRoutes = array_merge($defaultNoIndexRoutes, array_map(fn ($route) => 'en.' . $route, $defaultNoIndexRoutes));
-            $robots = request()->routeIs($localizedNoIndexRoutes)
-                ? 'noindex,follow,noarchive'
-                : 'index,follow,max-image-preview:large';
-        }
+        $robots = trim($__env->yieldContent('robots')) ?: $seoMeta['robots'];
         $ogType = trim($__env->yieldContent('og_type')) ?: 'website';
         $ogImage = trim($__env->yieldContent('og_image'));
         $twitterCard = $ogImage ? 'summary_large_image' : 'summary';

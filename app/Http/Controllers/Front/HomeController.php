@@ -16,6 +16,7 @@ use App\Models\Front\Page;
 use App\Models\Sitemap;
 use App\Services\BookPurchaseContentService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
@@ -437,31 +438,116 @@ class HomeController extends Controller
     public function sitemapXML(Request $request, $sitemap = null)
     {
         if ( ! $sitemap) {
-            $items = config('settings.sitemap');
+            return $this->cachedSitemapResponse($request, 'index', function () {
+                $items = Sitemap::indexItems(config('settings.sitemap'));
 
-            return response()->view('front.layouts.partials.sitemap-index', [
-                'items' => $items
-            ])->header('Content-Type', 'text/xml');
+                return [
+                    'content' => view('front.layouts.partials.sitemap-index', compact('items'))->render(),
+                    'last_modified' => $this->latestSitemapModification($items),
+                ];
+            });
         }
 
-        $sm = new Sitemap($sitemap);
+        if (in_array($sitemap, ['images', 'images.xml', 'img'], true)) {
+            return redirect()->route('image-sitemap');
+        }
 
-        return response()->view('front.layouts.partials.sitemap', [
-            'items' => $sm->getSitemap()
-        ])->header('Content-Type', 'text/xml');
+        $descriptor = Sitemap::parseName($sitemap);
+
+        if (! $descriptor) {
+            abort(404);
+        }
+
+        $shards = Sitemap::shardCount($descriptor['type']);
+
+        if ($descriptor['shard'] === null && $shards > 1) {
+            return $this->cachedSitemapResponse($request, 'index.' . $descriptor['type'], function () use ($descriptor) {
+                $items = Sitemap::indexItems([$descriptor['type']]);
+
+                return [
+                    'content' => view('front.layouts.partials.sitemap-index', compact('items'))->render(),
+                    'last_modified' => $this->latestSitemapModification($items),
+                ];
+            });
+        }
+
+        $shard = $descriptor['shard'] ?? 1;
+
+        if ($shard < 1 || $shard > $shards) {
+            abort(404);
+        }
+
+        return $this->cachedSitemapResponse(
+            $request,
+            $descriptor['type'] . '.' . $shard,
+            function () use ($descriptor, $shard) {
+                $items = (new Sitemap($descriptor['type'], $shard))->getSitemap();
+
+                return [
+                    'content' => view('front.layouts.partials.sitemap', compact('items'))->render(),
+                    'last_modified' => Sitemap::lastModifiedFor($descriptor['type'])->toAtomString(),
+                ];
+            }
+        );
     }
 
-
-    /**
-     * @return \Illuminate\Http\Response
-     */
-    public function sitemapImageXML()
+    public function sitemapImageXML(Request $request, $shard = null)
     {
-        $sm = new Sitemap('images');
+        $parsedShard = Sitemap::parseImageShard($shard);
+        $shards = Sitemap::shardCount('images');
 
-        return response()->view('front.layouts.partials.sitemap-image', [
-            'items' => $sm->getResponse()
-        ])->header('Content-Type', 'text/xml');
+        if ($parsedShard === null && $shards > 1) {
+            return $this->cachedSitemapResponse($request, 'images.index', function () {
+                $items = Sitemap::imageIndexItems();
+
+                return [
+                    'content' => view('front.layouts.partials.sitemap-index', compact('items'))->render(),
+                    'last_modified' => $this->latestSitemapModification($items),
+                ];
+            });
+        }
+
+        $parsedShard = $parsedShard ?? 1;
+
+        if ($parsedShard < 1 || $parsedShard > $shards) {
+            abort(404);
+        }
+
+        return $this->cachedSitemapResponse($request, 'images.' . $parsedShard, function () use ($parsedShard) {
+            $items = (new Sitemap('images', $parsedShard))->getResponse();
+
+            return [
+                'content' => view('front.layouts.partials.sitemap-image', compact('items'))->render(),
+                'last_modified' => Sitemap::lastModifiedFor('images')->toAtomString(),
+            ];
+        });
+    }
+
+    private function cachedSitemapResponse(Request $request, string $key, callable $build)
+    {
+        $ttl = max(60, (int) config('settings.sitemap_cache_ttl', 3600));
+        $cacheKey = 'public.sitemap.v3.' . sha1(config('app.url') . '|' . $key);
+        $payload = Cache::remember($cacheKey, $ttl, $build);
+        $content = (string) ($payload['content'] ?? '');
+        $lastModified = Carbon::parse($payload['last_modified'] ?? now());
+
+        $response = response($content, 200, [
+            'Content-Type' => 'application/xml; charset=UTF-8',
+            'Cache-Control' => 'public, max-age=' . $ttl . ', s-maxage=' . $ttl,
+        ]);
+
+        $response->setEtag(sha1($content));
+        $response->setLastModified($lastModified);
+        $response->isNotModified($request);
+
+        return $response;
+    }
+
+    private function latestSitemapModification(array $items): string
+    {
+        $latest = collect($items)->pluck('lastmod')->filter()->max();
+
+        return Carbon::parse($latest ?: now())->toAtomString();
     }
 
 

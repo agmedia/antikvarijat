@@ -86,6 +86,8 @@ return [
         3 => 'authors',
         4 => 'publishers'
     ],
+    'sitemap_max_urls' => 20000,
+    'sitemap_cache_ttl' => 3600,
 
     //
     'njuskalo' => [

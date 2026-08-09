@@ -387,19 +387,26 @@
                             </div>
                             <div class="product-edit-section-body">
                                 <div class="form-group row items-push mb-3">
-                                    <div class="col-md-3">
+                                    <div class="col-md-4">
+                                        <label for="isbn-input">ISBN <span class="small text-muted">(neobavezno)</span></label>
+                                        <input type="text" class="form-control" id="isbn-input" name="isbn" maxlength="20" placeholder="ISBN-10 ili ISBN-13" value="{{ old('isbn', isset($product) ? $product->isbn : '') }}">
+                                        @error('isbn')
+                                        <span class="text-danger small font-italic">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                    <div class="col-md-2">
                                         <label for="origin-input">Mjesto izdavanja</label>
                                         <input type="text" class="form-control" id="origin-input" name="origin" placeholder="Upišite mjesto izdavanja" value="{{ isset($product) ? $product->origin : old('origin') }}">
                                     </div>
-                                    <div class="col-md-3">
-                                        <label for="origin-input">Godina izdavanja</label>
+                                    <div class="col-md-2">
+                                        <label for="year-input">Godina izdavanja</label>
                                         <input type="text" class="form-control" id="year-input" name="year" placeholder="Upišite godinu izdavanja" value="{{ isset($product) ? $product->year : old('year') }}">
                                     </div>
-                                    <div class="col-md-3">
+                                    <div class="col-md-2">
                                         <label for="pages-input">Broj stranica</label>
                                         <input type="text" class="form-control" id="pages-input" name="pages" placeholder="Upišite broj stranica" value="{{ isset($product) ? $product->pages : old('pages') }}">
                                     </div>
-                                    <div class="col-md-3">
+                                    <div class="col-md-2">
                                         <label for="dimensions-input">Dimenzije</label>
                                         <input type="text" class="form-control" id="dimensions-input" name="dimensions" placeholder="Upišite dimenzije" value="{{ isset($product) ? $product->dimensions : old('dimensions') }}">
                                     </div>

@@ -337,6 +337,13 @@ class LocaleHelper
             $alternates['en'] = self::route($baseName, $params, true, self::ENGLISH_LOCALE);
         }
 
+        $canonicalQuery = Metatags::canonicalQuery(request());
+
+        if ($canonicalQuery) {
+            $query = http_build_query($canonicalQuery);
+            $alternates = array_map(fn (string $url) => $url . '?' . $query, $alternates);
+        }
+
         return $alternates;
     }
 

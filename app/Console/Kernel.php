@@ -25,7 +25,10 @@ class Kernel extends ConsoleKernel
         $schedule->command('clean:authors')->dailyAt('00:03');
         $schedule->command('clean:publishers')->dailyAt('00:04');
         //
-        $schedule->command('check:wishlist')->everySixHours();//->everyMinute();
+        $schedule->command('reviews:send-requests')
+            // Tri pokušaja unutar istog (točno 30.) dana; uspješno poslani se preskaču.
+            ->cron('15 10,14,18 * * *')
+            ->withoutOverlapping();
     }
 
     /**

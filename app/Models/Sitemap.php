@@ -9,6 +9,7 @@ use App\Models\Front\Catalog\Product;
 use App\Models\Front\Catalog\Publisher;
 use App\Models\Front\Page;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 
 /**
  * Class Sitemap
@@ -16,6 +17,14 @@ use Illuminate\Support\Carbon;
  */
 class Sitemap
 {
+    private const TYPES = [
+        'pages',
+        'categories',
+        'products',
+        'authors',
+        'publishers',
+        'images',
+    ];
 
     /**
      * @var string|null
@@ -27,20 +36,27 @@ class Sitemap
      */
     private $response = [];
 
+    /**
+     * @var int
+     */
+    private $shard;
+
 
     /**
      * Sitemap constructor.
      *
      * @param string|null $sitemap
+     * @param int         $shard
      */
-    public function __construct(?string $sitemap = null)
+    public function __construct(?string $sitemap = null, int $shard = 1)
     {
-        $this->sitemap = $this->setSitemap($sitemap);
+        $this->shard = max($shard, 1);
+        $this->sitemap = $this->setSitemap(static::normalizeType($sitemap));
     }
 
 
     /**
-     * @return string|null
+     * @return array|null
      */
     public function getSitemap()
     {
@@ -58,9 +74,150 @@ class Sitemap
 
 
     /**
-     * @param string $sitemap
+     * @param iterable<int, string> $sitemaps
      *
-     * @return array
+     * @return array<int, array{loc: string, lastmod: string}>
+     */
+    public static function indexItems(iterable $sitemaps): array
+    {
+        $response = [];
+
+        foreach ($sitemaps as $sitemap) {
+            $type = static::normalizeType((string) $sitemap);
+
+            if (! $type || $type === 'images') {
+                continue;
+            }
+
+            $shards = static::shardCount($type);
+            $lastmod = static::lastModifiedFor($type)->tz('UTC')->toAtomString();
+
+            for ($shard = 1; $shard <= $shards; $shard++) {
+                $name = $shards > 1 ? $type . '-' . $shard . '.xml' : $type . '.xml';
+                $response[] = [
+                    'loc' => route('sitemap', ['sitemap' => $name]),
+                    'lastmod' => $lastmod,
+                ];
+            }
+        }
+
+        return $response;
+    }
+
+
+    /**
+     * @return array<int, array{loc: string, lastmod: string}>
+     */
+    public static function imageIndexItems(): array
+    {
+        $response = [];
+        $lastmod = static::lastModifiedFor('images')->tz('UTC')->toAtomString();
+
+        for ($shard = 1; $shard <= static::shardCount('images'); $shard++) {
+            $response[] = [
+                'loc' => route('image-sitemap', ['shard' => $shard . '.xml']),
+                'lastmod' => $lastmod,
+            ];
+        }
+
+        return $response;
+    }
+
+
+    /**
+     * @return array{type: string, shard: int|null}|null
+     */
+    public static function parseName(?string $sitemap): ?array
+    {
+        if (! $sitemap || ! preg_match('/^(pages|categories|products|authors|publishers)(?:-(\d+))?(?:\.xml)?$/', $sitemap, $matches)) {
+            return null;
+        }
+
+        return [
+            'type' => $matches[1],
+            'shard' => isset($matches[2]) ? (int) $matches[2] : null,
+        ];
+    }
+
+
+    public static function parseImageShard(?string $shard): ?int
+    {
+        if ($shard === null || $shard === '') {
+            return null;
+        }
+
+        return preg_match('/^(\d+)(?:\.xml)?$/', $shard, $matches)
+            ? (int) $matches[1]
+            : 0;
+    }
+
+
+    public static function shardCount(string $type): int
+    {
+        return static::shardCountForUrlCount(static::urlCount($type));
+    }
+
+
+    public static function shardCountForUrlCount(int $urlCount): int
+    {
+        return max(1, (int) ceil(max(0, $urlCount) / static::maxUrlsPerSitemap()));
+    }
+
+
+    public static function maxUrlsPerSitemap(): int
+    {
+        return max(1, min(50000, (int) config('settings.sitemap_max_urls', 20000)));
+    }
+
+
+    public static function lastModifiedFor(string $type): Carbon
+    {
+        $type = static::normalizeType($type);
+
+        if ($type === 'pages') {
+            return static::dateFromMaxUpdatedAt(
+                Page::query()
+                    ->whereIn('group', ['page', 'blog'])
+                    ->where('status', 1)
+                    ->max('updated_at'),
+                Carbon::now()->startOfMonth()
+            );
+        }
+
+        if ($type === 'categories') {
+            return static::dateFromMaxUpdatedAt(
+                Category::query()->active()->max('updated_at'),
+                Carbon::now()->startOfMonth()
+            );
+        }
+
+        if ($type === 'products' || $type === 'images') {
+            return static::dateFromMaxUpdatedAt(
+                Product::query()->active()->hasStock()->max('updated_at'),
+                Carbon::now()->startOfDay()
+            );
+        }
+
+        if ($type === 'authors') {
+            return static::dateFromMaxUpdatedAt(
+                Author::query()->active()->max('updated_at'),
+                Carbon::now()->startOfMonth()
+            );
+        }
+
+        if ($type === 'publishers') {
+            return static::dateFromMaxUpdatedAt(
+                Publisher::query()->active()->max('updated_at'),
+                Carbon::now()->startOfMonth()
+            );
+        }
+
+        return Carbon::now()->startOfDay();
+    }
+
+
+    /**
+     * @return array|null
      */
     private function setSitemap(?string $sitemap)
     {
@@ -68,29 +225,31 @@ class Sitemap
             return $sitemap;
         }
 
-        if ($sitemap == 'pages' || $sitemap == 'pages.xml') {
+        if ($sitemap === 'pages') {
             return $this->getPages();
         }
 
-        if ($sitemap == 'categories' || $sitemap == 'categories.xml') {
+        if ($sitemap === 'categories') {
             return $this->getCategories();
         }
 
-        if ($sitemap == 'products' || $sitemap == 'products.xml') {
+        if ($sitemap === 'products') {
             return $this->getProducts();
         }
 
-        if ($sitemap == 'authors' || $sitemap == 'authors.xml') {
+        if ($sitemap === 'authors') {
             return $this->getAuthors();
         }
 
-        if ($sitemap == 'publishers' || $sitemap == 'publishers.xml') {
+        if ($sitemap === 'publishers') {
             return $this->getPublishers();
         }
 
-        if ($sitemap == 'images' || $sitemap == 'img') {
+        if ($sitemap === 'images') {
             return $this->getImages();
         }
+
+        return null;
     }
 
 
@@ -99,7 +258,13 @@ class Sitemap
      */
     private function getImages(): array
     {
-        $products = Product::query()->active()->hasStock()->select('url', 'id', 'image')->with('images');
+        $products = Product::query()
+            ->active()
+            ->hasStock()
+            ->select('url', 'id', 'image')
+            ->with('images')
+            ->orderBy('id')
+            ->forPage($this->shard, static::maxUrlsPerSitemap());
 
         foreach ($products->get() as $product) {
             $this->response[$product->id] = [
@@ -151,7 +316,7 @@ class Sitemap
 
         //dd($coll);
 
-        return $this->response;
+        return $this->sliceResponse();
     }
 
 
@@ -160,7 +325,12 @@ class Sitemap
      */
     private function getCategories()
     {
-        $categories = Category::query()->active()->topList()->with('subcategories')->get();
+        $categories = Category::query()
+            ->active()
+            ->topList()
+            ->with(['subcategories' => fn ($query) => $query->active()->orderBy('id')])
+            ->orderBy('id')
+            ->get();
 
         foreach ($categories as $category) {
             foreach (LocaleHelper::locales() as $locale) {
@@ -170,7 +340,7 @@ class Sitemap
                 );
             }
 
-            foreach ($category->subcategories()->get() as $subcategory) {
+            foreach ($category->subcategories as $subcategory) {
                 foreach (LocaleHelper::locales() as $locale) {
                     $this->addUrl(
                         LocaleHelper::route('catalog.route', ['group' => $category->getRawOriginal('group'), 'cat' => $category, 'subcat' => $subcategory], true, $locale),
@@ -180,7 +350,7 @@ class Sitemap
             }
         }
 
-        return $this->response;
+        return $this->sliceResponse();
     }
 
 
@@ -189,11 +359,20 @@ class Sitemap
      */
     private function getProducts()
     {
+        $perPage = $this->recordsPerShard();
         $products = Product::query()
             ->active()
             ->hasStock()
             ->select('id', 'url', 'url_en', 'slug', 'slug_en', 'updated_at')
-            ->with('categories')
+            ->with(['categories' => fn ($query) => $query->select(
+                'categories.id',
+                'categories.parent_id',
+                'categories.group',
+                'categories.slug',
+                'categories.slug_en'
+            )])
+            ->orderBy('id')
+            ->forPage($this->shard, $perPage)
             ->get();
 
         foreach ($products as $product) {
@@ -211,10 +390,29 @@ class Sitemap
      */
     private function getAuthors()
     {
-        $authors = Author::query()->active()->select('id', 'slug', 'slug_en', 'url', 'updated_at')->get();
+        $locales = max(count(LocaleHelper::locales()), 1);
+        $perPage = $this->recordsPerShard($locales);
+        $authors = Author::query()
+            ->active()
+            ->whereNotNull('slug')
+            ->where('slug', '!=', '')
+            ->whereIn('id', function ($query) {
+                $query->from('authors')
+                    ->selectRaw('MIN(id)')
+                    ->where('status', 1)
+                    ->whereNotNull('slug')
+                    ->where('slug', '!=', '')
+                    ->groupBy('slug');
+            })
+            ->select('id', 'slug', 'slug_en', 'url', 'updated_at')
+            ->orderBy('id')
+            ->forPage($this->shard, $perPage)
+            ->get();
 
-        foreach (LocaleHelper::locales() as $locale) {
-            $this->addUrl(LocaleHelper::route('catalog.route.author', [], true, $locale), Carbon::now()->startOfMonth());
+        if ($this->shard === 1) {
+            foreach (LocaleHelper::locales() as $locale) {
+                $this->addUrl(LocaleHelper::route('catalog.route.author', [], true, $locale), Carbon::now()->startOfMonth());
+            }
         }
 
         foreach ($authors as $author) {
@@ -252,10 +450,29 @@ class Sitemap
      */
     private function getPublishers()
     {
-        $publishers = Publisher::query()->active()->select('id', 'slug', 'slug_en', 'url', 'updated_at')->get();
+        $locales = max(count(LocaleHelper::locales()), 1);
+        $perPage = $this->recordsPerShard($locales);
+        $publishers = Publisher::query()
+            ->active()
+            ->whereNotNull('slug')
+            ->where('slug', '!=', '')
+            ->whereIn('id', function ($query) {
+                $query->from('publishers')
+                    ->selectRaw('MIN(id)')
+                    ->where('status', 1)
+                    ->whereNotNull('slug')
+                    ->where('slug', '!=', '')
+                    ->groupBy('slug');
+            })
+            ->select('id', 'slug', 'slug_en', 'url', 'updated_at')
+            ->orderBy('id')
+            ->forPage($this->shard, $perPage)
+            ->get();
 
-        foreach (LocaleHelper::locales() as $locale) {
-            $this->addUrl(LocaleHelper::route('catalog.route.publisher', [], true, $locale), Carbon::now()->startOfMonth());
+        if ($this->shard === 1) {
+            foreach (LocaleHelper::locales() as $locale) {
+                $this->addUrl(LocaleHelper::route('catalog.route.publisher', [], true, $locale), Carbon::now()->startOfMonth());
+            }
         }
 
         foreach ($publishers as $publisher) {
@@ -273,5 +490,97 @@ class Sitemap
             'url' => $url,
             'lastmod' => Carbon::parse($lastmod)->tz('UTC')->toAtomString(),
         ];
+    }
+
+
+    private function recordsPerShard(int $reservedUrls = 0): int
+    {
+        $locales = max(count(LocaleHelper::locales()), 1);
+        $availableUrls = max(1, static::maxUrlsPerSitemap() - $reservedUrls);
+
+        return max(1, intdiv($availableUrls, $locales));
+    }
+
+
+    private function sliceResponse(): array
+    {
+        $offset = ($this->shard - 1) * static::maxUrlsPerSitemap();
+
+        return array_slice($this->response, $offset, static::maxUrlsPerSitemap());
+    }
+
+
+    private static function normalizeType(?string $type): ?string
+    {
+        if (! $type) {
+            return null;
+        }
+
+        $type = Str::replaceLast('.xml', '', $type);
+        $type = $type === 'img' ? 'images' : $type;
+
+        return in_array($type, self::TYPES, true) ? $type : null;
+    }
+
+
+    private static function urlCount(string $type): int
+    {
+        $type = static::normalizeType($type);
+        $locales = max(count(LocaleHelper::locales()), 1);
+
+        if ($type === 'pages') {
+            $contentPages = Page::query()
+                ->where('group', 'page')
+                ->where('slug', '!=', 'homepage')
+                ->where('status', 1)
+                ->count();
+            $blogs = Page::query()->where('group', 'blog')->where('status', 1)->count();
+
+            return (5 + $contentPages + $blogs) * $locales;
+        }
+
+        if ($type === 'categories') {
+            $categories = Category::query()
+                ->active()
+                ->where(function ($query) {
+                    $query->where('parent_id', 0)
+                        ->orWhereHas('parent', fn ($parent) => $parent->active());
+                })
+                ->count();
+
+            return $categories * $locales;
+        }
+
+        if ($type === 'products' || $type === 'images') {
+            $products = Product::query()->active()->hasStock()->count();
+
+            return $type === 'images' ? $products : $products * $locales;
+        }
+
+        if ($type === 'authors') {
+            return (Author::query()
+                    ->active()
+                    ->whereNotNull('slug')
+                    ->where('slug', '!=', '')
+                    ->distinct()
+                    ->count('slug') * $locales) + $locales;
+        }
+
+        if ($type === 'publishers') {
+            return (Publisher::query()
+                    ->active()
+                    ->whereNotNull('slug')
+                    ->where('slug', '!=', '')
+                    ->distinct()
+                    ->count('slug') * $locales) + $locales;
+        }
+
+        return 0;
+    }
+
+
+    private static function dateFromMaxUpdatedAt($value, Carbon $fallback): Carbon
+    {
+        return Carbon::make($value) ?: $fallback;
     }
 }

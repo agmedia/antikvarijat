@@ -165,6 +165,8 @@ class ProductController extends Controller
             $product->checkSettings()
                     ->storeImages($stored);
 
+            $stored->addHistoryData('create');
+
             Cache::forget('admin.products.all_tags');
             $this->refreshFrontendProductCache($stored);
 

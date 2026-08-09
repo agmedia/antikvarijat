@@ -8,6 +8,7 @@ use App\Http\Controllers\Back\Catalog\CategoryController;
 use App\Http\Controllers\Back\Catalog\ProductController;
 use App\Http\Controllers\Back\Catalog\PublisherController;
 use App\Http\Controllers\Back\ContractWithdrawalController as AdminContractWithdrawalController;
+use App\Http\Controllers\Back\ProductReviewController as AdminProductReviewController;
 use App\Http\Controllers\Back\DashboardController;
 use App\Http\Controllers\Back\OrderController;
 use App\Http\Controllers\Back\StatisticsController;
@@ -38,6 +39,7 @@ use App\Http\Controllers\Front\CheckoutController;
 use App\Http\Controllers\Front\ContractWithdrawalController;
 use App\Http\Controllers\Front\CustomerController;
 use App\Http\Controllers\Front\HomeController;
+use App\Http\Controllers\Front\ProductReviewController;
 use App\Http\Controllers\Front\VialibriFeedController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Back\Marketing\WishlistController;
@@ -139,6 +141,10 @@ Route::middleware(['auth:sanctum', 'verified', 'no.customers'])->prefix('admin')
     Route::patch('contract-withdrawals/{withdrawal}', [AdminContractWithdrawalController::class, 'update'])->name('contract-withdrawals.update');
     Route::post('contract-withdrawals/{withdrawal}/resend', [AdminContractWithdrawalController::class, 'resend'])->name('contract-withdrawals.resend');
 
+    // RECENZIJE ARTIKALA
+    Route::get('product-reviews', [AdminProductReviewController::class, 'index'])->name('product-reviews.index');
+    Route::patch('product-reviews/{review}', [AdminProductReviewController::class, 'update'])->name('product-reviews.update');
+
     // MARKETING
     Route::prefix('marketing')->group(function () {
         // AKCIJE
@@ -186,6 +192,7 @@ Route::middleware(['auth:sanctum', 'verified', 'no.customers'])->prefix('admin')
 
 
     Route::get('wishlists', [WishlistController::class, 'index'])->name('wishlists');
+    Route::post('wishlists/{wishlist}/send', [WishlistController::class, 'send'])->name('wishlists.send');
     Route::redirect('admin/wishlists', '/admin/wishlists');
 
     // WIDGETS
@@ -401,6 +408,15 @@ Route::post('/newsletter/prijava', [HomeController::class, 'newsletter'])->name(
 Route::get('/faq', [CatalogRouteController::class, 'faq'])->name('faq');
 //
 Route::post('/dodaj-u-listu-zelja', [HomeController::class, 'wishlist'])->name('wishlist');
+Route::post('/recenzije', [ProductReviewController::class, 'store'])
+    ->middleware('throttle:5,10')
+    ->name('product-reviews.store');
+Route::get('/zahtjev-za-recenziju/{token}', [ProductReviewController::class, 'invitation'])
+    ->middleware(['signed', 'throttle:30,1'])
+    ->name('product-review-invitations.show');
+Route::post('/zahtjev-za-recenziju/{token}', [ProductReviewController::class, 'storeInvitation'])
+    ->middleware(['signed', 'throttle:10,10'])
+    ->name('product-review-invitations.store');
 
 Route::get('/kosarica', [CheckoutController::class, 'cart'])->name('kosarica');
 Route::get('/naplata', [CheckoutController::class, 'checkout'])->name('naplata');
@@ -440,6 +456,9 @@ Route::prefix('en')->as('en.')->group(function () {
     Route::post('/newsletter/subscribe', [HomeController::class, 'newsletter'])->name('newsletter.subscribe');
     Route::get('/faq', [CatalogRouteController::class, 'faq'])->name('faq');
     Route::post('/wishlist/add', [HomeController::class, 'wishlist'])->name('wishlist');
+    Route::post('/reviews', [ProductReviewController::class, 'store'])
+        ->middleware('throttle:5,10')
+        ->name('product-reviews.store');
 
     Route::get('/cart', [CheckoutController::class, 'cart'])->name('kosarica');
     Route::get('/checkout', [CheckoutController::class, 'checkout'])->name('naplata');
@@ -465,9 +484,22 @@ Route::prefix('en')->as('en.')->group(function () {
 /**
  * Sitemap routes
  */
-Route::redirect('/sitemap.xml', '/sitemap');
-Route::get('sitemap/{sitemap?}', [HomeController::class, 'sitemapXML'])->name('sitemap');
-Route::get('image-sitemap', [HomeController::class, 'sitemapImageXML'])->name('image-sitemap');
+$statelessSitemapMiddleware = [
+    \App\Http\Middleware\EncryptCookies::class,
+    \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+    \Illuminate\Session\Middleware\StartSession::class,
+    \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+    \App\Http\Middleware\VerifyCsrfToken::class,
+];
+
+Route::get('/sitemap.xml', [HomeController::class, 'sitemapXML'])
+    ->withoutMiddleware($statelessSitemapMiddleware);
+Route::get('sitemap/{sitemap?}', [HomeController::class, 'sitemapXML'])
+    ->withoutMiddleware($statelessSitemapMiddleware)
+    ->name('sitemap');
+Route::get('image-sitemap/{shard?}', [HomeController::class, 'sitemapImageXML'])
+    ->withoutMiddleware($statelessSitemapMiddleware)
+    ->name('image-sitemap');
 //
 Route::get('njuskalo/biblos/xml', [HomeController::class, 'njuskaloXML'])->name('njuskalo');
 Route::get('vialibri/sync.xml', [VialibriFeedController::class, 'sync'])->name('vialibri.feed.sync');

@@ -129,7 +129,8 @@ class ProductHistory extends Model
             return '<span class="text-muted font-weight-lighter">Dodana je nova knjiga.</span> ' . Str::limit($this->new[$this->title_column], 40);
         }
 
-        if ($this->changed != $this->new[$this->title_column]) {
+        $emptyChangeList = '<b>' . $this->new[$this->title_column] . '</b><br><ul class="small"></ul>';
+        if ($this->changed !== $emptyChangeList) {
             return '<span class="text-muted font-weight-lighter">Knjiga je editirana.</span> ' . Str::limit($this->new[$this->title_column], 40);
         }
 
@@ -204,6 +205,12 @@ class ProductHistory extends Model
         // Sku changed
         if ($this->old['sku'] != $this->new['sku']) {
             $this->changed .= '<li>Promjenjena šifra: <b>' . $this->old['sku'] . '</b> u <b>' . $this->new['sku'] . '</b></li>';
+        }
+
+        if (($this->old['isbn'] ?? null) != ($this->new['isbn'] ?? null)) {
+            $old = $this->old['isbn'] ?? 'prazno';
+            $new = $this->new['isbn'] ?? 'prazno';
+            $this->changed .= '<li>Promijenjen ISBN: <b>' . $old . '</b> u <b>' . $new . '</b></li>';
         }
 
         // Polica changed

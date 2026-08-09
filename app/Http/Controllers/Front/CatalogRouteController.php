@@ -17,6 +17,7 @@ use App\Models\Front\Catalog\Product;
 use App\Models\Front\Catalog\Publisher;
 use App\Models\Seo;
 use App\Models\TagManager;
+use App\Models\ProductReview;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -112,9 +113,26 @@ class CatalogRouteController extends Controller
                     ->values();
             }
 
+            $reviews = ProductReview::query()
+                ->approved()
+                ->where('product_id', $prod->id)
+                ->latest('approved_at')
+                ->take(20)
+                ->get();
+
+            $reviewStatsRow = ProductReview::query()
+                ->approved()
+                ->where('product_id', $prod->id)
+                ->selectRaw('COUNT(*) AS review_count, AVG(rating) AS rating_average')
+                ->first();
+            $reviewStats = [
+                'count' => (int) ($reviewStatsRow->review_count ?? 0),
+                'average' => round((float) ($reviewStatsRow->rating_average ?? 0), 2),
+            ];
+
             $bc = new Breadcrumb();
             $crumbs = $bc->product($group, $cat, $subcat, $prod)->resolve();
-            $bookscheme = $bc->productBookSchema($prod);
+            $bookscheme = $bc->productBookSchema($prod, $reviews, $reviewStats);
 
             $shipping_methods = Settings::getList('shipping', 'list.%', true);
             $payment_methods = Settings::getList('payment', 'list.%', true);
@@ -130,6 +148,8 @@ class CatalogRouteController extends Controller
                 'shipping_methods',
                 'payment_methods',
                 'gdl',
+                'reviews',
+                'reviewStats',
                 'recentProducts',
                 'relatedProducts'
             ));
@@ -161,11 +181,10 @@ class CatalogRouteController extends Controller
             $subcat->setAttribute('count', (int)$subcat->visible_products_count);
         }
 
-        $meta_tags = Seo::getMetaTags($request, 'filter');
         $crumbs = (new Breadcrumb())->category($group, $cat, $subcat)->resolve();
 
         return view('front.catalog.category.index', array_merge(
-            compact('group', 'cat', 'subcat', 'prod', 'crumbs', 'meta_tags'),
+            compact('group', 'cat', 'subcat', 'prod', 'crumbs'),
             $this->categoryIndexBootstrap($request, $group, $cat, $subcat)
         ));
     }
@@ -217,9 +236,7 @@ class CatalogRouteController extends Controller
                     ->appends(request()->query());
             });
 
-            $meta_tags = Seo::getMetaTags($request, 'ap_filter');
-
-            return view('front.catalog.authors.index', compact('authors', 'letters', 'letter', 'meta_tags'));
+            return view('front.catalog.authors.index', compact('authors', 'letters', 'letter'));
         }
 
         $letter = null;
@@ -275,9 +292,7 @@ class CatalogRouteController extends Controller
                     ->appends(request()->query());
             });
 
-            $meta_tags = Seo::getMetaTags($request, 'ap_filter');
-
-            return view('front.catalog.publishers.index', compact('publishers', 'letters', 'letter', 'meta_tags'));
+            return view('front.catalog.publishers.index', compact('publishers', 'letters', 'letter'));
         }
 
         $letter = null;

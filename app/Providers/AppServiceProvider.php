@@ -6,6 +6,8 @@ use App\Models\Front\Catalog\Category;
 use App\Models\Front\Catalog\Product;
 use App\Models\Front\Page;
 use App\Models\User;
+use App\Models\ProductReview;
+use App\Models\Back\Marketing\Wishlist;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
@@ -34,6 +36,29 @@ class AppServiceProvider extends ServiceProvider
         Paginator::useBootstrap();
 
         $this->registerFrontendViewComposers();
+        $this->registerAdminViewComposers();
+    }
+
+    protected function registerAdminViewComposers(): void
+    {
+        View::composer('back.layouts.partials.topbar', function ($view) {
+            $counts = Cache::remember('admin.notification_counts', now()->addSeconds(30), function () {
+                return [
+                    'wishlist' => Schema::hasTable('wishlist') && Schema::hasTable('products')
+                        ? Wishlist::query()
+                            ->active()
+                            ->unsent()
+                            ->whereHas('product', fn ($product) => $product->active()->available())
+                            ->count()
+                        : 0,
+                    'reviews' => Schema::hasTable('product_reviews')
+                        ? ProductReview::query()->where('status', ProductReview::STATUS_PENDING)->count()
+                        : 0,
+                ];
+            });
+
+            $view->with('adminNotificationCounts', $counts);
+        });
     }
 
     protected function registerFrontendViewComposers(): void

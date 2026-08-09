@@ -191,7 +191,7 @@
                                            <li><strong>{{ __('front.product.publisher') }}:</strong> <a href="{{ \App\Helpers\LocaleHelper::route('catalog.route.publisher', ['publisher' => $prod->publisher]) }}">{{ $prod->publisher->title }}</a> </li>
                                        @endif
                                        @if ($prod->isbn)
-                                           <li><strong>EAN:</strong> {{ $prod->isbn }} </li>
+                                           <li><strong>ISBN:</strong> {{ $prod->isbn }} </li>
                                        @endif
                                        @if ($prod->quantity)
                                            @if ($prod->decrease)
@@ -278,7 +278,7 @@
                <!-- Tabs-->
                <ul class="nav nav-tabs" role="tablist">
                    <li class="nav-item"><a class="nav-link py-4 px-sm-4 active" href="#specs" data-bs-toggle="tab" role="tab"><span>{{ __('front.product.description') }}</span> </a></li>
-
+                   <li class="nav-item"><a class="nav-link py-4 px-sm-4" href="#reviews" data-bs-toggle="tab" role="tab"><span>{{ __('front.reviews.title') }} ({{ $reviewStats['count'] }})</span></a></li>
                </ul>
                <div class="px-4 pt-lg-3 pb-3 mb-5">
                    <div class="tab-content px-lg-3">
@@ -401,7 +401,84 @@
                            </div>
 
                        </div>
-                       <!-- Reviews tab-->
+                       <div class="tab-pane fade" id="reviews" role="tabpanel">
+                           <div class="row pt-2">
+                               <div class="col-lg-7 mb-4">
+                                   <div class="d-flex align-items-center justify-content-between mb-4">
+                                       <h2 class="h5 mb-0">{{ __('front.reviews.title') }}</h2>
+                                       @if ($reviewStats['count'] > 0)
+                                           <div class="text-end">
+                                               <div class="h5 text-warning mb-0">★ {{ number_format($reviewStats['average'], 1, ',', '.') }}</div>
+                                               <div class="small text-muted">{{ __('front.reviews.rating_summary', ['rating' => number_format($reviewStats['average'], 1, ',', '.'), 'count' => $reviewStats['count']]) }}</div>
+                                           </div>
+                                       @endif
+                                   </div>
+
+                                   @forelse ($reviews as $review)
+                                       <article class="border-bottom pb-3 mb-3">
+                                           <div class="d-flex justify-content-between align-items-start">
+                                               <div>
+                                                   <strong>{{ $review->reviewer_name }}</strong>
+                                                   @if ($review->is_verified_purchase)
+                                                       <span class="badge bg-success ms-2">{{ __('front.reviews.verified_purchase') }}</span>
+                                                   @endif
+                                               </div>
+                                               <time class="small text-muted" datetime="{{ optional($review->approved_at ?: $review->created_at)->toDateString() }}">{{ optional($review->approved_at ?: $review->created_at)->format('d.m.Y.') }}</time>
+                                           </div>
+                                           <div class="text-warning my-1" aria-label="{{ $review->rating }} / 5">
+                                               @for ($star = 1; $star <= 5; $star++)<span aria-hidden="true">{{ $star <= $review->rating ? '★' : '☆' }}</span>@endfor
+                                           </div>
+                                           @if ($review->title)<h3 class="h6 mb-1">{{ $review->title }}</h3>@endif
+                                           <p class="mb-0" style="white-space: pre-line;">{{ $review->body }}</p>
+                                       </article>
+                                   @empty
+                                       <p class="text-muted">{{ __('front.reviews.empty') }}</p>
+                                   @endforelse
+                               </div>
+
+                               <div class="col-lg-5 mb-4">
+                                   <div class="border rounded-3 p-4 bg-white">
+                                       <h2 class="h5">{{ __('front.reviews.write') }}</h2>
+                                       <form method="POST" action="{{ \App\Helpers\LocaleHelper::route('product-reviews.store') }}" data-product-review-form>
+                                           @csrf
+                                           <input type="hidden" name="product_id" value="{{ $prod->id }}">
+                                           <input type="hidden" name="recaptcha" value="" data-product-review-recaptcha>
+                                           <input type="text" name="website" value="" tabindex="-1" autocomplete="off" class="d-none" aria-hidden="true">
+                                           <div class="mb-3">
+                                               <label class="form-label" for="review-name">{{ __('front.reviews.name') }} *</label>
+                                               <input class="form-control @error('reviewer_name') is-invalid @enderror" id="review-name" name="reviewer_name" maxlength="191" value="{{ old('reviewer_name', optional(auth()->user())->name) }}" required>
+                                               @error('reviewer_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                           </div>
+                                           <div class="mb-3">
+                                               <label class="form-label" for="review-email">{{ __('front.reviews.email') }} *</label>
+                                               <input class="form-control @error('reviewer_email') is-invalid @enderror" id="review-email" type="email" name="reviewer_email" maxlength="191" value="{{ old('reviewer_email', optional(auth()->user())->email) }}" required>
+                                               <div class="form-text">{{ __('front.reviews.email_private') }}</div>
+                                               @error('reviewer_email')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                           </div>
+                                           <div class="mb-3">
+                                               <label class="form-label" for="review-rating">{{ __('front.reviews.rating') }} *</label>
+                                               <select class="form-select @error('rating') is-invalid @enderror" id="review-rating" name="rating" required>
+                                                   <option value="">—</option>
+                                                   @for ($rating = 5; $rating >= 1; $rating--)<option value="{{ $rating }}" @if((int) old('rating') === $rating) selected @endif>{{ $rating }} / 5</option>@endfor
+                                               </select>
+                                               @error('rating')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                           </div>
+                                           <div class="mb-3">
+                                               <label class="form-label" for="review-title">{{ __('front.reviews.optional_title') }}</label>
+                                               <input class="form-control" id="review-title" name="title" maxlength="191" value="{{ old('title') }}">
+                                           </div>
+                                           <div class="mb-3">
+                                               <label class="form-label" for="review-body">{{ __('front.reviews.comment') }} *</label>
+                                               <textarea class="form-control @error('body') is-invalid @enderror" id="review-body" name="body" rows="5" minlength="10" maxlength="5000" required>{{ old('body') }}</textarea>
+                                               @error('body')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                               @error('recaptcha')<div class="text-danger small mt-2">{{ $message }}</div>@enderror
+                                           </div>
+                                           <button class="btn btn-primary" type="submit">{{ __('front.reviews.submit') }}</button>
+                                       </form>
+                                   </div>
+                               </div>
+                           </div>
+                       </div>
 
                    </div>
                </div>
@@ -518,4 +595,27 @@
 
     @include('front.layouts.modal.wishlist-email')
     @include('front.layouts.partials.recaptcha-js')
+    <script>
+        (function () {
+            var form = document.querySelector('[data-product-review-form]');
+            if (!form) return;
+
+            if (window.location.hash === '#reviews' || form.querySelector('.is-invalid')) {
+                var trigger = document.querySelector('a[href="#reviews"]');
+                if (trigger && window.bootstrap && bootstrap.Tab) new bootstrap.Tab(trigger).show();
+            }
+
+            form.addEventListener('submit', function (event) {
+                var input = form.querySelector('[data-product-review-recaptcha]');
+                if (!input || input.value || !window.grecaptcha) return;
+                event.preventDefault();
+                grecaptcha.ready(function () {
+                    grecaptcha.execute(@json(config('services.recaptcha.sitekey')), {action: 'product_review'}).then(function (token) {
+                        input.value = token || 'local-bypass';
+                        form.submit();
+                    });
+                });
+            });
+        })();
+    </script>
 @endpush

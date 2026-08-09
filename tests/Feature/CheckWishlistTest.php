@@ -1,0 +1,142 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Mail\WishlistArrived;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Schema;
+use App\Models\Back\Marketing\Wishlist;
+use Tests\TestCase;
+
+class CheckWishlistTest extends TestCase
+{
+    protected function setUp(): void
+    {
+        parent::setUp();
+        config(['wishlist.emails_enabled' => true]);
+
+        Schema::create('products', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->string('name');
+            $table->string('name_en')->nullable();
+            $table->string('slug');
+            $table->string('slug_en')->nullable();
+            $table->string('url');
+            $table->string('url_en')->nullable();
+            $table->string('image')->nullable();
+            $table->decimal('price', 10, 2)->default(0);
+            $table->decimal('special', 10, 2)->default(0);
+            $table->unsignedBigInteger('author_id')->default(0);
+            $table->integer('quantity')->default(0);
+            $table->boolean('status')->default(true);
+        });
+
+        Schema::create('wishlist', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->unsignedBigInteger('user_id')->default(0);
+            $table->string('email');
+            $table->unsignedBigInteger('product_id');
+            $table->boolean('sent')->default(false);
+            $table->timestamp('sent_at')->nullable();
+            $table->boolean('status')->default(true);
+            $table->timestamps();
+        });
+
+        DB::table('products')->insert([
+            $this->product(1, 1, 1),
+            $this->product(2, 0, 1),
+            $this->product(3, 1, 0),
+        ]);
+
+        DB::table('wishlist')->insert([
+            $this->wish(1, 1, 'Kupac@example.test'),
+            $this->wish(2, 1, 'kupac@example.test'),
+            $this->wish(3, 2, 'nema@example.test'),
+            $this->wish(4, 3, 'skriven@example.test'),
+            $this->wish(5, 1, 'nije-email'),
+            array_merge($this->wish(6, 1, 'neaktivan@example.test'), ['status' => 0]),
+            array_merge($this->wish(7, 1, 'poslan@example.test'), ['sent' => 1]),
+        ]);
+    }
+
+    public function test_dry_run_does_not_change_rows_or_send_mail(): void
+    {
+        Mail::fake();
+
+        $this->artisan('check:wishlist --dry-run')->assertExitCode(0);
+
+        $this->assertSame(7, DB::table('wishlist')->count());
+        $this->assertSame(1, (int) DB::table('wishlist')->where('id', 5)->value('status'));
+        Mail::assertNothingSent();
+    }
+
+    public function test_it_sends_once_per_product_and_normalized_email_then_removes_only_sent_rows(): void
+    {
+        Mail::fake();
+
+        $this->artisan('check:wishlist')->assertExitCode(0);
+
+        Mail::assertSent(WishlistArrived::class, 1);
+        $this->assertSame(1, (int) DB::table('wishlist')->where('id', 1)->value('sent'));
+        $this->assertNotNull(DB::table('wishlist')->where('id', 1)->value('sent_at'));
+        $this->assertSame(0, (int) DB::table('wishlist')->where('id', 5)->value('status'));
+        $this->assertSame(7, DB::table('wishlist')->count());
+    }
+
+    public function test_live_run_respects_notification_batch_limit(): void
+    {
+        Mail::fake();
+        DB::table('wishlist')->insert($this->wish(8, 1, 'drugi@example.test'));
+
+        $this->artisan('check:wishlist --limit=1')->assertExitCode(0);
+
+        Mail::assertSent(WishlistArrived::class, 1);
+        $this->assertSame(1, (int) DB::table('wishlist')->where('id', 1)->value('sent'));
+        $this->assertSame(0, (int) DB::table('wishlist')->where('id', 8)->value('sent'));
+    }
+
+    public function test_admin_can_send_one_ready_notification_without_deleting_history(): void
+    {
+        Mail::fake();
+
+        $result = Wishlist::query()->findOrFail(1)->sendNow();
+
+        $this->assertTrue($result['sent']);
+        Mail::assertSent(WishlistArrived::class, 1);
+        $this->assertSame(7, DB::table('wishlist')->count());
+        $this->assertSame(1, (int) DB::table('wishlist')->where('id', 1)->value('sent'));
+        $this->assertSame(1, (int) DB::table('wishlist')->where('id', 2)->value('sent'));
+        $this->assertNotNull(DB::table('wishlist')->where('id', 1)->value('sent_at'));
+    }
+
+    private function product(int $id, int $quantity, int $status): array
+    {
+        return [
+            'id' => $id,
+            'name' => 'Artikl ' . $id,
+            'slug' => 'artikl-' . $id,
+            'url' => '/knjige/artikl-' . $id,
+            'price' => 10,
+            'special' => 0,
+            'author_id' => 0,
+            'quantity' => $quantity,
+            'status' => $status,
+        ];
+    }
+
+    private function wish(int $id, int $productId, string $email): array
+    {
+        return [
+            'id' => $id,
+            'user_id' => 0,
+            'email' => $email,
+            'product_id' => $productId,
+            'sent' => 0,
+            'status' => 1,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ];
+    }
+}

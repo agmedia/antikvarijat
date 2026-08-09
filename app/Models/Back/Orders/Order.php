@@ -151,6 +151,15 @@ class Order extends Model
         ]);
     }
 
+    public static function reviewEligibleStatusIds(): array
+    {
+        return static::statusIds([
+            config('settings.order.status.new'),
+            config('settings.order.status.paid'),
+            config('settings.order.status.send'),
+        ]);
+    }
+
     public static function latestDashboardStatusIds(): array
     {
         return static::statusIds(array_merge([

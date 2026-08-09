@@ -10,7 +10,7 @@
         @section ( 'description', $cat->meta_description )
     @elseif ($cat && $subcat)
         @section ( 'title', $subcat->title . ' - Antikvarijat Biblos' )
-        @section ( 'description', $cat->meta_description )
+        @section ( 'description', $subcat->meta_description )
     @endif
 @endif
 
@@ -27,14 +27,6 @@
 @if (isset($publisher) && $publisher)
     @section ('title',  $seo['title'])
     @section ('description', $seo['description'])
-@endif
-
-@if (isset($meta_tags))
-    @push('meta_tags')
-        @foreach ($meta_tags as $tag)
-            <meta name="{{ $tag['name'] }}" content="{{ $tag['content'] }}">
-        @endforeach
-    @endpush
 @endif
 
 @push('css_after')
@@ -245,8 +237,8 @@
     <div class="container pb-4 mb-2 mb-md-4" >
         @if ($cat && ! $subcat)
             {!! $cat->description !!}
-        @elseif ($subcat && ! $subcat)
-            {!! $cat->description !!}
+        @elseif ($subcat)
+            {!! $subcat->description !!}
         @endif
     </div>
 

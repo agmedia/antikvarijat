@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Cache;
 use App\Helpers\Recaptcha;
 
 class Wishlist extends Model
@@ -24,6 +25,12 @@ class Wishlist extends Model
      * @var array
      */
     protected $guarded = ['id', 'created_at', 'updated_at'];
+
+    protected $casts = [
+        'sent' => 'boolean',
+        'status' => 'boolean',
+        'sent_at' => 'datetime',
+    ];
 
     /**
      * @var Request
@@ -160,30 +167,38 @@ class Wishlist extends Model
     /**
      * @return int
      */
-    public static function check_CRON()
+    public static function check_CRON(bool $dryRun = false, ?int $limit = null): array
     {
         $log_start = microtime(true);
+        $result = [
+            'notifications' => 0,
+            'entries' => 0,
+            'invalid' => 0,
+            'failed' => 0,
+        ];
 
         $list = Wishlist::active()->unsent()->basic()->get();
         $invalidEntries = $list->reject(function ($entry) {
             return static::isValidEmail($entry->email);
         });
+        $result['invalid'] = $invalidEntries->count();
 
         foreach ($invalidEntries as $entry) {
             Log::warning('Skipping wishlist notification with invalid email address.', [
                 'wishlist_id' => $entry->id,
                 'product_id' => $entry->product_id,
-                'email' => $entry->email,
             ]);
 
-            static::query()->whereKey($entry->id)->delete();
+            if (! $dryRun) {
+                static::query()->whereKey($entry->id)->update(['status' => 0, 'updated_at' => now()]);
+            }
         }
 
         $list = $list->filter(function ($entry) {
             return static::isValidEmail($entry->email);
         });
         $ids = $list->unique('product_id')->pluck('product_id');
-        $products = Product::query()->whereIn('id', $ids)->available()->basicData()->get();
+        $products = Product::query()->whereIn('id', $ids)->active()->available()->basicData()->get();
 
         foreach ($products as $product) {
             $emails = $list
@@ -193,24 +208,99 @@ class Wishlist extends Model
                 });
 
             foreach ($emails as $email => $entries) {
-                dispatch(function () use ($email, $product) {
-                    Mail::to($email)->send(new WishlistArrived($product));
-                });
+                if ($limit !== null && $result['notifications'] >= $limit) {
+                    break 2;
+                }
 
-                static::query()->whereIn('id', $entries->pluck('id'))->delete();
+                $result['notifications']++;
+                $result['entries'] += $entries->count();
+
+                if ($dryRun) {
+                    continue;
+                }
+
+                try {
+                    Mail::to($email)->send(new WishlistArrived($product));
+                    static::query()->whereIn('id', $entries->pluck('id'))->update([
+                        'sent' => 1,
+                        'status' => 0,
+                        'sent_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                } catch (\Throwable $exception) {
+                    $result['failed']++;
+                    Log::warning('Wishlist notification mail failed.', [
+                        'product_id' => $product->id,
+                        'wishlist_ids' => $entries->pluck('id')->all(),
+                        'error' => $exception->getMessage(),
+                    ]);
+                }
             }
         }
 
         $log_end = microtime(true);
         Log::info('__Check Wishlist - Total Execution Time: ' . number_format(($log_end - $log_start), 2, ',', '.') . ' sec.');
+        Cache::forget('admin.notification_counts');
 
-        return 1;
+        return $result;
+    }
+
+    public function sendNow(): array
+    {
+        if (! config('wishlist.emails_enabled')) {
+            return ['sent' => false, 'entries' => 0, 'message' => 'Slanje wishlist mailova je isključeno u ovom okruženju.'];
+        }
+
+        $email = static::normalizeEmail($this->email);
+        if (! static::isValidEmail($email)) {
+            $this->forceFill(['status' => 0])->save();
+
+            return ['sent' => false, 'entries' => 0, 'message' => 'E-mail adresa nije ispravna.'];
+        }
+
+        $product = Product::query()
+            ->whereKey($this->product_id)
+            ->active()
+            ->available()
+            ->first();
+
+        if (! $product || ! $this->status || $this->sent) {
+            return ['sent' => false, 'entries' => 0, 'message' => 'Artikl nije dostupan ili je obavijest već obrađena.'];
+        }
+
+        $entries = static::query()
+            ->active()
+            ->unsent()
+            ->where('product_id', $this->product_id)
+            ->whereRaw('LOWER(TRIM(email)) = ?', [$email])
+            ->get();
+
+        try {
+            Mail::to($email)->send(new WishlistArrived($product));
+            static::query()->whereIn('id', $entries->pluck('id'))->update([
+                'sent' => 1,
+                'status' => 0,
+                'sent_at' => now(),
+                'updated_at' => now(),
+            ]);
+            Cache::forget('admin.notification_counts');
+
+            return ['sent' => true, 'entries' => $entries->count(), 'message' => 'Wishlist obavijest je poslana.'];
+        } catch (\Throwable $exception) {
+            Log::warning('Manual wishlist notification mail failed.', [
+                'product_id' => $product->id,
+                'wishlist_ids' => $entries->pluck('id')->all(),
+                'error' => $exception->getMessage(),
+            ]);
+
+            return ['sent' => false, 'entries' => 0, 'message' => 'Slanje nije uspjelo; zapis je ostao za novi pokušaj.'];
+        }
     }
 
 
     protected static function normalizeEmail(?string $email): string
     {
-        return trim((string) $email);
+        return mb_strtolower(trim((string) $email));
     }
 
 

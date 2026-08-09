@@ -19,6 +19,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use App\Models\Back\Catalog\Product\ProductHistory;
+use App\Models\ProductReview;
 
 class Product extends Model
 {
@@ -125,6 +126,11 @@ class Product extends Model
             ->orderByDesc('created_at');
     }
 
+    public function reviews()
+    {
+        return $this->hasMany(ProductReview::class, 'product_id');
+    }
+
     /**
      * @return false|mixed
      */
@@ -189,6 +195,14 @@ class Product extends Model
             'price'    => ['required'],
             'category' => ['required'],
             'skl'      => ['nullable', 'integer', 'min:0'],
+            'isbn'     => [
+                'nullable',
+                function ($attribute, $value, $fail) {
+                    if ($value !== null && trim((string) $value) !== '' && ! static::isValidIsbn((string) $value)) {
+                        $fail('ISBN mora biti ispravan ISBN-10 ili ISBN-13.');
+                    }
+                },
+            ],
             'tags'     => ['nullable'], // može biti string ili array
         ]);
 
@@ -211,6 +225,7 @@ class Product extends Model
         $product->action_id        = $this->request->action ?: 0;
         $product->name             = $this->request->name;
         $product->sku              = $this->request->sku;
+        $product->isbn             = static::normalizeIsbn($this->request->isbn);
         $product->polica           = $this->request->polica;
         $product->description      = $this->cleanHTML($this->request->description);
         $product->slug             = $slug;
@@ -274,6 +289,7 @@ class Product extends Model
             'action_id'        => $this->request->action ?: 0,
             'name'             => $this->request->name,
             'sku'              => $this->request->sku,
+            'isbn'             => static::normalizeIsbn($this->request->isbn),
             'polica'           => $this->request->polica,
             'description'      => $this->cleanHTML($this->request->description),
             'slug'             => $slug,
@@ -371,11 +387,18 @@ class Product extends Model
         // Pretraga po nazivu, opisu, sku, polici, godini
         if ($request->has('search') && !empty($request->input('search'))) {
             $searchTerm = $request->input('search');
+            $normalizedIsbn = static::normalizeIsbn($searchTerm);
 
-            $query->where(function ($q) use ($searchTerm) {
+            $query->where(function ($q) use ($searchTerm, $normalizedIsbn) {
                 $q->where('name', 'like', '%' . $searchTerm . '%')
                     ->orWhere('description', 'like', '%' . $searchTerm . '%')
-                    ->orWhere('sku', 'like', '%' . $searchTerm . '%')
+                    ->orWhere('sku', 'like', '%' . $searchTerm . '%');
+
+                if ($normalizedIsbn !== null && $normalizedIsbn !== '') {
+                    $q->orWhere('isbn', 'like', '%' . $normalizedIsbn . '%');
+                }
+
+                $q
                     ->orWhere('polica', 'like', '%' . $searchTerm . '%')
                     ->orWhere('year', 'like', '%' . $searchTerm . '%');
             });
@@ -441,6 +464,45 @@ class Product extends Model
         }
 
         return $query;
+    }
+
+    public static function normalizeIsbn($isbn): ?string
+    {
+        if ($isbn === null || trim((string) $isbn) === '') {
+            return null;
+        }
+
+        return strtoupper((string) preg_replace('/[^0-9X]/i', '', (string) $isbn));
+    }
+
+    public static function isValidIsbn(string $isbn): bool
+    {
+        $isbn = static::normalizeIsbn($isbn);
+
+        if ($isbn === null) {
+            return true;
+        }
+
+        if (strlen($isbn) === 10 && preg_match('/^\d{9}[\dX]$/', $isbn)) {
+            $sum = 0;
+            for ($index = 0; $index < 10; $index++) {
+                $value = $isbn[$index] === 'X' ? 10 : (int) $isbn[$index];
+                $sum += $value * (10 - $index);
+            }
+
+            return $sum % 11 === 0;
+        }
+
+        if (strlen($isbn) === 13 && ctype_digit($isbn)) {
+            $sum = 0;
+            for ($index = 0; $index < 13; $index++) {
+                $sum += (int) $isbn[$index] * ($index % 2 === 0 ? 1 : 3);
+            }
+
+            return $sum % 10 === 0;
+        }
+
+        return false;
     }
 
     private function setRequest($request)

@@ -19,6 +19,14 @@
 
         <!-- Right Section -->
         <div>
+            <a class="btn btn-dual mr-1" href="{{ route('wishlists', ['tab' => 'wishlists', 'stock' => 'ready']) }}" title="Wishlist obavijesti spremne za slanje" aria-label="Wishlist obavijesti spremne za slanje: {{ $adminNotificationCounts['wishlist'] ?? 0 }}">
+                <i class="fa-duotone fa-fw fa-heart text-danger"></i>
+                <span class="font-w600">{{ $adminNotificationCounts['wishlist'] ?? 0 }}</span>
+            </a>
+            <a class="btn btn-dual mr-1" href="{{ route('product-reviews.index', ['status' => 'pending']) }}" title="Nove recenzije za moderaciju" aria-label="Nove recenzije za moderaciju: {{ $adminNotificationCounts['reviews'] ?? 0 }}">
+                <i class="fa-duotone fa-fw fa-star text-warning"></i>
+                <span class="font-w600">{{ $adminNotificationCounts['reviews'] ?? 0 }}</span>
+            </a>
             <!-- User Dropdown -->
             <div class="dropdown d-inline-block">
                 <button type="button" class="btn btn-dual" id="page-header-user-dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

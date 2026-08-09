@@ -2,14 +2,6 @@
 @section('title', __('front.publishers.meta_title'))
 @section('description', __('front.publishers.meta_description'))
 
-@if (isset($meta_tags))
-    @push('meta_tags')
-        @foreach ($meta_tags as $tag)
-            <meta name="{{ $tag['name'] }}" content="{{ $tag['content'] }}">
-        @endforeach
-    @endpush
-@endif
-
 @section('content')
 
     <section class="position-relative   py-3 mb-3" style="background-image: url({{ asset('media/img/farmer.png')  }});background-repeat: repeat">

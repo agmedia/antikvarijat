@@ -3,12 +3,10 @@
 namespace App\Models;
 
 use App\Helpers\LocaleHelper;
-use App\Helpers\Metatags;
 use App\Models\Front\Catalog\Author;
 use App\Models\Front\Catalog\Category;
 use App\Models\Front\Catalog\Product;
 use App\Models\Front\Catalog\Publisher;
-use Illuminate\Http\Request;
 
 /**
  * Class Sitemap
@@ -40,7 +38,7 @@ class Seo
     /**
      * @return array
      */
-    public static function getAuthorData(Author $author, Category $cat = null, Category $subcat = null): array
+    public static function getAuthorData(Author $author, ?Category $cat = null, ?Category $subcat = null): array
     {
         if (LocaleHelper::isEnglish()) {
             $title = $author->meta_title ?: $author->title . ' books - Antikvarijat Biblos';
@@ -48,11 +46,6 @@ class Seo
         } else {
             $title = $author->meta_title ?: $author->title . ' knjige - Antikvarijat Biblos';
             $description = $author->meta_description ?: 'Knjige autora ' . $author->title . ' danas su jako popularne u svijetu. Bogati izbor knjiga autora ' . $author->title . ' uz brzu dostavu i sigurnu kupovinu.';
-        }
-
-        // Check if there is meta title or description and set vars.
-        if ($cat || $subcat) {
-            return Metatags::noFollow();
         }
 
         return [
@@ -65,7 +58,7 @@ class Seo
     /**
      * @return array
      */
-    public static function getPublisherData(Publisher $publisher, Category $cat = null, Category $subcat = null): array
+    public static function getPublisherData(Publisher $publisher, ?Category $cat = null, ?Category $subcat = null): array
     {
         if (LocaleHelper::isEnglish()) {
             $title = $publisher->meta_title ?: $publisher->title . ' books - Antikvarijat Biblos';
@@ -91,27 +84,4 @@ class Seo
             'description' => $description
         ];
     }
-
-
-    public static function getMetaTags(Request $request, $target = 'product')
-    {
-        $response = [];
-        $data = $request->toArray();
-
-        if ($target == 'filter') {
-            if (array_key_exists('start', $data) || array_key_exists('end', $data) || array_key_exists('autor', $data) || array_key_exists('nakladnik', $data)) {
-                array_push($response, Metatags::noFollow());
-            }
-        }
-
-        if ($target == 'ap_filter') {
-            if (array_key_exists('letter', $data)) {
-                array_push($response, Metatags::noFollow());
-            }
-        }
-
-        return $response;
-    }
-
-
 }

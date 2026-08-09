@@ -14,6 +14,7 @@ use Bouncer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
+use App\Models\ProductReview;
 
 /**
  *
@@ -79,6 +80,16 @@ class Product extends Model
     public function getRouteKeyName()
     {
         return 'slug';
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(ProductReview::class, 'product_id');
+    }
+
+    public function approvedReviews()
+    {
+        return $this->reviews()->approved()->latest('approved_at');
     }
 
     public function getNameAttribute($value)

@@ -2,14 +2,6 @@
 @section('title', __('front.authors.meta_title'))
 @section('description', __('front.authors.meta_description'))
 
-@if (isset($meta_tags))
-    @push('meta_tags')
-        @foreach ($meta_tags as $tag)
-            <meta name="{{ $tag['name'] }}" content="{{ $tag['content'] }}">
-        @endforeach
-    @endpush
-@endif
-
 @section('content')
 
     <!-- Hero section with search-->
