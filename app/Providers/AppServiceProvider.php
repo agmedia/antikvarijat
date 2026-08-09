@@ -8,6 +8,8 @@ use App\Models\Front\Page;
 use App\Models\User;
 use App\Models\ProductReview;
 use App\Models\Back\Marketing\Wishlist;
+use Illuminate\Auth\Notifications\ResetPassword as ResetPasswordNotification;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
@@ -34,6 +36,16 @@ class AppServiceProvider extends ServiceProvider
     public function boot()
     {
         Paginator::useBootstrap();
+
+        ResetPasswordNotification::createUrlUsing(function ($notifiable, string $token) {
+            return route('reset.password.get', ['token' => $token]);
+        });
+
+        ResetPasswordNotification::toMailUsing(function ($notifiable, string $token) {
+            return (new MailMessage)
+                ->subject(__('front.email.password_heading'))
+                ->view('emails.forget-password', ['token' => $token]);
+        });
 
         $this->registerFrontendViewComposers();
         $this->registerAdminViewComposers();

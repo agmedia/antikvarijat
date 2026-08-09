@@ -72,7 +72,9 @@ class UserController extends Controller
      */
     public function create()
     {
-        return view('back.user.edit');
+        $roles = Role::selectList();
+
+        return view('back.user.edit', compact('roles'));
     }
     
     

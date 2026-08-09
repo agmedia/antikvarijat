@@ -9,6 +9,13 @@
                     <h1 class="admin-page-title">Recenzije artikala</h1>
                     <p class="admin-page-description">Odobrite stvarne komentare kupaca prije prikaza na artiklu i u strukturiranim podacima.</p>
                 </div>
+                @unless(auth()->check() && Bouncer::is(auth()->user())->an('editor'))
+                    <div class="admin-page-actions">
+                        <a class="btn btn-primary" href="{{ route('product-review-backfills.index') }}">
+                            <i class="fa-solid fa-paper-plane mr-1"></i> Pošalji stare pozive
+                        </a>
+                    </div>
+                @endunless
             </div>
         </div>
     </div>

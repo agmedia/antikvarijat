@@ -9,6 +9,7 @@ use App\Http\Controllers\Back\Catalog\ProductController;
 use App\Http\Controllers\Back\Catalog\PublisherController;
 use App\Http\Controllers\Back\ContractWithdrawalController as AdminContractWithdrawalController;
 use App\Http\Controllers\Back\ProductReviewController as AdminProductReviewController;
+use App\Http\Controllers\Back\ProductReviewBackfillController as AdminProductReviewBackfillController;
 use App\Http\Controllers\Back\DashboardController;
 use App\Http\Controllers\Back\OrderController;
 use App\Http\Controllers\Back\StatisticsController;
@@ -148,6 +149,14 @@ Route::middleware(['auth:sanctum', 'verified', 'no.customers'])->prefix('admin')
     // RECENZIJE ARTIKALA
     Route::get('product-reviews', [AdminProductReviewController::class, 'index'])->name('product-reviews.index');
     Route::patch('product-reviews/{review}', [AdminProductReviewController::class, 'update'])->name('product-reviews.update');
+    Route::middleware('not.editor')->group(function () {
+        Route::get('product-review-requests', [AdminProductReviewBackfillController::class, 'index'])
+            ->name('product-review-backfills.index');
+        Route::post('product-review-requests', [AdminProductReviewBackfillController::class, 'store'])
+            ->name('product-review-backfills.store');
+        Route::post('product-review-requests/{backfill}/cancel', [AdminProductReviewBackfillController::class, 'cancel'])
+            ->name('product-review-backfills.cancel');
+    });
 
     // MARKETING
     Route::prefix('marketing')->group(function () {
