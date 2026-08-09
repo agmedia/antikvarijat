@@ -2,6 +2,7 @@
 @section ('title', $seo['title'])
 @section ('description', $seo['description'])
 @section('og_type', 'product')
+@section('schema_page_type', 'ItemPage')
 @section('og_image', $prod->image)
 @section('og_image_type', 'image/webp')
 @section('og_image_alt', $prod->image_alt ?: $prod->name)
@@ -528,10 +529,10 @@
 
 
     <script type="application/ld+json">
-        {!! collect($crumbs)->toJson() !!}
+        {!! \App\Helpers\StructuredData::toJson($crumbs) !!}
     </script>
     <script type="application/ld+json">
-        {!! collect($bookscheme)->toJson() !!}
+        {!! \App\Helpers\StructuredData::toJson($bookscheme) !!}
     </script>
     <script type='text/javascript' src='https://platform-api.sharethis.com/js/sharethis.js#property=6134a372eae16400120a5035&product=sop' async='async'></script>
 

@@ -1,6 +1,14 @@
 @extends('front.layouts.app')
 @section('title', __('front.publishers.meta_title'))
 @section('description', __('front.publishers.meta_description'))
+@section('schema_page_type', 'CollectionPage')
+
+@push('meta_tags')
+    @include('front.layouts.partials.collection-schema', [
+        'collectionPaginator' => $publishers,
+        'collectionName' => __('front.publishers.title') . ' - ' . $letter,
+    ])
+@endpush
 
 @section('content')
 
@@ -33,7 +41,7 @@
 
         <div class="row py-md-3">
             <div class="col-lg-12 text-center mb-5">
-                <h1>{{ $letter }}</h1>
+                <h2>{{ $letter }}</h2>
                 <hr>
             </div>
 

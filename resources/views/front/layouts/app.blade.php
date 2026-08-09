@@ -7,20 +7,34 @@
         $localeSettings = config('localization.locales.' . $locale, config('localization.locales.hr'));
         $defaultTitle = __('front.meta.default_title');
         $defaultDescription = __('front.meta.default_description');
-        $title = trim($__env->yieldContent('title')) ?: $defaultTitle;
-        $description = trim($__env->yieldContent('description')) ?: $defaultDescription;
+        $sectionTitle = trim($__env->yieldContent('title'));
+        $sectionDescription = trim($__env->yieldContent('description'));
+        $title = $sectionTitle !== ''
+            ? html_entity_decode($sectionTitle, ENT_QUOTES | ENT_HTML5, 'UTF-8')
+            : $defaultTitle;
+        $description = $sectionDescription !== ''
+            ? html_entity_decode($sectionDescription, ENT_QUOTES | ENT_HTML5, 'UTF-8')
+            : $defaultDescription;
         $seoMeta = \App\Helpers\Metatags::resolve(request());
-        $canonicalUrl = trim($__env->yieldContent('canonical')) ?: $seoMeta['canonical'];
+        $sectionCanonical = trim($__env->yieldContent('canonical'));
+        $canonicalUrl = $sectionCanonical !== ''
+            ? html_entity_decode($sectionCanonical, ENT_QUOTES | ENT_HTML5, 'UTF-8')
+            : $seoMeta['canonical'];
         $alternateUrls = \App\Helpers\LocaleHelper::currentAlternateUrls();
         $languageSwitcherUrls = \App\Helpers\LocaleHelper::languageSwitcherUrls();
         $robots = trim($__env->yieldContent('robots')) ?: $seoMeta['robots'];
         $ogType = trim($__env->yieldContent('og_type')) ?: 'website';
-        $ogImage = trim($__env->yieldContent('og_image'));
-        $ogImageAlt = trim($__env->yieldContent('og_image_alt')) ?: $title;
+        $sectionOgImage = trim($__env->yieldContent('og_image'));
+        $sectionOgImageAlt = trim($__env->yieldContent('og_image_alt'));
+        $ogImage = html_entity_decode($sectionOgImage, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $ogImageAlt = $sectionOgImageAlt !== ''
+            ? html_entity_decode($sectionOgImageAlt, ENT_QUOTES | ENT_HTML5, 'UTF-8')
+            : $title;
         $ogImageType = trim($__env->yieldContent('og_image_type')) ?: \App\Helpers\StructuredData::imageMimeType($ogImage);
         $twitterCard = $ogImage ? 'summary_large_image' : 'summary';
         $imagesDomain = config('settings.images_domain');
-        $siteSchema = \App\Helpers\StructuredData::siteGraph($canonicalUrl, $title, $description, $locale);
+        $schemaPageType = trim($__env->yieldContent('schema_page_type')) ?: 'WebPage';
+        $siteSchema = \App\Helpers\StructuredData::siteGraph($canonicalUrl, $title, $description, $locale, $schemaPageType);
     @endphp
     <meta charset="utf-8">
     <title>{{ $title }}</title>
@@ -68,7 +82,7 @@
     <link rel="mask-icon" href="{{ $imagesDomain . 'safari-pinned-tab.svg' }}" color="#314837">
     <meta name="msapplication-TileColor" content="#314837">
     <meta name="theme-color" content="#ffffff">
-    <script type="application/ld+json">{!! json_encode($siteSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+    <script type="application/ld+json">{!! \App\Helpers\StructuredData::toJson($siteSchema) !!}</script>
 
     <!-- Vendor Styles including: Font Icons, Plugins, etc.-->
     <link rel="preconnect" href="https://fonts.gstatic.com">

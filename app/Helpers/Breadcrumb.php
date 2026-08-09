@@ -4,6 +4,8 @@ namespace App\Helpers;
 
 use App\Models\Front\Catalog\Category;
 use App\Models\Front\Catalog\Product;
+use App\Models\Front\Catalog\Author;
+use App\Models\Front\Catalog\Publisher;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Support\Collection;
@@ -38,7 +40,7 @@ class Breadcrumb
      *
      * @return $this
      */
-    public function category($group, Category $cat = null, $subcat = null)
+    public function category($group, ?Category $cat = null, $subcat = null)
     {
         if (isset($group) && $group) {
             $this->addGroup($group);
@@ -65,6 +67,86 @@ class Breadcrumb
         return $this;
     }
 
+    public function author(Author $author, ?Category $cat = null, ?Category $subcat = null): self
+    {
+        $this->breadcrumbs[] = [
+            '@type' => 'ListItem',
+            'position' => 2,
+            'name' => __('front.nav.authors'),
+            'item' => LocaleHelper::route('catalog.route.author'),
+        ];
+        $this->breadcrumbs[] = [
+            '@type' => 'ListItem',
+            'position' => 3,
+            'name' => $author->title,
+            'item' => LocaleHelper::route('catalog.route.author', ['author' => $author]),
+        ];
+
+        if ($cat) {
+            $this->breadcrumbs[] = [
+                '@type' => 'ListItem',
+                'position' => 4,
+                'name' => $cat->title,
+                'item' => LocaleHelper::route('catalog.route.author', ['author' => $author, 'cat' => $cat]),
+            ];
+        }
+
+        if ($subcat) {
+            $this->breadcrumbs[] = [
+                '@type' => 'ListItem',
+                'position' => 5,
+                'name' => $subcat->title,
+                'item' => LocaleHelper::route('catalog.route.author', [
+                    'author' => $author,
+                    'cat' => $cat,
+                    'subcat' => $subcat,
+                ]),
+            ];
+        }
+
+        return $this;
+    }
+
+    public function publisher(Publisher $publisher, ?Category $cat = null, ?Category $subcat = null): self
+    {
+        $this->breadcrumbs[] = [
+            '@type' => 'ListItem',
+            'position' => 2,
+            'name' => __('front.nav.publishers'),
+            'item' => LocaleHelper::route('catalog.route.publisher'),
+        ];
+        $this->breadcrumbs[] = [
+            '@type' => 'ListItem',
+            'position' => 3,
+            'name' => $publisher->title,
+            'item' => LocaleHelper::route('catalog.route.publisher', ['publisher' => $publisher]),
+        ];
+
+        if ($cat) {
+            $this->breadcrumbs[] = [
+                '@type' => 'ListItem',
+                'position' => 4,
+                'name' => $cat->title,
+                'item' => LocaleHelper::route('catalog.route.publisher', ['publisher' => $publisher, 'cat' => $cat]),
+            ];
+        }
+
+        if ($subcat) {
+            $this->breadcrumbs[] = [
+                '@type' => 'ListItem',
+                'position' => 5,
+                'name' => $subcat->title,
+                'item' => LocaleHelper::route('catalog.route.publisher', [
+                    'publisher' => $publisher,
+                    'cat' => $cat,
+                    'subcat' => $subcat,
+                ]),
+            ];
+        }
+
+        return $this;
+    }
+
 
     /**
      * @param               $group
@@ -74,7 +156,7 @@ class Breadcrumb
      *
      * @return $this
      */
-    public function product($group, Category $cat = null, $subcat = null, Product $prod = null)
+    public function product($group, ?Category $cat = null, $subcat = null, ?Product $prod = null)
     {
         $this->category($group, $cat, $subcat);
 
@@ -98,7 +180,7 @@ class Breadcrumb
      *
      * @return array
      */
-    public function productBookSchema(Product $prod = null, ?Collection $reviews = null, array $reviewStats = [])
+    public function productBookSchema(?Product $prod = null, ?Collection $reviews = null, array $reviewStats = [])
     {
         if (! $prod) {
             return [];

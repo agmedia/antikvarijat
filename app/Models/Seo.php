@@ -45,7 +45,7 @@ class Seo
             $description = $author->meta_description ?: 'Browse books by ' . $author->title . ' in Antikvarijat Biblos with secure ordering and delivery.';
         } else {
             $title = $author->meta_title ?: $author->title . ' knjige - Antikvarijat Biblos';
-            $description = $author->meta_description ?: 'Knjige autora ' . $author->title . ' danas su jako popularne u svijetu. Bogati izbor knjiga autora ' . $author->title . ' uz brzu dostavu i sigurnu kupovinu.';
+            $description = $author->meta_description ?: 'Pregledajte dostupne knjige autora ' . $author->title . ' u ponudi Antikvarijata Biblos. Sigurna kupnja i dostava.';
         }
 
         return [
@@ -65,7 +65,7 @@ class Seo
             $description = $publisher->meta_description ?: 'Browse books from publisher ' . $publisher->title . ' in Antikvarijat Biblos with secure ordering and delivery.';
         } else {
             $title = $publisher->meta_title ?: $publisher->title . ' knjige - Antikvarijat Biblos';
-            $description = $publisher->meta_description ?: 'Ponuda knjiga nakladnika ' . $publisher->title . '. Knjige iz antikvarijata, naklade ' . $publisher->title . ' mogu biti u vašem domu uz brzu dostavu.';
+            $description = $publisher->meta_description ?: 'Pregledajte dostupne knjige nakladnika ' . $publisher->title . ' u ponudi Antikvarijata Biblos. Sigurna kupnja i dostava.';
         }
 
         // Check if there is meta title or description and set vars.

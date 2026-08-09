@@ -43,6 +43,11 @@ return [
         'empty_query' => 'Oops..! You forgot to enter a search term..!',
     ],
 
+    'catalog' => [
+        'group_description' => 'Browse the current :name selection at Antikvarijat Biblos. Available items can be ordered online.',
+        'category_description' => 'Explore available items in the :name category at Antikvarijat Biblos. Secure ordering and delivery.',
+    ],
+
     'product' => [
         'sold_out' => 'Sold out',
         'sale' => 'Sale',

@@ -260,7 +260,7 @@ class CatalogRouteController extends Controller
         }
 
         $seo = Seo::getAuthorData($author, $cat, $subcat);
-        $crumbs = null;
+        $crumbs = (new Breadcrumb())->author($author, $cat, $subcat)->resolve();
 
         return view('front.catalog.category.index', array_merge(
             compact('author', 'letter', 'cat', 'subcat', 'seo', 'crumbs'),
@@ -316,7 +316,7 @@ class CatalogRouteController extends Controller
         }
 
         $seo = Seo::getPublisherData($publisher, $cat, $subcat);
-        $crumbs = null;
+        $crumbs = (new Breadcrumb())->publisher($publisher, $cat, $subcat)->resolve();
 
         return view('front.catalog.category.index', array_merge(
             compact('publisher', 'letter', 'cat', 'subcat', 'seo', 'crumbs'),
@@ -631,7 +631,8 @@ class CatalogRouteController extends Controller
                 'categories:id,parent_id,title,title_en,group,slug,slug_en',
                 'action:id,status,coupon',
             ])
-            ->paginate(config('settings.pagination.front'), ['*'], 'page', $page);
+            ->paginate(config('settings.pagination.front'), ['*'], 'page', $page)
+            ->appends($request->query());
     }
 
     private function buildProductRequestData(

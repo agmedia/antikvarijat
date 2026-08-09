@@ -2,9 +2,25 @@
 
 namespace App\Helpers;
 
+use Illuminate\Pagination\LengthAwarePaginator;
+
 final class StructuredData
 {
-    public static function siteGraph(string $canonicalUrl, string $title, string $description, string $locale): array
+    private const JSON_FLAGS = JSON_UNESCAPED_SLASHES
+        | JSON_UNESCAPED_UNICODE
+        | JSON_HEX_TAG
+        | JSON_HEX_AMP
+        | JSON_HEX_APOS
+        | JSON_HEX_QUOT
+        | JSON_THROW_ON_ERROR;
+
+    public static function siteGraph(
+        string $canonicalUrl,
+        string $title,
+        string $description,
+        string $locale,
+        string $pageType = 'WebPage'
+    ): array
     {
         $siteUrl = rtrim((string) config('app.url'), '/');
         $organizationId = $siteUrl . '/#organization';
@@ -88,7 +104,7 @@ final class StructuredData
                     ],
                 ],
                 [
-                    '@type' => 'WebPage',
+                    '@type' => $pageType,
                     '@id' => $pageId,
                     'url' => $canonicalUrl,
                     'name' => $title,
@@ -98,6 +114,61 @@ final class StructuredData
                     'inLanguage' => $locale,
                 ],
             ],
+        ];
+    }
+
+    public static function itemList(
+        string $canonicalUrl,
+        string $name,
+        LengthAwarePaginator $paginator
+    ): array {
+        $pageBase = rtrim($canonicalUrl, '/');
+        $firstPosition = $paginator->firstItem() ?: 1;
+        $elements = collect($paginator->items())
+            ->values()
+            ->map(function ($item, int $index) use ($firstPosition) {
+                $productName = trim((string) data_get($item, 'name'));
+                $itemName = $productName ?: trim((string) data_get($item, 'title'));
+                $rawUrl = trim((string) data_get($item, 'url'));
+
+                if ($itemName === '' || $rawUrl === '') {
+                    return null;
+                }
+
+                $itemUrl = preg_match('#^https?://#i', $rawUrl) ? $rawUrl : url($rawUrl);
+                $image = trim((string) (data_get($item, 'thumb') ?: data_get($item, 'image')));
+                $referencedItem = [
+                    '@id' => $itemUrl . ($productName !== '' ? '#product' : '#webpage'),
+                    'name' => $itemName,
+                    'url' => $itemUrl,
+                ];
+
+                if (preg_match('#^https?://#i', $image)) {
+                    $referencedItem['image'] = $image;
+                }
+
+                return [
+                    '@type' => 'ListItem',
+                    'position' => $firstPosition + $index,
+                    'item' => $referencedItem,
+                ];
+            })
+            ->filter()
+            ->values()
+            ->all();
+
+        return [
+            '@context' => 'https://schema.org',
+            '@type' => 'ItemList',
+            '@id' => $pageBase . '#itemlist',
+            'name' => $name,
+            'url' => $canonicalUrl,
+            'mainEntityOfPage' => [
+                '@id' => $pageBase . '#webpage',
+            ],
+            'numberOfItems' => $paginator->total(),
+            'itemListOrder' => 'https://schema.org/ItemListOrderAscending',
+            'itemListElement' => $elements,
         ];
     }
 
@@ -114,5 +185,10 @@ final class StructuredData
             'png' => 'image/png',
             'webp' => 'image/webp',
         ][$extension] ?? null;
+    }
+
+    public static function toJson(array $schema): string
+    {
+        return json_encode($schema, self::JSON_FLAGS);
     }
 }

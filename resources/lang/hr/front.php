@@ -43,6 +43,11 @@ return [
         'empty_query' => 'Oops..! Zaboravili ste upisati pojam za pretraživanje..!',
     ],
 
+    'catalog' => [
+        'group_description' => 'Pregledajte aktualnu ponudu iz odjela :name u Antikvarijatu Biblos. Dostupni artikli mogu se odmah naručiti putem interneta.',
+        'category_description' => 'Istražite dostupne artikle u kategoriji :name u ponudi Antikvarijata Biblos. Sigurna kupnja i dostava.',
+    ],
+
     'product' => [
         'sold_out' => 'Rasprodano',
         'sale' => 'Akcija',

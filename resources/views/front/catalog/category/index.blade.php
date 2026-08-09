@@ -1,33 +1,57 @@
 @extends('front.layouts.app')
-@php($isEnglish = \App\Helpers\LocaleHelper::isEnglish())
+@php
+    $isEnglish = \App\Helpers\LocaleHelper::isEnglish();
+    $group = $group ?? null;
+    $cat = $cat ?? null;
+    $subcat = $subcat ?? null;
+    $author = $author ?? null;
+    $publisher = $publisher ?? null;
+    $listingTitle = __('front.meta.default_title');
+    $listingDescription = __('front.meta.default_description');
 
-@if (isset($group) && $group)
-    @if ($group && ! $cat && ! $subcat)
-        @section ( 'title',  \App\Helpers\LocaleHelper::groupTitle($group). ' - Antikvarijat Biblos' )
-    @endif
-    @if ($cat && ! $subcat)
-        @section ( 'title',  $cat->title . ' - Antikvarijat Biblos' )
-        @section ( 'description', $cat->meta_description )
-    @elseif ($cat && $subcat)
-        @section ( 'title', $subcat->title . ' - Antikvarijat Biblos' )
-        @section ( 'description', $subcat->meta_description )
-    @endif
-@endif
+    if ($group) {
+        $groupTitle = \App\Helpers\LocaleHelper::groupTitle($group);
+        $listingTitle = $groupTitle . ' - Antikvarijat Biblos';
+        $listingDescription = __('front.catalog.group_description', ['name' => $groupTitle]);
 
-@if (isset($author) && $author)
-    @if (isset($seo['title']) && isset($seo['description']))
-        @section ('title',  $seo['title'])
-        @section ('description', $seo['description'])
-    @endif
-    @if (isset($seo['name']) && isset($seo['content']))
-        <meta name="{{ $seo['name'] }}" content="{{ $seo['content'] }}">
-    @endif
-@endif
+        $categoryEntity = $subcat ?: $cat;
+        if ($categoryEntity) {
+            $listingTitle = trim((string) $categoryEntity->meta_title)
+                ?: $categoryEntity->title . ' - Antikvarijat Biblos';
+            $listingDescription = trim((string) $categoryEntity->meta_description)
+                ?: __('front.catalog.category_description', ['name' => $categoryEntity->title]);
+        }
+    }
 
-@if (isset($publisher) && $publisher)
-    @section ('title',  $seo['title'])
-    @section ('description', $seo['description'])
-@endif
+    if ($author && isset($seo['title'], $seo['description'])) {
+        $listingTitle = $seo['title'];
+        $listingDescription = $seo['description'];
+    }
+
+    if ($publisher && isset($seo['title'], $seo['description'])) {
+        $listingTitle = $seo['title'];
+        $listingDescription = $seo['description'];
+    }
+
+    if (request()->routeIs('pretrazi', 'en.pretrazi')) {
+        $listingTitle = __('front.search.results_for') . ': ' . request()->input(config('settings.search_keyword')) . ' - Antikvarijat Biblos';
+    } elseif (request()->routeIs('tag', 'en.tag')) {
+        $listingTitle = __('front.search.results_for_tag') . ': ' . request()->input(config('settings.search_keyword')) . ' - Antikvarijat Biblos';
+    }
+@endphp
+@section('title', $listingTitle)
+@section('description', $listingDescription)
+@section('schema_page_type', 'CollectionPage')
+
+@push('meta_tags')
+    @if (! empty($crumbs))
+        <script type="application/ld+json">{!! \App\Helpers\StructuredData::toJson($crumbs) !!}</script>
+    @endif
+    @include('front.layouts.partials.collection-schema', [
+        'collectionPaginator' => $initialProductsPaginator ?? null,
+        'collectionName' => $listingTitle,
+    ])
+@endpush
 
 @push('css_after')
     <style>
@@ -228,24 +252,20 @@
         </div>
     </div>
 
-    @if (isset($author) && $author && ! empty($author->description))
-        <div class="container pb-4 mb-2 mb-md-4" >
-            {!! $author->description !!}
-        </div>
+    @if ($author || $publisher || $cat || $subcat || $group)
+        <section class="container pb-4 mb-2 mb-md-4" aria-label="{{ $listingTitle }}">
+            @if ($author && ! empty($author->description))
+                {!! $author->description !!}
+            @elseif ($publisher && ! empty($publisher->description))
+                {!! $publisher->description !!}
+            @elseif ($subcat && ! empty($subcat->description))
+                {!! $subcat->description !!}
+            @elseif ($cat && ! empty($cat->description))
+                {!! $cat->description !!}
+            @else
+                <p>{{ $listingDescription }}</p>
+            @endif
+        </section>
     @endif
 
-    <div class="container pb-4 mb-2 mb-md-4" >
-        @if ($cat && ! $subcat)
-            {!! $cat->description !!}
-        @elseif ($subcat)
-            {!! $subcat->description !!}
-        @endif
-    </div>
-
 @endsection
-
-@push('js_after')
-    <script type="application/ld+json">
-        {!! collect($crumbs)->toJson() !!}
-    </script>
-@endpush
