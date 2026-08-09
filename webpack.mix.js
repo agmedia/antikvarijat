@@ -44,6 +44,7 @@ mix
 .js('resources/js/front/filter/app.js', 'public/js/filter.js').vue()
 .js('resources/js/back/ag-order-products.js', 'public/js/components/ag-order-products.js').vue()
 .js('resources/js/back/ag-input-field.js', 'public/js/ag-input-field.js').vue()
+.copy('node_modules/vanilla-cookieconsent/dist/cookieconsent.css', 'public/vendor/cookieconsent/cookieconsent.css')
 
 /* Tools */
 /*.browserSync('http://127.0.0.1:8000/')

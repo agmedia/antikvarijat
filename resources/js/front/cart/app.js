@@ -6,7 +6,10 @@
 
 require('./bootstrap');
 
+import * as CookieConsent from 'vanilla-cookieconsent';
 import Vue from "vue";
+
+window.CookieConsent = CookieConsent;
 window.Vue = Vue;
 import Vuex from 'vuex';
 window.Vuex = Vuex;

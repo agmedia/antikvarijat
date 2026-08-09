@@ -72,16 +72,25 @@ class AgService {
                 return false;
             }
 
-            let product = response.data.items[item.id].associatedModel;
+            const productItem = this.findCartItem(response.data, item.id);
+            const product = productItem ? productItem.associatedModel : null;
 
-            window.dataLayer = window.dataLayer || [];
-            window.dataLayer.push({ ecommerce: null });
-            window.dataLayer.push({
-                'event': 'add_to_cart',
-                'ecommerce': {
-                    'items': [ product.dataLayer ]
-                }
-            });
+            if (product && product.dataLayer) {
+                const quantity = Number(item.quantity) || 1;
+                const ecommerceItem = { ...product.dataLayer, quantity };
+                const price = Number(ecommerceItem.price) || 0;
+
+                window.dataLayer = window.dataLayer || [];
+                window.dataLayer.push({ ecommerce: null });
+                window.dataLayer.push({
+                    event: 'add_to_cart',
+                    ecommerce: {
+                        currency: ecommerceItem.currency || 'EUR',
+                        value: Number((price * quantity).toFixed(2)),
+                        items: [ecommerceItem]
+                    }
+                });
+            }
 
             this.returnSuccess(messages.cartAdd);
             return response.data
@@ -174,6 +183,16 @@ class AgService {
      */
     returnSuccess(msg) {
         window.ToastSuccess.fire(msg);
+    }
+
+    findCartItem(cart, itemId) {
+        const items = cart && cart.items ? cart.items : {};
+
+        if (items[itemId]) {
+            return items[itemId];
+        }
+
+        return Object.values(items).find((cartItem) => String(cartItem && cartItem.id) === String(itemId)) || null;
     }
 
     /**
