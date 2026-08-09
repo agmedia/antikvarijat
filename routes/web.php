@@ -467,7 +467,7 @@ Route::prefix('en')->as('en.')->group(function () {
  */
 Route::redirect('/sitemap.xml', '/sitemap');
 Route::get('sitemap/{sitemap?}', [HomeController::class, 'sitemapXML'])->name('sitemap');
-Route::get('image-sitemap', [HomeController::class, 'sitemapImageXML'])->name('sitemap');
+Route::get('image-sitemap', [HomeController::class, 'sitemapImageXML'])->name('image-sitemap');
 //
 Route::get('njuskalo/biblos/xml', [HomeController::class, 'njuskaloXML'])->name('njuskalo');
 Route::get('vialibri/sync.xml', [VialibriFeedController::class, 'sync'])->name('vialibri.feed.sync');
