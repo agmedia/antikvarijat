@@ -498,7 +498,7 @@ class Helper
     {
         $prods = (new Product())->newQuery();
 
-        $prods->active()->available();
+        $prods->active()->available()->hasImage();
 
         if (isset($data['new']) && $data['new'] == 'on') {
             $prods->orderBy('updated_at', 'desc')->limit(12);
@@ -609,7 +609,7 @@ class Helper
     {
         $product = (new Product())->newQuery();
 
-        $product->where('status', 1);
+        $product->where('status', 1)->available()->hasImage();
 
         // Filtriraj po kategorijama
         if (!empty($data['list'])) {

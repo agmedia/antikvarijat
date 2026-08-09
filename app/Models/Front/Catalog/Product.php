@@ -493,6 +493,15 @@ class Product extends Model
 
 
     /**
+     * Exclude products without a configured primary image from visual widgets.
+     */
+    public function scopeHasImage(Builder $query): Builder
+    {
+        return $query->whereNotNull('image')->where('image', '!=', '');
+    }
+
+
+    /**
      * @param $query
      *
      * @return mixed

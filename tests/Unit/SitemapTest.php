@@ -52,6 +52,22 @@ class SitemapTest extends TestCase
         $this->assertStringContainsString('<lastmod>2026-08-09T08:00:00+00:00</lastmod>', $xml);
     }
 
+    public function testCoreListingPagesAreIncludedForBothLocales(): void
+    {
+        $hr = Sitemap::corePageUrls('hr');
+        $en = Sitemap::corePageUrls('en');
+
+        $this->assertSame(url('knjige'), $hr['books']);
+        $this->assertSame(url('zemljovidi-i-vedute'), $hr['maps']);
+        $this->assertSame(url('blog'), $hr['blog']);
+        $this->assertSame(url('snizenja'), $hr['sale']);
+
+        $this->assertSame(url('en/books'), $en['books']);
+        $this->assertSame(url('en/maps-and-views'), $en['maps']);
+        $this->assertSame(url('en/blog'), $en['blog']);
+        $this->assertSame(url('en/sale'), $en['sale']);
+    }
+
     public function testPublicSitemapRoutesDoNotStartSessionsOrAddCsrfCookies(): void
     {
         $sitemapRoute = app('router')->getRoutes()->getByName('sitemap');

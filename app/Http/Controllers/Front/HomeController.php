@@ -353,11 +353,18 @@ class HomeController extends Controller
      */
     public function imageCache(Request $request)
     {
-        $src = $request->input('src');
+        $fallback = $this->fallbackImagePath();
+        $src = $this->resolvePublicImagePath($request->input('src'), $fallback);
 
-        $cacheimage = Image::cache(function($image) use ($src) {
-            $image->make($src);
-        }, config('imagecache.lifetime'));
+        try {
+            $cacheimage = Image::cache(function($image) use ($src) {
+                $image->make($src);
+            }, config('imagecache.lifetime'));
+        } catch (\Throwable $exception) {
+            $cacheimage = Image::cache(function($image) use ($fallback) {
+                $image->make($fallback);
+            }, config('imagecache.lifetime'));
+        }
 
         return Image::make($cacheimage)->response();
     }
@@ -370,62 +377,103 @@ class HomeController extends Controller
      */
     public function thumbCache(Request $request)
     {
-        if ( ! $request->has('src')) {
-            return asset('media/img/knjiga-detalj.jpg');
+        $fallback = $this->fallbackImagePath();
+        $src = $this->resolvePublicImagePath($request->input('src'), $fallback);
+        [$width, $height] = $this->thumbnailDimensions($request->input('size'));
+        $mode = $request->input('mode') === 'fit' ? 'fit' : 'resize';
+
+        try {
+            $cacheimage = $this->cachedThumbnail($src, $width, $height, $mode);
+        } catch (\Throwable $exception) {
+            $cacheimage = $this->cachedThumbnail($fallback, $width, $height, $mode);
         }
 
-        $src = $request->input('src');
-        $appHost = parse_url((string) config('app.url'), PHP_URL_HOST);
-        $imagesHost = parse_url((string) config('settings.images_domain'), PHP_URL_HOST);
+        return Image::make($cacheimage)->response();
+    }
 
-        if (filter_var($src, FILTER_VALIDATE_URL)) {
-            $srcHost = parse_url($src, PHP_URL_HOST);
-            $srcPath = parse_url($src, PHP_URL_PATH);
-
-            if ($srcPath && in_array($srcHost, array_filter([$appHost, $imagesHost]), true)) {
-                $src = public_path(ltrim($srcPath, '/'));
-            }
-        } elseif (! str_starts_with($src, DIRECTORY_SEPARATOR)) {
-            $publicPath = public_path(ltrim($src, '/'));
-
-            if (file_exists($publicPath)) {
-                $src = $publicPath;
-            }
-        }
-
-        $cacheimage = Image::cache(function($image) use ($request, $src) {
-            $width = 250;
-            $height = 300;
-            $mode = $request->input('mode');
-
-            if ($request->has('size')) {
-                if (strpos($request->input('size'), 'x') !== false) {
-                    $size = explode('x', $request->input('size'));
-                    $width = $size[0];
-                    $height = $size[1];
-                }
-            } else {
-                $width = $request->input('size');
-            }
-
+    private function cachedThumbnail(string $src, int $width, ?int $height, string $mode)
+    {
+        return Image::cache(function($image) use ($src, $width, $height, $mode) {
             $image = $image->make($src);
 
-            if ($mode === 'fit' && $width && $height) {
-                $image->fit((int) $width, (int) $height, function ($constraint) {
+            if ($mode === 'fit' && $height) {
+                $image->fit($width, $height, function ($constraint) {
                     $constraint->upsize();
                 });
 
                 return;
             }
 
-            $image->resize((int) $width, $height ? (int) $height : null, function ($constraint) {
+            $image->resize($width, $height, function ($constraint) {
                 $constraint->aspectRatio();
                 $constraint->upsize();
             });
-
         }, config('imagecache.lifetime'));
+    }
 
-        return Image::make($cacheimage)->response();
+    /**
+     * Resolve only existing files below public/. Invalid, external and missing
+     * sources deliberately use the storefront placeholder instead of logging a 500.
+     */
+    private function resolvePublicImagePath(?string $source, string $fallback): string
+    {
+        $source = trim((string) $source);
+
+        if ($source === '') {
+            return $fallback;
+        }
+
+        if (filter_var($source, FILTER_VALIDATE_URL)) {
+            $scheme = strtolower((string) parse_url($source, PHP_URL_SCHEME));
+            $host = strtolower((string) parse_url($source, PHP_URL_HOST));
+            $allowedHosts = array_values(array_unique(array_filter(array_map(
+                fn ($url) => strtolower((string) parse_url((string) $url, PHP_URL_HOST)),
+                [config('app.url'), config('settings.images_domain')]
+            ))));
+
+            if (! in_array($scheme, ['http', 'https'], true) || ! in_array($host, $allowedHosts, true)) {
+                return $fallback;
+            }
+
+            $source = (string) parse_url($source, PHP_URL_PATH);
+        }
+
+        $relativePath = ltrim(rawurldecode($source), '/');
+        $candidate = realpath(public_path($relativePath));
+        $publicRoot = realpath(public_path());
+
+        if (! $candidate || ! $publicRoot || ! is_file($candidate)) {
+            return $fallback;
+        }
+
+        if ($candidate !== $publicRoot && ! str_starts_with($candidate, $publicRoot . DIRECTORY_SEPARATOR)) {
+            return $fallback;
+        }
+
+        return $candidate;
+    }
+
+    /**
+     * Keep generated thumbnails within a predictable memory/CPU budget.
+     * A single value (for example 600) means proportional width resize.
+     */
+    private function thumbnailDimensions(?string $size): array
+    {
+        $size = trim((string) $size);
+
+        if ($size === '' || ! preg_match('/^(\d{1,4})(?:x(\d{1,4}))?$/', $size, $matches)) {
+            return [250, 300];
+        }
+
+        $width = min(max((int) $matches[1], 1), 2000);
+        $height = isset($matches[2]) ? min(max((int) $matches[2], 1), 2000) : null;
+
+        return [$width, $height];
+    }
+
+    private function fallbackImagePath(): string
+    {
+        return public_path('media/img/knjiga-detalj.jpg');
     }
 
 

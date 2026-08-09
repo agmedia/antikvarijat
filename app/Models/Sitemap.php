@@ -125,6 +125,28 @@ class Sitemap
 
 
     /**
+     * Canonical public entry pages that should be discoverable even when they
+     * do not belong to a database-backed category or content-page sitemap.
+     *
+     * @return array<string, string>
+     */
+    public static function corePageUrls(string $locale): array
+    {
+        return [
+            'home' => LocaleHelper::route('index', [], true, $locale),
+            'contact' => LocaleHelper::route('kontakt', [], true, $locale),
+            'faq' => LocaleHelper::route('faq', [], true, $locale),
+            'returns' => LocaleHelper::route('contract-withdrawal.create', [], true, $locale),
+            'book_purchase' => LocaleHelper::route('otkup.knjiga', [], true, $locale),
+            'blog' => LocaleHelper::route('catalog.route.blog', [], true, $locale),
+            'books' => LocaleHelper::route('catalog.route', ['group' => 'knjige'], true, $locale),
+            'maps' => LocaleHelper::route('catalog.route', ['group' => 'zemljovidi-i-vedute'], true, $locale),
+            'sale' => LocaleHelper::route('catalog.route.actions', [], true, $locale),
+        ];
+    }
+
+
+    /**
      * @return array{type: string, shard: int|null}|null
      */
     public static function parseName(?string $sitemap): ?array
@@ -293,13 +315,17 @@ class Sitemap
     {
         $pages = Page::query()->where('group', 'page')->where('slug', '!=', 'homepage')->where('status', '=', 1)->select('id', 'slug', 'slug_en', 'status', 'updated_at')->get();
         $blogs = Page::query()->where('group', 'blog')->where('status', '=', 1)->select('id', 'slug', 'slug_en', 'status', 'updated_at')->get();
+        $categoryLastmod = static::lastModifiedFor('categories');
+        $productLastmod = static::lastModifiedFor('products');
 
         foreach (LocaleHelper::locales() as $locale) {
-            $this->addUrl(LocaleHelper::route('index', [], true, $locale), Carbon::now()->startOfMonth());
-            $this->addUrl(LocaleHelper::route('kontakt', [], true, $locale), Carbon::now()->startOfYear());
-            $this->addUrl(LocaleHelper::route('faq', [], true, $locale), Carbon::now()->startOfYear());
-            $this->addUrl(LocaleHelper::route('contract-withdrawal.create', [], true, $locale), Carbon::now()->startOfYear());
-            $this->addUrl(LocaleHelper::route('otkup.knjiga', [], true, $locale), Carbon::now()->startOfYear());
+            foreach (static::corePageUrls($locale) as $key => $url) {
+                $lastmod = in_array($key, ['books', 'maps'], true)
+                    ? $categoryLastmod
+                    : ($key === 'sale' ? $productLastmod : Carbon::now()->startOfMonth());
+
+                $this->addUrl($url, $lastmod);
+            }
         }
 
         foreach ($pages as $page) {
@@ -536,7 +562,7 @@ class Sitemap
                 ->count();
             $blogs = Page::query()->where('group', 'blog')->where('status', 1)->count();
 
-            return (5 + $contentPages + $blogs) * $locales;
+            return (count(static::corePageUrls(LocaleHelper::DEFAULT_LOCALE)) + $contentPages + $blogs) * $locales;
         }
 
         if ($type === 'categories') {
