@@ -16,7 +16,7 @@ class ProductReviewController extends Controller
         $status = (string) $request->input('status');
 
         $reviews = ProductReview::query()
-            ->with(['product:id,name,sku,image', 'order:id', 'approver:id,name'])
+            ->with(['product:id,name,sku,image,url', 'order:id', 'approver:id,name'])
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($inner) use ($search) {
                     $inner->where('reviewer_name', 'like', "%{$search}%")

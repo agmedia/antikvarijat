@@ -10,7 +10,7 @@
                     <p class="admin-page-description">Odaberite starije razdoblje, količinu i tempo. Prije slanja uvijek ćete vidjeti točan pregled.</p>
                 </div>
                 <div class="admin-page-actions">
-                    <a class="btn btn-alt-primary" href="{{ route('product-reviews.index') }}">
+                    <a class="btn btn-alt-primary px-3 text-nowrap" href="{{ route('product-reviews.index') }}">
                         <i class="fa-solid fa-comments mr-1"></i> Moderacija recenzija
                     </a>
                 </div>
@@ -47,7 +47,7 @@
             <div class="block-content">
                 <form method="GET" action="{{ route('product-review-backfills.index') }}">
                     <input type="hidden" name="preview" value="1">
-                    <div class="form-row align-items-end">
+                    <div class="form-row">
                         <div class="col-md-3 mb-3">
                             <label class="admin-filter-label" for="review-backfill-from">Od datuma</label>
                             <input class="form-control" id="review-backfill-from" type="date" name="date_from" required
@@ -75,7 +75,7 @@
                             </select>
                         </div>
                     </div>
-                    <button class="btn btn-primary" type="submit" @unless($available) disabled @endunless>
+                    <button class="btn btn-primary px-4 text-nowrap" type="submit" @unless($available) disabled @endunless>
                         <i class="fa-solid fa-magnifying-glass mr-1"></i> Pregledaj primatelje
                     </button>
                 </form>
@@ -133,7 +133,7 @@
                                 <input class="custom-control-input" id="review-backfill-confirmed" type="checkbox" name="confirmed" value="1" required>
                                 <label class="custom-control-label" for="review-backfill-confirmed">Provjerio/la sam razdoblje, količinu i tempo slanja.</label>
                             </div>
-                            <button class="btn btn-success" type="submit" @unless($available && $enabled) disabled @endunless>
+                            <button class="btn btn-success px-4 text-nowrap" type="submit" @unless($available && $enabled) disabled @endunless>
                                 <i class="fa-solid fa-paper-plane mr-1"></i> Pokreni slanje
                             </button>
                         </form>
@@ -150,14 +150,14 @@
                     <h2 class="block-title mb-1">Povijest slanja</h2>
                     <span class="admin-count">Zadnjih {{ $batches->count() }} batcheva</span>
                 </div>
-                <a class="btn btn-sm btn-alt-primary" href="{{ route('product-review-backfills.index') }}">
+                <a class="btn btn-sm btn-alt-primary px-3 text-nowrap" href="{{ route('product-review-backfills.index') }}">
                     <i class="fa-solid fa-rotate mr-1"></i> Osvježi status
                 </a>
             </div>
             <div class="block-content">
                 <div class="table-responsive">
                     <table class="table table-borderless table-striped table-vcenter admin-data-table">
-                        <thead><tr><th>Batch</th><th>Razdoblje i tempo</th><th>Napredak</th><th>Rezultat</th><th>Status</th><th></th></tr></thead>
+                        <thead><tr><th>Batch</th><th>Razdoblje i tempo</th><th>Napredak</th><th>Rezultat</th><th>Status</th><th class="text-right" style="width: 130px;">Akcija</th></tr></thead>
                         <tbody>
                         @forelse($batches as $batch)
                             @php
@@ -177,7 +177,9 @@
                                     @if($batch->isActive())
                                         <form method="POST" action="{{ route('product-review-backfills.cancel', $batch) }}" onsubmit="return confirm('Zaustaviti batch #{{ $batch->id }}? Već poslane poruke ostaju poslane.');">
                                             @csrf
-                                            <button class="btn btn-sm btn-alt-danger" type="submit">Zaustavi</button>
+                                            <button class="btn btn-sm btn-alt-danger px-3 text-nowrap" type="submit">
+                                                <i class="fa-solid fa-stop mr-1" aria-hidden="true"></i> Zaustavi
+                                            </button>
                                         </form>
                                     @endif
                                 </td>

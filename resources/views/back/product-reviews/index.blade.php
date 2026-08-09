@@ -63,7 +63,7 @@
                             <th>Ocjena i komentar</th>
                             <th>Kupac</th>
                             <th>Datum</th>
-                            <th style="width: 230px;">Moderacija</th>
+                            <th style="width: 290px;">Moderacija</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -74,7 +74,9 @@
                             <tr>
                                 <td data-label="Artikl">
                                     @if ($review->product)
-                                        <a class="font-w600" href="{{ route('products.edit', $review->product) }}">{{ $review->product->name }}</a>
+                                        <a class="font-w600" href="{{ url($review->product->url) }}" target="_blank" rel="noopener" title="Otvori artikl na webu">
+                                            {{ $review->product->name }} <i class="fa-solid fa-arrow-up-right-from-square ml-1" aria-hidden="true"></i>
+                                        </a>
                                         <div class="small text-muted">Šifra {{ $review->product->sku }}</div>
                                     @else
                                         <span class="text-muted">Artikl #{{ $review->product_id }} nije dostupan</span>
@@ -100,15 +102,17 @@
                                 <td class="text-nowrap" data-label="Datum">{{ $review->created_at->format('d.m.Y. H:i') }}</td>
                                 <td data-label="Moderacija">
                                     <span class="badge badge-{{ $badge }} mb-2">{{ $statuses[$review->status] ?? $review->status }}</span>
-                                    <form method="POST" action="{{ route('product-reviews.update', $review) }}" class="d-flex">
+                                    <form method="POST" action="{{ route('product-reviews.update', $review) }}" class="d-flex align-items-center flex-nowrap">
                                         @csrf
                                         @method('PATCH')
-                                        <select class="form-control form-control-sm mr-2" name="status" aria-label="Status recenzije">
+                                        <select class="form-control form-control-sm mr-2 flex-grow-1" name="status" aria-label="Status recenzije" style="min-width: 0;">
                                             @foreach ($statuses as $value => $label)
                                                 <option value="{{ $value }}" @if($review->status === $value) selected @endif>{{ $label }}</option>
                                             @endforeach
                                         </select>
-                                        <button class="btn btn-sm btn-primary" type="submit">Spremi</button>
+                                        <button class="btn btn-sm btn-primary px-3 flex-shrink-0 text-nowrap" type="submit">
+                                            <i class="fa-solid fa-floppy-disk mr-1" aria-hidden="true"></i> Spremi
+                                        </button>
                                     </form>
                                     @if ($review->approver)
                                         <div class="small text-muted mt-2">{{ $review->approver->name }} · {{ optional($review->approved_at)->format('d.m.Y. H:i') }}</div>
