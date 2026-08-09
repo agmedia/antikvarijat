@@ -90,9 +90,12 @@
                     <form id="wishlist-bulk-form" method="POST" action="{{ route('wishlists.send-selected') }}">
                         @csrf
                         <div class="admin-wishlist-bulkbar d-flex flex-wrap align-items-center justify-content-between mb-3">
-                            <div class="text-muted mb-2 mb-md-0">
-                                <i class="fa-duotone fa-square-check mr-1" aria-hidden="true"></i>
-                                Odabrano: <strong id="wishlist-selected-count">0</strong>
+                            <div class="d-flex flex-wrap align-items-center mb-2 mb-md-0">
+                                <label class="admin-wishlist-select-all mb-0 mr-3" for="wishlist-select-all">
+                                    <input id="wishlist-select-all" type="checkbox" aria-label="Odaberi sve spremne wishlist obavijesti na ovoj stranici">
+                                    <span>Odaberi sve spremne</span>
+                                </label>
+                                <span class="text-muted">Odabrano: <strong id="wishlist-selected-count">0</strong></span>
                             </div>
                             <button id="wishlist-send-selected" class="btn btn-primary text-nowrap" type="submit" disabled onclick="return confirm('Poslati sve odabrane wishlist obavijesti?');">
                                 <i class="fa-duotone fa-paper-plane mr-1" aria-hidden="true"></i> Pošalji odabrano
@@ -103,7 +106,7 @@
                             <thead>
                             <tr>
                                 <th class="text-center admin-wishlist-select-column">
-                                    <input id="wishlist-select-all" type="checkbox" aria-label="Odaberi sve spremne wishlist obavijesti na ovoj stranici" title="Odaberi sve spremne na ovoj stranici">
+                                    <span class="sr-only">Odabir</span>
                                 </th>
                                 <th style="width: 72px;">Slika</th>
                                 <th>Artikl</th>
@@ -113,7 +116,7 @@
                                 <th>Status</th>
                                 <th>Dodano</th>
                                 <th>Poslano</th>
-                                <th class="text-right">Akcija</th>
+                                <th class="text-right admin-wishlist-action">Akcija</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -249,11 +252,33 @@
     <style>
         .admin-wishlist-select-column { width: 3rem; }
         .admin-wishlist-thumb { width: 3.5rem; height: 4.6rem; border: 1px solid #d8d2c8; border-radius: .25rem; object-fit: cover; }
-        .admin-wishlist-action { min-width: 7.5rem; }
-        .admin-wishlist-send { min-width: 6.75rem; white-space: nowrap; }
+        #main-container .admin-wishlist-table th.admin-wishlist-action,
+        #main-container .admin-wishlist-table td.admin-wishlist-action {
+            width: 8.75rem;
+            min-width: 8.75rem;
+            padding-right: 1rem;
+            padding-left: .75rem;
+            box-sizing: border-box;
+        }
+        .admin-wishlist-send {
+            display: inline-flex;
+            max-width: 100%;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+        }
         .admin-wishlist-bulkbar { padding: .75rem 1rem; border: 1px solid #ddd7cd; border-radius: .35rem; background: #f7f5f1; }
+        .admin-wishlist-select-all { display: inline-flex; align-items: center; gap: .45rem; color: #314837; font-weight: 600; cursor: pointer; }
+        .admin-wishlist-select-all input { width: 1rem; height: 1rem; margin: 0; }
+        #wishlist-send-selected:disabled { opacity: .42; cursor: not-allowed; box-shadow: none; }
         @media (max-width: 767.98px) {
             .admin-wishlist-select-column { width: 100%; }
+            #main-container .admin-wishlist-table td.admin-wishlist-action {
+                width: 100%;
+                min-width: 0;
+                padding-right: 0 !important;
+                padding-left: 0 !important;
+            }
         }
     </style>
 @endpush
