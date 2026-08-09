@@ -419,6 +419,8 @@ return [
     ],
 
     'not_found' => [
+        'meta_title' => 'Stranica nije pronađena - Antikvarijat Biblos',
+        'meta_description' => 'Tražena stranica nije pronađena. Vratite se na naslovnicu ili pretražite ponudu Antikvarijata Biblos.',
         'title' => 'Čini se da ne možemo pronaći stranicu koju tražite.',
         'links_intro' => 'Evo nekoliko korisnih veza umjesto toga:',
         'home_text' => 'Povratak na naslovnicu',

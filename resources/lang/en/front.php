@@ -463,6 +463,8 @@ return [
     ],
 
     'not_found' => [
+        'meta_title' => 'Page not found - Antikvarijat Biblos',
+        'meta_description' => 'The requested page could not be found. Return to the homepage or search the Antikvarijat Biblos collection.',
         'title' => 'We cannot find the page you are looking for.',
         'links_intro' => 'Here are a few helpful links instead:',
         'home_text' => 'Return to homepage',

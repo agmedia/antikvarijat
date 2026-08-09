@@ -536,5 +536,5 @@ Route::get('{group}/{cat?}/{subcat?}/{prod?}', [CatalogRouteController::class, '
 
 
 Route::fallback(function () {
-    return view('front.404');
+    return response()->view('front.404', [], 404);
 });

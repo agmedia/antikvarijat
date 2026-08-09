@@ -1,4 +1,7 @@
 @extends('front.layouts.app')
+@section('title', __('front.not_found.meta_title'))
+@section('description', __('front.not_found.meta_description'))
+@section('robots', 'noindex,nofollow,noarchive')
 
 @section('content')
 
