@@ -524,18 +524,17 @@ class Helper
     private static function blogs(array $data): Builder
     {
         $blogs = (new Blog())->newQuery();
+        $includeNew = isset($data['new']) && $data['new'] == 'on';
 
         $blogs->active();
 
-        if (isset($data['new']) && $data['new'] == 'on') {
+        if ($includeNew) {
             $blogs->last();
-        }
-
-        if (isset($data['popular']) && $data['popular'] == 'on') {
+        } elseif (isset($data['popular']) && $data['popular'] == 'on') {
             $blogs->popular();
         }
 
-        if (isset($data['list']) && $data['list']) {
+        if (! $includeNew && isset($data['list']) && $data['list']) {
             $blogs->whereIn('id', $data['list']);
         }
 

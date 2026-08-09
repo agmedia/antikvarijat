@@ -83,14 +83,14 @@ class DashboardController extends Controller
 
         $orders = Order::query()
             ->select(['id', 'payment_fname', 'payment_lname', 'total', 'order_status_id', 'created_at'])
-            ->last()
+            ->last(10)
             ->get();
 
         $products = OrderProduct::query()
             ->select(['id', 'product_id', 'name', 'price', 'created_at'])
             ->where('product_id', '>', 0)
             ->orderByDesc('created_at')
-            ->limit(9)
+            ->limit(10)
             ->get();
 
         $yearsWithOrders = Cache::remember('dashboard.years_with_orders', now()->addMinutes(30), function () {

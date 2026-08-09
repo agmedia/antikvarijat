@@ -96,6 +96,22 @@ class DashboardSalesStatsTest extends TestCase
         $this->assertStringNotContainsString('dashboard-date', $html);
     }
 
+    public function test_dashboard_latest_lists_show_ten_entries(): void
+    {
+        Carbon::setTestNow('2026-04-15 12:00:00');
+
+        foreach (range(1, 12) as $day) {
+            $createdAt = sprintf('2026-04-%02d 09:00:00', $day);
+            $orderId = $this->createOrder(1, 10.00 + $day, $createdAt);
+            $this->createOrderProduct($orderId, 1);
+        }
+
+        $viewData = app(DashboardController::class)->index()->getData();
+
+        $this->assertCount(10, $viewData['orders']);
+        $this->assertCount(10, $viewData['products']);
+    }
+
     public function test_monthly_statistics_include_items_payment_shipping_and_status_breakdowns(): void
     {
         $newOrder = $this->createOrder(1, 40.00, '2026-04-10 09:00:00', 'Kartica', 'GLS');
