@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 
@@ -19,6 +20,8 @@ class ProductReviewRequestService
     public const STATUS_SENT = 'sent';
     public const STATUS_SKIPPED = 'skipped';
     public const STATUS_FAILED = 'failed';
+
+    private ?bool $hasNormalizedEmailIndex = null;
 
     public function eligibleOrders(Carbon $from, Carbon $to): Builder
     {
@@ -32,10 +35,17 @@ class ProductReviewRequestService
             ->whereNotExists(function ($invitations) {
                 $invitations->select(DB::raw(1))
                     ->from('product_review_invitations')
-                    ->whereNotNull('product_review_invitations.sent_at')
-                    ->whereRaw(
+                    ->whereNotNull('product_review_invitations.sent_at');
+
+                if ($this->hasNormalizedEmailIndex()) {
+                    $invitations->whereRaw(
+                        'product_review_invitations.recipient_email_normalized = LOWER(TRIM(orders.payment_email))'
+                    );
+                } else {
+                    $invitations->whereRaw(
                         'LOWER(TRIM(product_review_invitations.recipient_email)) = LOWER(TRIM(orders.payment_email))'
                     );
+                }
             })
             ->where(function ($query) use ($from, $to) {
                 $query->whereExists(function ($history) use ($from, $to) {
@@ -135,11 +145,15 @@ class ProductReviewRequestService
     private function sendToEmail(Order $order, string $email): array
     {
         $alreadySentToEmail = ProductReviewInvitation::query()
-            ->whereNotNull('sent_at')
-            ->whereRaw('LOWER(TRIM(recipient_email)) = ?', [$email])
-            ->exists();
+            ->whereNotNull('sent_at');
 
-        if ($alreadySentToEmail) {
+        if ($this->hasNormalizedEmailIndex()) {
+            $alreadySentToEmail->where('recipient_email_normalized', $email);
+        } else {
+            $alreadySentToEmail->whereRaw('LOWER(TRIM(recipient_email)) = ?', [$email]);
+        }
+
+        if ($alreadySentToEmail->exists()) {
             return $this->result(self::STATUS_SKIPPED, 'Poziv na ovu e-mail adresu već je poslan.');
         }
 
@@ -222,6 +236,18 @@ class ProductReviewRequestService
         $locale = (string) config('reviews.default_locale', 'hr');
 
         return in_array($locale, ['hr', 'en'], true) ? $locale : 'hr';
+    }
+
+    private function hasNormalizedEmailIndex(): bool
+    {
+        if ($this->hasNormalizedEmailIndex === null) {
+            $this->hasNormalizedEmailIndex = Schema::hasColumn(
+                'product_review_invitations',
+                'recipient_email_normalized'
+            );
+        }
+
+        return $this->hasNormalizedEmailIndex;
     }
 
     /**
