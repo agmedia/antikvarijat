@@ -117,6 +117,19 @@ class ProductReviewRequestService
         return Carbon::parse($order->sent_status_at ?: $order->checkout_processed_at ?: $order->created_at);
     }
 
+    public function findOrderForRequest(int $orderId): ?Order
+    {
+        return Order::query()
+            ->select('orders.*')
+            ->addSelect([
+                'sent_status_at' => DB::table('order_history')
+                    ->selectRaw('MIN(created_at)')
+                    ->whereColumn('order_history.order_id', 'orders.id')
+                    ->where('order_history.status', (int) config('settings.order.status.send')),
+            ])
+            ->find($orderId);
+    }
+
     /**
      * @return array{status:string, message:?string, attempts:int}
      */

@@ -100,10 +100,9 @@ class ProcessProductReviewBackfills extends Command
                 'last_error' => null,
             ])->save();
 
-            $order = $requests->eligibleOrders(
-                $batch->date_from->copy()->startOfDay(),
-                $batch->date_to->copy()->endOfDay()
-            )->where('orders.id', $item->order_id)->first();
+            // Kandidati su već provjereni pri kreiranju batcha. Ovdje učitavamo samo
+            // jednu narudžbu, a send() ponovno provjerava status, artikle i e-mail.
+            $order = $requests->findOrderForRequest((int) $item->order_id);
 
             if (! $order) {
                 $wasSent = ProductReviewInvitation::query()
