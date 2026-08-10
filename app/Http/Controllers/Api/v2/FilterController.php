@@ -322,6 +322,7 @@ class FilterController extends Controller
                 'special_from',
                 'special_to',
             ])
+            ->withReviewSummary()
             ->with([
                 'author:id,title,title_en,slug,slug_en,url,url_en',
                 'publisher:id,title,title_en,slug,slug_en,url,url_en',
@@ -336,6 +337,9 @@ class FilterController extends Controller
         $products->getCollection()->transform(function (Product $product) use ($mainCurrency, $secondaryCurrency) {
             $effectiveSpecial = $product->special();
             $hasSpecialPrice = $effectiveSpecial < (float) $product->price;
+            $category = $product->category();
+            $subcategory = $product->subcategory();
+            $cardCategory = $subcategory ?: $category;
 
             return [
                 'id' => $product->id,
@@ -353,7 +357,13 @@ class FilterController extends Controller
                 'secondary_price_text' => $this->resolveCurrencyPrice($secondaryCurrency, $product->price, true),
                 'secondary_special' => $this->resolveCurrencyPrice($secondaryCurrency, $effectiveSpecial),
                 'secondary_special_text' => $this->resolveCurrencyPrice($secondaryCurrency, $effectiveSpecial, true),
-                'author' => $product->author ? [
+                'approved_reviews_count' => (int) ($product->approved_reviews_count ?? 0),
+                'approved_reviews_average' => round((float) ($product->approved_reviews_average ?? 0), 2),
+                'card_category' => $category && $cardCategory ? [
+                    'title' => $cardCategory->title,
+                    'url' => LocaleHelper::categoryUrl($category, $subcategory),
+                ] : null,
+                'author' => $product->author && Author::hasMeaningfulTitle($product->author->title) ? [
                     'title' => $product->author->title,
                     'url' => $product->author->url,
                 ] : null,
@@ -439,12 +449,17 @@ class FilterController extends Controller
                 $builder->orderBy('title');
             }
 
-            return response()->json($builder->get()->toArray());
+            return response()->json(
+                $builder->get()
+                    ->filter(fn (Author $author) => Author::hasMeaningfulTitle($author->title))
+                    ->values()
+                    ->toArray()
+            );
         }
 
         // Featured fallback (izvan konteksta) – također filtrirani count + limit 15
         return response()->json(
-            Helper::resolveCache('authors')->remember('authors.featured', config('cache.life'), function () {
+            Helper::resolveCache('authors')->remember('authors.featured.visible', config('cache.life'), function () {
                 return Author::query()->active()
                     ->featured()
                     ->basicData()
@@ -454,6 +469,8 @@ class FilterController extends Controller
                     ->orderBy('title')
                     ->limit(15)
                     ->get()
+                    ->filter(fn (Author $author) => Author::hasMeaningfulTitle($author->title))
+                    ->values()
                     ->toArray();
             })
         );

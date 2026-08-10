@@ -19,7 +19,38 @@
     <link rel="stylesheet" media="screen" href="{{ asset('js/slick/slick.css') }}">
     <link rel="stylesheet" media="screen" href="{{ asset('js/slick/slick-theme.css') }}">
     <link rel="stylesheet" media="screen" href="{{ asset('js/simple-lightbox.css?v2.14.0') }}">
+    <link rel="stylesheet" media="screen" href="{{ asset('css/product.css?v=' . filemtime(public_path('css/product.css'))) }}">
 @endpush
+
+@php
+    $reviewErrorFields = ['reviewer_name', 'reviewer_email', 'rating', 'title', 'body', 'recaptcha'];
+    $shouldOpenReviewForm = collect($reviewErrorFields)->contains(fn ($field) => $errors->has($field));
+    $reviewAverage = (float) $reviewStats['average'];
+    $reviewAverageFormatted = number_format($reviewAverage, 1, app()->getLocale() === 'hr' ? ',' : '.', '');
+    $reviewCountLabel = trans_choice('front.reviews.count', $reviewStats['count'], ['count' => $reviewStats['count']]);
+    $exploreCategory = $subcat ?: $cat;
+    $exploreCategoryUrl = $cat ? \App\Helpers\LocaleHelper::categoryUrl($cat, $subcat) : null;
+    $hasExploreLinks = $authorProducts->isNotEmpty() || $publisherProducts->isNotEmpty() || $relatedProducts->isNotEmpty();
+    $galleryItems = collect();
+
+    if ($prod->getRawOriginal('image')) {
+        $galleryItems->push([
+            'image' => $prod->image,
+            'thumb' => $prod->thumb,
+            'alt' => $prod->name,
+        ]);
+    }
+
+    foreach ($prod->images as $productImage) {
+        $galleryItems->push([
+            'image' => config('settings.images_domain') . $productImage->image,
+            'thumb' => $productImage->image ? config('settings.images_domain') . $productImage->thumb : null,
+            'alt' => $productImage->alt ?: $prod->name,
+        ]);
+    }
+
+    $galleryItems = $galleryItems->filter(fn ($item) => !empty($item['image']))->unique('image')->values();
+@endphp
 
 @if (isset($gdl))
     @section('google_data_layer')
@@ -77,49 +108,54 @@
 
 
                <div class="h-100 bg-light shadow rounded-3 p-4">
-                   <div class="" id="gallery" style="max-height:750px">
+                   <div class="product-gallery-frame" id="gallery" data-product-gallery>
                        <div class="main-image product-thumb">
-
-                           <div class="galerija slider slider-for  mb-3">
-
-                               @if ( ! empty($prod->image))
-
-
-                                   <div class="item single-product" >
-                                       <a class="link" href="{{  ($prod->image) }}">
-                                           <img src="{{  ($prod->image) }}" alt="{{ $prod->name }}" height="600" style="max-height:600px" loading="eager" fetchpriority="high" decoding="async">
+                           <div class="product-gallery-main" data-product-gallery-main>
+                               @foreach ($galleryItems as $galleryItem)
+                                   <div class="product-gallery-slide">
+                                       <a class="product-gallery-slide__link" href="{{ $galleryItem['image'] }}">
+                                           <img
+                                               class="product-gallery-image"
+                                               src="{{ $galleryItem['image'] }}"
+                                               width="600"
+                                               height="600"
+                                               alt="{{ $galleryItem['alt'] }}"
+                                               loading="{{ $loop->first ? 'eager' : 'lazy' }}"
+                                               @if ($loop->first) fetchpriority="high" @endif
+                                               decoding="async"
+                                               draggable="false">
                                        </a>
                                    </div>
-
-
-                               @endif
-
-                               @if ($prod->images->count())
-                                   @foreach ($prod->images as $key => $image)
-                                       <div class="item single-product" >
-                                           <a class="link" href="{{  config('settings.images_domain') .($image->image) }}">
-                                               <img src="{{  config('settings.images_domain') .($image->image) }}" alt="{{ $image->alt }}" height="600" style="max-height:600px" loading="lazy" decoding="async">
-                                           </a>
-                                       </div>
-
-                                   @endforeach
-                               @endif
+                               @endforeach
                            </div>
 
-                           <ul class=" slider slider-nav mt-2 mb-2">
-                               @if ($prod->images->count())
-                                   @if ( ! empty($prod->thumb))
-
-                                       <li><img src="{{  ($prod->thumb) }}" class="thumb" width="100" height="100" alt="{{ $prod->name }}" loading="eager" decoding="async"></li>
-
-
-                                   @endif
-                               @foreach ($prod->images as $key => $image)
-                                   <li><img src="{{  config('settings.images_domain') .($image->thumb) }}" class="thumb" width="100" height="100" alt="{{ $image->alt }}" loading="lazy" decoding="async"></li>
-                               @endforeach
-
-                               @endif
-                           </ul>
+                           @if ($galleryItems->count() > 1)
+                               <div class="product-gallery-swipe-hint" role="img" aria-label="{{ __('front.product.swipe_gallery') }}">
+                                   <i class="fa-solid fa-hand-pointer" aria-hidden="true"></i>
+                               </div>
+                               <ul class="product-gallery-thumbs" data-product-gallery-thumbs>
+                                   @foreach ($galleryItems as $galleryItem)
+                                       <li>
+                                           <button
+                                               class="product-gallery-thumbnail{{ $loop->first ? ' is-active' : '' }}"
+                                               type="button"
+                                               data-product-gallery-index="{{ $loop->index }}"
+                                               aria-label="{{ __('front.product.gallery_image', ['number' => $loop->iteration]) }}"
+                                               aria-current="{{ $loop->first ? 'true' : 'false' }}">
+                                               <img
+                                                   class="product-gallery-thumbnail__image"
+                                                   src="{{ $galleryItem['thumb'] ?: $galleryItem['image'] }}"
+                                                   width="100"
+                                                   height="100"
+                                                   alt=""
+                                                   loading="{{ $loop->first ? 'eager' : 'lazy' }}"
+                                                   decoding="async"
+                                                   draggable="false">
+                                           </button>
+                                       </li>
+                                   @endforeach
+                               </ul>
+                           @endif
                        </div>
                    </div>
                </div>
@@ -135,9 +171,22 @@
                        <span class="badge bg-primary ">-{{ number_format(floatval(\App\Helpers\Helper::calculateDiscount($prod->price, $prod->special())), 0) }}%</span>
                    @endif
 
+                   @if ($reviewStats['count'] > 0)
+                       <a
+                           class="product-rating-anchor"
+                           href="#reviews"
+                           aria-label="{{ __('front.reviews.average', ['rating' => $reviewAverageFormatted]) }}. {{ $reviewCountLabel }}"
+                       >
+                           <span class="product-rating-stars" aria-hidden="true">
+                               @for ($star = 1; $star <= 5; $star++)
+                                   <i class="{{ $star <= round($reviewAverage) ? 'ci-star-filled active' : 'ci-star' }}"></i>
+                               @endfor
+                           </span>
+                           <span class="product-rating-anchor__summary">{{ $reviewAverageFormatted }} / 5 · {{ $reviewCountLabel }}</span>
+                       </a>
+                   @endif
 
-
-                   <h1 class="h3"><span style="font-weight: 300;">{{ $prod->author ? $prod->author->title.':' : '' }}</span> {{ $prod->name }}</h1>
+                   <h1 class="h3"><span class="product-title-author">{{ $hasAuthor ? $prod->author->title.':' : '' }}</span> {{ $prod->name }}</h1>
 
                        <div class="mb-0 mt-4">
                            @if ($prod->main_price > $prod->main_special)
@@ -183,11 +232,13 @@
                                <div class="accordion-body">
 
                                    <ul class="fs-sm ps-4 mb-0 info-list">
-                                       @if ($prod->author)
+                                       @if ($hasAuthor)
                                            <li><strong>{{ __('front.product.author') }}:</strong> <a href="{{ \App\Helpers\LocaleHelper::route('catalog.route.author', ['author' => $prod->author]) }}">{{ $prod->author->title }} </a></li>
                                        @endif
-                                       @if ($prod->publisher)
+                                       @if ($hasPublisher)
                                            <li><strong>{{ __('front.product.publisher') }}:</strong> <a href="{{ \App\Helpers\LocaleHelper::route('catalog.route.publisher', ['publisher' => $prod->publisher]) }}">{{ $prod->publisher->title }}</a> </li>
+                                       @elseif ($prod->publisher)
+                                           <li><strong>{{ __('front.product.publisher') }}:</strong> -</li>
                                        @endif
                                        @if ($prod->isbn)
                                            <li><strong>ISBN:</strong> {{ $prod->isbn }} </li>
@@ -285,6 +336,29 @@
                    </div>
                    <!-- Sharing-->
                    <!-- ShareThis BEGIN --><div class="sharethis-inline-share-buttons"></div><!-- ShareThis END -->
+
+                   @if ($hasExploreLinks)
+                       <section class="product-explore" aria-labelledby="product-explore-title">
+                           <h2 class="product-explore__title h6" id="product-explore-title">{{ __('front.product.explore_more') }}</h2>
+                           <div class="product-explore__links">
+                               @if ($authorProducts->isNotEmpty())
+                                   <a class="btn btn-outline-primary btn-sm" href="{{ \App\Helpers\LocaleHelper::route('catalog.route.author', ['author' => $prod->author]) }}">
+                                       {{ __('front.product.more_by_author', ['author' => $prod->author->title]) }}
+                                   </a>
+                               @endif
+                               @if ($publisherProducts->isNotEmpty())
+                                   <a class="btn btn-outline-primary btn-sm" href="{{ \App\Helpers\LocaleHelper::route('catalog.route.publisher', ['publisher' => $prod->publisher]) }}">
+                                       {{ __('front.product.more_from_publisher', ['publisher' => $prod->publisher->title]) }}
+                                   </a>
+                               @endif
+                               @if ($relatedProducts->isNotEmpty() && $exploreCategory && $exploreCategoryUrl)
+                                   <a class="btn btn-outline-primary btn-sm" href="{{ $exploreCategoryUrl }}">
+                                       {{ __('front.product.browse_category', ['category' => $exploreCategory->title]) }}
+                                   </a>
+                               @endif
+                           </div>
+                       </section>
+                   @endif
                </div>
            </div>
        </section>
@@ -295,7 +369,6 @@
                <!-- Tabs-->
                <ul class="nav nav-tabs" role="tablist">
                    <li class="nav-item"><a class="nav-link py-4 px-sm-4 active" href="#specs" data-bs-toggle="tab" role="tab"><span>{{ __('front.product.description') }}</span> </a></li>
-                   <li class="nav-item"><a class="nav-link py-4 px-sm-4" href="#reviews" data-bs-toggle="tab" role="tab"><span>{{ __('front.reviews.title') }} ({{ $reviewStats['count'] }})</span></a></li>
                </ul>
                <div class="px-4 pt-lg-3 pb-3 mb-5">
                    <div class="tab-content px-lg-3">
@@ -307,7 +380,7 @@
 
                                    {{-- Title and author --}}
                                    <h2 class="h5 mb-2 pb-0">{{ $prod->name }}</h2>
-                                   @if ($prod->author)
+                                   @if ($hasAuthor)
                                        <h3 class="h6 mb-4">{{ $prod->author->title }}</h3>
                                    @endif
 
@@ -317,24 +390,15 @@
                                        {!! $prod->description !!}
                                    </div>
 
-                                   {{-- Author and tags at the bottom --}}
-                                   @if ($prod->author || !empty($prod->tags))
+                                   {{-- Tags at the bottom --}}
+                                   @if (!empty($prod->tags))
                                        <div class="mt-auto pt-3 pb-4">
-                                           @if ($prod->author)
+                                           @foreach($prod->tags as $tag)
                                                <a class="btn btn-outline-primary btn-sm btn-shadow me-2 mb-2"
-                                                  href="{{ \App\Helpers\LocaleHelper::route('catalog.route.author', ['author' => $prod->author]) }}">
-                                                   #{{ $prod->author->title }}
+                                                  href="{{ \App\Helpers\LocaleHelper::route('tag', ['pojam' => $tag]) }}">
+                                                   #{{ $tag }}
                                                </a>
-                                           @endif
-
-                                           @if(!empty($prod->tags))
-                                               @foreach($prod->tags as $tag)
-                                                   <a class="btn btn-outline-primary btn-sm btn-shadow me-2 mb-2"
-                                                      href="{{ \App\Helpers\LocaleHelper::route('tag', ['pojam' => $tag]) }}">
-                                                       #{{ $tag }}
-                                                   </a>
-                                               @endforeach
-                                           @endif
+                                           @endforeach
                                        </div>
                                    @endif
                                </div>
@@ -343,7 +407,7 @@
                                    <h3 class="h6">{{ __('front.product.additional_information') }}</h3>
                                    <ul class="list-unstyled fs-md pb-2">
 
-                                       @if ($prod->author)
+                                       @if ($hasAuthor)
                                            <li class="d-flex justify-content-between pb-2 border-bottom">
                                                <span class="text-muted">{{ __('front.product.author') }}:</span>
                                                <span>
@@ -354,7 +418,7 @@
                                            </li>
                                        @endif
 
-                                       @if ($prod->publisher)
+                                       @if ($hasPublisher)
                                            <li class="d-flex justify-content-between pb-2 border-bottom">
                                                <span class="text-muted">{{ __('front.product.publisher_alt') }}:</span>
                                                <span>
@@ -362,6 +426,11 @@
                             {{ Illuminate\Support\Str::limit($prod->publisher->title, 30) }}
                         </a>
                     </span>
+                                           </li>
+                                       @elseif ($prod->publisher)
+                                           <li class="d-flex justify-content-between pb-2 border-bottom">
+                                               <span class="text-muted">{{ __('front.product.publisher_alt') }}:</span>
+                                               <span>-</span>
                                            </li>
                                        @endif
 
@@ -418,125 +487,183 @@
                            </div>
 
                        </div>
-                       <div class="tab-pane fade" id="reviews" role="tabpanel">
-                           <div class="row pt-2">
-                               <div class="col-lg-7 mb-4">
-                                   <div class="d-flex align-items-center justify-content-between mb-4">
-                                       <h2 class="h5 mb-0">{{ __('front.reviews.title') }}</h2>
-                                       @if ($reviewStats['count'] > 0)
-                                           <div class="text-end">
-                                               <div class="h5 text-warning mb-0">★ {{ number_format($reviewStats['average'], 1, ',', '.') }}</div>
-                                               <div class="small text-muted">{{ __('front.reviews.rating_summary', ['rating' => number_format($reviewStats['average'], 1, ',', '.'), 'count' => $reviewStats['count']]) }}</div>
-                                           </div>
-                                       @endif
-                                   </div>
-
-                                   @forelse ($reviews as $review)
-                                       <article class="border-bottom pb-3 mb-3">
-                                           <div class="d-flex justify-content-between align-items-start">
-                                               <div>
-                                                   <strong>{{ $review->reviewer_name }}</strong>
-                                                   @if ($review->is_verified_purchase)
-                                                       <span class="badge bg-success ms-2">{{ __('front.reviews.verified_purchase') }}</span>
-                                                   @endif
-                                               </div>
-                                               <time class="small text-muted" datetime="{{ optional($review->approved_at ?: $review->created_at)->toDateString() }}">{{ optional($review->approved_at ?: $review->created_at)->format('d.m.Y.') }}</time>
-                                           </div>
-                                           <div class="text-warning my-1" aria-label="{{ $review->rating }} / 5">
-                                               @for ($star = 1; $star <= 5; $star++)<span aria-hidden="true">{{ $star <= $review->rating ? '★' : '☆' }}</span>@endfor
-                                           </div>
-                                           @if ($review->title)<h3 class="h6 mb-1">{{ $review->title }}</h3>@endif
-                                           <p class="mb-0" style="white-space: pre-line;">{{ $review->body }}</p>
-                                       </article>
-                                   @empty
-                                       <p class="text-muted">{{ __('front.reviews.empty') }}</p>
-                                   @endforelse
-                               </div>
-
-                               <div class="col-lg-5 mb-4">
-                                   <div class="border rounded-3 p-4 bg-white">
-                                       <h2 class="h5">{{ __('front.reviews.write') }}</h2>
-                                       <form method="POST" action="{{ \App\Helpers\LocaleHelper::route('product-reviews.store') }}" data-product-review-form>
-                                           @csrf
-                                           <input type="hidden" name="product_id" value="{{ $prod->id }}">
-                                           <input type="hidden" name="recaptcha" value="" data-product-review-recaptcha>
-                                           <input type="text" name="website" value="" tabindex="-1" autocomplete="off" class="d-none" aria-hidden="true">
-                                           <div class="mb-3">
-                                               <label class="form-label" for="review-name">{{ __('front.reviews.name') }} *</label>
-                                               <input class="form-control @error('reviewer_name') is-invalid @enderror" id="review-name" name="reviewer_name" maxlength="191" value="{{ old('reviewer_name', optional(auth()->user())->name) }}" required>
-                                               @error('reviewer_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                                           </div>
-                                           <div class="mb-3">
-                                               <label class="form-label" for="review-email">{{ __('front.reviews.email') }} *</label>
-                                               <input class="form-control @error('reviewer_email') is-invalid @enderror" id="review-email" type="email" name="reviewer_email" maxlength="191" value="{{ old('reviewer_email', optional(auth()->user())->email) }}" required>
-                                               <div class="form-text">{{ __('front.reviews.email_private') }}</div>
-                                               @error('reviewer_email')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                                           </div>
-                                           <div class="mb-3">
-                                               <label class="form-label" for="review-rating">{{ __('front.reviews.rating') }} *</label>
-                                               <select class="form-select @error('rating') is-invalid @enderror" id="review-rating" name="rating" required>
-                                                   <option value="">—</option>
-                                                   @for ($rating = 5; $rating >= 1; $rating--)<option value="{{ $rating }}" @if((int) old('rating') === $rating) selected @endif>{{ $rating }} / 5</option>@endfor
-                                               </select>
-                                               @error('rating')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                                           </div>
-                                           <div class="mb-3">
-                                               <label class="form-label" for="review-title">{{ __('front.reviews.optional_title') }}</label>
-                                               <input class="form-control" id="review-title" name="title" maxlength="191" value="{{ old('title') }}">
-                                           </div>
-                                           <div class="mb-3">
-                                               <label class="form-label" for="review-body">{{ __('front.reviews.comment') }} *</label>
-                                               <textarea class="form-control @error('body') is-invalid @enderror" id="review-body" name="body" rows="5" minlength="10" maxlength="5000" required>{{ old('body') }}</textarea>
-                                               @error('body')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                                               @error('recaptcha')<div class="text-danger small mt-2">{{ $message }}</div>@enderror
-                                           </div>
-                                           <button class="btn btn-primary" type="submit">{{ __('front.reviews.submit') }}</button>
-                                       </form>
-                                   </div>
-                               </div>
-                           </div>
-                       </div>
-
                    </div>
-               </div>
-           </div>
-       </section>
-       <!-- Product description-->
-       <section class="pb-5 mb-2 mb-xl-4">
-           <div class=" flex-wrap justify-content-between align-items-center  text-center">
-               <h2 class="h3 mb-4 pt-1 font-title me-3 text-center">{{ __('front.product.you_may_like') }}</h2>
 
-           </div>
-           <div class="tns-carousel tns-controls-static tns-controls-outside tns-nav-enabled pt-2">
-               <div class="tns-carousel-inner tns-nav-enabled" data-carousel-options='{"items": 2, "controls": false, "nav": true, "responsive": {"0":{"items":2, "gutter": 5},"500":{"items":2, "gutter": 10},"768":{"items":3, "gutter": 10}, "1100":{"items":4, "controls": true, "gutter": 10}, "1300":{"items":5, "controls": true, "gutter": 10}, "1600":{"items":5, "controls": true, "gutter": 10}}}'>
-                   @foreach ($relatedProducts as $cat_product)
-                       <div>
-                           @include('front.catalog.category.product', ['product' => $cat_product])
+                   <section class="product-reviews-section px-lg-3" id="reviews" aria-labelledby="reviews-title">
+                       <div class="product-reviews-section__header d-flex flex-wrap align-items-baseline justify-content-between gap-2">
+                           <h2 class="h4 mb-0" id="reviews-title">{{ __('front.reviews.title') }}</h2>
+                           <span class="text-muted">{{ $reviewCountLabel }}</span>
                        </div>
-                   @endforeach
-               </div>
-           </div>
-       </section>
-       @if(isset($recentProducts) && $recentProducts->isNotEmpty())
 
-       <section class="pb-5 mb-2 mb-xl-4">
-           <div class=" flex-wrap justify-content-between align-items-center  text-center">
-               <h2 class="h3 mb-4 pt-1 font-title me-3 text-center">{{ __('front.product.recently_viewed') }}</h2>
-
-           </div>
-           <div class="tns-carousel tns-controls-static tns-controls-outside tns-nav-enabled pt-2">
-               <div class="tns-carousel-inner tns-nav-enabled" data-carousel-options='{"items": 2, "controls": false, "nav": true, "responsive": {"0":{"items":2, "gutter": 5},"500":{"items":2, "gutter": 10},"768":{"items":3, "gutter": 10}, "1100":{"items":4, "controls": true, "gutter": 10}, "1300":{"items":5, "controls": true, "gutter": 10}, "1600":{"items":5, "controls": true, "gutter": 10}}}'>
-                   @foreach ($recentProducts as $recent)
-                       @if ($recent->id != $prod->id)
-                           <div>
-                               @include('front.catalog.category.product', ['product' => $recent])
+                       @if ($reviewStats['count'] > 0)
+                           <div class="product-review-summary">
+                               <div class="row g-4 align-items-center">
+                                   <div class="col-md-4">
+                                       <div class="d-flex align-items-center gap-3">
+                                           <span class="product-review-summary__average">{{ $reviewAverageFormatted }}</span>
+                                           <div>
+                                               <div class="product-rating-stars mb-1" aria-hidden="true">
+                                                   @for ($star = 1; $star <= 5; $star++)
+                                                       <i class="{{ $star <= round($reviewAverage) ? 'ci-star-filled active' : 'ci-star' }}"></i>
+                                                   @endfor
+                                               </div>
+                                               <div class="small text-muted">{{ __('front.reviews.average', ['rating' => $reviewAverageFormatted]) }}</div>
+                                           </div>
+                                       </div>
+                                   </div>
+                                   <div class="col-md-8 product-review-distribution">
+                                       @for ($rating = 5; $rating >= 1; $rating--)
+                                           @php($ratingCount = (int) ($reviewStats['distribution'][$rating] ?? 0))
+                                           <div class="product-review-distribution__row">
+                                               <span>{{ $rating }} ★</span>
+                                               <progress
+                                                   class="product-review-distribution__progress"
+                                                   value="{{ $ratingCount }}"
+                                                   max="{{ $reviewStats['count'] }}"
+                                                   aria-label="{{ $rating }} / 5: {{ $ratingCount }}"
+                                               ></progress>
+                                               <span class="text-end">{{ $ratingCount }}</span>
+                                           </div>
+                                       @endfor
+                                   </div>
+                               </div>
                            </div>
                        @endif
-                   @endforeach
+
+                       <div class="product-review-write">
+                           <div>
+                               <h3 class="h5 mb-1">{{ __('front.reviews.write') }}</h3>
+                               <p class="text-muted mb-0">{{ __('front.reviews.write_intro') }}</p>
+                           </div>
+                           <button
+                               class="btn btn-primary"
+                               type="button"
+                               data-product-review-toggle
+                               data-open-label="{{ __('front.reviews.write') }}"
+                               data-close-label="{{ __('front.reviews.close_form') }}"
+                               aria-controls="review-form"
+                               aria-expanded="{{ $shouldOpenReviewForm ? 'true' : 'false' }}"
+                           >
+                               <span data-product-review-toggle-label>{{ $shouldOpenReviewForm ? __('front.reviews.close_form') : __('front.reviews.write') }}</span>
+                           </button>
+                       </div>
+
+                       <div
+                           class="product-review-form-collapse{{ $shouldOpenReviewForm ? '' : ' is-collapsed' }}"
+                           id="review-form"
+                           data-product-review-form-container
+                           aria-hidden="{{ $shouldOpenReviewForm ? 'false' : 'true' }}"
+                           @unless ($shouldOpenReviewForm) inert @endunless
+                       >
+                           <div class="product-review-form-collapse__inner">
+                               <div class="product-review-form-shell">
+                                   <h3 class="h5 mb-1">{{ __('front.reviews.write') }}</h3>
+                                   <p class="small text-muted mb-4">{{ __('front.reviews.form_hint') }}</p>
+                                   <form method="POST" action="{{ \App\Helpers\LocaleHelper::route('product-reviews.store') }}" data-product-review-form>
+                               @csrf
+                               <input type="hidden" name="product_id" value="{{ $prod->id }}">
+                               <input type="hidden" name="recaptcha" value="" data-product-review-recaptcha>
+                               <input type="text" name="website" value="" tabindex="-1" autocomplete="off" class="d-none" aria-hidden="true">
+                               <div class="row">
+                                   <div class="col-md-6 mb-3">
+                                       <label class="form-label" for="review-name">{{ __('front.reviews.name') }} *</label>
+                                       <input class="form-control @error('reviewer_name') is-invalid @enderror" id="review-name" name="reviewer_name" maxlength="191" value="{{ old('reviewer_name', optional(auth()->user())->name) }}" required>
+                                       @error('reviewer_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                   </div>
+                                   <div class="col-md-6 mb-3">
+                                       <label class="form-label" for="review-email">{{ __('front.reviews.email') }} *</label>
+                                       <input class="form-control @error('reviewer_email') is-invalid @enderror" id="review-email" type="email" name="reviewer_email" maxlength="191" value="{{ old('reviewer_email', optional(auth()->user())->email) }}" required>
+                                       <div class="form-text">{{ __('front.reviews.email_private') }}</div>
+                                       @error('reviewer_email')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                   </div>
+                               </div>
+                               <fieldset class="mb-3">
+                                   <legend class="form-label">{{ __('front.reviews.rating') }} *</legend>
+                                   <div class="product-review-rating @error('rating') is-invalid @enderror">
+                                       @for ($rating = 5; $rating >= 1; $rating--)
+                                           <input
+                                               class="product-review-rating__input"
+                                               id="review-rating-{{ $rating }}"
+                                               type="radio"
+                                               name="rating"
+                                               value="{{ $rating }}"
+                                               aria-label="{{ __('front.reviews.rating_option', ['rating' => $rating]) }}"
+                                               {{ (int) old('rating') === $rating ? 'checked' : '' }}
+                                               required>
+                                           <label
+                                               class="product-review-rating__star"
+                                               for="review-rating-{{ $rating }}">
+                                               <i class="ci-star-filled" aria-hidden="true"></i>
+                                           </label>
+                                       @endfor
+                                   </div>
+                                   @error('rating')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                               </fieldset>
+                               <div class="mb-3">
+                                   <label class="form-label" for="review-body">{{ __('front.reviews.comment') }} *</label>
+                                   <textarea class="form-control @error('body') is-invalid @enderror" id="review-body" name="body" rows="5" minlength="10" maxlength="5000" required>{{ old('body') }}</textarea>
+                                   @error('body')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                   @error('recaptcha')<div class="text-danger small mt-2">{{ $message }}</div>@enderror
+                               </div>
+                                       <button class="btn btn-primary" type="submit">{{ __('front.reviews.submit') }}</button>
+                                   </form>
+                               </div>
+                           </div>
+                       </div>
+
+                       <div class="product-review-list">
+                           @forelse ($reviews as $review)
+                               <article class="product-review-card">
+                                   <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+                                       <div>
+                                           <strong>{{ $review->reviewer_name }}</strong>
+                                           @if ($review->is_verified_purchase)
+                                               <span class="badge bg-success ms-2">{{ __('front.reviews.verified_purchase') }}</span>
+                                           @endif
+                                       </div>
+                                       <time class="small text-muted" datetime="{{ optional($review->approved_at ?: $review->created_at)->toDateString() }}">{{ optional($review->approved_at ?: $review->created_at)->format('d.m.Y.') }}</time>
+                                   </div>
+                                   <div class="product-review-card__stars my-2" aria-label="{{ $review->rating }} / 5">
+                                       @for ($star = 1; $star <= 5; $star++)<span aria-hidden="true">{{ $star <= $review->rating ? '★' : '☆' }}</span>@endfor
+                                   </div>
+                                   @if ($review->title)<h3 class="h6 mb-1">{{ $review->title }}</h3>@endif
+                                   <p class="product-review-card__body mb-0">{{ $review->body }}</p>
+                               </article>
+                           @empty
+                               <p class="text-muted mb-4">{{ __('front.reviews.empty') }}</p>
+                           @endforelse
+                       </div>
+                   </section>
                </div>
            </div>
        </section>
+       @if ($hasAuthor)
+           @include('front.catalog.product.partials.product-carousel', [
+               'products' => $authorProducts,
+               'title' => __('front.product.more_by_author', ['author' => $prod->author->title]),
+               'headingId' => 'more-by-author-title',
+           ])
        @endif
+
+       @if ($hasPublisher)
+           @include('front.catalog.product.partials.product-carousel', [
+               'products' => $publisherProducts,
+               'title' => __('front.product.more_by_publisher', ['publisher' => $prod->publisher->title]),
+               'headingId' => 'more-by-publisher-title',
+           ])
+       @endif
+
+       @include('front.catalog.product.partials.product-carousel', [
+           'products' => $relatedProducts,
+           'title' => __('front.product.you_may_like'),
+           'headingId' => 'related-products-title',
+       ])
+
+       @include('front.catalog.product.partials.product-carousel', [
+           'products' => $recentProducts,
+           'title' => __('front.product.recently_viewed'),
+           'headingId' => 'recent-products-title',
+       ])
    </div>
 
 @endsection
@@ -555,59 +682,101 @@
     <script type='text/javascript' src='https://platform-api.sharethis.com/js/sharethis.js#property=6134a372eae16400120a5035&product=sop' async='async'></script>
 
     <script>
-        (function () {
-            var $gallery = new SimpleLightbox('.galerija a', {});
-        })();
-    </script>
-    @php($i = 0)
-    @if ($prod->images->count())
-        @foreach ($prod->images as $key => $image)
-            @if($image->default == '1')
-                @php($i = $key)
-            @endif
-        @endforeach
-    @endif
+        (function ($) {
+            var $gallery = $('[data-product-gallery]').first();
+            if (!$gallery.length) return;
 
+            var $carousel = $gallery.find('[data-product-gallery-main]');
+            var $thumbs = $gallery.find('[data-product-gallery-thumbs]');
+            var $thumbnailButtons = $gallery.find('[data-product-gallery-index]');
+            var slideCount = $carousel.children().length;
 
+            function setActiveThumbnail(index) {
+                $thumbnailButtons.each(function () {
+                    var $button = $(this);
+                    var isActive = Number($button.data('product-gallery-index')) === Number(index);
 
-    <script>
-        var $carousel = $('.slider-for').slick({
-            slidesToShow:   1,
-            slidesToScroll: 1,
-            initialSlide: {{ $i }},
-            arrows:         false,
-            fade:           true,
-            asNavFor:       '.slider-nav'
-        });
-        var $thumbs   = $('.slider-nav').slick({
-            slidesToShow:   5,
-            slidesToScroll: 1,
-            asNavFor:       '.slider-for',
-            dots:           false,
-            centerMode:     false,
-            focusOnSelect:  true,
-            loop:           true,
+                    $button.toggleClass('is-active', isActive);
+                    $button.attr('aria-current', isActive ? 'true' : 'false');
+                });
+            }
 
-        });
+            if (slideCount > 1 && $.fn.slick) {
+                $carousel.on('afterChange', function (event, slick, currentSlide) {
+                    setActiveThumbnail(currentSlide);
 
+                    if ($thumbs.hasClass('slick-initialized')) {
+                        $thumbs.slick('slickGoTo', currentSlide);
+                    }
+                });
 
-        $(".form-check").click(function () {
-            var artworkId = $(this).data('target');
+                $carousel.slick({
+                    slidesToShow: 1,
+                    slidesToScroll: 1,
+                    arrows: false,
+                    dots: false,
+                    fade: false,
+                    infinite: true,
+                    speed: 350,
+                    swipe: true,
+                    swipeToSlide: true,
+                    draggable: true,
+                    touchMove: true,
+                    touchThreshold: 10,
+                    waitForAnimate: false,
+                    adaptiveHeight: false
+                });
 
-            console.log(artworkId);
-            var artIndex = $carousel.find('[data-target="' + artworkId + '"]').data('slick-index');
+                if ($thumbs.length) {
+                    $thumbs.slick({
+                        slidesToShow: Math.min(5, slideCount),
+                        slidesToScroll: 1,
+                        arrows: false,
+                        dots: false,
+                        infinite: false,
+                        centerMode: false,
+                        swipe: true,
+                        swipeToSlide: true,
+                        draggable: true,
+                        touchMove: true,
+                        responsive: [
+                            {
+                                breakpoint: 768,
+                                settings: {
+                                    slidesToShow: Math.min(4, slideCount)
+                                }
+                            },
+                            {
+                                breakpoint: 576,
+                                settings: {
+                                    slidesToShow: Math.min(3, slideCount)
+                                }
+                            }
+                        ]
+                    });
+                }
 
-            console.log(artIndex);
+                $thumbnailButtons.on('click', function () {
+                    var slideIndex = Number($(this).data('product-gallery-index'));
 
-            $carousel.slick('slickGoTo', artIndex);
-        });
+                    setActiveThumbnail(slideIndex);
+                    $carousel.slick('slickGoTo', slideIndex);
+                });
+            } else {
+                $gallery.addClass('is-single-image');
+            }
 
-    </script>
+            $('.form-check[data-target]').on('click', function () {
+                if (!$carousel.hasClass('slick-initialized')) return;
 
-    <script>
-        (function () {
-            var $gallery = new SimpleLightbox('a.gal', {});
-        })();
+                var artIndex = $carousel.find('[data-target="' + $(this).data('target') + '"]').data('slick-index');
+                if (typeof artIndex !== 'undefined') {
+                    $carousel.slick('slickGoTo', artIndex);
+                }
+            });
+
+            new SimpleLightbox('[data-product-gallery-main] a', {});
+        })(jQuery);
     </script>
 
     @include('front.layouts.modal.wishlist-email')
@@ -617,9 +786,49 @@
             var form = document.querySelector('[data-product-review-form]');
             if (!form) return;
 
-            if (window.location.hash === '#reviews' || form.querySelector('.is-invalid')) {
-                var trigger = document.querySelector('a[href="#reviews"]');
-                if (trigger && window.bootstrap && bootstrap.Tab) new bootstrap.Tab(trigger).show();
+            var container = document.querySelector('[data-product-review-form-container]');
+            var toggle = document.querySelector('[data-product-review-toggle]');
+            var toggleLabel = toggle ? toggle.querySelector('[data-product-review-toggle-label]') : null;
+            var ratingAnchor = document.querySelector('.product-rating-anchor');
+            var reviewsSection = document.getElementById('reviews');
+
+            if (ratingAnchor && reviewsSection) {
+                ratingAnchor.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    reviewsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+                    if (window.history && window.history.pushState) {
+                        window.history.pushState(null, '', '#reviews');
+                    }
+                });
+            }
+
+            function setFormOpen(isOpen) {
+                if (!container || !toggle) return;
+
+                toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                container.classList.toggle('is-collapsed', !isOpen);
+                container.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+
+                if (isOpen) {
+                    container.removeAttribute('inert');
+                } else {
+                    container.setAttribute('inert', '');
+                }
+
+                if (toggleLabel) {
+                    toggleLabel.textContent = isOpen ? toggle.dataset.closeLabel : toggle.dataset.openLabel;
+                }
+            }
+
+            if (toggle) {
+                toggle.addEventListener('click', function () {
+                    setFormOpen(toggle.getAttribute('aria-expanded') !== 'true');
+                });
+            }
+
+            if (form.querySelector('.is-invalid') || window.location.hash === '#review-form') {
+                setFormOpen(true);
             }
 
             form.addEventListener('submit', function (event) {

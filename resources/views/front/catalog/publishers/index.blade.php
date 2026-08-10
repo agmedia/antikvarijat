@@ -10,6 +10,10 @@
     ])
 @endpush
 
+@push('css_after')
+    <link rel="stylesheet" href="{{ asset('css/category.css?v=' . filemtime(public_path('css/category.css'))) }}">
+@endpush
+
 @section('content')
 
     <section class="position-relative   py-3 mb-3" style="background-image: url({{ asset('media/img/farmer.png')  }});background-repeat: repeat">
@@ -57,11 +61,7 @@
 
         </div>
 
-        <div class="row py-md-3">
-            <div class="col-lg-12">
-                {{ $publishers->links() }}
-            </div>
-        </div>
+        @include('front.catalog.partials.directory-pagination', ['paginator' => $publishers])
 
     </section>
 

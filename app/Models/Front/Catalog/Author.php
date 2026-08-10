@@ -47,6 +47,11 @@ class Author extends Model
         return LocaleHelper::localizedField($this, 'title', true);
     }
 
+    public static function hasMeaningfulTitle(?string $title): bool
+    {
+        return preg_match('/[\p{L}\p{N}]/u', trim((string) $title)) === 1;
+    }
+
     public function getDescriptionAttribute($value)
     {
         return LocaleHelper::localizedField($this, 'description', true);

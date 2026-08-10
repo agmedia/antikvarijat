@@ -73,71 +73,14 @@
 @endpush
 
 @push('css_after')
-    <style>
-        filter-view,
-        products-view {
-            display: contents;
-        }
-
-        #filter-app,
-        #filter-app .product-card,
-        #filter-app .product-card .card-body,
-        #filter-app .product-card .d-flex,
-        #filter-app .product-card .text-muted,
-        #filter-app .product-card .product-title,
-        #filter-app .product-card .product-title > a,
-        #filter-app .product-card .product-meta,
-        #filter-app .product-card .one-line {
-            min-width: 0;
-        }
-
-        #filter-app {
-            overflow-x: hidden;
-        }
-
-        #filter-app .product-card .text-muted,
-        #filter-app .product-card .product-meta,
-        #filter-app .product-card .one-line {
-            max-width: 100%;
-        }
-
-        #filter-app .product-card .text-muted {
-            width: 100%;
-            overflow: hidden;
-        }
-
-        #filter-app .product-card .product-meta {
-            width: 100%;
-        }
-
-        #filter-app .product-card .product-title > a {
-            overflow-wrap: anywhere;
-        }
-
-        @media (max-width: 499.98px) {
-            #filter-app .product-card .card-body {
-                padding-left: .75rem;
-                padding-right: .75rem;
-            }
-
-            #filter-app .product-card .price-box {
-                padding-right: 3.5rem;
-            }
-
-            #filter-app .product-floating-btn {
-                right: .5rem;
-                bottom: .5rem;
-                opacity: 1;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="{{ asset('css/category.css?v=' . filemtime(public_path('css/category.css'))) }}">
 @endpush
 
 
 @section('content')
 
     <!-- Page Title-->
-    <div class="page-title-overlap bg-light pt-4" style="background-image: url({{ asset('media/img/farmer.png')  }});background-repeat: repeat">
+    <div class="page-title-overlap bg-light pt-4 catalog-page-title">
         <div class="container d-lg-block  d-lg-flex justify-content-between py-2 py-lg-3">
 
             @if (isset($group) && $group)

@@ -92,6 +92,17 @@ class Product extends Model
         return $this->reviews()->approved()->latest('approved_at');
     }
 
+    public function scopeWithReviewSummary(Builder $query): Builder
+    {
+        return $query
+            ->withCount([
+                'reviews as approved_reviews_count' => fn ($reviews) => $reviews->approved(),
+            ])
+            ->withAvg([
+                'reviews as approved_reviews_average' => fn ($reviews) => $reviews->approved(),
+            ], 'rating');
+    }
+
     public function getNameAttribute($value)
     {
         return LocaleHelper::localizedField($this, 'name', true);

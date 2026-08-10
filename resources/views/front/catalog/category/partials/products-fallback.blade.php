@@ -1,4 +1,4 @@
-<section class="col-lg-9">
+<section class="col-lg-9 catalog-products-section">
     @if ($initialProductsPaginator)
         <div class="d-flex justify-content-center justify-content-sm-between align-items-center pt-2 pb-4 pb-sm-5">
             <div class="d-flex flex-wrap">
@@ -23,7 +23,7 @@
         </div>
 
         @if ($initialProductsPaginator->count())
-            <div class="row row-cols-2 row-cols-sm-3 row-cols-md-3 row-cols-lg-3 row-cols-xl-4 row-cols-xxl-4 mb-3 px-2">
+            <div class="row row-cols-2 row-cols-sm-3 row-cols-md-3 row-cols-lg-3 row-cols-xl-4 row-cols-xxl-4 mb-3 px-2 catalog-products-grid">
                 @foreach ($initialProductsPaginator as $product)
                     <div class="col px-2 mb-4">
                         @include('front.catalog.category.product')
@@ -31,7 +31,17 @@
                 @endforeach
             </div>
 
-            {{ $initialProductsPaginator->onEachSide(1)->links('vendor.pagination.bootstrap-4') }}
+            <div class="catalog-pagination-wrap">
+                {{ $initialProductsPaginator->onEachSide(2)->links('vendor.pagination.catalog') }}
+
+                <p class="catalog-pagination-summary mb-0">
+                    {{ __('front.js.products.shown') }}
+                    <strong>{{ number_format($initialProductsPaginator->firstItem(), 0, ',', '.') }}–{{ number_format($initialProductsPaginator->lastItem(), 0, ',', '.') }}</strong>
+                    {{ __('front.js.products.of') }}
+                    <strong>{{ number_format($initialProductsPaginator->total(), 0, ',', '.') }}</strong>
+                    {{ $initialProductsPaginator->total() % 10 === 1 && $initialProductsPaginator->total() % 100 !== 11 ? __('front.js.products.result') : __('front.js.products.results') }}
+                </p>
+            </div>
         @else
             <div class="col-md-12 px-2 mb-4">
                 @if (Route::currentRouteName() == 'pretrazi' || Route::currentRouteName() == 'en.pretrazi')

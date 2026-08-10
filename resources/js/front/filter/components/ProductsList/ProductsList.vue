@@ -1,5 +1,5 @@
 <template>
-    <section class="col-lg-9">
+    <section class="col-lg-9 catalog-products-section">
         <!-- Toolbar-->
         <div class="d-flex justify-content-center justify-content-sm-between align-items-center pt-2 pb-4 pb-sm-5">
             <div class="d-flex flex-wrap">
@@ -21,12 +21,12 @@
 
         <!-- Products grid-->
 
-        <div class="row row-cols-2 row-cols-sm-3 row-cols-md-3 row-cols-lg-3 row-cols-xl-4 row-cols-xxl-4  mb-3 px-2" v-if="products.total">
+        <div class="row row-cols-2 row-cols-sm-3 row-cols-md-3 row-cols-lg-3 row-cols-xl-4 row-cols-xxl-4 mb-3 px-2 catalog-products-grid" v-if="products.total">
 
 
 
             <div class="col px-2 mb-4" v-for="(product, index) in products.data" :key="product.id">
-                <div class="card product-card shadow mb-2">
+                <div class="card product-card shadow mb-2 catalog-product-card">
                     <span class="badge  bg-dark mt-1 ms-1 badge-shadow" v-if="product.special">-{{ ($store.state.service.getDiscountAmount(product.price, product.special)) }}%</span>
                     <div class="product-thumb">
                         <a :href="origin + product.url">
@@ -42,25 +42,42 @@
                         </a>
                     </div>
                     <div class="card-body pt-2">
-                        <div class="d-flex flex-wrap justify-content-between align-items-start pb-2">
+                        <div class="d-flex flex-wrap justify-content-between align-items-start pb-2" v-if="productMeta(product)">
                             <div class="text-muted fs-xs me-1">
-                                <a class="product-meta fw-medium" :href="productMeta(product) ? (origin + productMeta(product).url) : '#'">{{ productMeta(product) ? productMeta(product).title : labels.unknown }}</a>
+                                <a class="product-meta fw-medium" :href="origin + productMeta(product).url">{{ productMeta(product).title }}</a>
                             </div>
 
                         </div>
+                        <a
+                            v-if="reviewCount(product) > 0"
+                            class="d-inline-flex align-items-center gap-1 mb-2 text-decoration-none"
+                            :href="origin + product.url + '#reviews'"
+                            :aria-label="reviewRatingLabel(product)">
+                            <span class="star-rating" aria-hidden="true">
+                                <i
+                                    v-for="star in 5"
+                                    :key="star"
+                                    class="star-rating-icon"
+                                    :class="star <= Math.round(reviewAverage(product)) ? 'ci-star-filled active' : 'ci-star'"></i>
+                            </span>
+                            <span class="fs-xs text-muted">{{ formatReviewAverage(product) }} ({{ reviewCount(product) }})</span>
+                        </a>
                         <h3 class="product-title fs-sm mb-0"><a :href="origin + product.url">{{ product.name }}</a></h3>
-                        <div class="d-flex flex-wrap justify-content-between align-items-center" v-if="product.category_string">
-                            <div class="fs-sm me-2 one-line"><i class="ci-book text-muted" style="font-size: 11px;"></i> <span v-html="product.category_string"></span></div>
+                        <div class="d-flex flex-wrap justify-content-between align-items-center" v-if="product.card_category">
+                            <div class="fs-sm me-2 one-line">
+                                <i class="ci-book text-muted fs-xs" aria-hidden="true"></i>
+                                <a class="product-category-link fs-xs ms-1" :href="product.card_category.url">{{ product.card_category.title }}</a>
+                            </div>
                         </div>
 
                         <div class="d-flex flex-wrap justify-content-between align-items-center price-box mt-2">
-                            <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2" v-if="product.special" style="text-decoration: line-through;">{{ product.main_price_text }}</div>
+                            <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2 text-decoration-line-through" v-if="product.special">{{ product.main_price_text }}</div>
                             <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2" v-if="product.special">{{ product.main_special_text }}</div>
                             <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2" v-if="!product.special">{{ product.main_price_text }}</div>
                         </div>
 
                         <div class="d-flex flex-wrap justify-content-between align-items-center price-box mt-2" v-if="product.secondary_price">
-                            <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2" v-if="product.special" style="text-decoration: line-through;">{{ product.secondary_price_text }}</div>
+                            <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2 text-decoration-line-through" v-if="product.special">{{ product.secondary_price_text }}</div>
                             <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2" v-if="product.special">{{ product.secondary_special_text }}</div>
                             <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2" v-if="!product.special">{{ product.secondary_price_text }}</div>
                         </div>
@@ -69,11 +86,10 @@
                        <button type="button" class="btn btn-primary  btn-sm" v-on:click="add(product.id)">+<i class="ci-cart"></i></button>
                     </div>
                 </div>
+                <hr class="d-sm-none">
 
             </div>
         </div>
-
-        <pagination :data="products" align="center" :show-disabled="true" :limit="5" @pagination-change-page="getProductsPage"></pagination>
 
         <div class="row" v-if="!products_loaded">
             <div class="col-md-12 d-flex justify-content-center mt-4">
@@ -84,11 +100,14 @@
             </div>
         </div>
 
-        <div class="col-md-12 d-flex justify-content-center mt-4" v-if="products.total">
-            <p class="fs-sm">{{ labels.shown }}
-                <span class="font-weight-bolder mx-1">{{ formatNumber(products.from || 0) }}</span> {{ labels.to }}
-                <span class="font-weight-bolder mx-1">{{ formatNumber(products.to || 0) }}</span> {{ labels.of }}
-                <span class="font-weight-bold mx-1">{{ formatNumber(products.total || 0) }}</span> {{ hr_total }}
+        <div class="catalog-pagination-wrap" v-if="products.total">
+            <pagination :data="products" align="center" :show-disabled="true" :limit="2" @pagination-change-page="getProductsPage"></pagination>
+            <p class="catalog-pagination-summary mb-0">
+                {{ labels.shown }}
+                <strong>{{ formatNumber(products.from || 0) }}–{{ formatNumber(products.to || 0) }}</strong>
+                {{ labels.of }}
+                <strong>{{ formatNumber(products.total || 0) }}</strong>
+                {{ hr_total }}
             </p>
         </div>
 
@@ -394,7 +413,37 @@
                     return product.publisher;
                 }
 
-                return product.author || null;
+                const author = product.author || null;
+
+                return author && this.hasMeaningfulLabel(author.title) ? author : null;
+            },
+
+            hasMeaningfulLabel(label) {
+                return /[\p{L}\p{N}]/u.test(String(label || '').trim());
+            },
+
+            reviewCount(product) {
+                return Number(product.approved_reviews_count || 0);
+            },
+
+            reviewAverage(product) {
+                return Number(product.approved_reviews_average || 0);
+            },
+
+            formatReviewAverage(product) {
+                return this.reviewAverage(product).toLocaleString(this.numberLocale, {
+                    minimumFractionDigits: 1,
+                    maximumFractionDigits: 1
+                });
+            },
+
+            reviewRatingLabel(product) {
+                const rating = this.formatReviewAverage(product);
+                const count = this.reviewCount(product);
+
+                return this.locale === 'en'
+                    ? `${rating} out of 5 based on ${count} reviews`
+                    : `${rating} od 5 na temelju ${count} recenzija`;
             },
 
             setZeroState() {

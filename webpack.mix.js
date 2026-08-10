@@ -23,6 +23,8 @@ if (mix.inProduction()) {
 
 mix
 /* CSS */
+.sass('resources/sass/front/product.scss', 'public/css/product.css')
+.sass('resources/sass/front/category.scss', 'public/css/category.css')
 /*.sass('resources/sass/main.scss', 'public/css/dashmix.css')
 .sass('resources/sass/dashmix/themes/xeco.scss', 'public/css/themes/')
 .sass('resources/sass/dashmix/themes/xinspire.scss', 'public/css/themes/')

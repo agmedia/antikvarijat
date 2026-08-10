@@ -7,23 +7,30 @@
         :align="align"
         v-on:pagination-change-page="onPaginationChangePage">
 
-        <ul class="pagination"
+        <nav
+            class="catalog-pagination"
+            :aria-label="labels.navigation"
+            v-if="computed.total > computed.perPage"
+            slot-scope="{ data, limit, showDisabled, size, align, computed, prevButtonEvents, nextButtonEvents, pageButtonEvents }">
+        <ul class="pagination mb-0"
             :class="{
                 'pagination-sm': size == 'small',
                 'pagination-lg': size == 'large',
                 'justify-content-center': align == 'center',
                 'justify-content-end': align == 'right'
-            }"
-            v-if="computed.total > computed.perPage"
-            slot-scope="{ data, limit, showDisabled, size, align, computed, prevButtonEvents, nextButtonEvents, pageButtonEvents }">
+            }">
 
             <li class="page-item pagination-prev-nav" :class="{'disabled': !computed.prevPageUrl}" v-if="computed.prevPageUrl || showDisabled">
                 <a class="page-link" href="#" :aria-label="labels.previous" :tabindex="!computed.prevPageUrl && -1" v-on="prevButtonEvents">
                     <slot name="prev-nav">
-                        <span aria-hidden="true">&laquo;</span>
-                        <span class="sr-only">{{ labels.previous }}</span>
+                        <i class="fa-regular fa-arrow-left" aria-hidden="true"></i>
+                        <span class="d-none d-sm-inline">{{ labels.previous }}</span>
                     </slot>
                 </a>
+            </li>
+
+            <li class="page-item pagination-mobile-summary disabled d-sm-none" aria-current="page">
+                <span class="page-link">{{ computed.currentPage }} / {{ computed.lastPage }}</span>
             </li>
 
             <li class="page-item pagination-page-nav d-none d-sm-block" v-for="(page, key) in computed.pageRange" :key="key" :class="{ 'active': page == computed.currentPage }">
@@ -36,13 +43,14 @@
             <li class="page-item pagination-next-nav" :class="{'disabled': !computed.nextPageUrl}" v-if="computed.nextPageUrl || showDisabled">
                 <a class="page-link" href="#" :aria-label="labels.next" :tabindex="!computed.nextPageUrl && -1" v-on="nextButtonEvents">
                     <slot name="next-nav">
-                        <span aria-hidden="true">&raquo;</span>
-                        <span class="sr-only">{{ labels.next }}</span>
+                        <span class="d-none d-sm-inline">{{ labels.next }}</span>
+                        <i class="fa-regular fa-arrow-right" aria-hidden="true"></i>
                     </slot>
                 </a>
             </li>
 
         </ul>
+        </nav>
 
     </renderless-laravel-vue-pagination>
 </template>
@@ -87,6 +95,7 @@ export default {
                 : {};
 
             return {
+                navigation: t.navigation || ((document.documentElement.lang || 'hr') === 'en' ? 'Pagination' : 'Navigacija po stranicama'),
                 previous: t.previous || ((document.documentElement.lang || 'hr') === 'en' ? 'Previous' : 'Prethodna'),
                 next: t.next || ((document.documentElement.lang || 'hr') === 'en' ? 'Next' : 'Sljedeća')
             };

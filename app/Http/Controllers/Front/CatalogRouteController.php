@@ -96,6 +96,7 @@ class CatalogRouteController extends Controller
             if (!empty($recentIds)) {
                 $recentProducts = Product::whereIn('id', $recentIds)
                     ->where('status', 1)
+                    ->withReviewSummary()
                     ->with(['author', 'action'])
                     ->get()
                     ->sortBy(fn ($p) => array_search($p->id, $recentIds))
@@ -103,16 +104,44 @@ class CatalogRouteController extends Controller
             }
 
             $relatedProducts = collect();
-            if ($cat) {
-                $relatedProducts = $cat->products()
+            $relatedCategory = $subcat instanceof Category ? $subcat : $cat;
+            if ($relatedCategory) {
+                $relatedProducts = $relatedCategory->products()
                     ->where('products.id', '!=', $prod->id)
                     ->where('quantity', '>', 0)
+                    ->withReviewSummary()
                     ->with(['author', 'action'])
                     ->take(15)
                     ->get()
                     ->unique('id')
                     ->values();
             }
+
+            $authorTitle = trim((string) optional($prod->author)->title);
+            $hasAuthor = $prod->author && Author::hasMeaningfulTitle($authorTitle);
+
+            $authorProducts = $hasAuthor
+                ? $prod->author->products()
+                    ->where('products.id', '!=', $prod->id)
+                    ->withReviewSummary()
+                    ->with(['author', 'action'])
+                    ->latest('products.created_at')
+                    ->take(15)
+                    ->get()
+                : collect();
+
+            $publisherTitle = trim((string) optional($prod->publisher)->title);
+            $hasPublisher = $prod->publisher && $publisherTitle !== '' && $publisherTitle !== '-';
+
+            $publisherProducts = $hasPublisher
+                ? $prod->publisher->products()
+                    ->where('products.id', '!=', $prod->id)
+                    ->withReviewSummary()
+                    ->with(['author', 'action'])
+                    ->latest('products.created_at')
+                    ->take(15)
+                    ->get()
+                : collect();
 
             $reviews = ProductReview::query()
                 ->approved()
@@ -126,9 +155,18 @@ class CatalogRouteController extends Controller
                 ->where('product_id', $prod->id)
                 ->selectRaw('COUNT(*) AS review_count, AVG(rating) AS rating_average')
                 ->first();
+            $reviewDistribution = ProductReview::query()
+                ->approved()
+                ->where('product_id', $prod->id)
+                ->selectRaw('rating, COUNT(*) AS review_count')
+                ->groupBy('rating')
+                ->pluck('review_count', 'rating')
+                ->map(fn ($count) => (int) $count)
+                ->all();
             $reviewStats = [
                 'count' => (int) ($reviewStatsRow->review_count ?? 0),
                 'average' => round((float) ($reviewStatsRow->rating_average ?? 0), 2),
+                'distribution' => array_replace(array_fill_keys(range(1, 5), 0), $reviewDistribution),
             ];
 
             $bc = new Breadcrumb();
@@ -158,7 +196,11 @@ class CatalogRouteController extends Controller
                 'reviews',
                 'reviewStats',
                 'recentProducts',
-                'relatedProducts'
+                'relatedProducts',
+                'authorProducts',
+                'publisherProducts',
+                'hasAuthor',
+                'hasPublisher'
             ));
         }
 
@@ -637,6 +679,7 @@ class CatalogRouteController extends Controller
                 'special_from',
                 'special_to',
             ])
+            ->withReviewSummary()
             ->with([
                 'author:id,title,title_en,slug,slug_en,url,url_en',
                 'publisher:id,title,title_en,slug,slug_en,url,url_en',
@@ -736,6 +779,9 @@ class CatalogRouteController extends Controller
         $data = $paginator->getCollection()->map(function (Product $product) {
             $effectiveSpecial = $product->special();
             $hasSpecialPrice = $effectiveSpecial < (float) $product->price;
+            $category = $product->category();
+            $subcategory = $product->subcategory();
+            $cardCategory = $subcategory ?: $category;
 
             return [
                 'id' => $product->id,
@@ -753,7 +799,13 @@ class CatalogRouteController extends Controller
                 'secondary_price_text' => $product->secondary_price_text,
                 'secondary_special' => $product->secondary_special,
                 'secondary_special_text' => $product->secondary_special_text,
-                'author' => $product->author ? [
+                'approved_reviews_count' => (int) ($product->approved_reviews_count ?? 0),
+                'approved_reviews_average' => round((float) ($product->approved_reviews_average ?? 0), 2),
+                'card_category' => $category && $cardCategory ? [
+                    'title' => $cardCategory->title,
+                    'url' => LocaleHelper::categoryUrl($category, $subcategory),
+                ] : null,
+                'author' => $product->author && Author::hasMeaningfulTitle($product->author->title) ? [
                     'title' => $product->author->title,
                     'url' => $product->author->url,
                 ] : null,

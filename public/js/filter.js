@@ -2487,6 +2487,7 @@ __webpack_require__.r(__webpack_exports__);
     labels: function labels() {
       var t = window.FrontTranslations && window.FrontTranslations.js && window.FrontTranslations.js.pagination ? window.FrontTranslations.js.pagination : {};
       return {
+        navigation: t.navigation || ((document.documentElement.lang || 'hr') === 'en' ? 'Pagination' : 'Navigacija po stranicama'),
         previous: t.previous || ((document.documentElement.lang || 'hr') === 'en' ? 'Previous' : 'Prethodna'),
         next: t.next || ((document.documentElement.lang || 'hr') === 'en' ? 'Next' : 'Sljedeća')
       };
@@ -2967,6 +2968,23 @@ function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
       }
       return product.author || null;
     },
+    reviewCount: function reviewCount(product) {
+      return Number(product.approved_reviews_count || 0);
+    },
+    reviewAverage: function reviewAverage(product) {
+      return Number(product.approved_reviews_average || 0);
+    },
+    formatReviewAverage: function formatReviewAverage(product) {
+      return this.reviewAverage(product).toLocaleString(this.numberLocale, {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1
+      });
+    },
+    reviewRatingLabel: function reviewRatingLabel(product) {
+      var rating = this.formatReviewAverage(product);
+      var count = this.reviewCount(product);
+      return this.locale === 'en' ? "".concat(rating, " out of 5 based on ").concat(count, " reviews") : "".concat(rating, " od 5 na temelju ").concat(count, " recenzija");
+    },
     setZeroState: function setZeroState() {
       this.search_zero_result = this.search_query != '' && !this.products.total;
       this.navigation_zero_result = this.search_query == '' && !this.products.total;
@@ -3010,10 +3028,7 @@ var render = function render() {
   return _c("aside", {
     staticClass: "col-lg-3"
   }, [_c("div", {
-    staticClass: "offcanvas offcanvas-collapse bg-white w-100 rounded-3 shadow-lg py-1",
-    staticStyle: {
-      "max-width": "22rem"
-    },
+    staticClass: "offcanvas offcanvas-collapse bg-white w-100 rounded-3 shadow-lg py-1 catalog-shop-sidebar",
     attrs: {
       id: "shop-sidebar"
     }
@@ -3047,9 +3062,8 @@ var render = function render() {
     staticClass: "badge bg-secondary float-end"
   }, [_vm._v(_vm._s(Number(_vm.subcategory.count).toLocaleString("hr-HR")))])]) : _vm._e(), _vm._v(" "), _c("div", {
     staticClass: "accordion mt-n1",
-    style: {
-      maxHeight: _vm.expanded ? "none" : "30rem",
-      overflowY: _vm.expanded ? "visible" : "auto"
+    "class": {
+      "is-expanded": _vm.expanded
     },
     attrs: {
       id: "shop-categories",
@@ -3150,10 +3164,7 @@ var render = function render() {
   }, [_c("h3", {
     staticClass: "widget-title"
   }, [_vm._v(_vm._s(_vm.labels.authors)), !_vm.authors_loaded ? _c("span", {
-    staticClass: "spinner-border spinner-border-sm",
-    staticStyle: {
-      "float": "right"
-    }
+    staticClass: "spinner-border spinner-border-sm float-end"
   }) : _vm._e()]), _vm._v(" "), _c("div", {
     staticClass: "input-group input-group-sm mb-2 autocomplete"
   }, [_c("input", {
@@ -3180,10 +3191,7 @@ var render = function render() {
   }), _c("i", {
     staticClass: "ci-search position-absolute top-50 end-0 translate-middle-y fs-sm me-3"
   })]), _vm._v(" "), _c("ul", {
-    staticClass: "widget-list widget-filter-list list-unstyled pt-1",
-    staticStyle: {
-      "max-height": "11rem"
-    },
+    staticClass: "widget-list widget-filter-list list-unstyled pt-1 catalog-filter-options",
     attrs: {
       "data-simplebar": "",
       "data-simplebar-auto-hide": "false"
@@ -3244,10 +3252,7 @@ var render = function render() {
   }, [_c("h3", {
     staticClass: "widget-title"
   }, [_vm._v(_vm._s(_vm.labels.publishers)), !_vm.publishers_loaded ? _c("span", {
-    staticClass: "spinner-border spinner-border-sm",
-    staticStyle: {
-      "float": "right"
-    }
+    staticClass: "spinner-border spinner-border-sm float-end"
   }) : _vm._e()]), _vm._v(" "), _c("div", {
     staticClass: "input-group input-group-sm mb-2 autocomplete"
   }, [_c("input", {
@@ -3274,10 +3279,7 @@ var render = function render() {
   }), _c("i", {
     staticClass: "ci-search position-absolute top-50 end-0 translate-middle-y fs-sm me-3"
   })]), _vm._v(" "), _c("ul", {
-    staticClass: "widget-list widget-filter-list list-unstyled pt-1",
-    staticStyle: {
-      "max-height": "11rem"
-    },
+    staticClass: "widget-list widget-filter-list list-unstyled pt-1 catalog-filter-options",
     attrs: {
       "data-simplebar": "",
       "data-simplebar-auto-hide": "false"
@@ -3389,8 +3391,13 @@ var render = function render() {
           prevButtonEvents = _ref.prevButtonEvents,
           nextButtonEvents = _ref.nextButtonEvents,
           pageButtonEvents = _ref.pageButtonEvents;
-        return computed.total > computed.perPage ? _c("ul", {
-          staticClass: "pagination",
+        return computed.total > computed.perPage ? _c("nav", {
+          staticClass: "catalog-pagination",
+          attrs: {
+            "aria-label": _vm.labels.navigation
+          }
+        }, [_c("ul", {
+          staticClass: "pagination mb-0",
           "class": {
             "pagination-sm": size == "small",
             "pagination-lg": size == "large",
@@ -3410,14 +3417,22 @@ var render = function render() {
             tabindex: !computed.prevPageUrl && -1
           }
         }, prevButtonEvents), [_vm._t("prev-nav", function () {
-          return [_c("span", {
+          return [_c("i", {
+            staticClass: "fa-regular fa-arrow-left",
             attrs: {
               "aria-hidden": "true"
             }
-          }, [_vm._v("«")]), _vm._v(" "), _c("span", {
-            staticClass: "sr-only"
+          }), _vm._v(" "), _c("span", {
+            staticClass: "d-none d-sm-inline"
           }, [_vm._v(_vm._s(_vm.labels.previous))])];
-        })], 2)]) : _vm._e(), _vm._v(" "), _vm._l(computed.pageRange, function (page, key) {
+        })], 2)]) : _vm._e(), _vm._v(" "), _c("li", {
+          staticClass: "page-item pagination-mobile-summary disabled d-sm-none",
+          attrs: {
+            "aria-current": "page"
+          }
+        }, [_c("span", {
+          staticClass: "page-link"
+        }, [_vm._v(_vm._s(computed.currentPage) + " / " + _vm._s(computed.lastPage))])]), _vm._v(" "), _vm._l(computed.pageRange, function (page, key) {
           return _c("li", {
             key: key,
             staticClass: "page-item pagination-page-nav d-none d-sm-block",
@@ -3446,13 +3461,14 @@ var render = function render() {
           }
         }, nextButtonEvents), [_vm._t("next-nav", function () {
           return [_c("span", {
+            staticClass: "d-none d-sm-inline"
+          }, [_vm._v(_vm._s(_vm.labels.next))]), _vm._v(" "), _c("i", {
+            staticClass: "fa-regular fa-arrow-right",
             attrs: {
               "aria-hidden": "true"
             }
-          }, [_vm._v("»")]), _vm._v(" "), _c("span", {
-            staticClass: "sr-only"
-          }, [_vm._v(_vm._s(_vm.labels.next))])];
-        })], 2)]) : _vm._e()], 2) : _vm._e();
+          })];
+        })], 2)]) : _vm._e()], 2)]) : _vm._e();
       }
     }], null, true)
   });
@@ -3479,7 +3495,7 @@ var render = function render() {
   var _vm = this,
     _c = _vm._self._c;
   return _c("section", {
-    staticClass: "col-lg-9"
+    staticClass: "col-lg-9 catalog-products-section"
   }, [_c("div", {
     staticClass: "d-flex justify-content-center justify-content-sm-between align-items-center pt-2 pb-4 pb-sm-5"
   }, [_c("div", {
@@ -3540,13 +3556,13 @@ var render = function render() {
   }, [_c("span", {
     staticClass: "fs-sm text-light btn btn-primary btn-sm text-nowrap ms-2 d-none d-sm-block"
   }, [_vm._v(_vm._s(_vm.labels.total) + " " + _vm._s(_vm.formatNumber(_vm.products.total || 0)) + " " + _vm._s(_vm.labels.items))])])]), _vm._v(" "), _vm.products.total ? _c("div", {
-    staticClass: "row row-cols-2 row-cols-sm-3 row-cols-md-3 row-cols-lg-3 row-cols-xl-4 row-cols-xxl-4 mb-3 px-2"
+    staticClass: "row row-cols-2 row-cols-sm-3 row-cols-md-3 row-cols-lg-3 row-cols-xl-4 row-cols-xxl-4 mb-3 px-2 catalog-products-grid"
   }, _vm._l(_vm.products.data, function (product, index) {
     return _c("div", {
       key: product.id,
       staticClass: "col px-2 mb-4"
     }, [_c("div", {
-      staticClass: "card product-card shadow mb-2"
+      staticClass: "card product-card shadow mb-2 catalog-product-card"
     }, [product.special ? _c("span", {
       staticClass: "badge bg-dark mt-1 ms-1 badge-shadow"
     }, [_vm._v("-" + _vm._s(_vm.$store.state.service.getDiscountAmount(product.price, product.special)) + "%")]) : _vm._e(), _vm._v(" "), _c("div", {
@@ -3577,32 +3593,49 @@ var render = function render() {
       attrs: {
         href: _vm.productMeta(product) ? _vm.origin + _vm.productMeta(product).url : "#"
       }
-    }, [_vm._v(_vm._s(_vm.productMeta(product) ? _vm.productMeta(product).title : _vm.labels.unknown))])])]), _vm._v(" "), _c("h3", {
+    }, [_vm._v(_vm._s(_vm.productMeta(product) ? _vm.productMeta(product).title : _vm.labels.unknown))])])]), _vm._v(" "), _vm.reviewCount(product) > 0 ? _c("a", {
+      staticClass: "d-inline-flex align-items-center gap-1 mb-2 text-decoration-none",
+      attrs: {
+        href: _vm.origin + product.url + "#reviews",
+        "aria-label": _vm.reviewRatingLabel(product)
+      }
+    }, [_c("span", {
+      staticClass: "star-rating",
+      attrs: {
+        "aria-hidden": "true"
+      }
+    }, _vm._l(5, function (star) {
+      return _c("i", {
+        key: star,
+        staticClass: "star-rating-icon",
+        "class": star <= Math.round(_vm.reviewAverage(product)) ? "ci-star-filled active" : "ci-star"
+      });
+    }), 0), _vm._v(" "), _c("span", {
+      staticClass: "fs-xs text-muted"
+    }, [_vm._v(_vm._s(_vm.formatReviewAverage(product)) + " (" + _vm._s(_vm.reviewCount(product)) + ")")])]) : _vm._e(), _vm._v(" "), _c("h3", {
       staticClass: "product-title fs-sm mb-0"
     }, [_c("a", {
       attrs: {
         href: _vm.origin + product.url
       }
-    }, [_vm._v(_vm._s(product.name))])]), _vm._v(" "), product.category_string ? _c("div", {
+    }, [_vm._v(_vm._s(product.name))])]), _vm._v(" "), product.card_category ? _c("div", {
       staticClass: "d-flex flex-wrap justify-content-between align-items-center"
     }, [_c("div", {
       staticClass: "fs-sm me-2 one-line"
     }, [_c("i", {
-      staticClass: "ci-book text-muted",
-      staticStyle: {
-        "font-size": "11px"
+      staticClass: "ci-book text-muted fs-xs",
+      attrs: {
+        "aria-hidden": "true"
       }
-    }), _vm._v(" "), _c("span", {
-      domProps: {
-        innerHTML: _vm._s(product.category_string)
+    }), _vm._v(" "), _c("a", {
+      staticClass: "product-category-link fs-xs ms-1",
+      attrs: {
+        href: product.card_category.url
       }
-    })])]) : _vm._e(), _vm._v(" "), _c("div", {
+    }, [_vm._v(_vm._s(product.card_category.title))])])]) : _vm._e(), _vm._v(" "), _c("div", {
       staticClass: "d-flex flex-wrap justify-content-between align-items-center price-box mt-2"
     }, [product.special ? _c("div", {
-      staticClass: "bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2",
-      staticStyle: {
-        "text-decoration": "line-through"
-      }
+      staticClass: "bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2 text-decoration-line-through"
     }, [_vm._v(_vm._s(product.main_price_text))]) : _vm._e(), _vm._v(" "), product.special ? _c("div", {
       staticClass: "bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2"
     }, [_vm._v(_vm._s(product.main_special_text))]) : _vm._e(), _vm._v(" "), !product.special ? _c("div", {
@@ -3610,10 +3643,7 @@ var render = function render() {
     }, [_vm._v(_vm._s(product.main_price_text))]) : _vm._e()]), _vm._v(" "), product.secondary_price ? _c("div", {
       staticClass: "d-flex flex-wrap justify-content-between align-items-center price-box mt-2"
     }, [product.special ? _c("div", {
-      staticClass: "bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2",
-      staticStyle: {
-        "text-decoration": "line-through"
-      }
+      staticClass: "bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2 text-decoration-line-through"
     }, [_vm._v(_vm._s(product.secondary_price_text))]) : _vm._e(), _vm._v(" "), product.special ? _c("div", {
       staticClass: "bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2"
     }, [_vm._v(_vm._s(product.secondary_special_text))]) : _vm._e(), _vm._v(" "), !product.special ? _c("div", {
@@ -3632,34 +3662,30 @@ var render = function render() {
       }
     }, [_vm._v("+"), _c("i", {
       staticClass: "ci-cart"
-    })])])])]);
-  }), 0) : _vm._e(), _vm._v(" "), _c("pagination", {
-    attrs: {
-      data: _vm.products,
-      align: "center",
-      "show-disabled": true,
-      limit: 5
-    },
-    on: {
-      "pagination-change-page": _vm.getProductsPage
-    }
-  }), _vm._v(" "), !_vm.products_loaded ? _c("div", {
+    })])])]), _vm._v(" "), _c("hr", {
+      staticClass: "d-sm-none"
+    })]);
+  }), 0) : _vm._e(), _vm._v(" "), !_vm.products_loaded ? _c("div", {
     staticClass: "row"
   }, [_vm._m(1), _vm._v(" "), _c("div", {
     staticClass: "col-md-12 d-flex justify-content-center mt-4"
   }, [_c("p", {
     staticClass: "fs-3 fw-lighter opacity-50"
   }, [_vm._v(_vm._s(_vm.labels.loading))])])]) : _vm._e(), _vm._v(" "), _vm.products.total ? _c("div", {
-    staticClass: "col-md-12 d-flex justify-content-center mt-4"
-  }, [_c("p", {
-    staticClass: "fs-sm"
-  }, [_vm._v(_vm._s(_vm.labels.shown) + "\n            "), _c("span", {
-    staticClass: "font-weight-bolder mx-1"
-  }, [_vm._v(_vm._s(_vm.formatNumber(_vm.products.from || 0)))]), _vm._v(" " + _vm._s(_vm.labels.to) + "\n            "), _c("span", {
-    staticClass: "font-weight-bolder mx-1"
-  }, [_vm._v(_vm._s(_vm.formatNumber(_vm.products.to || 0)))]), _vm._v(" " + _vm._s(_vm.labels.of) + "\n            "), _c("span", {
-    staticClass: "font-weight-bold mx-1"
-  }, [_vm._v(_vm._s(_vm.formatNumber(_vm.products.total || 0)))]), _vm._v(" " + _vm._s(_vm.hr_total) + "\n        ")])]) : _vm._e(), _vm._v(" "), _vm.products_loaded && _vm.search_zero_result ? _c("div", {
+    staticClass: "catalog-pagination-wrap"
+  }, [_c("pagination", {
+    attrs: {
+      data: _vm.products,
+      align: "center",
+      "show-disabled": true,
+      limit: 2
+    },
+    on: {
+      "pagination-change-page": _vm.getProductsPage
+    }
+  }), _vm._v(" "), _c("p", {
+    staticClass: "catalog-pagination-summary mb-0"
+  }, [_vm._v("\n            " + _vm._s(_vm.labels.shown) + "\n            "), _c("strong", [_vm._v(_vm._s(_vm.formatNumber(_vm.products.from || 0)) + "–" + _vm._s(_vm.formatNumber(_vm.products.to || 0)))]), _vm._v("\n            " + _vm._s(_vm.labels.of) + "\n            "), _c("strong", [_vm._v(_vm._s(_vm.formatNumber(_vm.products.total || 0)))]), _vm._v("\n            " + _vm._s(_vm.hr_total) + "\n        ")])], 1) : _vm._e(), _vm._v(" "), _vm.products_loaded && _vm.search_zero_result ? _c("div", {
     staticClass: "col-md-12 px-2 mb-4"
   }, [_c("h2", [_vm._v(_vm._s(_vm.labels.noSearchResultsTitle))]), _vm._v(" "), _c("p", [_vm._v(_vm._s(_vm.labels.yourSearchFor) + " "), _c("mark", [_vm._v(_vm._s(_vm.search_query))]), _vm._v(" " + _vm._s(_vm.labels.zeroResults))]), _vm._v(" "), _c("h4", {
     staticClass: "h5"
@@ -3671,7 +3697,7 @@ var render = function render() {
     staticClass: "col-md-12 px-2 mb-4"
   }, [_c("h2", [_vm._v(_vm._s(_vm.labels.noProductsTitle))]), _vm._v(" "), _c("p", [_vm._v(_vm._s(_vm.labels.noProductsText))]), _vm._v(" "), _c("hr", {
     staticClass: "d-sm-none"
-  })]) : _vm._e()], 1);
+  })]) : _vm._e()]);
 };
 var staticRenderFns = [function () {
   var _vm = this,

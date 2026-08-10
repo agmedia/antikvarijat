@@ -10,6 +10,10 @@
     ])
 @endpush
 
+@push('css_after')
+    <link rel="stylesheet" href="{{ asset('css/category.css?v=' . filemtime(public_path('css/category.css'))) }}">
+@endpush
+
 @section('content')
 
     <!-- Hero section with search-->
@@ -61,11 +65,7 @@
             @endforeach
         </div>
 
-        <div class="row  py-md-3">
-
-                {{ $authors->onEachSide(1)->links() }}
-
-        </div>
+        @include('front.catalog.partials.directory-pagination', ['paginator' => $authors])
     </section>
 
 @endsection

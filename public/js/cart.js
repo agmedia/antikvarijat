@@ -2806,6 +2806,7 @@ __webpack_require__.r(__webpack_exports__);
     labels: function labels() {
       var t = window.FrontTranslations && window.FrontTranslations.js && window.FrontTranslations.js.pagination ? window.FrontTranslations.js.pagination : {};
       return {
+        navigation: t.navigation || ((document.documentElement.lang || 'hr') === 'en' ? 'Pagination' : 'Navigacija po stranicama'),
         previous: t.previous || ((document.documentElement.lang || 'hr') === 'en' ? 'Previous' : 'Prethodna'),
         next: t.next || ((document.documentElement.lang || 'hr') === 'en' ? 'Next' : 'Sljedeća')
       };
@@ -3286,6 +3287,23 @@ function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
       }
       return product.author || null;
     },
+    reviewCount: function reviewCount(product) {
+      return Number(product.approved_reviews_count || 0);
+    },
+    reviewAverage: function reviewAverage(product) {
+      return Number(product.approved_reviews_average || 0);
+    },
+    formatReviewAverage: function formatReviewAverage(product) {
+      return this.reviewAverage(product).toLocaleString(this.numberLocale, {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1
+      });
+    },
+    reviewRatingLabel: function reviewRatingLabel(product) {
+      var rating = this.formatReviewAverage(product);
+      var count = this.reviewCount(product);
+      return this.locale === 'en' ? "".concat(rating, " out of 5 based on ").concat(count, " reviews") : "".concat(rating, " od 5 na temelju ").concat(count, " recenzija");
+    },
     setZeroState: function setZeroState() {
       this.search_zero_result = this.search_query != '' && !this.products.total;
       this.navigation_zero_result = this.search_query == '' && !this.products.total;
@@ -3598,10 +3616,7 @@ var render = function render() {
   return _c("aside", {
     staticClass: "col-lg-3"
   }, [_c("div", {
-    staticClass: "offcanvas offcanvas-collapse bg-white w-100 rounded-3 shadow-lg py-1",
-    staticStyle: {
-      "max-width": "22rem"
-    },
+    staticClass: "offcanvas offcanvas-collapse bg-white w-100 rounded-3 shadow-lg py-1 catalog-shop-sidebar",
     attrs: {
       id: "shop-sidebar"
     }
@@ -3635,9 +3650,8 @@ var render = function render() {
     staticClass: "badge bg-secondary float-end"
   }, [_vm._v(_vm._s(Number(_vm.subcategory.count).toLocaleString("hr-HR")))])]) : _vm._e(), _vm._v(" "), _c("div", {
     staticClass: "accordion mt-n1",
-    style: {
-      maxHeight: _vm.expanded ? "none" : "30rem",
-      overflowY: _vm.expanded ? "visible" : "auto"
+    "class": {
+      "is-expanded": _vm.expanded
     },
     attrs: {
       id: "shop-categories",
@@ -3738,10 +3752,7 @@ var render = function render() {
   }, [_c("h3", {
     staticClass: "widget-title"
   }, [_vm._v(_vm._s(_vm.labels.authors)), !_vm.authors_loaded ? _c("span", {
-    staticClass: "spinner-border spinner-border-sm",
-    staticStyle: {
-      "float": "right"
-    }
+    staticClass: "spinner-border spinner-border-sm float-end"
   }) : _vm._e()]), _vm._v(" "), _c("div", {
     staticClass: "input-group input-group-sm mb-2 autocomplete"
   }, [_c("input", {
@@ -3768,10 +3779,7 @@ var render = function render() {
   }), _c("i", {
     staticClass: "ci-search position-absolute top-50 end-0 translate-middle-y fs-sm me-3"
   })]), _vm._v(" "), _c("ul", {
-    staticClass: "widget-list widget-filter-list list-unstyled pt-1",
-    staticStyle: {
-      "max-height": "11rem"
-    },
+    staticClass: "widget-list widget-filter-list list-unstyled pt-1 catalog-filter-options",
     attrs: {
       "data-simplebar": "",
       "data-simplebar-auto-hide": "false"
@@ -3832,10 +3840,7 @@ var render = function render() {
   }, [_c("h3", {
     staticClass: "widget-title"
   }, [_vm._v(_vm._s(_vm.labels.publishers)), !_vm.publishers_loaded ? _c("span", {
-    staticClass: "spinner-border spinner-border-sm",
-    staticStyle: {
-      "float": "right"
-    }
+    staticClass: "spinner-border spinner-border-sm float-end"
   }) : _vm._e()]), _vm._v(" "), _c("div", {
     staticClass: "input-group input-group-sm mb-2 autocomplete"
   }, [_c("input", {
@@ -3862,10 +3867,7 @@ var render = function render() {
   }), _c("i", {
     staticClass: "ci-search position-absolute top-50 end-0 translate-middle-y fs-sm me-3"
   })]), _vm._v(" "), _c("ul", {
-    staticClass: "widget-list widget-filter-list list-unstyled pt-1",
-    staticStyle: {
-      "max-height": "11rem"
-    },
+    staticClass: "widget-list widget-filter-list list-unstyled pt-1 catalog-filter-options",
     attrs: {
       "data-simplebar": "",
       "data-simplebar-auto-hide": "false"
@@ -3977,8 +3979,13 @@ var render = function render() {
           prevButtonEvents = _ref.prevButtonEvents,
           nextButtonEvents = _ref.nextButtonEvents,
           pageButtonEvents = _ref.pageButtonEvents;
-        return computed.total > computed.perPage ? _c("ul", {
-          staticClass: "pagination",
+        return computed.total > computed.perPage ? _c("nav", {
+          staticClass: "catalog-pagination",
+          attrs: {
+            "aria-label": _vm.labels.navigation
+          }
+        }, [_c("ul", {
+          staticClass: "pagination mb-0",
           "class": {
             "pagination-sm": size == "small",
             "pagination-lg": size == "large",
@@ -3998,14 +4005,22 @@ var render = function render() {
             tabindex: !computed.prevPageUrl && -1
           }
         }, prevButtonEvents), [_vm._t("prev-nav", function () {
-          return [_c("span", {
+          return [_c("i", {
+            staticClass: "fa-regular fa-arrow-left",
             attrs: {
               "aria-hidden": "true"
             }
-          }, [_vm._v("«")]), _vm._v(" "), _c("span", {
-            staticClass: "sr-only"
+          }), _vm._v(" "), _c("span", {
+            staticClass: "d-none d-sm-inline"
           }, [_vm._v(_vm._s(_vm.labels.previous))])];
-        })], 2)]) : _vm._e(), _vm._v(" "), _vm._l(computed.pageRange, function (page, key) {
+        })], 2)]) : _vm._e(), _vm._v(" "), _c("li", {
+          staticClass: "page-item pagination-mobile-summary disabled d-sm-none",
+          attrs: {
+            "aria-current": "page"
+          }
+        }, [_c("span", {
+          staticClass: "page-link"
+        }, [_vm._v(_vm._s(computed.currentPage) + " / " + _vm._s(computed.lastPage))])]), _vm._v(" "), _vm._l(computed.pageRange, function (page, key) {
           return _c("li", {
             key: key,
             staticClass: "page-item pagination-page-nav d-none d-sm-block",
@@ -4034,13 +4049,14 @@ var render = function render() {
           }
         }, nextButtonEvents), [_vm._t("next-nav", function () {
           return [_c("span", {
+            staticClass: "d-none d-sm-inline"
+          }, [_vm._v(_vm._s(_vm.labels.next))]), _vm._v(" "), _c("i", {
+            staticClass: "fa-regular fa-arrow-right",
             attrs: {
               "aria-hidden": "true"
             }
-          }, [_vm._v("»")]), _vm._v(" "), _c("span", {
-            staticClass: "sr-only"
-          }, [_vm._v(_vm._s(_vm.labels.next))])];
-        })], 2)]) : _vm._e()], 2) : _vm._e();
+          })];
+        })], 2)]) : _vm._e()], 2)]) : _vm._e();
       }
     }], null, true)
   });
@@ -4067,7 +4083,7 @@ var render = function render() {
   var _vm = this,
     _c = _vm._self._c;
   return _c("section", {
-    staticClass: "col-lg-9"
+    staticClass: "col-lg-9 catalog-products-section"
   }, [_c("div", {
     staticClass: "d-flex justify-content-center justify-content-sm-between align-items-center pt-2 pb-4 pb-sm-5"
   }, [_c("div", {
@@ -4128,13 +4144,13 @@ var render = function render() {
   }, [_c("span", {
     staticClass: "fs-sm text-light btn btn-primary btn-sm text-nowrap ms-2 d-none d-sm-block"
   }, [_vm._v(_vm._s(_vm.labels.total) + " " + _vm._s(_vm.formatNumber(_vm.products.total || 0)) + " " + _vm._s(_vm.labels.items))])])]), _vm._v(" "), _vm.products.total ? _c("div", {
-    staticClass: "row row-cols-2 row-cols-sm-3 row-cols-md-3 row-cols-lg-3 row-cols-xl-4 row-cols-xxl-4 mb-3 px-2"
+    staticClass: "row row-cols-2 row-cols-sm-3 row-cols-md-3 row-cols-lg-3 row-cols-xl-4 row-cols-xxl-4 mb-3 px-2 catalog-products-grid"
   }, _vm._l(_vm.products.data, function (product, index) {
     return _c("div", {
       key: product.id,
       staticClass: "col px-2 mb-4"
     }, [_c("div", {
-      staticClass: "card product-card shadow mb-2"
+      staticClass: "card product-card shadow mb-2 catalog-product-card"
     }, [product.special ? _c("span", {
       staticClass: "badge bg-dark mt-1 ms-1 badge-shadow"
     }, [_vm._v("-" + _vm._s(_vm.$store.state.service.getDiscountAmount(product.price, product.special)) + "%")]) : _vm._e(), _vm._v(" "), _c("div", {
@@ -4165,32 +4181,49 @@ var render = function render() {
       attrs: {
         href: _vm.productMeta(product) ? _vm.origin + _vm.productMeta(product).url : "#"
       }
-    }, [_vm._v(_vm._s(_vm.productMeta(product) ? _vm.productMeta(product).title : _vm.labels.unknown))])])]), _vm._v(" "), _c("h3", {
+    }, [_vm._v(_vm._s(_vm.productMeta(product) ? _vm.productMeta(product).title : _vm.labels.unknown))])])]), _vm._v(" "), _vm.reviewCount(product) > 0 ? _c("a", {
+      staticClass: "d-inline-flex align-items-center gap-1 mb-2 text-decoration-none",
+      attrs: {
+        href: _vm.origin + product.url + "#reviews",
+        "aria-label": _vm.reviewRatingLabel(product)
+      }
+    }, [_c("span", {
+      staticClass: "star-rating",
+      attrs: {
+        "aria-hidden": "true"
+      }
+    }, _vm._l(5, function (star) {
+      return _c("i", {
+        key: star,
+        staticClass: "star-rating-icon",
+        "class": star <= Math.round(_vm.reviewAverage(product)) ? "ci-star-filled active" : "ci-star"
+      });
+    }), 0), _vm._v(" "), _c("span", {
+      staticClass: "fs-xs text-muted"
+    }, [_vm._v(_vm._s(_vm.formatReviewAverage(product)) + " (" + _vm._s(_vm.reviewCount(product)) + ")")])]) : _vm._e(), _vm._v(" "), _c("h3", {
       staticClass: "product-title fs-sm mb-0"
     }, [_c("a", {
       attrs: {
         href: _vm.origin + product.url
       }
-    }, [_vm._v(_vm._s(product.name))])]), _vm._v(" "), product.category_string ? _c("div", {
+    }, [_vm._v(_vm._s(product.name))])]), _vm._v(" "), product.card_category ? _c("div", {
       staticClass: "d-flex flex-wrap justify-content-between align-items-center"
     }, [_c("div", {
       staticClass: "fs-sm me-2 one-line"
     }, [_c("i", {
-      staticClass: "ci-book text-muted",
-      staticStyle: {
-        "font-size": "11px"
+      staticClass: "ci-book text-muted fs-xs",
+      attrs: {
+        "aria-hidden": "true"
       }
-    }), _vm._v(" "), _c("span", {
-      domProps: {
-        innerHTML: _vm._s(product.category_string)
+    }), _vm._v(" "), _c("a", {
+      staticClass: "product-category-link fs-xs ms-1",
+      attrs: {
+        href: product.card_category.url
       }
-    })])]) : _vm._e(), _vm._v(" "), _c("div", {
+    }, [_vm._v(_vm._s(product.card_category.title))])])]) : _vm._e(), _vm._v(" "), _c("div", {
       staticClass: "d-flex flex-wrap justify-content-between align-items-center price-box mt-2"
     }, [product.special ? _c("div", {
-      staticClass: "bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2",
-      staticStyle: {
-        "text-decoration": "line-through"
-      }
+      staticClass: "bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2 text-decoration-line-through"
     }, [_vm._v(_vm._s(product.main_price_text))]) : _vm._e(), _vm._v(" "), product.special ? _c("div", {
       staticClass: "bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2"
     }, [_vm._v(_vm._s(product.main_special_text))]) : _vm._e(), _vm._v(" "), !product.special ? _c("div", {
@@ -4198,10 +4231,7 @@ var render = function render() {
     }, [_vm._v(_vm._s(product.main_price_text))]) : _vm._e()]), _vm._v(" "), product.secondary_price ? _c("div", {
       staticClass: "d-flex flex-wrap justify-content-between align-items-center price-box mt-2"
     }, [product.special ? _c("div", {
-      staticClass: "bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2",
-      staticStyle: {
-        "text-decoration": "line-through"
-      }
+      staticClass: "bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2 text-decoration-line-through"
     }, [_vm._v(_vm._s(product.secondary_price_text))]) : _vm._e(), _vm._v(" "), product.special ? _c("div", {
       staticClass: "bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2"
     }, [_vm._v(_vm._s(product.secondary_special_text))]) : _vm._e(), _vm._v(" "), !product.special ? _c("div", {
@@ -4220,34 +4250,30 @@ var render = function render() {
       }
     }, [_vm._v("+"), _c("i", {
       staticClass: "ci-cart"
-    })])])])]);
-  }), 0) : _vm._e(), _vm._v(" "), _c("pagination", {
-    attrs: {
-      data: _vm.products,
-      align: "center",
-      "show-disabled": true,
-      limit: 5
-    },
-    on: {
-      "pagination-change-page": _vm.getProductsPage
-    }
-  }), _vm._v(" "), !_vm.products_loaded ? _c("div", {
+    })])])]), _vm._v(" "), _c("hr", {
+      staticClass: "d-sm-none"
+    })]);
+  }), 0) : _vm._e(), _vm._v(" "), !_vm.products_loaded ? _c("div", {
     staticClass: "row"
   }, [_vm._m(1), _vm._v(" "), _c("div", {
     staticClass: "col-md-12 d-flex justify-content-center mt-4"
   }, [_c("p", {
     staticClass: "fs-3 fw-lighter opacity-50"
   }, [_vm._v(_vm._s(_vm.labels.loading))])])]) : _vm._e(), _vm._v(" "), _vm.products.total ? _c("div", {
-    staticClass: "col-md-12 d-flex justify-content-center mt-4"
-  }, [_c("p", {
-    staticClass: "fs-sm"
-  }, [_vm._v(_vm._s(_vm.labels.shown) + "\n            "), _c("span", {
-    staticClass: "font-weight-bolder mx-1"
-  }, [_vm._v(_vm._s(_vm.formatNumber(_vm.products.from || 0)))]), _vm._v(" " + _vm._s(_vm.labels.to) + "\n            "), _c("span", {
-    staticClass: "font-weight-bolder mx-1"
-  }, [_vm._v(_vm._s(_vm.formatNumber(_vm.products.to || 0)))]), _vm._v(" " + _vm._s(_vm.labels.of) + "\n            "), _c("span", {
-    staticClass: "font-weight-bold mx-1"
-  }, [_vm._v(_vm._s(_vm.formatNumber(_vm.products.total || 0)))]), _vm._v(" " + _vm._s(_vm.hr_total) + "\n        ")])]) : _vm._e(), _vm._v(" "), _vm.products_loaded && _vm.search_zero_result ? _c("div", {
+    staticClass: "catalog-pagination-wrap"
+  }, [_c("pagination", {
+    attrs: {
+      data: _vm.products,
+      align: "center",
+      "show-disabled": true,
+      limit: 2
+    },
+    on: {
+      "pagination-change-page": _vm.getProductsPage
+    }
+  }), _vm._v(" "), _c("p", {
+    staticClass: "catalog-pagination-summary mb-0"
+  }, [_vm._v("\n            " + _vm._s(_vm.labels.shown) + "\n            "), _c("strong", [_vm._v(_vm._s(_vm.formatNumber(_vm.products.from || 0)) + "–" + _vm._s(_vm.formatNumber(_vm.products.to || 0)))]), _vm._v("\n            " + _vm._s(_vm.labels.of) + "\n            "), _c("strong", [_vm._v(_vm._s(_vm.formatNumber(_vm.products.total || 0)))]), _vm._v("\n            " + _vm._s(_vm.hr_total) + "\n        ")])], 1) : _vm._e(), _vm._v(" "), _vm.products_loaded && _vm.search_zero_result ? _c("div", {
     staticClass: "col-md-12 px-2 mb-4"
   }, [_c("h2", [_vm._v(_vm._s(_vm.labels.noSearchResultsTitle))]), _vm._v(" "), _c("p", [_vm._v(_vm._s(_vm.labels.yourSearchFor) + " "), _c("mark", [_vm._v(_vm._s(_vm.search_query))]), _vm._v(" " + _vm._s(_vm.labels.zeroResults))]), _vm._v(" "), _c("h4", {
     staticClass: "h5"
@@ -4259,7 +4285,7 @@ var render = function render() {
     staticClass: "col-md-12 px-2 mb-4"
   }, [_c("h2", [_vm._v(_vm._s(_vm.labels.noProductsTitle))]), _vm._v(" "), _c("p", [_vm._v(_vm._s(_vm.labels.noProductsText))]), _vm._v(" "), _c("hr", {
     staticClass: "d-sm-none"
-  })]) : _vm._e()], 1);
+  })]) : _vm._e()]);
 };
 var staticRenderFns = [function () {
   var _vm = this,
@@ -4294,6 +4320,102 @@ var staticRenderFns = [function () {
 }];
 render._withStripped = true;
 
+
+/***/ }),
+
+/***/ "./resources/js/front/cart/app.js":
+/*!****************************************!*\
+  !*** ./resources/js/front/cart/app.js ***!
+  \****************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var vanilla_cookieconsent__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! vanilla-cookieconsent */ "./node_modules/vanilla-cookieconsent/dist/cookieconsent.esm.js");
+/* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! vue */ "./node_modules/vue/dist/vue.esm.js");
+/* harmony import */ var vuex__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! vuex */ "./node_modules/vuex/dist/vuex.esm.js");
+/* harmony import */ var vue_router__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! vue-router */ "./node_modules/vue-router/dist/vue-router.esm.js");
+/* harmony import */ var vue_sweetalert2__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! vue-sweetalert2 */ "./node_modules/vue-sweetalert2/dist/index.js");
+/* harmony import */ var sweetalert2_dist_sweetalert2_min_css__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! sweetalert2/dist/sweetalert2.min.css */ "./node_modules/sweetalert2/dist/sweetalert2.min.css");
+/* harmony import */ var _store_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./store.js */ "./resources/js/front/cart/store.js");
+/* harmony import */ var _filter_components_Filter_Filter_vue__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./../filter/components/Filter/Filter.vue */ "./resources/js/front/filter/components/Filter/Filter.vue");
+/* harmony import */ var _filter_components_ProductsList_ProductsList_vue__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./../filter/components/ProductsList/ProductsList.vue */ "./resources/js/front/filter/components/ProductsList/ProductsList.vue");
+/* harmony import */ var _filter_components_Pagination_LaravelVuePagination_vue__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./../filter/components/Pagination/LaravelVuePagination.vue */ "./resources/js/front/filter/components/Pagination/LaravelVuePagination.vue");
+/**
+ * First we will load all of this project's JavaScript dependencies which
+ * includes Vue and other libraries. It is a great starting point when
+ * building robust, powerful web applications using Vue and Laravel.
+ */
+
+__webpack_require__(/*! ./bootstrap */ "./resources/js/front/cart/bootstrap.js");
+
+
+window.CookieConsent = vanilla_cookieconsent__WEBPACK_IMPORTED_MODULE_0__;
+window.Vue = vue__WEBPACK_IMPORTED_MODULE_1__["default"];
+
+window.Vuex = vuex__WEBPACK_IMPORTED_MODULE_2__["default"];
+vue__WEBPACK_IMPORTED_MODULE_1__["default"].use(vuex__WEBPACK_IMPORTED_MODULE_2__["default"]);
+
+vue__WEBPACK_IMPORTED_MODULE_1__["default"].use(vue_router__WEBPACK_IMPORTED_MODULE_3__["default"]);
+var router = new vue_router__WEBPACK_IMPORTED_MODULE_3__["default"]({
+  mode: 'history'
+});
+
+
+vue__WEBPACK_IMPORTED_MODULE_1__["default"].use(vue_sweetalert2__WEBPACK_IMPORTED_MODULE_4__["default"]);
+
+
+
+
+
+//import Storage from './services/Storage'
+
+vue__WEBPACK_IMPORTED_MODULE_1__["default"].component('cart-nav-icon', (__webpack_require__(/*! ./components/CartNavIcon/CartNavIcon */ "./resources/js/front/cart/components/CartNavIcon/CartNavIcon.vue")["default"]));
+vue__WEBPACK_IMPORTED_MODULE_1__["default"].component('cart-footer-icon', (__webpack_require__(/*! ./components/CartFooterIcon/CartFooterIcon */ "./resources/js/front/cart/components/CartFooterIcon/CartFooterIcon.vue")["default"]));
+vue__WEBPACK_IMPORTED_MODULE_1__["default"].component('add-to-cart-btn', (__webpack_require__(/*! ./components/AddToCartBtn/AddToCartBtn */ "./resources/js/front/cart/components/AddToCartBtn/AddToCartBtn.vue")["default"]));
+vue__WEBPACK_IMPORTED_MODULE_1__["default"].component('add-to-cart-btn-simple', (__webpack_require__(/*! ./components/AddToCartBtnSimple/AddToCartBtnSimple */ "./resources/js/front/cart/components/AddToCartBtnSimple/AddToCartBtnSimple.vue")["default"]));
+vue__WEBPACK_IMPORTED_MODULE_1__["default"].component('cart-view', function () {
+  return __webpack_require__.e(/*! import() | cart-checkout */ "cart-checkout").then(__webpack_require__.bind(__webpack_require__, /*! ./components/CartView/CartView.vue */ "./resources/js/front/cart/components/CartView/CartView.vue"));
+});
+vue__WEBPACK_IMPORTED_MODULE_1__["default"].component('cart-view-aside', function () {
+  return __webpack_require__.e(/*! import() | cart-checkout */ "cart-checkout").then(__webpack_require__.bind(__webpack_require__, /*! ./components/CartViewAside/CartViewAside.vue */ "./resources/js/front/cart/components/CartViewAside/CartViewAside.vue"));
+});
+vue__WEBPACK_IMPORTED_MODULE_1__["default"].component('filter-view', _filter_components_Filter_Filter_vue__WEBPACK_IMPORTED_MODULE_7__["default"]);
+vue__WEBPACK_IMPORTED_MODULE_1__["default"].component('products-view', _filter_components_ProductsList_ProductsList_vue__WEBPACK_IMPORTED_MODULE_8__["default"]);
+vue__WEBPACK_IMPORTED_MODULE_1__["default"].component('pagination', _filter_components_Pagination_LaravelVuePagination_vue__WEBPACK_IMPORTED_MODULE_9__["default"]);
+
+/**
+ * Next, we will create a fresh Vue application instance and attach it to
+ * the page. Then, you may begin adding components to this application
+ * or customize the JavaScript scaffolding to fit your unique needs.
+ */
+
+var app = new vue__WEBPACK_IMPORTED_MODULE_1__["default"]({
+  el: '#agapp',
+  router: router,
+  store: new vuex__WEBPACK_IMPORTED_MODULE_2__["default"].Store(_store_js__WEBPACK_IMPORTED_MODULE_6__["default"])
+});
+window.ToastSuccess = app.$swal.mixin({
+  toast: true,
+  icon: 'success',
+  position: 'top-end',
+  showConfirmButton: false,
+  timer: 2500
+});
+window.ToastWarning = app.$swal.mixin({
+  toast: true,
+  icon: 'warning',
+  position: 'top-end',
+  showConfirmButton: false,
+  timer: 2500
+});
+window.ToastWarningLong = app.$swal.mixin({
+  toast: true,
+  icon: 'warning',
+  position: 'top-end',
+  showConfirmButton: false,
+  timer: 5000
+});
 
 /***/ }),
 
@@ -4869,10 +4991,10 @@ var store = {
 
 /***/ }),
 
-/***/ "./node_modules/laravel-mix/node_modules/css-loader/dist/cjs.js??clonedRuleSet-8.use[1]!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-8.use[2]!./node_modules/sweetalert2/dist/sweetalert2.min.css":
-/*!********************************************************************************************************************************************************************************************************************!*\
-  !*** ./node_modules/laravel-mix/node_modules/css-loader/dist/cjs.js??clonedRuleSet-8.use[1]!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-8.use[2]!./node_modules/sweetalert2/dist/sweetalert2.min.css ***!
-  \********************************************************************************************************************************************************************************************************************/
+/***/ "./node_modules/laravel-mix/node_modules/css-loader/dist/cjs.js??clonedRuleSet-10.use[1]!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-10.use[2]!./node_modules/sweetalert2/dist/sweetalert2.min.css":
+/*!**********************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/laravel-mix/node_modules/css-loader/dist/cjs.js??clonedRuleSet-10.use[1]!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-10.use[2]!./node_modules/sweetalert2/dist/sweetalert2.min.css ***!
+  \**********************************************************************************************************************************************************************************************************************/
 /***/ ((module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -4966,6 +5088,32 @@ module.exports = function (cssWithMappingToString) {
 
   return list;
 };
+
+/***/ }),
+
+/***/ "./resources/sass/front/product.scss":
+/*!*******************************************!*\
+  !*** ./resources/sass/front/product.scss ***!
+  \*******************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+// extracted by mini-css-extract-plugin
+
+
+/***/ }),
+
+/***/ "./resources/sass/front/category.scss":
+/*!********************************************!*\
+  !*** ./resources/sass/front/category.scss ***!
+  \********************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+// extracted by mini-css-extract-plugin
+
 
 /***/ }),
 
@@ -5176,7 +5324,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! !../../style-loader/dist/runtime/injectStylesIntoStyleTag.js */ "./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js");
 /* harmony import */ var _style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _laravel_mix_node_modules_css_loader_dist_cjs_js_clonedRuleSet_8_use_1_postcss_loader_dist_cjs_js_clonedRuleSet_8_use_2_sweetalert2_min_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../laravel-mix/node_modules/css-loader/dist/cjs.js??clonedRuleSet-8.use[1]!../../postcss-loader/dist/cjs.js??clonedRuleSet-8.use[2]!./sweetalert2.min.css */ "./node_modules/laravel-mix/node_modules/css-loader/dist/cjs.js??clonedRuleSet-8.use[1]!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-8.use[2]!./node_modules/sweetalert2/dist/sweetalert2.min.css");
+/* harmony import */ var _laravel_mix_node_modules_css_loader_dist_cjs_js_clonedRuleSet_10_use_1_postcss_loader_dist_cjs_js_clonedRuleSet_10_use_2_sweetalert2_min_css__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !!../../laravel-mix/node_modules/css-loader/dist/cjs.js??clonedRuleSet-10.use[1]!../../postcss-loader/dist/cjs.js??clonedRuleSet-10.use[2]!./sweetalert2.min.css */ "./node_modules/laravel-mix/node_modules/css-loader/dist/cjs.js??clonedRuleSet-10.use[1]!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-10.use[2]!./node_modules/sweetalert2/dist/sweetalert2.min.css");
 
             
 
@@ -5185,11 +5333,11 @@ var options = {};
 options.insert = "head";
 options.singleton = false;
 
-var update = _style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default()(_laravel_mix_node_modules_css_loader_dist_cjs_js_clonedRuleSet_8_use_1_postcss_loader_dist_cjs_js_clonedRuleSet_8_use_2_sweetalert2_min_css__WEBPACK_IMPORTED_MODULE_1__["default"], options);
+var update = _style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default()(_laravel_mix_node_modules_css_loader_dist_cjs_js_clonedRuleSet_10_use_1_postcss_loader_dist_cjs_js_clonedRuleSet_10_use_2_sweetalert2_min_css__WEBPACK_IMPORTED_MODULE_1__["default"], options);
 
 
 
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (_laravel_mix_node_modules_css_loader_dist_cjs_js_clonedRuleSet_8_use_1_postcss_loader_dist_cjs_js_clonedRuleSet_8_use_2_sweetalert2_min_css__WEBPACK_IMPORTED_MODULE_1__["default"].locals || {});
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (_laravel_mix_node_modules_css_loader_dist_cjs_js_clonedRuleSet_10_use_1_postcss_loader_dist_cjs_js_clonedRuleSet_10_use_2_sweetalert2_min_css__WEBPACK_IMPORTED_MODULE_1__["default"].locals || {});
 
 /***/ }),
 
@@ -25855,7 +26003,7 @@ module.exports = JSON.parse('{"name":"axios","version":"0.21.4","description":"P
 /************************************************************************/
 /******/ 	// The module cache
 /******/ 	var __webpack_module_cache__ = {};
-/******/ 	
+/******/
 /******/ 	// The require function
 /******/ 	function __webpack_require__(moduleId) {
 /******/ 		// Check if module is in cache
@@ -25869,18 +26017,50 @@ module.exports = JSON.parse('{"name":"axios","version":"0.21.4","description":"P
 /******/ 			// no module.loaded needed
 /******/ 			exports: {}
 /******/ 		};
-/******/ 	
+/******/
 /******/ 		// Execute the module function
 /******/ 		__webpack_modules__[moduleId].call(module.exports, module, module.exports, __webpack_require__);
-/******/ 	
+/******/
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
 /******/ 	}
-/******/ 	
+/******/
 /******/ 	// expose the modules object (__webpack_modules__)
 /******/ 	__webpack_require__.m = __webpack_modules__;
-/******/ 	
+/******/
 /************************************************************************/
+/******/ 	/* webpack/runtime/chunk loaded */
+/******/ 	(() => {
+/******/ 		var deferred = [];
+/******/ 		__webpack_require__.O = (result, chunkIds, fn, priority) => {
+/******/ 			if(chunkIds) {
+/******/ 				priority = priority || 0;
+/******/ 				for(var i = deferred.length; i > 0 && deferred[i - 1][2] > priority; i--) deferred[i] = deferred[i - 1];
+/******/ 				deferred[i] = [chunkIds, fn, priority];
+/******/ 				return;
+/******/ 			}
+/******/ 			var notFulfilled = Infinity;
+/******/ 			for (var i = 0; i < deferred.length; i++) {
+/******/ 				var [chunkIds, fn, priority] = deferred[i];
+/******/ 				var fulfilled = true;
+/******/ 				for (var j = 0; j < chunkIds.length; j++) {
+/******/ 					if ((priority & 1 === 0 || notFulfilled >= priority) && Object.keys(__webpack_require__.O).every((key) => (__webpack_require__.O[key](chunkIds[j])))) {
+/******/ 						chunkIds.splice(j--, 1);
+/******/ 					} else {
+/******/ 						fulfilled = false;
+/******/ 						if(priority < notFulfilled) notFulfilled = priority;
+/******/ 					}
+/******/ 				}
+/******/ 				if(fulfilled) {
+/******/ 					deferred.splice(i--, 1)
+/******/ 					var r = fn();
+/******/ 					if (r !== undefined) result = r;
+/******/ 				}
+/******/ 			}
+/******/ 			return result;
+/******/ 		};
+/******/ 	})();
+/******/
 /******/ 	/* webpack/runtime/compat get default export */
 /******/ 	(() => {
 /******/ 		// getDefaultExport function for compatibility with non-harmony modules
@@ -25892,7 +26072,7 @@ module.exports = JSON.parse('{"name":"axios","version":"0.21.4","description":"P
 /******/ 			return getter;
 /******/ 		};
 /******/ 	})();
-/******/ 	
+/******/
 /******/ 	/* webpack/runtime/define property getters */
 /******/ 	(() => {
 /******/ 		// define getter functions for harmony exports
@@ -25904,7 +26084,7 @@ module.exports = JSON.parse('{"name":"axios","version":"0.21.4","description":"P
 /******/ 			}
 /******/ 		};
 /******/ 	})();
-/******/ 	
+/******/
 /******/ 	/* webpack/runtime/ensure chunk */
 /******/ 	(() => {
 /******/ 		__webpack_require__.f = {};
@@ -25917,7 +26097,7 @@ module.exports = JSON.parse('{"name":"axios","version":"0.21.4","description":"P
 /******/ 			}, []));
 /******/ 		};
 /******/ 	})();
-/******/ 	
+/******/
 /******/ 	/* webpack/runtime/get javascript chunk filename */
 /******/ 	(() => {
 /******/ 		// This function allow to reference async chunks
@@ -25928,16 +26108,16 @@ module.exports = JSON.parse('{"name":"axios","version":"0.21.4","description":"P
 /******/ 			return undefined;
 /******/ 		};
 /******/ 	})();
-/******/ 	
+/******/
 /******/ 	/* webpack/runtime/get mini-css chunk filename */
 /******/ 	(() => {
 /******/ 		// This function allow to reference all chunks
 /******/ 		__webpack_require__.miniCssF = (chunkId) => {
 /******/ 			// return url for filenames based on template
-/******/ 			return undefined;
+/******/ 			return "" + chunkId + ".css";
 /******/ 		};
 /******/ 	})();
-/******/ 	
+/******/
 /******/ 	/* webpack/runtime/global */
 /******/ 	(() => {
 /******/ 		__webpack_require__.g = (function() {
@@ -25949,12 +26129,12 @@ module.exports = JSON.parse('{"name":"axios","version":"0.21.4","description":"P
 /******/ 			}
 /******/ 		})();
 /******/ 	})();
-/******/ 	
+/******/
 /******/ 	/* webpack/runtime/hasOwnProperty shorthand */
 /******/ 	(() => {
 /******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
 /******/ 	})();
-/******/ 	
+/******/
 /******/ 	/* webpack/runtime/load script */
 /******/ 	(() => {
 /******/ 		var inProgress = {};
@@ -25973,14 +26153,14 @@ module.exports = JSON.parse('{"name":"axios","version":"0.21.4","description":"P
 /******/ 			if(!script) {
 /******/ 				needAttach = true;
 /******/ 				script = document.createElement('script');
-/******/ 		
+/******/
 /******/ 				script.charset = 'utf-8';
 /******/ 				script.timeout = 120;
 /******/ 				if (__webpack_require__.nc) {
 /******/ 					script.setAttribute("nonce", __webpack_require__.nc);
 /******/ 				}
-/******/ 		
-/******/ 		
+/******/
+/******/
 /******/ 				script.src = url;
 /******/ 			}
 /******/ 			inProgress[url] = [done];
@@ -26000,7 +26180,7 @@ module.exports = JSON.parse('{"name":"axios","version":"0.21.4","description":"P
 /******/ 			needAttach && document.head.appendChild(script);
 /******/ 		};
 /******/ 	})();
-/******/ 	
+/******/
 /******/ 	/* webpack/runtime/make namespace object */
 /******/ 	(() => {
 /******/ 		// define __esModule on exports
@@ -26011,37 +26191,39 @@ module.exports = JSON.parse('{"name":"axios","version":"0.21.4","description":"P
 /******/ 			Object.defineProperty(exports, '__esModule', { value: true });
 /******/ 		};
 /******/ 	})();
-/******/ 	
+/******/
 /******/ 	/* webpack/runtime/publicPath */
 /******/ 	(() => {
 /******/ 		__webpack_require__.p = "/";
 /******/ 	})();
-/******/ 	
+/******/
 /******/ 	/* webpack/runtime/jsonp chunk loading */
 /******/ 	(() => {
 /******/ 		// no baseURI
-/******/ 		
+/******/
 /******/ 		// object to store loaded and loading chunks
 /******/ 		// undefined = chunk not loaded, null = chunk preloaded/prefetched
 /******/ 		// [resolve, reject, Promise] = chunk loading, 0 = chunk loaded
 /******/ 		var installedChunks = {
-/******/ 			"/js/cart": 0
+/******/ 			"/js/cart": 0,
+/******/ 			"css/category": 0,
+/******/ 			"css/product": 0
 /******/ 		};
-/******/ 		
+/******/
 /******/ 		__webpack_require__.f.j = (chunkId, promises) => {
 /******/ 				// JSONP chunk loading for javascript
 /******/ 				var installedChunkData = __webpack_require__.o(installedChunks, chunkId) ? installedChunks[chunkId] : undefined;
 /******/ 				if(installedChunkData !== 0) { // 0 means "already installed".
-/******/ 		
+/******/
 /******/ 					// a Promise means "currently loading".
 /******/ 					if(installedChunkData) {
 /******/ 						promises.push(installedChunkData[2]);
 /******/ 					} else {
-/******/ 						if(true) { // all chunks have JS
+/******/ 						if(!/^css\/(category|product)$/.test(chunkId)) {
 /******/ 							// setup Promise in chunk cache
 /******/ 							var promise = new Promise((resolve, reject) => (installedChunkData = installedChunks[chunkId] = [resolve, reject]));
 /******/ 							promises.push(installedChunkData[2] = promise);
-/******/ 		
+/******/
 /******/ 							// start chunk loading
 /******/ 							var url = __webpack_require__.p + __webpack_require__.u(chunkId);
 /******/ 							// create error before stack unwound to get useful stacktrace later
@@ -26062,21 +26244,21 @@ module.exports = JSON.parse('{"name":"axios","version":"0.21.4","description":"P
 /******/ 								}
 /******/ 							};
 /******/ 							__webpack_require__.l(url, loadingEnded, "chunk-" + chunkId, chunkId);
-/******/ 						}
+/******/ 						} else installedChunks[chunkId] = 0;
 /******/ 					}
 /******/ 				}
 /******/ 		};
-/******/ 		
+/******/
 /******/ 		// no prefetching
-/******/ 		
+/******/
 /******/ 		// no preloaded
-/******/ 		
+/******/
 /******/ 		// no HMR
-/******/ 		
+/******/
 /******/ 		// no HMR manifest
-/******/ 		
-/******/ 		// no on chunks loaded
-/******/ 		
+/******/
+/******/ 		__webpack_require__.O.j = (chunkId) => (installedChunks[chunkId] === 0);
+/******/
 /******/ 		// install a JSONP callback for chunk loading
 /******/ 		var webpackJsonpCallback = (parentChunkLoadingFunction, data) => {
 /******/ 			var [chunkIds, moreModules, runtime] = data;
@@ -26099,114 +26281,28 @@ module.exports = JSON.parse('{"name":"axios","version":"0.21.4","description":"P
 /******/ 				}
 /******/ 				installedChunks[chunkId] = 0;
 /******/ 			}
-/******/ 		
+/******/ 			return __webpack_require__.O(result);
 /******/ 		}
-/******/ 		
+/******/
 /******/ 		var chunkLoadingGlobal = self["webpackChunk"] = self["webpackChunk"] || [];
 /******/ 		chunkLoadingGlobal.forEach(webpackJsonpCallback.bind(null, 0));
 /******/ 		chunkLoadingGlobal.push = webpackJsonpCallback.bind(null, chunkLoadingGlobal.push.bind(chunkLoadingGlobal));
 /******/ 	})();
-/******/ 	
+/******/
 /******/ 	/* webpack/runtime/nonce */
 /******/ 	(() => {
 /******/ 		__webpack_require__.nc = undefined;
 /******/ 	})();
-/******/ 	
+/******/
 /************************************************************************/
-var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be in strict mode.
-(() => {
-"use strict";
-/*!****************************************!*\
-  !*** ./resources/js/front/cart/app.js ***!
-  \****************************************/
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var vanilla_cookieconsent__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! vanilla-cookieconsent */ "./node_modules/vanilla-cookieconsent/dist/cookieconsent.esm.js");
-/* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! vue */ "./node_modules/vue/dist/vue.esm.js");
-/* harmony import */ var vuex__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! vuex */ "./node_modules/vuex/dist/vuex.esm.js");
-/* harmony import */ var vue_router__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! vue-router */ "./node_modules/vue-router/dist/vue-router.esm.js");
-/* harmony import */ var vue_sweetalert2__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! vue-sweetalert2 */ "./node_modules/vue-sweetalert2/dist/index.js");
-/* harmony import */ var sweetalert2_dist_sweetalert2_min_css__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! sweetalert2/dist/sweetalert2.min.css */ "./node_modules/sweetalert2/dist/sweetalert2.min.css");
-/* harmony import */ var _store_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./store.js */ "./resources/js/front/cart/store.js");
-/* harmony import */ var _filter_components_Filter_Filter_vue__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./../filter/components/Filter/Filter.vue */ "./resources/js/front/filter/components/Filter/Filter.vue");
-/* harmony import */ var _filter_components_ProductsList_ProductsList_vue__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./../filter/components/ProductsList/ProductsList.vue */ "./resources/js/front/filter/components/ProductsList/ProductsList.vue");
-/* harmony import */ var _filter_components_Pagination_LaravelVuePagination_vue__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./../filter/components/Pagination/LaravelVuePagination.vue */ "./resources/js/front/filter/components/Pagination/LaravelVuePagination.vue");
-/**
- * First we will load all of this project's JavaScript dependencies which
- * includes Vue and other libraries. It is a great starting point when
- * building robust, powerful web applications using Vue and Laravel.
- */
-
-__webpack_require__(/*! ./bootstrap */ "./resources/js/front/cart/bootstrap.js");
-
-
-window.CookieConsent = vanilla_cookieconsent__WEBPACK_IMPORTED_MODULE_0__;
-window.Vue = vue__WEBPACK_IMPORTED_MODULE_1__["default"];
-
-window.Vuex = vuex__WEBPACK_IMPORTED_MODULE_2__["default"];
-vue__WEBPACK_IMPORTED_MODULE_1__["default"].use(vuex__WEBPACK_IMPORTED_MODULE_2__["default"]);
-
-vue__WEBPACK_IMPORTED_MODULE_1__["default"].use(vue_router__WEBPACK_IMPORTED_MODULE_3__["default"]);
-var router = new vue_router__WEBPACK_IMPORTED_MODULE_3__["default"]({
-  mode: 'history'
-});
-
-
-vue__WEBPACK_IMPORTED_MODULE_1__["default"].use(vue_sweetalert2__WEBPACK_IMPORTED_MODULE_4__["default"]);
-
-
-
-
-
-//import Storage from './services/Storage'
-
-vue__WEBPACK_IMPORTED_MODULE_1__["default"].component('cart-nav-icon', (__webpack_require__(/*! ./components/CartNavIcon/CartNavIcon */ "./resources/js/front/cart/components/CartNavIcon/CartNavIcon.vue")["default"]));
-vue__WEBPACK_IMPORTED_MODULE_1__["default"].component('cart-footer-icon', (__webpack_require__(/*! ./components/CartFooterIcon/CartFooterIcon */ "./resources/js/front/cart/components/CartFooterIcon/CartFooterIcon.vue")["default"]));
-vue__WEBPACK_IMPORTED_MODULE_1__["default"].component('add-to-cart-btn', (__webpack_require__(/*! ./components/AddToCartBtn/AddToCartBtn */ "./resources/js/front/cart/components/AddToCartBtn/AddToCartBtn.vue")["default"]));
-vue__WEBPACK_IMPORTED_MODULE_1__["default"].component('add-to-cart-btn-simple', (__webpack_require__(/*! ./components/AddToCartBtnSimple/AddToCartBtnSimple */ "./resources/js/front/cart/components/AddToCartBtnSimple/AddToCartBtnSimple.vue")["default"]));
-vue__WEBPACK_IMPORTED_MODULE_1__["default"].component('cart-view', function () {
-  return __webpack_require__.e(/*! import() | cart-checkout */ "cart-checkout").then(__webpack_require__.bind(__webpack_require__, /*! ./components/CartView/CartView.vue */ "./resources/js/front/cart/components/CartView/CartView.vue"));
-});
-vue__WEBPACK_IMPORTED_MODULE_1__["default"].component('cart-view-aside', function () {
-  return __webpack_require__.e(/*! import() | cart-checkout */ "cart-checkout").then(__webpack_require__.bind(__webpack_require__, /*! ./components/CartViewAside/CartViewAside.vue */ "./resources/js/front/cart/components/CartViewAside/CartViewAside.vue"));
-});
-vue__WEBPACK_IMPORTED_MODULE_1__["default"].component('filter-view', _filter_components_Filter_Filter_vue__WEBPACK_IMPORTED_MODULE_7__["default"]);
-vue__WEBPACK_IMPORTED_MODULE_1__["default"].component('products-view', _filter_components_ProductsList_ProductsList_vue__WEBPACK_IMPORTED_MODULE_8__["default"]);
-vue__WEBPACK_IMPORTED_MODULE_1__["default"].component('pagination', _filter_components_Pagination_LaravelVuePagination_vue__WEBPACK_IMPORTED_MODULE_9__["default"]);
-
-/**
- * Next, we will create a fresh Vue application instance and attach it to
- * the page. Then, you may begin adding components to this application
- * or customize the JavaScript scaffolding to fit your unique needs.
- */
-
-var app = new vue__WEBPACK_IMPORTED_MODULE_1__["default"]({
-  el: '#agapp',
-  router: router,
-  store: new vuex__WEBPACK_IMPORTED_MODULE_2__["default"].Store(_store_js__WEBPACK_IMPORTED_MODULE_6__["default"])
-});
-window.ToastSuccess = app.$swal.mixin({
-  toast: true,
-  icon: 'success',
-  position: 'top-end',
-  showConfirmButton: false,
-  timer: 2500
-});
-window.ToastWarning = app.$swal.mixin({
-  toast: true,
-  icon: 'warning',
-  position: 'top-end',
-  showConfirmButton: false,
-  timer: 2500
-});
-window.ToastWarningLong = app.$swal.mixin({
-  toast: true,
-  icon: 'warning',
-  position: 'top-end',
-  showConfirmButton: false,
-  timer: 5000
-});
-})();
-
+/******/
+/******/ 	// startup
+/******/ 	// Load entry module and return exports
+/******/ 	// This entry module depends on other loaded chunks and execution need to be delayed
+/******/ 	__webpack_require__.O(undefined, ["css/category","css/product"], () => (__webpack_require__("./resources/js/front/cart/app.js")))
+/******/ 	__webpack_require__.O(undefined, ["css/category","css/product"], () => (__webpack_require__("./resources/sass/front/product.scss")))
+/******/ 	var __webpack_exports__ = __webpack_require__.O(undefined, ["css/category","css/product"], () => (__webpack_require__("./resources/sass/front/category.scss")))
+/******/ 	__webpack_exports__ = __webpack_require__.O(__webpack_exports__);
+/******/
 /******/ })()
 ;
