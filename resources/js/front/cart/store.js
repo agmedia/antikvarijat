@@ -92,7 +92,7 @@ class AgService {
                 });
             }
 
-            this.returnSuccess(messages.cartAdd);
+            this.showCartAddSuccess(response.data, item);
             return response.data
         })
         .catch(error => { return this.returnError(messages.error) })
@@ -183,6 +183,22 @@ class AgService {
      */
     returnSuccess(msg) {
         window.ToastSuccess.fire(msg);
+    }
+
+    showCartAddSuccess(cart, item) {
+        try {
+            if (typeof window.CartAddSuccess === 'function') {
+                const result = window.CartAddSuccess({ cart, item });
+
+                if (result !== null) {
+                    return;
+                }
+            }
+        } catch (error) {
+            console.error(error);
+        }
+
+        this.returnSuccess(messages.cartAdd);
     }
 
     findCartItem(cart, itemId) {

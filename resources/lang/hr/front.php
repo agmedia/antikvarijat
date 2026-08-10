@@ -622,6 +622,18 @@ return [
         'cart' => [
             'add_to_cart' => 'Dodaj u košaricu',
             'notify_availability' => 'Obavijesti me o dostupnosti',
+            'add_modal' => [
+                'heading' => 'Knjiga je u košarici 📚',
+                'lead' => 'Odličan izbor! Možete nastaviti pregledavati ili dovršiti kupnju.',
+                'productFallback' => 'Odabrana knjiga',
+                'imageAlt' => 'Dodana knjiga',
+                'added' => 'Dodano',
+                'totalInCart' => 'Ukupno u košarici',
+                'unit' => 'kom',
+                'confirm' => 'Dovrši kupnju',
+                'cancel' => 'Nastavi kupovati',
+                'close' => 'Zatvori',
+            ],
             'total' => 'Ukupno',
             'complete_purchase' => 'Dovrši kupnju',
             'empty_cart' => 'Vaša košarica je prazna!',

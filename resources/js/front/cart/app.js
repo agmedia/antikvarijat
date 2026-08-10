@@ -24,9 +24,11 @@ const router = new VueRouter({
 
 import VueSweetalert2 from "vue-sweetalert2";
 import 'sweetalert2/dist/sweetalert2.min.css';
+import './cart-add-modal.css';
 Vue.use(VueSweetalert2)
 
 import store from './store.js';
+import { showCartAddSuccessModal } from './cart-add-modal';
 import FilterView from './../filter/components/Filter/Filter.vue';
 import ProductsView from './../filter/components/ProductsList/ProductsList.vue';
 import Pagination from './../filter/components/Pagination/LaravelVuePagination.vue';
@@ -79,3 +81,5 @@ window.ToastWarningLong = app.$swal.mixin({
     showConfirmButton: false,
     timer: 5000,
 })
+
+window.CartAddSuccess = (payload = {}) => showCartAddSuccessModal(app.$swal, payload);

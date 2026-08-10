@@ -666,6 +666,18 @@ return [
         'cart' => [
             'add_to_cart' => 'Add to cart',
             'notify_availability' => 'Notify me when available',
+            'add_modal' => [
+                'heading' => 'Your book is in the cart 📚',
+                'lead' => 'Great choice! You can keep browsing or complete your purchase.',
+                'productFallback' => 'Selected book',
+                'imageAlt' => 'Added book',
+                'added' => 'Added',
+                'totalInCart' => 'Total in cart',
+                'unit' => 'pcs',
+                'confirm' => 'Complete purchase',
+                'cancel' => 'Continue shopping',
+                'close' => 'Close',
+            ],
             'total' => 'Total',
             'complete_purchase' => 'Complete purchase',
             'empty_cart' => 'Your cart is empty!',

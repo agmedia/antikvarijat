@@ -432,6 +432,7 @@
 <script>
     window.AppLocale = @json(app()->getLocale());
     window.FrontTranslations = @json(trans('front'), JSON_UNESCAPED_UNICODE);
+    window.FrontCartUrl = @json(\App\Helpers\LocaleHelper::route('kosarica'));
 </script>
 <script src="{{ \App\Helpers\Asset::url('js/cart.js') }}"></script>
 
