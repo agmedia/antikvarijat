@@ -176,7 +176,49 @@ class ProductReviewBackfillTest extends TestCase
         ])->assertExitCode(1);
     }
 
-    private function insertOrder(int $id, string $createdAt): void
+    public function test_backfill_counts_and_sends_only_one_request_per_normalized_email(): void
+    {
+        Carbon::setTestNow('2026-08-09 12:00:00');
+        Mail::fake();
+        config([
+            'reviews.request_emails_enabled' => true,
+            'reviews.request_delay_days' => 30,
+            'reviews.request_max_attempts' => 3,
+            'reviews.backfill_interval_options' => [1],
+        ]);
+
+        DB::table('products')->insert(['id' => 10, 'name' => 'Knjiga']);
+        $this->insertOrder(1, '2026-05-10 10:00:00', 'Kupac@Example.test');
+        $this->insertOrder(2, '2026-05-11 10:00:00', ' kupac@example.test ');
+        $this->insertOrder(3, '2026-05-12 10:00:00', 'drugi@example.test');
+
+        $this->artisan('reviews:backfill', [
+            '--from' => '2026-05-01',
+            '--to' => '2026-05-31',
+            '--limit' => 100,
+            '--interval' => 1,
+            '--yes' => true,
+        ])->assertExitCode(0);
+
+        $this->assertDatabaseHas('product_review_backfills', [
+            'id' => 1,
+            'eligible_count' => 2,
+            'total_count' => 2,
+        ]);
+        $this->assertSame([1, 3], DB::table('product_review_backfill_items')->orderBy('id')->pluck('order_id')->map(fn ($id) => (int) $id)->all());
+
+        $this->artisan('reviews:process-backfills', ['--batch' => 1, '--max-seconds' => 1])->assertExitCode(0);
+        $this->artisan('reviews:process-backfills', ['--batch' => 1, '--max-seconds' => 1])->assertExitCode(0);
+
+        Mail::assertSent(ProductReviewRequestMail::class, 2);
+        $this->assertDatabaseHas('product_review_backfills', [
+            'id' => 1,
+            'sent_count' => 2,
+            'status' => 'completed',
+        ]);
+    }
+
+    private function insertOrder(int $id, string $createdAt, ?string $email = null): void
     {
         DB::table('orders')->insert([
             'id' => $id,
@@ -184,7 +226,7 @@ class ProductReviewBackfillTest extends TestCase
             'order_status_id' => 1,
             'payment_fname' => 'Kupac',
             'payment_lname' => (string) $id,
-            'payment_email' => "kupac{$id}@example.test",
+            'payment_email' => $email ?: "kupac{$id}@example.test",
             'checkout_processed_at' => $createdAt,
             'created_at' => $createdAt,
             'updated_at' => $createdAt,

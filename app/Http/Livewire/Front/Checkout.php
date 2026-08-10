@@ -13,9 +13,10 @@ use App\Models\Front\Checkout\GeoZone;
 use App\Models\Front\Checkout\PaymentMethod;
 use App\Models\Front\Checkout\ShippingMethod;
 use App\Models\TagManager;
+use App\Services\AddressDirectoryService;
+use App\Services\CheckoutAccountService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 
@@ -33,15 +34,6 @@ class Checkout extends Component
     public $is_free_shipping = '';
 
     /**
-     * @var array
-     */
-    public $login = [
-        'email' => '',
-        'pass' => '',
-        'remember' => false
-    ];
-
-    /**
      * @var string[]
      */
     public $address = [
@@ -56,6 +48,12 @@ class Checkout extends Component
         'company' => '',
         'oib' => '',
         'state' => 'Croatia',
+    ];
+
+    public $birthday = [
+        'day' => '',
+        'month' => '',
+        'year' => '',
     ];
 
     /**
@@ -93,6 +91,15 @@ class Checkout extends Component
     public $view_comment = false;
 
     public $newsletter = false;
+
+    public $register_account = false;
+
+    public $r1_invoice = false;
+
+    public $registration = [
+        'password' => '',
+        'password_confirmation' => '',
+    ];
 
     /**
      * @var string[]
@@ -134,6 +141,25 @@ class Checkout extends Component
      */
     protected $queryString = ['step' => ['except' => '']];
 
+    protected function validationAttributes(): array
+    {
+        return [
+            'address.fname' => __('front.checkout.first_name'),
+            'address.lname' => __('front.checkout.last_name'),
+            'address.email' => __('front.checkout.email_address'),
+            'address.phone' => __('front.checkout.phone'),
+            'address.birthday_year' => __('front.checkout.birthday'),
+            'address.address' => __('front.checkout.address'),
+            'address.city' => __('front.checkout.city'),
+            'address.zip' => __('front.checkout.zip'),
+            'address.state' => __('front.checkout.country'),
+            'shipping' => __('front.checkout.shipping'),
+            'payment' => __('front.checkout.payment'),
+            'registration.password' => __('front.checkout.password'),
+            'registration.password_confirmation' => __('front.checkout.password_confirmation'),
+        ];
+    }
+
 
     /**
      *
@@ -145,6 +171,10 @@ class Checkout extends Component
         } else {
             $this->setAddress();
         }
+
+        $this->setBirthdayParts($this->address['birthday_year'] ?? '');
+
+        $this->r1_invoice = ! empty($this->address['company']) || ! empty($this->address['oib']);
 
         if (CheckoutSession::hasShipping()) {
             $this->shipping = CheckoutSession::getShipping();
@@ -197,33 +227,44 @@ class Checkout extends Component
         CheckoutSession::setNewsletter($this->newsletter);
     }
 
-
-
-
-    /**
-     * @throws \Illuminate\Validation\ValidationException
-     */
-    public function authUser()
+    public function updatedAddress($value, $key)
     {
-        $validated = Validator::make([
-            'email' => $this->login['email'],
-            'password' => $this->login['pass'],
-        ],[
-            'email' => ['required', 'email'],
-            'password' => ['required'],
-        ])->validate();
+        if (! in_array($key, ['zip', 'city'], true)) {
+            CheckoutSession::setAddress($this->address);
 
-        if (Auth::attempt($validated, $this->login['remember'])) {
-            session()->regenerate();
-            $this->setAddress();
-
-            session()->flash('login_success', 'Uspješno ste se prijavili na vaš račun...');
+            return;
         }
 
-        session()->flash('error', 'Upisani podaci ne odgovaraju našim korisnicima...');
+        $this->autofillAddressField($key, (string) $value);
     }
 
+    public function updatedRegisterAccount($value)
+    {
+        $this->register_account = (bool) $value;
 
+        if (! $this->register_account) {
+            $this->registration = [
+                'password' => '',
+                'password_confirmation' => '',
+            ];
+            $this->resetValidation([
+                'address.email',
+                'registration.password',
+                'registration.password_confirmation',
+            ]);
+        }
+    }
+
+    public function updatedR1Invoice($value)
+    {
+        $this->r1_invoice = (bool) $value;
+
+        if (! $this->r1_invoice) {
+            $this->address['company'] = '';
+            $this->address['oib'] = '';
+            CheckoutSession::setAddress($this->address);
+        }
+    }
     /**
      * @param string $step
      */
@@ -253,8 +294,10 @@ class Checkout extends Component
 
             // Dostava
             if (in_array($step, ['dostava', 'placanje']) && $this->cart) {
+                $this->syncBirthdayDate();
                 $this->setAddress($this->address);
                 $this->validate($this->address_rules);
+                $this->registerCheckoutAccount();
                 $this->syncNewsletterSubscription();
 
                 if ($step == 'dostava' && $this->shipping != '') {
@@ -282,6 +325,10 @@ class Checkout extends Component
             $this->step = $step;
 
             CheckoutSession::setStep($step);
+
+            $this->dispatchBrowserEvent('checkout-step-changed', [
+                'step' => $step,
+            ]);
         } catch (ValidationException $e) {
             $this->dispatchBrowserEvent('checkout-validation-failed', [
                 'step' => $step,
@@ -320,6 +367,14 @@ class Checkout extends Component
     public function stateSelected($state)
     {
         $this->setAddress(['state' => $state], true);
+
+        if ($this->isCroatia((string) $this->address['state'])) {
+            if (! empty($this->address['zip'])) {
+                $this->autofillAddressField('zip', (string) $this->address['zip']);
+            } elseif (! empty($this->address['city'])) {
+                $this->autofillAddressField('city', (string) $this->address['city']);
+            }
+        }
 
         CheckoutSession::forgetShipping();
         $this->shipping = '';
@@ -443,6 +498,109 @@ class Checkout extends Component
         //dd($this->address);
 
         return $this->address;
+    }
+
+    private function setBirthdayParts(?string $value): void
+    {
+        $timestamp = $value ? strtotime($value) : false;
+
+        if ($timestamp === false) {
+            $this->birthday = ['day' => '', 'month' => '', 'year' => ''];
+
+            return;
+        }
+
+        $this->birthday = [
+            'day' => date('d', $timestamp),
+            'month' => date('m', $timestamp),
+            'year' => date('Y', $timestamp),
+        ];
+    }
+
+    private function syncBirthdayDate(): void
+    {
+        $day = trim((string) ($this->birthday['day'] ?? ''));
+        $month = trim((string) ($this->birthday['month'] ?? ''));
+        $year = trim((string) ($this->birthday['year'] ?? ''));
+
+        if ($day === '' && $month === '' && $year === '') {
+            $this->address['birthday_year'] = '';
+
+            return;
+        }
+
+        if (! ctype_digit($day) || ! ctype_digit($month) || ! ctype_digit($year) || strlen($year) !== 4) {
+            $this->address['birthday_year'] = implode('.', [$day, $month, $year]);
+
+            return;
+        }
+
+        $formatted = sprintf('%02d.%02d.%04d', (int) $day, (int) $month, (int) $year);
+        $date = \DateTimeImmutable::createFromFormat('!d.m.Y', $formatted);
+        $errors = \DateTimeImmutable::getLastErrors();
+
+        if (! $date || ($errors && ($errors['warning_count'] || $errors['error_count'])) || $date->format('d.m.Y') !== $formatted) {
+            $this->address['birthday_year'] = $formatted;
+
+            return;
+        }
+
+        $this->address['birthday_year'] = $date->format('Y-m-d');
+    }
+
+    private function registerCheckoutAccount(): void
+    {
+        if (Auth::check() || ! $this->register_account) {
+            return;
+        }
+
+        $this->validate([
+            'address.email' => 'bail|required|email|max:190|unique:users,email',
+            'registration.password' => 'required|string|min:8|confirmed',
+            'registration.password_confirmation' => 'required|string',
+        ], [
+            'address.email.unique' => __('front.checkout.registration_email_exists'),
+            'registration.password.required' => __('front.checkout.registration_password_required'),
+            'registration.password.min' => __('front.checkout.registration_password_min'),
+            'registration.password.confirmed' => __('front.checkout.registration_password_confirmed'),
+            'registration.password_confirmation.required' => __('front.checkout.registration_password_confirmation_required'),
+        ]);
+
+        $user = app(CheckoutAccountService::class)->create(
+            $this->address,
+            (string) $this->registration['password']
+        );
+
+        Auth::login($user);
+        session()->regenerate();
+        $this->register_account = false;
+        $this->registration = [
+            'password' => '',
+            'password_confirmation' => '',
+        ];
+    }
+
+    private function autofillAddressField(string $field, string $value): void
+    {
+        $directory = app(AddressDirectoryService::class);
+        $country = (string) ($this->address['state'] ?? 'Croatia');
+
+        $place = $field === 'zip'
+            ? $directory->findByPostal($value, $country)
+            : $directory->findByCity($value, $country);
+
+        if ($place) {
+            $this->address['zip'] = $place['postal_code'];
+            $this->address['city'] = $place['city'];
+            $this->address['state'] = 'Croatia';
+        }
+
+        CheckoutSession::setAddress($this->address);
+    }
+
+    private function isCroatia(string $country): bool
+    {
+        return in_array(strtolower(trim($country)), ['croatia', 'hr', 'hrvatska'], true);
     }
 
 

@@ -13,6 +13,10 @@
     @endsection
 @endif
 
+@push('css_after')
+    @include('front.checkout.partials.progress-styles')
+@endpush
+
 @section('content')
 
 <!-- Page Title-->
@@ -27,29 +31,30 @@
             </nav>
         </div>
         <div class="order-lg-1 pe-lg-4 text-center text-lg-start">
-            <h1 class="h3 text-dark mb-0">{{ __('front.checkout.cart') }}</h1>
+            <h1 class="h3 checkout-page-heading text-dark mb-0">{{ __('front.checkout.cart') }}</h1>
         </div>
     </div>
 </div>
-<div class="container pb-5 mb-2 mb-md-4">
+<div class="container checkout-page pb-5 mb-2 mb-md-4">
     <div class="row">
         <section class="col-lg-8">
-            <div class="steps steps-dark pt-2 pb-3 mb-5">
+            <nav class="checkout-progress-shell" aria-label="{{ __('front.checkout.checkout') }}">
+            <div class="steps steps-dark checkout-steps">
                 <a class="step-item current active" href="{{ \App\Helpers\LocaleHelper::route('kosarica') }}">
                     <div class="step-progress"><span class="step-count">1</span></div>
-                    <div class="step-label"><i class="fa-regular fa-bag-shopping"></i>{{ __('front.checkout.cart') }}</div>
+                    <div class="step-label"><i class="fa-solid fa-bag-shopping" aria-hidden="true"></i>{{ __('front.checkout.cart') }}</div>
                 </a>
                 <a class="step-item" href="{{ \App\Helpers\LocaleHelper::route('naplata', ['step' => 'podaci']) }}">
                     <div class="step-progress"><span class="step-count">2</span></div>
-                    <div class="step-label"><i class="fa-duotone fa-circle-user"></i>{{ __('front.checkout.details') }}</div>
+                    <div class="step-label"><i class="fa-solid fa-circle-user" aria-hidden="true"></i>{{ __('front.checkout.details') }}</div>
                 </a>
                 <a class="step-item" href="{{ \App\Helpers\LocaleHelper::route('naplata', ['step' => 'dostava']) }}">
                     <div class="step-progress"><span class="step-count">3</span></div>
-                    <div class="step-label"><i class="fa-duotone fa-box"></i>{{ __('front.checkout.shipping') }}</div>
+                    <div class="step-label"><i class="fa-solid fa-box" aria-hidden="true"></i>{{ __('front.checkout.shipping') }}</div>
                 </a>
                 <a class="step-item" href="{{ \App\Helpers\LocaleHelper::route('naplata', ['step' => 'placanje']) }}">
                     <div class="step-progress"><span class="step-count">4</span></div>
-                    <div class="step-label"><i class="fa-duotone fa-credit-card"></i>{{ __('front.checkout.payment') }}</div>
+                    <div class="step-label"><i class="fa-solid fa-credit-card" aria-hidden="true"></i>{{ __('front.checkout.payment') }}</div>
                 </a>
                 <a class="step-item" href="{{ \App\Helpers\LocaleHelper::route('pregled') }}">
                     <div class="step-progress"><span class="step-count">5</span></div>
@@ -60,7 +65,8 @@
                     <div class="step-label"><i class="fa-solid fa-circle-check"></i>{{ __('front.checkout.success') }}</div>
                 </a>
             </div>
-            <div class="bg-white rounded-3 shadow-lg p-4">
+            </nav>
+            <div class="checkout-surface">
             <cart-view continueurl="{{ \Illuminate\Support\Facades\URL::previous() }}" checkouturl="{{ \App\Helpers\LocaleHelper::route('naplata') }}" freeship="{{ config('settings.free_shipping') }}"></cart-view>
             </div>
         </section>

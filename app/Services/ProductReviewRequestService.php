@@ -7,6 +7,7 @@ use App\Models\Back\Orders\Order;
 use App\Models\ProductReviewInvitation;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -23,7 +24,7 @@ class ProductReviewRequestService
     {
         $maxAttempts = max(1, (int) config('reviews.request_max_attempts', 3));
 
-        return Order::query()
+        $eligible = Order::query()
             ->select('orders.*')
             ->addSelect([
                 'sent_status_at' => DB::table('order_history')
@@ -34,6 +35,14 @@ class ProductReviewRequestService
             ->whereIn('orders.order_status_id', Order::reviewEligibleStatusIds())
             ->whereNotNull('orders.payment_email')
             ->whereRaw("TRIM(orders.payment_email) <> ''")
+            ->whereNotExists(function ($invitations) {
+                $invitations->select(DB::raw(1))
+                    ->from('product_review_invitations')
+                    ->whereNotNull('product_review_invitations.sent_at')
+                    ->whereRaw(
+                        'LOWER(TRIM(product_review_invitations.recipient_email)) = LOWER(TRIM(orders.payment_email))'
+                    );
+            })
             ->where(function ($query) use ($from, $to) {
                 $query->whereExists(function ($history) use ($from, $to) {
                     $history->select(DB::raw(1))
@@ -78,6 +87,15 @@ class ProductReviewRequestService
                         ->whereNull('product_review_invitations.sent_at')
                         ->where('product_review_invitations.attempts', '<', $maxAttempts);
                 });
+            });
+
+        return Order::query()
+            ->fromSub($eligible->toBase(), 'orders')
+            ->select('orders.*')
+            ->whereIn('orders.id', function ($emails) use ($eligible) {
+                $emails->fromSub((clone $eligible)->toBase(), 'email_candidates')
+                    ->selectRaw('MIN(email_candidates.id)')
+                    ->groupByRaw('LOWER(TRIM(email_candidates.payment_email))');
             })
             ->orderByRaw('COALESCE(sent_status_at, orders.checkout_processed_at, orders.created_at) ASC');
     }
@@ -95,6 +113,32 @@ class ProductReviewRequestService
         $email = mb_strtolower(trim((string) $order->payment_email));
         if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return $this->result(self::STATUS_SKIPPED, 'E-mail adresa nije valjana.');
+        }
+
+        $lock = Cache::lock('product-review-request-email:' . hash('sha256', $email), 300);
+        if (! $lock->get()) {
+            return $this->result(self::STATUS_SKIPPED, 'Slanje na ovu e-mail adresu već je u tijeku.');
+        }
+
+        try {
+            return $this->sendToEmail($order, $email);
+        } finally {
+            $lock->release();
+        }
+    }
+
+    /**
+     * @return array{status:string, message:?string, attempts:int}
+     */
+    private function sendToEmail(Order $order, string $email): array
+    {
+        $alreadySentToEmail = ProductReviewInvitation::query()
+            ->whereNotNull('sent_at')
+            ->whereRaw('LOWER(TRIM(recipient_email)) = ?', [$email])
+            ->exists();
+
+        if ($alreadySentToEmail) {
+            return $this->result(self::STATUS_SKIPPED, 'Poziv na ovu e-mail adresu već je poslan.');
         }
 
         if (! in_array((int) $order->order_status_id, Order::reviewEligibleStatusIds(), true)) {

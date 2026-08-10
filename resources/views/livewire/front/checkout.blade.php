@@ -1,31 +1,33 @@
-<div>
-    <div class="steps steps-dark pt-2 pb-3 mb-5">
+<div id="checkout-flow" class="checkout-flow">
+    <nav class="checkout-progress-shell" aria-label="{{ __('front.checkout.checkout') }}">
+    <div class="steps steps-dark checkout-steps">
         <a class="step-item active" href="{{ \App\Helpers\LocaleHelper::route('kosarica') }}">
             <div class="step-progress"><span class="step-count">1</span></div>
-            <div class="step-label"><i class="fa-regular fa-bag-shopping"></i>{{ __('front.checkout.cart') }}</div>
+            <div class="step-label"><i class="fa-solid fa-bag-shopping" aria-hidden="true"></i>{{ __('front.checkout.cart') }}</div>
         </a>
         <a class="step-item @if($step == 'podaci') current @endif @if(in_array($step, ['podaci', 'dostava', 'placanje'])) active @endif" wire:click="changeStep('podaci')" href="javascript:void(0);">
             <div class="step-progress"><span class="step-count">2</span></div>
-            <div class="step-label"><i class="fa-duotone fa-circle-user"></i>{{ __('front.checkout.details') }}</div>
+            <div class="step-label"><i class="fa-solid fa-circle-user" aria-hidden="true"></i>{{ __('front.checkout.details') }}</div>
         </a>
         <a class="step-item @if($step == 'dostava') current @endif @if(in_array($step, ['dostava', 'placanje'])) active @endif" wire:click="changeStep('dostava')" href="javascript:void(0);">
             <div class="step-progress"><span class="step-count">3</span></div>
-            <div class="step-label"><i class="fa-duotone fa-box"></i>{{ __('front.checkout.shipping') }}</div>
+            <div class="step-label"><i class="fa-solid fa-box" aria-hidden="true"></i>{{ __('front.checkout.shipping') }}</div>
         </a>
         <a class="step-item @if($step == 'placanje') current @endif @if(in_array($step, ['placanje'])) active @endif" wire:click="changeStep('placanje')" href="javascript:void(0);">
             <div class="step-progress"><span class="step-count">4</span></div>
-            <div class="step-label"><i class="fa-duotone fa-credit-card"></i>{{ __('front.checkout.payment') }}</div>
+            <div class="step-label"><i class="fa-solid fa-credit-card" aria-hidden="true"></i>{{ __('front.checkout.payment') }}</div>
         </a>
         <a class="step-item" href="{{ ($payment != '') ? \App\Helpers\LocaleHelper::route('pregled') : '#' }}">
             <div class="step-progress"><span class="step-count">5</span></div>
-            <div class="step-label"><i class="fa-solid fa-eye"></i>{{ __('front.checkout.review') }}</div>
+            <div class="step-label"><i class="fa-solid fa-eye" aria-hidden="true"></i>{{ __('front.checkout.review') }}</div>
         </a>
 
         <a class="step-item" href="#">
             <div class="step-progress"><span class="step-count">6</span></div>
-            <div class="step-label"><i class="fa-solid fa-circle-check"></i>{{ __('front.checkout.success') }}</div>
+            <div class="step-label"><i class="fa-solid fa-circle-check" aria-hidden="true"></i>{{ __('front.checkout.success') }}</div>
         </a>
     </div>
+    </nav>
 
     @if ( ! empty($gdl) && ! $gdl_shipping && ! $gdl_payment)
         @section('google_data_layer')
@@ -70,206 +72,229 @@
             </script>
         @endsection
     @endif
-    <div class="bg-white rounded-3 shadow-lg p-4">
+    <div class="checkout-panel checkout-surface">
     @if ($step == 'podaci')
-        <h2 class="h6 pt-1 pb-3 mb-3 border-bottom">{{ __('front.checkout.billing_address') }}</h2>
-
-        @if (session()->has('login_success'))
-            <div class="alert alert-success alert-dismissible fade show mb-3" role="alert">
-                {{ session('login_success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <div class="checkout-section-heading d-flex align-items-start justify-content-between gap-3 pb-3 mb-4 border-bottom">
+            <div class="d-flex align-items-center gap-3">
+                <span class="checkout-heading-icon"><i class="fa-solid fa-address-card" aria-hidden="true"></i></span>
+                <div>
+                    <h2 class="h5 mb-1">{{ __('front.checkout.billing_address') }}</h2>
+                    <p class="text-muted fs-sm mb-0">{{ __('front.checkout.details_intro') }}</p>
+                </div>
             </div>
-        @endif
+            <span class="text-muted fs-xs text-nowrap"><span class="text-danger">*</span> {{ __('front.checkout.required_fields') }}</span>
+        </div>
 
         @if (auth()->guest())
-            <div class="alert alert-secondary d-flex mb-3" role="alert">
+            <div class="alert alert-secondary checkout-login-prompt d-flex align-items-center mb-3" role="alert">
                 <div class="alert-icon">
-                    <i class="fa-solid fa-user"></i>
+                    <i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i>
                 </div>
-                <div><a data-bs-toggle="collapse" href="#collapseLogin" role="button" aria-expanded="false" aria-controls="collapseLogin" class="alert-link">{{ __('front.checkout.login') }} </a> {{ __('front.checkout.registered_users') }}</div>
-            </div>
-
-            @if (session()->has('error'))
-                <div class="alert alert-primary alert-dismissible fade show" role="alert">
-                    {{ session('error') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            @endif
-
-            <div id="collapseLogin" aria-expanded="false" class="collapse">
-                <div class="card mb-3">
-                    <div class="card-body">
-                        <div class="row mb-3">
-                            <div class="col-sm-6">
-                                <div class="mb-3">
-                                    <label class="form-label" for="si-email">{{ __('front.checkout.email_address') }}</label>
-                                    <input class="form-control" type="email" wire:model.defer="login.email" placeholder="" required>
-                                    <div class="invalid-feedback">{{ __('validation.email', ['attribute' => __('front.checkout.email_address')]) }}</div>
-                                </div>
-                            </div>
-                            <div class="col-sm-6">
-                                <div class="mb-3">
-                                    <label class="form-label" for="si-password">{{ __('front.checkout.password') }}</label>
-                                    <div class="password-toggle">
-                                        <input class="form-control" type="password" wire:model.defer="login.pass" required>
-                                        <label class="password-toggle-btn" aria-label="Show/hide password">
-                                            <input class="password-toggle-check" type="checkbox"><span class="password-toggle-indicator"></span>
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-sm-12">
-                                <div class="mb-3 d-flex flex-wrap justify-content-between">
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" wire:model.defer="login.remember" id="si-remember">
-                                        <label class="form-check-label" for="si-remember">{{ __('front.checkout.remember_me') }}</label>
-                                    </div>
-                                    <a class="fs-sm" href="{{ route('register') }}">{{ __('front.checkout.register') }}</a>
-                                </div>
-                                <button class="btn btn-primary btn-shadow d-block w-100" wire:click="authUser()" type="button">{{ __('front.checkout.login') }}</button>
-                            </div>
-                        </div>
-                    </div>
+                <div>
+                    <button class="checkout-login-link alert-link" type="button" data-auth-tab="signin" data-bs-toggle="modal" data-bs-target="#signin-modal">
+                        {{ __('front.checkout.login') }}
+                    </button>
+                    {{ __('front.checkout.registered_users') }}
                 </div>
             </div>
         @endif
 
-        <div class="row">
+        <div class="checkout-subsection">
+        <h3 class="h6 d-flex align-items-center mb-3"><i class="fa-solid fa-user me-2 text-primary" aria-hidden="true"></i>{{ __('front.checkout.contact_details') }}</h3>
+        <div class="row g-3">
             <div class="col-sm-6">
-                <div class="mb-3">
+                <div>
                     <label class="form-label" for="checkout-fn">{{ __('front.checkout.first_name') }} <span class="text-danger">*</span></label>
-                    <input class="form-control @error('address.fname') is-invalid @enderror" type="text" wire:model.defer="address.fname">
-                    @error('address.fname') <div class="invalid-feedback animated fadeIn">{{ __('validation.required', ['attribute' => __('front.checkout.first_name')]) }}</div> @enderror
+                    <input class="form-control @error('address.fname') is-invalid @enderror" id="checkout-fn" type="text" autocomplete="given-name" wire:model.defer="address.fname">
+                    @error('address.fname') <div class="invalid-feedback animated fadeIn">{{ $message }}</div> @enderror
                 </div>
             </div>
             <div class="col-sm-6">
-                <div class="mb-3">
+                <div>
                     <label class="form-label" for="checkout-ln">{{ __('front.checkout.last_name') }} <span class="text-danger">*</span></label>
-                    <input class="form-control @error('address.lname') is-invalid @enderror" type="text" wire:model.defer="address.lname">
-                    @error('address.lname') <div class="invalid-feedback animated fadeIn">{{ __('validation.required', ['attribute' => __('front.checkout.last_name')]) }}</div> @enderror
+                    <input class="form-control @error('address.lname') is-invalid @enderror" id="checkout-ln" type="text" autocomplete="family-name" wire:model.defer="address.lname">
+                    @error('address.lname') <div class="invalid-feedback animated fadeIn">{{ $message }}</div> @enderror
                 </div>
             </div>
-        </div>
-        <div class="row">
             <div class="col-sm-6">
-                <div class="mb-3">
+                <div>
                     <label class="form-label" for="checkout-email">{{ __('front.checkout.email_address') }} <span class="text-danger">*</span></label>
-                    <input class="form-control @error('address.email') is-invalid @enderror" type="email" wire:model.defer="address.email">
-                    @error('address.email') <div class="invalid-feedback animated fadeIn">{{ __('validation.required', ['attribute' => __('front.checkout.email_address')]) }}</div> @enderror
+                    <input class="form-control @error('address.email') is-invalid @enderror" id="checkout-email" type="email" autocomplete="email" wire:model.defer="address.email">
+                    @error('address.email') <div class="invalid-feedback animated fadeIn">{{ $message }}</div> @enderror
                 </div>
             </div>
             <div class="col-sm-6">
-                <div class="mb-3">
+                <div>
                     <label class="form-label" for="checkout-phone">{{ __('front.checkout.phone') }} <span class="text-danger">*</span></label>
-                    <input class="form-control @error('address.phone') is-invalid  @enderror" type="text" wire:model.defer="address.phone">
-                    @error('address.phone') <div class="invalid-feedback animated fadeIn">{{ __('validation.required', ['attribute' => __('front.checkout.phone')]) }}</div> @enderror
+                    <input class="form-control @error('address.phone') is-invalid  @enderror" id="checkout-phone" type="tel" inputmode="tel" autocomplete="tel" wire:model.defer="address.phone">
+                    @error('address.phone') <div class="invalid-feedback animated fadeIn">{{ $message }}</div> @enderror
                 </div>
             </div>
         </div>
-        <div class="row">
-            <div class="col-sm-6">
-                <div class="mb-3">
-                    <label class="form-label" for="checkout-birthday-year">{{ __('front.checkout.birthday') }}</label>
-                    <input class="form-control @error('address.birthday_year') is-invalid @enderror"
-                           id="checkout-birthday-year"
-                           type="date"
-                           wire:model.defer="address.birthday_year">
-                    @error('address.birthday_year') <div class="invalid-feedback animated fadeIn">{{ __('validation.date', ['attribute' => __('front.checkout.birthday')]) }}</div> @enderror
-                </div>
-            </div>
         </div>
-        <div class="row">
+
+        <div class="checkout-subsection mt-4 pt-4 border-top">
+        <h3 class="h6 d-flex align-items-center mb-1"><i class="fa-solid fa-location-dot me-2 text-primary" aria-hidden="true"></i>{{ __('front.checkout.delivery_address') }}</h3>
+        <p class="text-muted fs-sm mb-3">{{ __('front.checkout.city_zip_help') }}</p>
+        <div class="row g-3">
             <div class="col-sm-6">
-                <div class="mb-3">
+                <div>
                     <label class="form-label" for="checkout-address">{{ __('front.checkout.address') }} <span class="text-danger">*</span></label>
-                    <input class="form-control @error('address.address') is-invalid @enderror" type="text" wire:model.defer="address.address">
-                    @error('address.address') <div class="invalid-feedback animated fadeIn">{{ __('validation.required', ['attribute' => __('front.checkout.address')]) }}</div> @enderror
+                    <input class="form-control @error('address.address') is-invalid @enderror" id="checkout-address" type="text" autocomplete="address-line1" wire:model.defer="address.address">
+                    @error('address.address') <div class="invalid-feedback animated fadeIn">{{ $message }}</div> @enderror
                 </div>
             </div>
             <div class="col-sm-6">
-                <div class="mb-3">
+                <div>
                     <label class="form-label" for="checkout-city">{{ __('front.checkout.city') }} <span class="text-danger">*</span></label>
-                    <input class="form-control @error('address.city') is-invalid @enderror" type="text" wire:model.defer="address.city">
-                    @error('address.city') <div class="invalid-feedback animated fadeIn">{{ __('validation.required', ['attribute' => __('front.checkout.city')]) }}</div> @enderror
+                    <input class="form-control @error('address.city') is-invalid @enderror" id="checkout-city" type="text" autocomplete="address-level2" wire:model.debounce.300ms="address.city">
+                    @error('address.city') <div class="invalid-feedback animated fadeIn">{{ $message }}</div> @enderror
                 </div>
             </div>
-        </div>
-        <div class="row">
             <div class="col-sm-6">
-                <div class="mb-3">
+                <div>
                     <label class="form-label" for="checkout-zip">{{ __('front.checkout.zip') }} <span class="text-danger">*</span></label>
-                    <input class="form-control @error('address.zip') is-invalid @enderror" type="text" wire:model.defer="address.zip">
-                    @error('address.zip') <div class="invalid-feedback animated fadeIn">{{ __('validation.required', ['attribute' => __('front.checkout.zip')]) }}</div> @enderror
+                    <input class="form-control @error('address.zip') is-invalid @enderror" id="checkout-zip" type="text" inputmode="numeric" autocomplete="postal-code" wire:model.debounce.300ms="address.zip">
+                    @error('address.zip') <div class="invalid-feedback animated fadeIn">{{ $message }}</div> @enderror
                 </div>
             </div>
             <div class="col-sm-6">
-                <div class="mb-3">
+                <div>
                     <label class="form-label" for="checkout-country">{{ __('front.checkout.country') }} <span class="text-danger">*</span></label>
-                    <select class="form-select @error('address.state') is-invalid @enderror" id="state-select" wire:model="address.state" wire:change="stateSelected($event.target.value)">
-<!--                        <option value=""></option>-->
+                    <select class="form-select @error('address.state') is-invalid @enderror" id="checkout-country" autocomplete="country-name" wire:model.defer="address.state" wire:change="stateSelected($event.target.value)">
                         @foreach ($countries as $country)
                             <option value="{{ $country['name'] }}">{{ $country['name'] }}</option>
                         @endforeach
                     </select>
-                    @error('address.state') <div class="invalid-feedback animated fadeIn">{{ __('validation.required', ['attribute' => __('front.checkout.country')]) }}</div> @enderror
+                    @error('address.state') <div class="invalid-feedback animated fadeIn">{{ $message }}</div> @enderror
                 </div>
             </div>
         </div>
+        </div>
 
-            <div class="row mt-2 mb-3">
-                <div class="col-sm-12">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="checkout-newsletter" name="newsletter" wire:model.defer="newsletter">
-                        <label class="form-check-label" for="checkout-newsletter">
-                            {{ __('front.checkout.newsletter') }}
+        @if (auth()->guest())
+            <div class="checkout-option-card checkout-toggle-card mt-3">
+                <div class="form-check mb-0">
+                    <input class="form-check-input" type="checkbox" id="checkout-register-account" wire:model="register_account">
+                    <label class="form-check-label fw-semibold" for="checkout-register-account">
+                        <i class="fa-solid fa-user-plus me-2 text-primary" aria-hidden="true"></i>{{ __('front.checkout.register_during_checkout') }}
+                    </label>
+                    <div class="form-text ms-0">{{ __('front.checkout.register_during_checkout_help') }}</div>
+                </div>
+
+                @if ($register_account)
+                    <div class="row g-3 mt-1 pt-3 border-top">
+                        <div class="col-sm-6">
+                            <label class="form-label" for="checkout-register-password">{{ __('front.checkout.password') }} <span class="text-danger">*</span></label>
+                            <input class="form-control @error('registration.password') is-invalid @enderror" id="checkout-register-password" type="password" autocomplete="new-password" wire:model.defer="registration.password">
+                            @error('registration.password') <div class="invalid-feedback animated fadeIn">{{ $message }}</div> @enderror
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label" for="checkout-register-password-confirmation">{{ __('front.checkout.password_confirmation') }} <span class="text-danger">*</span></label>
+                            <input class="form-control @error('registration.password_confirmation') is-invalid @enderror" id="checkout-register-password-confirmation" type="password" autocomplete="new-password" wire:model.defer="registration.password_confirmation">
+                            @error('registration.password_confirmation') <div class="invalid-feedback animated fadeIn">{{ $message }}</div> @enderror
+                        </div>
+                    </div>
+                @endif
+            </div>
+        @endif
+
+        <div class="checkout-subsection checkout-separated mt-4 pt-4 border-top">
+        <h3 class="h6 d-flex align-items-center mb-3"><i class="fa-solid fa-sliders me-2 text-primary" aria-hidden="true"></i>{{ __('front.checkout.optional_details') }}</h3>
+        <div class="row g-3">
+            <div class="col-12">
+                <div class="checkout-option-card checkout-toggle-card">
+                    <div class="form-check mb-0">
+                        <input class="form-check-input" type="checkbox" id="checkout-r1-invoice" wire:model="r1_invoice">
+                        <label class="form-check-label fw-semibold" for="checkout-r1-invoice">
+                            <i class="fa-solid fa-file-invoice me-2 text-primary" aria-hidden="true"></i>{{ __('front.checkout.need_r1') }}
                         </label>
+                        <div class="form-text">{{ __('front.checkout.need_r1_help') }}</div>
                     </div>
-                </div>
-            </div>
 
-            <h2 class="h6 pt-1 pb-3 mb-3 border-bottom">{{ __('front.checkout.additional_note') }}</h2>
-            <div class="row mt-3">
-                <div class="col-sm-12">
-                    <div class="mb-3">
-                        <label class="form-label" for="checkout-napomena">{{ __('front.checkout.comment') }}</label>
-                        <textarea class="form-control" id="checkout-napomena" rows="3" wire:model.defer="napomena"></textarea>
-                    </div>
-                </div>
-            </div>
-
-        <h2 class="h6 pt-1 pb-3 mb-3 border-bottom">{{ __('front.checkout.need_r1') }}</h2>
-        <div class="row mt-3">
-            <div class="col-sm-6">
-                <div class="mb-3">
-                    <label class="form-label" for="checkout-company">{{ __('front.checkout.company') }}</label>
-                    <input class="form-control" type="text" wire:model.defer="address.company">
+                    @if ($r1_invoice)
+                        <div class="row g-3 mt-1 pt-3 border-top">
+                            <div class="col-sm-6">
+                                <label class="form-label" for="checkout-company">{{ __('front.checkout.company') }}</label>
+                                <input class="form-control" id="checkout-company" type="text" autocomplete="organization" wire:model.defer="address.company">
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label" for="checkout-oib">{{ __('front.checkout.oib') }}</label>
+                                <input class="form-control" id="checkout-oib" type="text" inputmode="numeric" wire:model.defer="address.oib">
+                            </div>
+                        </div>
+                    @endif
                 </div>
             </div>
             <div class="col-sm-6">
-                <div class="mb-3">
-                    <div class="mb-3">
-                        <label class="form-label" for="checkout-oib">{{ __('front.checkout.oib') }}</label>
-                        <input class="form-control" type="text" wire:model.defer="address.oib">
+                <label class="form-label" for="checkout-birthday-day">{{ __('front.checkout.birthday') }}</label>
+                <div class="checkout-date-parts @error('address.birthday_year') is-invalid @enderror">
+                    <input class="checkout-date-part checkout-date-part-day"
+                           id="checkout-birthday-day"
+                           type="text"
+                           inputmode="numeric"
+                           maxlength="2"
+                           placeholder="{{ __('front.checkout.birthday_day_placeholder') }}"
+                           aria-label="{{ __('front.checkout.birthday') }} - {{ __('front.checkout.birthday_day_placeholder') }}"
+                           autocomplete="bday-day"
+                           wire:model.defer="birthday.day">
+                    <span class="checkout-date-separator" aria-hidden="true">/</span>
+                    <input class="checkout-date-part checkout-date-part-month"
+                           type="text"
+                           inputmode="numeric"
+                           maxlength="2"
+                           placeholder="{{ __('front.checkout.birthday_month_placeholder') }}"
+                           aria-label="{{ __('front.checkout.birthday') }} - {{ __('front.checkout.birthday_month_placeholder') }}"
+                           autocomplete="bday-month"
+                           wire:model.defer="birthday.month">
+                    <span class="checkout-date-separator" aria-hidden="true">/</span>
+                    <input class="checkout-date-part checkout-date-part-year"
+                           type="text"
+                           inputmode="numeric"
+                           maxlength="4"
+                           placeholder="{{ __('front.checkout.birthday_year_placeholder') }}"
+                           aria-label="{{ __('front.checkout.birthday') }} - {{ __('front.checkout.birthday_year_placeholder') }}"
+                           autocomplete="bday-year"
+                           wire:model.defer="birthday.year">
+                </div>
+                @error('address.birthday_year') <div class="invalid-feedback animated fadeIn">{{ $message }}</div> @enderror
+            </div>
+            <div class="col-12">
+                <label class="form-label" for="checkout-napomena">{{ __('front.checkout.comment') }}</label>
+                <textarea class="form-control" id="checkout-napomena" rows="3" wire:model.defer="napomena"></textarea>
+            </div>
+            <div class="col-12">
+                <div class="checkout-option-card checkout-toggle-card">
+                    <div class="form-check mb-0">
+                        <input class="form-check-input" type="checkbox" id="checkout-newsletter" name="newsletter" wire:model.defer="newsletter">
+                        <label class="form-check-label" for="checkout-newsletter"><i class="fa-solid fa-envelope-open-text me-2 text-primary" aria-hidden="true"></i>{{ __('front.checkout.newsletter') }}</label>
                     </div>
                 </div>
             </div>
         </div>
+        </div>
 
-        <div class="d-flex pt-4 mt-3">
-            <div class="w-50 pe-3"><a class="btn btn-secondary d-block w-100" href="{{ \App\Helpers\LocaleHelper::route('kosarica') }}"><i class="fa-solid fa-arrow-left mt-sm-0 me-1"></i><span class="d-none d-sm-inline">{{ __('front.checkout.back_to_cart') }}</span><span class="d-inline d-sm-none">{{ __('front.checkout.back') }}</span></a></div>
-            <div class="w-50 ps-2"><button class="btn btn-primary d-block w-100" wire:click="changeStep('dostava')" type="button"><span class="d-none d-sm-inline">{{ __('front.checkout.choose_shipping') }}</span><span class="d-inline d-sm-none">{{ __('front.checkout.continue') }}</span><i class="fa-solid fa-arrow-right mt-sm-0 ms-1"></i></button></div>
+        <div class="checkout-actions d-flex gap-3 pt-4 mt-3 border-top">
+            <a class="btn btn-secondary flex-fill" href="{{ \App\Helpers\LocaleHelper::route('kosarica') }}"><i class="fa-solid fa-arrow-left me-2" aria-hidden="true"></i><span class="d-none d-sm-inline">{{ __('front.checkout.back_to_cart') }}</span><span class="d-inline d-sm-none">{{ __('front.checkout.back') }}</span></a>
+            <button class="btn btn-primary flex-fill" wire:click="changeStep('dostava')" type="button"><span class="d-none d-sm-inline">{{ __('front.checkout.choose_shipping') }}</span><span class="d-inline d-sm-none">{{ __('front.checkout.continue') }}</span><i class="fa-solid fa-arrow-right ms-2" aria-hidden="true"></i></button>
         </div>
 
     @endif
 
 
     @if ($step == 'dostava')
-        <h2 class="h6 pt-1 pb-3 mb-3 ">{{ __('front.checkout.select_shipping') }}</h2>
+        <div class="checkout-section-heading d-flex align-items-center gap-3 pb-3 mb-4 border-bottom">
+            <span class="checkout-heading-icon"><i class="fa-solid fa-truck-fast" aria-hidden="true"></i></span>
+            <div>
+                <h2 class="h5 mb-1">{{ __('front.checkout.select_shipping') }}</h2>
+                <p class="text-muted fs-sm mb-0">{{ __('front.checkout.shipping_intro') }}</p>
+            </div>
+        </div>
         <div class="table-responsive">
-            <table class="table table-hover fs-sm border-top">
+            <table class="table checkout-options-table fs-sm align-middle mb-0">
                 <thead>
                 <tr>
-                    <th class="align-middle"></th>
+                    <th class="align-middle" colspan="2"></th>
                     <th class="align-middle">{{ __('front.checkout.shipping') }}</th>
                     <th class="align-middle">{{ __('front.checkout.delivery_time') }}</th>
                     <th class="align-middle">{{ __('front.checkout.price') }}</th>
@@ -280,16 +305,15 @@
                     @php($shippingTitle = \App\Helpers\LocaleHelper::localizedSettingField($s_method, 'title'))
                     @php($shippingDescription = \App\Helpers\LocaleHelper::localizedSettingDataField($s_method, 'short_description'))
                     @php($shippingTime = \App\Helpers\LocaleHelper::localizedSettingDataField($s_method, 'time'))
-                    <tr wire:click="selectShipping('{{ $s_method->code }}')" style="cursor: pointer;">
-                        <td>
-                            <div class="form-check mb-4">
-                                <input class="form-check-input" type="radio" value="{{ $s_method->code }}" wire:model="shipping">
-                                <label class="form-check-label" for="courier"></label>
-                            </div>
+                    @php($shippingIcon = $s_method->code === 'pickup' ? 'fa-store' : (strpos($s_method->code, 'paketomat') !== false || strpos($s_method->code, 'box') !== false ? 'fa-box' : 'fa-truck-fast'))
+                    <tr class="checkout-option-row {{ $shipping === $s_method->code ? 'is-selected' : '' }}" wire:click="selectShipping('{{ $s_method->code }}')" style="cursor: pointer;">
+                        <td class="text-center" style="width: 48px;">
+                            <input class="form-check-input float-none m-0" id="shipping-{{ $s_method->code }}" type="radio" value="{{ $s_method->code }}" wire:model="shipping" aria-label="{{ $shippingTitle }}">
                         </td>
-                        <td class="align-middle"><span class="text-dark fw-medium">{{ $shippingTitle }}</span><br><span class="text-muted">{!! $shippingDescription !!}</span></td>
+                        <td class="text-center" style="width: 58px;"><span class="checkout-method-icon"><i class="fa-solid {{ $shippingIcon }}" aria-hidden="true"></i></span></td>
+                        <td class="align-middle"><label class="text-dark fw-semibold mb-1" for="shipping-{{ $s_method->code }}">{{ $shippingTitle }}</label><br><span class="text-muted">{!! $shippingDescription !!}</span></td>
                         <td class="align-middle">{{ $shippingTime }}</td>
-                        <td class="align-middle">
+                        <td class="align-middle fw-semibold text-nowrap">
                             @if ($is_free_shipping)
                                 € 0
                                 @if ($secondary_price)
@@ -309,58 +333,56 @@
         </div>
         @foreach ($shippingMethods as $s_method)
             @if ($s_method->code == 'gls_eu' && $view_comment)
-
-                <div style="height: 600px">
+                <div class="alert alert-info d-flex align-items-center mt-4 mb-3" role="status">
+                    <i class="fa-solid fa-map-location-dot fa-lg me-3" aria-hidden="true"></i>
+                    <span>{{ __('front.checkout.gls_select_help') }}</span>
+                </div>
+                <div class="rounded-3 overflow-hidden border" style="height: 600px">
                     <gls-dpm country="hr" id="test-map" filter-type="parcel-locker"></gls-dpm>
                 </div>
-
-
                 <input class="form-control mt-2" type="text" id="comment"  wire:model="comment" placeholder="" readonly required>
-
-                @error('comment')             <script>location.reload();</script>         @enderror
                 @error('comment') <small class="text-danger">{{ __('front.checkout.gls_required') }}</small>
-
                 @enderror
-
-
             @endif
-
-
-
         @endforeach
-        @error('shipping') <small class="text-danger">{{ __('front.checkout.shipping_required') }}</small> @enderror
-        <div class=" d-flex pt-4 mt-3">
-            <div class="w-50 pe-3"><button class="btn btn-secondary d-block w-100" wire:click="changeStep('podaci')" type="button"><i class="fa-solid fa-arrow-left mt-sm-0 me-1"></i><span class="d-none d-sm-inline">{{ __('front.checkout.back_to_details') }}</span><span class="d-inline d-sm-none">{{ __('front.checkout.back') }}</span></button></div>
-            <div class="w-50 ps-2"><button class="btn btn-primary d-block w-100" wire:click="changeStep('placanje')" type="button"><span class="d-none d-sm-inline">{{ __('front.checkout.choose_payment') }}</span><span class="d-inline d-sm-none">{{ __('front.checkout.continue') }}</span><i class="fa-solid fa-arrow-right mt-sm-0 ms-1"></i></button></div>
+        @error('shipping') <div class="alert alert-danger mt-3 mb-0"><i class="fa-solid fa-circle-exclamation me-2" aria-hidden="true"></i>{{ __('front.checkout.shipping_required') }}</div> @enderror
+        <div class="checkout-actions d-flex gap-3 pt-4 mt-4 border-top">
+            <button class="btn btn-secondary flex-fill" wire:click="changeStep('podaci')" type="button"><i class="fa-solid fa-arrow-left me-2" aria-hidden="true"></i><span class="d-none d-sm-inline">{{ __('front.checkout.back_to_details') }}</span><span class="d-inline d-sm-none">{{ __('front.checkout.back') }}</span></button>
+            <button class="btn btn-primary flex-fill" wire:click="changeStep('placanje')" type="button"><span class="d-none d-sm-inline">{{ __('front.checkout.choose_payment') }}</span><span class="d-inline d-sm-none">{{ __('front.checkout.continue') }}</span><i class="fa-solid fa-arrow-right ms-2" aria-hidden="true"></i></button>
         </div>
     @endif
 
 
     @if ($step == 'placanje')
-        <h2 class="h6 pt-1 pb-3 mb-3 ">{{ __('front.checkout.select_payment') }}</h2>
+        <div class="checkout-section-heading d-flex align-items-center gap-3 pb-3 mb-4 border-bottom">
+            <span class="checkout-heading-icon"><i class="fa-solid fa-credit-card" aria-hidden="true"></i></span>
+            <div>
+                <h2 class="h5 mb-1">{{ __('front.checkout.select_payment') }}</h2>
+                <p class="text-muted fs-sm mb-0">{{ __('front.checkout.payment_intro') }}</p>
+            </div>
+        </div>
         <div class="table-responsive">
-            <table class="table table-hover fs-sm border-top">
+            <table class="table checkout-options-table fs-sm align-middle mb-0">
                 <tbody>
                 @foreach ($paymentMethods as $p_method)
                     @php($paymentTitle = \App\Helpers\LocaleHelper::localizedSettingField($p_method, 'title'))
                     @php($paymentDescription = \App\Helpers\LocaleHelper::localizedSettingDataField($p_method, 'short_description'))
-                    <tr wire:click="selectPayment('{{ $p_method->code }}')" style="cursor: pointer;">
-                        <td>
-                            <div class="form-check mb-2  ">
-                                <input class="form-check-input" type="radio" value="{{ $p_method->code }}" wire:model="payment">
-                                <label class="form-check-label" for="courier"></label>
-                            </div>
+                    @php($paymentIcon = in_array($p_method->code, ['bank'], true) ? 'fa-building-columns' : (in_array($p_method->code, ['cod', 'pickup'], true) ? 'fa-money-bill-wave' : (strpos($p_method->code, 'keks') !== false ? 'fa-mobile-screen-button' : 'fa-credit-card')))
+                    <tr class="checkout-option-row {{ $payment === $p_method->code ? 'is-selected' : '' }}" wire:click="selectPayment('{{ $p_method->code }}')" style="cursor: pointer;">
+                        <td class="text-center" style="width: 48px;">
+                            <input class="form-check-input float-none m-0" id="payment-{{ $p_method->code }}" type="radio" value="{{ $p_method->code }}" wire:model="payment" aria-label="{{ $paymentTitle }}">
                         </td>
-                        <td class="align-middle"><span class="text-dark fw-medium">{{ $paymentTitle }}</span><br><span class="text-muted">{{ $paymentDescription }}</span></td>
+                        <td class="text-center" style="width: 58px;"><span class="checkout-method-icon"><i class="fa-solid {{ $paymentIcon }}" aria-hidden="true"></i></span></td>
+                        <td class="align-middle py-3"><label class="text-dark fw-semibold mb-1" for="payment-{{ $p_method->code }}">{{ $paymentTitle }}</label><br><span class="text-muted">{{ $paymentDescription }}</span></td>
                     </tr>
                 @endforeach
                 </tbody>
             </table>
         </div>
-        @error('payment') <small class="text-danger">{{ __('front.checkout.payment_required') }}</small> @enderror
-        <div class=" d-flex pt-4 mt-3">
-            <div class="w-50 pe-3"><button class="btn btn-secondary d-block w-100" wire:click="changeStep('dostava')" type="button"><i class="fa-solid fa-arrow-left mt-sm-0 me-1"></i><span class="d-none d-sm-inline">{{ __('front.checkout.back_to_shipping') }}</span><span class="d-inline d-sm-none">{{ __('front.checkout.back') }}</span></button></div>
-            <div class="w-50 ps-2"><a class="btn btn-primary d-block w-100" href="{{ ($payment != '') ? \App\Helpers\LocaleHelper::route('pregled') : '#' }}"><span class="d-none d-sm-inline">{{ __('front.checkout.review_order') }}</span><span class="d-inline d-sm-none">{{ __('front.checkout.continue') }}</span><i class="fa-solid fa-arrow-right mt-sm-0 ms-1"></i></a></div>
+        @error('payment') <div class="alert alert-danger mt-3 mb-0"><i class="fa-solid fa-circle-exclamation me-2" aria-hidden="true"></i>{{ __('front.checkout.payment_required') }}</div> @enderror
+        <div class="checkout-actions d-flex gap-3 pt-4 mt-4 border-top">
+            <button class="btn btn-secondary flex-fill" wire:click="changeStep('dostava')" type="button"><i class="fa-solid fa-arrow-left me-2" aria-hidden="true"></i><span class="d-none d-sm-inline">{{ __('front.checkout.back_to_shipping') }}</span><span class="d-inline d-sm-none">{{ __('front.checkout.back') }}</span></button>
+            <a class="btn btn-primary flex-fill {{ $payment === '' ? 'disabled' : '' }}" href="{{ ($payment != '') ? \App\Helpers\LocaleHelper::route('pregled') : '#' }}" @if($payment === '') aria-disabled="true" tabindex="-1" @endif><span class="d-none d-sm-inline">{{ __('front.checkout.review_order') }}</span><span class="d-inline d-sm-none">{{ __('front.checkout.continue') }}</span><i class="fa-solid fa-arrow-right ms-2" aria-hidden="true"></i></a>
         </div>
     @endif
 
@@ -394,7 +416,8 @@
     }
 
     function focusFirstCheckoutError() {
-        const firstInvalidField = document.querySelector('.is-invalid, .invalid-feedback, small.text-danger');
+        const checkout = document.getElementById('checkout-flow');
+        const firstInvalidField = checkout ? checkout.querySelector('.is-invalid, [aria-invalid="true"], .alert-danger') : null;
 
         if (!firstInvalidField) {
             return;
@@ -410,8 +433,18 @@
         }
     }
 
+    function scrollCheckoutToTop() {
+        window.setTimeout(() => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth',
+            });
+        }, 0);
+    }
+
     document.addEventListener('DOMContentLoaded', initGlsParcelLockerMap);
     window.addEventListener('checkout-validation-failed', focusFirstCheckoutError);
+    window.addEventListener('checkout-step-changed', scrollCheckoutToTop);
 
     document.addEventListener('livewire:load', () => {
         initGlsParcelLockerMap();
@@ -428,13 +461,5 @@
 Javascript to initialize the custom element, it can be placed anywhere.
 -->
 <script type="module" src="https://map.gls-croatia.com/widget/gls-dpm.js"></script>
-
-<script>
-    $( document ).ready(function() {
-        /*$('#state-select').select2();*/
-        $('input').attr('autocomplete','off');
-    });
-</script>
-
 
 @endpush

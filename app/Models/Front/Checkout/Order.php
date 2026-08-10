@@ -230,6 +230,10 @@ class Order extends Model
             'updated_at'       => Carbon::now()
         ];
 
+        if (auth()->check()) {
+            $orderData['user_id'] = auth()->id();
+        }
+
         if (Schema::hasColumn('orders', 'locale')) {
             $orderData['locale'] = LocaleHelper::current();
         }
@@ -237,6 +241,12 @@ class Order extends Model
         $updated = \App\Models\Back\Orders\Order::where('id', $data['id'])->update($orderData);
 
         if ($updated) {
+            if (auth()->check()) {
+                OrderHistory::where('order_id', $data['id'])->update([
+                    'user_id' => auth()->id(),
+                ]);
+            }
+
             $this->updateProducts($data['id']);
             $this->updateTotal($data['id']);
 

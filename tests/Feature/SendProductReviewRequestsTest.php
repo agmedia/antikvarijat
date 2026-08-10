@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Mail\ProductReviewRequestMail;
+use App\Models\Back\Orders\Order;
+use App\Services\ProductReviewRequestService;
 use Carbon\Carbon;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -106,7 +108,39 @@ class SendProductReviewRequestsTest extends TestCase
         Mail::assertSent(ProductReviewRequestMail::class, 3);
     }
 
-    private function insertOrder(int $id, int $status, string $createdAt): void
+    public function test_each_normalized_email_address_receives_only_one_request(): void
+    {
+        Carbon::setTestNow('2026-08-09 12:00:00');
+        Mail::fake();
+        config([
+            'reviews.request_emails_enabled' => true,
+            'reviews.request_delay_days' => 30,
+            'reviews.request_max_attempts' => 3,
+        ]);
+
+        DB::table('products')->insert(['id' => 10, 'name' => 'Knjiga']);
+        $this->insertOrder(1, 1, '2026-07-10 10:00:00', 'Kupac@Example.test');
+        $this->insertOrder(2, 1, '2026-07-10 11:00:00', ' kupac@example.test ');
+        $this->insertOrder(3, 1, '2026-07-10 12:00:00', 'drugi@example.test');
+
+        $this->artisan('reviews:send-requests')->assertExitCode(0);
+
+        $this->assertSame([1, 3], DB::table('product_review_invitations')->orderBy('order_id')->pluck('order_id')->map(fn ($id) => (int) $id)->all());
+        Mail::assertSent(ProductReviewRequestMail::class, 2);
+
+        $duplicateResult = app(ProductReviewRequestService::class)->send(Order::query()->findOrFail(2));
+        $this->assertSame(ProductReviewRequestService::STATUS_SKIPPED, $duplicateResult['status']);
+        $this->assertSame('Poziv na ovu e-mail adresu već je poslan.', $duplicateResult['message']);
+        Mail::assertSent(ProductReviewRequestMail::class, 2);
+
+        $this->insertOrder(4, 1, '2026-07-10 13:00:00', 'KUPAC@example.test');
+        $this->artisan('reviews:send-requests')->assertExitCode(0);
+
+        $this->assertSame(2, DB::table('product_review_invitations')->count());
+        Mail::assertSent(ProductReviewRequestMail::class, 2);
+    }
+
+    private function insertOrder(int $id, int $status, string $createdAt, ?string $email = null): void
     {
         DB::table('orders')->insert([
             'id' => $id,
@@ -114,7 +148,7 @@ class SendProductReviewRequestsTest extends TestCase
             'order_status_id' => $status,
             'payment_fname' => 'Kupac',
             'payment_lname' => (string) $id,
-            'payment_email' => "kupac{$id}@example.test",
+            'payment_email' => $email ?: "kupac{$id}@example.test",
             'checkout_processed_at' => $createdAt,
             'created_at' => $createdAt,
             'updated_at' => $createdAt,

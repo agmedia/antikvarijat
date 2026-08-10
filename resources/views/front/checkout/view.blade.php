@@ -1,6 +1,36 @@
 
 @extends('front.layouts.app')
 
+@push('css_after')
+    @include('front.checkout.partials.progress-styles')
+    <style>
+        .checkout-review-heading-icon,
+        .checkout-review-detail-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2.35rem;
+            height: 2.35rem;
+            flex: 0 0 auto;
+            border-radius: 50%;
+            color: var(--bs-primary);
+            background: rgba(42, 98, 72, .1);
+        }
+        .checkout-review-card { color: #536058; font-size: .93rem; }
+        .checkout-review-card > .border-bottom { padding-bottom: 1.1rem !important; margin-bottom: 1.35rem !important; }
+        .checkout-review-card h2 { font-size: 1.25rem; font-weight: 600; }
+        .checkout-review-card > .border-bottom p { font-size: .86rem !important; }
+        .checkout-review-detail {
+            height: 100%;
+            border: 1px solid #e8ece9;
+            border-radius: .75rem;
+            background: #fff;
+        }
+        .checkout-review-detail-icon { width: 2rem; height: 2rem; font-size: .75rem; }
+        .checkout-review-detail h4 { font-size: .96rem; font-weight: 600; }
+    </style>
+@endpush
+
 @section('content')
 
 <div class="page-title-overlap bg-accent pt-4"  style="background-image: url({{ asset('media/img/farmer.png')  }});background-repeat: repeat">
@@ -15,87 +45,87 @@
             </nav>
         </div>
         <div class="order-lg-1 pe-lg-4 text-center text-lg-start">
-            <h1 class="h3 text-dark mb-0">{{ __('front.checkout.payment_method') }}</h1>
+            <h1 class="h3 checkout-page-heading text-dark mb-0">{{ __('front.checkout.confirm_order') }}</h1>
         </div>
     </div>
 </div>
 
-<div class="container pb-5 mb-2 mb-md-4">
+<div class="container checkout-page pb-5 mb-2 mb-md-4">
     <div class="row">
         <section class="col-lg-8">
 
-            <div class="steps steps-dark pt-2 pb-3 mb-5">
+            <nav class="checkout-progress-shell" aria-label="{{ __('front.checkout.checkout') }}">
+            <div class="steps steps-dark checkout-steps checkout-review-steps">
                 <a class="step-item active" href="{{ \App\Helpers\LocaleHelper::route('kosarica') }}">
                     <div class="step-progress"><span class="step-count">1</span></div>
-                    <div class="step-label"><i class="fa-regular fa-bag-shopping"></i>{{ __('front.checkout.cart') }}</div>
+                    <div class="step-label"><i class="fa-solid fa-bag-shopping" aria-hidden="true"></i>{{ __('front.checkout.cart') }}</div>
                 </a>
                 <a class="step-item active" href="{{ \App\Helpers\LocaleHelper::route('naplata', ['step' => 'podaci']) }}">
                     <div class="step-progress"><span class="step-count">2</span></div>
-                    <div class="step-label"><i class="fa-duotone fa-circle-user"></i>{{ __('front.checkout.details') }}</div>
+                    <div class="step-label"><i class="fa-solid fa-circle-user" aria-hidden="true"></i>{{ __('front.checkout.details') }}</div>
                 </a>
                 <a class="step-item active" href="{{ \App\Helpers\LocaleHelper::route('naplata', ['step' => 'dostava']) }}">
                     <div class="step-progress"><span class="step-count">3</span></div>
-                    <div class="step-label"><i class="fa-duotone fa-box"></i>{{ __('front.checkout.shipping') }}</div>
+                    <div class="step-label"><i class="fa-solid fa-box" aria-hidden="true"></i>{{ __('front.checkout.shipping') }}</div>
                 </a>
                 <a class="step-item active" href="{{ \App\Helpers\LocaleHelper::route('naplata', ['step' => 'placanje']) }}">
                     <div class="step-progress"><span class="step-count">4</span></div>
-                    <div class="step-label"><i class="fa-duotone fa-credit-card"></i>{{ __('front.checkout.payment') }}</div>
+                    <div class="step-label"><i class="fa-solid fa-credit-card" aria-hidden="true"></i>{{ __('front.checkout.payment') }}</div>
                 </a>
                 <a class="step-item current active" href="{{ \App\Helpers\LocaleHelper::route('pregled') }}">
                     <div class="step-progress"><span class="step-count">5</span></div>
-                    <div class="step-label"><i class="fa-solid fa-eye"></i>{{ __('front.checkout.review') }}</div>
+                    <div class="step-label"><i class="fa-solid fa-eye" aria-hidden="true"></i>{{ __('front.checkout.review') }}</div>
                 </a>
 
-                <a class="step-item current " href="{{ \App\Helpers\LocaleHelper::route('pregled') }}">
+                <a class="step-item" href="javascript:void(0);">
                     <div class="step-progress"><span class="step-count">6</span></div>
-                    <div class="step-label"><i class="fa-solid fa-circle-check"></i>{{ __('front.checkout.success') }}</div>
+                    <div class="step-label"><i class="fa-solid fa-circle-check" aria-hidden="true"></i>{{ __('front.checkout.success') }}</div>
                 </a>
             </div>
-            <div class="bg-white rounded-3 shadow-lg p-4">
-            <h2 class="h6 pt-1 pb-3 mb-3">{{ __('front.checkout.cart_review') }}</h2>
+            </nav>
+            <div class="checkout-review-card checkout-surface">
+            <div class="d-flex align-items-center gap-3 pb-3 mb-4 border-bottom">
+                <span class="checkout-review-heading-icon"><i class="fa-solid fa-clipboard-check" aria-hidden="true"></i></span>
+                <div>
+                    <h2 class="h5 mb-1">{{ __('front.checkout.cart_review') }}</h2>
+                    <p class="text-muted fs-sm mb-0">{{ __('front.checkout.review_intro') }}</p>
+                </div>
+            </div>
             <cart-view continueurl="{{ \App\Helpers\LocaleHelper::route('index') }}" checkouturl="{{ \App\Helpers\LocaleHelper::route('naplata') }}" buttons="false"></cart-view>
 
-            <div class="bg-secondary rounded-3 px-4 pt-4 pb-2">
-                <div class="row">
+            <div class="bg-secondary rounded-3 p-3 p-md-4 mt-3">
+                <div class="row g-3">
                     <div class="col-sm-6">
-                        <h4 class="h6">{{ __('front.checkout.payer') }}:</h4>
-                        <ul class="list-unstyled fs-sm">
-                            @if (auth()->guest())
-                                <li><span class="">{{ __('front.checkout.user') }}:&nbsp;</span>{{ $data['address']['fname'] }} {{ $data['address']['lname'] }}</li>
-                                <li><span class="">{{ __('front.checkout.address') }}:&nbsp;</span>{{ $data['address']['address'] }}, {{ $data['address']['zip'] }} {{ $data['address']['city'] }}, {{ $data['address']['state'] }}</li>
-                                <li><span class="">{{ __('front.checkout.email') }}:&nbsp;</span>{{ $data['address']['email'] }}</li>
-                            @else
-                                <li><span class="">{{ __('front.checkout.user') }}:&nbsp;</span>{{ auth()->user()->details->fname }} {{ auth()->user()->details->lname }}</li>
-                                <li><span class="">{{ __('front.checkout.address') }}:&nbsp;</span>{{ auth()->user()->details->address }}, {{ auth()->user()->details->zip }} {{ auth()->user()->details->city }}, {{ $data['address']['state'] }}</li>
-                                <li><span class="">{{ __('front.checkout.email') }}:&nbsp;</span>{{ auth()->user()->email }}</li>
-                            @endif
-                        </ul>
+                        <div class="checkout-review-detail p-3">
+                            <h4 class="h6 d-flex align-items-center mb-3"><span class="checkout-review-detail-icon me-2"><i class="fa-solid fa-user" aria-hidden="true"></i></span>{{ __('front.checkout.payer') }}</h4>
+                            <ul class="list-unstyled fs-sm mb-0">
+                                <li class="mb-1"><strong>{{ __('front.checkout.user') }}:</strong> {{ $data['address']['fname'] }} {{ $data['address']['lname'] }}</li>
+                                <li class="mb-1"><strong>{{ __('front.checkout.address') }}:</strong> {{ $data['address']['address'] }}, {{ $data['address']['zip'] }} {{ $data['address']['city'] }}, {{ $data['address']['state'] }}</li>
+                                <li><strong>{{ __('front.checkout.email') }}:</strong> {{ $data['address']['email'] }}</li>
+                            </ul>
+                        </div>
                     </div>
                     <div class="col-sm-6">
-                        <h4 class="h6">{{ __('front.checkout.deliver_to') }}:</h4>
-                        <ul class="list-unstyled fs-sm">
-                            <li><span class="">{{ __('front.checkout.user') }}:&nbsp;</span>{{ $data['address']['fname'] }} {{ $data['address']['lname'] }}</li>
-                            <li><span class="">{{ __('front.checkout.address') }}:&nbsp;</span>{{ $data['address']['address'] }}, {{ $data['address']['zip'] }} {{ $data['address']['city'] }}, {{ $data['address']['state'] }}</li>
-                            <li><span class="">{{ __('front.checkout.email') }}:&nbsp;</span>{{ $data['address']['email'] }}</li>
-                        </ul>
+                        <div class="checkout-review-detail p-3">
+                            <h4 class="h6 d-flex align-items-center mb-3"><span class="checkout-review-detail-icon me-2"><i class="fa-solid fa-location-dot" aria-hidden="true"></i></span>{{ __('front.checkout.deliver_to') }}</h4>
+                            <ul class="list-unstyled fs-sm mb-0">
+                                <li class="mb-1"><strong>{{ __('front.checkout.user') }}:</strong> {{ $data['address']['fname'] }} {{ $data['address']['lname'] }}</li>
+                                <li class="mb-1"><strong>{{ __('front.checkout.address') }}:</strong> {{ $data['address']['address'] }}, {{ $data['address']['zip'] }} {{ $data['address']['city'] }}, {{ $data['address']['state'] }}</li>
+                                <li><strong>{{ __('front.checkout.email') }}:</strong> {{ $data['address']['email'] }}</li>
+                            </ul>
+                        </div>
                     </div>
                     <div class="col-sm-6">
-                        <h4 class="h6">{{ __('front.checkout.shipping_method') }}:</h4>
-                        <ul class="list-unstyled fs-sm">
-                            <li>
-                                <span class="text-muted">{{ \App\Helpers\LocaleHelper::localizedSettingField($data['shipping'], 'title') }} </span><br>
-                                {{ \App\Helpers\LocaleHelper::localizedSettingDataField($data['shipping'], 'description') ?: \App\Helpers\LocaleHelper::localizedSettingDataField($data['shipping'], 'short_description') }}
-                            </li>
-                        </ul>
+                        <div class="checkout-review-detail p-3">
+                            <h4 class="h6 d-flex align-items-center mb-3"><span class="checkout-review-detail-icon me-2"><i class="fa-solid fa-truck-fast" aria-hidden="true"></i></span>{{ __('front.checkout.shipping_method') }}</h4>
+                            <div class="fs-sm"><strong>{{ \App\Helpers\LocaleHelper::localizedSettingField($data['shipping'], 'title') }}</strong><br><span class="text-muted">{{ \App\Helpers\LocaleHelper::localizedSettingDataField($data['shipping'], 'description') ?: \App\Helpers\LocaleHelper::localizedSettingDataField($data['shipping'], 'short_description') }}</span></div>
+                        </div>
                     </div>
                     <div class="col-sm-6">
-                        <h4 class="h6">{{ __('front.checkout.payment_method') }}:</h4>
-                        <ul class="list-unstyled fs-sm">
-                            <li>
-                                <span class="text-muted">{{ \App\Helpers\LocaleHelper::localizedSettingField($data['payment'], 'title') }} </span><br>
-                                {{ \App\Helpers\LocaleHelper::localizedSettingDataField($data['payment'], 'description') ?: \App\Helpers\LocaleHelper::localizedSettingDataField($data['payment'], 'short_description') }}
-                            </li>
-                        </ul>
+                        <div class="checkout-review-detail p-3">
+                            <h4 class="h6 d-flex align-items-center mb-3"><span class="checkout-review-detail-icon me-2"><i class="fa-solid fa-credit-card" aria-hidden="true"></i></span>{{ __('front.checkout.payment_method') }}</h4>
+                            <div class="fs-sm"><strong>{{ \App\Helpers\LocaleHelper::localizedSettingField($data['payment'], 'title') }}</strong><br><span class="text-muted">{{ \App\Helpers\LocaleHelper::localizedSettingDataField($data['payment'], 'description') ?: \App\Helpers\LocaleHelper::localizedSettingDataField($data['payment'], 'short_description') }}</span></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -143,14 +173,20 @@
 @push('js_after')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const submitButton = document.querySelector('form[name="pay"] button[type="submit"]');
             const form = document.querySelector('form[name="pay"]');
+            const submitButton = form ? form.querySelector('button[type="submit"]') : null;
+
+            window.scrollTo({ top: 0, behavior: 'auto' });
+
+            if (!form || !submitButton) {
+                return;
+            }
 
             submitButton.addEventListener('click', function(event) {
                 event.preventDefault(); // Zaustavi automatski submit forme
 
                 // PUTANJA NA BACKEND KOJA PROVJERAVA STANJE ARTIKALA
-                fetch('api/v2/cart/provjeri-stanje-artikala', {
+                fetch('{{ url('/api/v2/cart/provjeri-stanje-artikala') }}', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

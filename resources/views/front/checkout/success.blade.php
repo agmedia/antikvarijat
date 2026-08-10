@@ -16,6 +16,7 @@
         <div class="pt-5">
             <div class="card py-3 mt-sm-3">
                 <div class="card-body text-center">
+                    <i class="fa-solid fa-circle-check display-4 text-success mb-3" aria-hidden="true"></i>
                     <h2 class="h4 pb-3">{{ __('front.checkout.success_title') }}</h2>
 
                     @if($data['order']['payment_code'] == 'bank')
@@ -32,7 +33,7 @@
                         <p class="fs-sm">{{ __('front.checkout.email_confirmation') }}</p>
                     @endif
 
-                    <a class="btn btn-secondary mt-3 me-3" href="{{ \App\Helpers\LocaleHelper::route('index') }}">{{ __('front.checkout.continue_browsing') }}</a>
+                    <a class="btn btn-secondary mt-3" href="{{ \App\Helpers\LocaleHelper::route('index') }}"><i class="fa-solid fa-book-open me-2" aria-hidden="true"></i>{{ __('front.checkout.continue_browsing') }}</a>
                 </div>
             </div>
         </div>

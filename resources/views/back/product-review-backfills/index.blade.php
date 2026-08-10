@@ -34,7 +34,7 @@
         @endunless
 
         <div class="alert alert-info">
-            <strong>Automatsko pravilo ostaje netaknuto:</strong> redovno slanje i dalje uzima samo narudžbe stare točno {{ config('reviews.request_delay_days', 30) }} dana. Ovaj ekran obuhvaća tek {{ config('reviews.request_delay_days', 30) + 1 }}. dan i starije kupnje, a već poslani pozivi i već recenzirani artikli automatski se preskaču.
+            <strong>Automatsko pravilo ostaje netaknuto:</strong> redovno slanje i dalje uzima samo narudžbe stare točno {{ config('reviews.request_delay_days', 30) }} dana. Ovaj ekran obuhvaća tek {{ config('reviews.request_delay_days', 30) + 1 }}. dan i starije kupnje. Svaka e-mail adresa dobiva najviše jedan poziv; ponovljene adrese, već poslani pozivi i već recenzirani artikli automatski se preskaču.
         </div>
 
         <div class="block block-rounded">

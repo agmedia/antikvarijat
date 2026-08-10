@@ -8,12 +8,14 @@
         <div class="pt-5">
             <div class="card py-3 mt-sm-3">
                 <div class="card-body text-center">
+                    <i class="fa-solid fa-circle-exclamation display-4 text-danger mb-3" aria-hidden="true"></i>
                     <h2 class="h4 pb-3 text-danger">{{ __('front.checkout.error_title') }}</h2>
-                    <p class="fs-sm mb-2">...</p>
+                    <p class="fs-sm mb-2">{{ __('front.checkout.error_help') }}</p>
 
-                    <p class="fs-sm">{{ __('front.checkout.email_confirmation') }}</p>
-
-                    <a class="btn btn-secondary mt-3 me-3" href="{{ \App\Helpers\LocaleHelper::route('index') }}">{{ __('front.checkout.continue_browsing') }}</a>
+                    <div class="d-flex flex-wrap justify-content-center gap-2 mt-3">
+                        <a class="btn btn-primary" href="{{ \App\Helpers\LocaleHelper::route('naplata', ['step' => 'placanje']) }}"><i class="fa-solid fa-arrow-rotate-left me-2" aria-hidden="true"></i>{{ __('front.checkout.back_to_payment') }}</a>
+                        <a class="btn btn-secondary" href="{{ \App\Helpers\LocaleHelper::route('index') }}"><i class="fa-solid fa-book-open me-2" aria-hidden="true"></i>{{ __('front.checkout.continue_browsing') }}</a>
+                    </div>
 
                 </div>
             </div>
