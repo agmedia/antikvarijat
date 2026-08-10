@@ -230,6 +230,7 @@ return [
         'choose_shipping' => 'Choose shipping',
         'select_shipping' => 'Select shipping method',
         'shipping_intro' => 'Choose the option that suits you best.',
+        'shipping_saved' => 'Shipping method saved.',
         'delivery_time' => 'Delivery time',
         'price' => 'Price',
         'shipping_required' => 'Shipping method is required',
@@ -239,6 +240,7 @@ return [
         'choose_payment' => 'Choose payment',
         'select_payment' => 'Select payment method',
         'payment_intro' => 'Choose how you want to pay for this order.',
+        'payment_saved' => 'Payment method saved.',
         'payment_required' => 'Payment method is required',
         'keks_title' => 'Payment via the KEKS Pay app',
         'keks_open_app' => 'Open KEKS Pay',
@@ -664,6 +666,8 @@ return [
             'coupon_error' => 'Unfortunately, no coupon was found for that code.',
         ],
         'cart' => [
+            'title' => 'Cart',
+            'open_cart' => 'Open cart',
             'add_to_cart' => 'Add to cart',
             'notify_availability' => 'Notify me when available',
             'add_modal' => [

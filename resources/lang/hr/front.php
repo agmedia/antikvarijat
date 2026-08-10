@@ -186,6 +186,7 @@ return [
         'choose_shipping' => 'Na odabir dostave',
         'select_shipping' => 'Odaberite način dostave',
         'shipping_intro' => 'Odaberite opciju koja vam najbolje odgovara.',
+        'shipping_saved' => 'Način dostave je spremljen.',
         'delivery_time' => 'Vrijeme dostave',
         'price' => 'Cijena',
         'shipping_required' => 'Način dostave je obvezan',
@@ -195,6 +196,7 @@ return [
         'choose_payment' => 'Na odabir plaćanja',
         'select_payment' => 'Odaberite način plaćanja',
         'payment_intro' => 'Odaberite kako želite platiti ovu narudžbu.',
+        'payment_saved' => 'Način plaćanja je spremljen.',
         'payment_required' => 'Način plaćanja je obvezan',
         'keks_title' => 'Plaćanje putem KEKS Pay aplikacije',
         'keks_open_app' => 'Otvori KEKS Pay',
@@ -620,6 +622,8 @@ return [
             'coupon_error' => 'Nažalost nema kupona pod tim kodom.',
         ],
         'cart' => [
+            'title' => 'Košarica',
+            'open_cart' => 'Otvori košaricu',
             'add_to_cart' => 'Dodaj u košaricu',
             'notify_availability' => 'Obavijesti me o dostupnosti',
             'add_modal' => [

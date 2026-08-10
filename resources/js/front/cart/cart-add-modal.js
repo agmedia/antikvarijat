@@ -1,3 +1,5 @@
+import { resolveCartItemImage } from './cart-image';
+
 const DEFAULT_IMAGE = '/media/img/logo-biblos.png';
 
 const CHECK_ICON = `
@@ -78,7 +80,7 @@ function resolvePrice(cartItem) {
 }
 
 function resolveImage(cartItem) {
-    return cartItem?.associatedModel?.image || DEFAULT_IMAGE;
+    return resolveCartItemImage(cartItem, DEFAULT_IMAGE);
 }
 
 function buildModalHtml(payload) {

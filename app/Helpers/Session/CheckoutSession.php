@@ -26,6 +26,12 @@ class CheckoutSession
     }
 
 
+    public static function getAddressUserId()
+    {
+        return session(static::$session_string . '.address_user_id');
+    }
+
+
     /**
      * @return bool
      */
@@ -42,7 +48,10 @@ class CheckoutSession
      */
     public static function setAddress(array $value)
     {
-        return session([static::$session_string . '.address' => $value]);
+        return session([
+            static::$session_string . '.address' => $value,
+            static::$session_string . '.address_user_id' => auth()->id(),
+        ]);
     }
 
 
@@ -51,7 +60,10 @@ class CheckoutSession
      */
     public static function forgetAddress()
     {
-        return session()->forget(static::$session_string . '.address');
+        return session()->forget([
+            static::$session_string . '.address',
+            static::$session_string . '.address_user_id',
+        ]);
     }
 
     /*******************************************************************************

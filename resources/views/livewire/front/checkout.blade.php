@@ -183,7 +183,7 @@
                 </div>
 
                 @if ($register_account)
-                    <div class="row g-3 mt-1 pt-3 border-top">
+                    <div class="row gx-3 gy-2 checkout-toggle-content">
                         <div class="col-sm-6">
                             <label class="form-label" for="checkout-register-password">{{ __('front.checkout.password') }} <span class="text-danger">*</span></label>
                             <input class="form-control @error('registration.password') is-invalid @enderror" id="checkout-register-password" type="password" autocomplete="new-password" wire:model.defer="registration.password">
@@ -209,11 +209,10 @@
                         <label class="form-check-label fw-semibold" for="checkout-r1-invoice">
                             <i class="fa-solid fa-file-invoice me-2 text-primary" aria-hidden="true"></i>{{ __('front.checkout.need_r1') }}
                         </label>
-                        <div class="form-text">{{ __('front.checkout.need_r1_help') }}</div>
                     </div>
 
                     @if ($r1_invoice)
-                        <div class="row g-3 mt-1 pt-3 border-top">
+                        <div class="row gx-3 gy-2 checkout-toggle-content">
                             <div class="col-sm-6">
                                 <label class="form-label" for="checkout-company">{{ __('front.checkout.company') }}</label>
                                 <input class="form-control" id="checkout-company" type="text" autocomplete="organization" wire:model.defer="address.company">
@@ -290,11 +289,11 @@
                 <p class="text-muted fs-sm mb-0">{{ __('front.checkout.shipping_intro') }}</p>
             </div>
         </div>
-        <div class="table-responsive">
-            <table class="table checkout-options-table fs-sm align-middle mb-0">
+        <div class="table-responsive checkout-options-wrap">
+            <table class="table checkout-options-table checkout-shipping-table fs-sm align-middle mb-0">
                 <thead>
                 <tr>
-                    <th class="align-middle" colspan="2"></th>
+                    <th class="align-middle"></th>
                     <th class="align-middle">{{ __('front.checkout.shipping') }}</th>
                     <th class="align-middle">{{ __('front.checkout.delivery_time') }}</th>
                     <th class="align-middle">{{ __('front.checkout.price') }}</th>
@@ -307,11 +306,11 @@
                     @php($shippingTime = \App\Helpers\LocaleHelper::localizedSettingDataField($s_method, 'time'))
                     @php($shippingIcon = $s_method->code === 'pickup' ? 'fa-store' : (strpos($s_method->code, 'paketomat') !== false || strpos($s_method->code, 'box') !== false ? 'fa-box' : 'fa-truck-fast'))
                     <tr class="checkout-option-row {{ $shipping === $s_method->code ? 'is-selected' : '' }}" wire:click="selectShipping('{{ $s_method->code }}')" style="cursor: pointer;">
-                        <td class="text-center" style="width: 48px;">
-                            <input class="form-check-input float-none m-0" id="shipping-{{ $s_method->code }}" type="radio" value="{{ $s_method->code }}" wire:model="shipping" aria-label="{{ $shippingTitle }}">
+                        <td class="checkout-option-icon-cell">
+                            <input class="checkout-option-radio" id="shipping-{{ $s_method->code }}" type="radio" value="{{ $s_method->code }}" wire:model="shipping" aria-label="{{ $shippingTitle }}">
+                            <span class="checkout-method-icon"><i class="fa-solid {{ $shippingIcon }}" aria-hidden="true"></i></span>
                         </td>
-                        <td class="text-center" style="width: 58px;"><span class="checkout-method-icon"><i class="fa-solid {{ $shippingIcon }}" aria-hidden="true"></i></span></td>
-                        <td class="align-middle"><label class="text-dark fw-semibold mb-1" for="shipping-{{ $s_method->code }}">{{ $shippingTitle }}</label><br><span class="text-muted">{!! $shippingDescription !!}</span></td>
+                        <td class="align-middle"><label class="text-dark fw-semibold mb-1" for="shipping-{{ $s_method->code }}">{{ $shippingTitle }}</label><br><span class="text-muted checkout-option-description">{!! $shippingDescription !!}</span>@if (trim(strip_tags((string) $shippingTime)) !== '')<span class="checkout-option-mobile-time">{{ $shippingTime }}</span>@endif</td>
                         <td class="align-middle">{{ $shippingTime }}</td>
                         <td class="align-middle fw-semibold text-nowrap">
                             @if ($is_free_shipping)
@@ -361,18 +360,18 @@
                 <p class="text-muted fs-sm mb-0">{{ __('front.checkout.payment_intro') }}</p>
             </div>
         </div>
-        <div class="table-responsive">
-            <table class="table checkout-options-table fs-sm align-middle mb-0">
+        <div class="table-responsive checkout-options-wrap">
+            <table class="table checkout-options-table checkout-payment-table fs-sm align-middle mb-0">
                 <tbody>
                 @foreach ($paymentMethods as $p_method)
                     @php($paymentTitle = \App\Helpers\LocaleHelper::localizedSettingField($p_method, 'title'))
                     @php($paymentDescription = \App\Helpers\LocaleHelper::localizedSettingDataField($p_method, 'short_description'))
                     @php($paymentIcon = in_array($p_method->code, ['bank'], true) ? 'fa-building-columns' : (in_array($p_method->code, ['cod', 'pickup'], true) ? 'fa-money-bill-wave' : (strpos($p_method->code, 'keks') !== false ? 'fa-mobile-screen-button' : 'fa-credit-card')))
                     <tr class="checkout-option-row {{ $payment === $p_method->code ? 'is-selected' : '' }}" wire:click="selectPayment('{{ $p_method->code }}')" style="cursor: pointer;">
-                        <td class="text-center" style="width: 48px;">
-                            <input class="form-check-input float-none m-0" id="payment-{{ $p_method->code }}" type="radio" value="{{ $p_method->code }}" wire:model="payment" aria-label="{{ $paymentTitle }}">
+                        <td class="checkout-option-icon-cell">
+                            <input class="checkout-option-radio" id="payment-{{ $p_method->code }}" type="radio" value="{{ $p_method->code }}" wire:model="payment" aria-label="{{ $paymentTitle }}">
+                            <span class="checkout-method-icon"><i class="fa-solid {{ $paymentIcon }}" aria-hidden="true"></i></span>
                         </td>
-                        <td class="text-center" style="width: 58px;"><span class="checkout-method-icon"><i class="fa-solid {{ $paymentIcon }}" aria-hidden="true"></i></span></td>
                         <td class="align-middle py-3"><label class="text-dark fw-semibold mb-1" for="payment-{{ $p_method->code }}">{{ $paymentTitle }}</label><br><span class="text-muted">{{ $paymentDescription }}</span></td>
                     </tr>
                 @endforeach

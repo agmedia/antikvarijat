@@ -166,7 +166,12 @@ class Checkout extends Component
      */
     public function mount()
     {
-        if (CheckoutSession::hasAddress()) {
+        $addressUserId = CheckoutSession::getAddressUserId();
+        $addressBelongsToCurrentUser = Auth::check()
+            ? (int) $addressUserId === (int) Auth::id()
+            : $addressUserId === null;
+
+        if (CheckoutSession::hasAddress() && $addressBelongsToCurrentUser) {
             $this->setAddress(CheckoutSession::getAddress());
         } else {
             $this->setAddress();
@@ -398,7 +403,9 @@ class Checkout extends Component
         CheckoutSession::forgetPayment();
         $this->payment = '';
 
-        return redirect()->route('naplata', ['step' => 'dostava']);
+        $this->dispatchBrowserEvent('checkout-option-saved', [
+            'message' => __('front.checkout.shipping_saved'),
+        ]);
     }
 
 
@@ -412,6 +419,10 @@ class Checkout extends Component
         $this->checkPayment($payment);
 
         CheckoutSession::setPayment($payment);
+
+        $this->dispatchBrowserEvent('checkout-option-saved', [
+            'message' => __('front.checkout.payment_saved'),
+        ]);
     }
 
 

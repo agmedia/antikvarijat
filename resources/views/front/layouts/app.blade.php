@@ -404,7 +404,12 @@
 
     @yield('content')
 
-    @include('front.layouts.partials.newsletter')
+    @unless (request()->routeIs([
+        'kosarica', 'naplata', 'pregled', 'checkout', 'checkout.*',
+        'en.kosarica', 'en.naplata', 'en.pregled', 'en.checkout', 'en.checkout.*',
+    ]))
+        @include('front.layouts.partials.newsletter')
+    @endunless
 
     @include('front.layouts.partials.footer')
 

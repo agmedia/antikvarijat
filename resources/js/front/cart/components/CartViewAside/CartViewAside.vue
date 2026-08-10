@@ -17,7 +17,7 @@
                     <h2 class="widget-title text-center mb-2">{{ labels.orderSummary }}</h2>
 
                     <div class="d-flex align-items-center pb-2 border-bottom" v-for="item in $store.state.cart.items">
-                        <a class="d-block flex-shrink-0" :href="base_path + item.attributes.path"><img :src="item.associatedModel.image" :alt="item.name" width="64"></a>
+                        <a class="d-block flex-shrink-0" :href="base_path + item.attributes.path"><img :src="itemImage(item)" :alt="item.name" width="64"></a>
                         <div class="ps-2">
                             <h6 class="widget-product-title"><a :href="base_path + item.attributes.path">{{ item.name }}</a></h6>
                             <div class="widget-product-meta"><span class="text-primary me-2">{{ Object.keys(item.conditions).length ? item.associatedModel.main_special_text : item.associatedModel.main_price_text }}</span><span class="text-muted">x {{ item.quantity }}</span></div>
@@ -84,6 +84,8 @@
 </template>
 
 <script>
+import { resolveCartItemImage } from '../../cart-image';
+
 export default {
     props: {
         continueurl: String,
@@ -137,6 +139,10 @@ export default {
     },
 
     methods: {
+        itemImage(item) {
+            return resolveCartItemImage(item);
+        },
+
         /**
          *
          * @param item

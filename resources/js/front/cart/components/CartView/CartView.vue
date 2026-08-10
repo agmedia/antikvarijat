@@ -10,32 +10,32 @@
 
             <div role="alert" class="alert alert-secondary d-flex fs-sm" v-if="$store.state.cart.total > freeship && $store.state.cart.count"><div class="alert-icon"><i class="fa-duotone fa-gift" aria-hidden="true"></i></div> <div>{{ labels.freeShippingUnlocked }}</div></div>
 
-            <div class="d-flex pt-3 pb-2 mt-1">
+            <div class="cart-page-section-heading">
                 <h2 class="h6 text-dark mb-0">{{ labels.items }}</h2>
             </div>
-            <div class="d-flex pt-3 pb-2 mt-1" v-if="!$store.state.cart.count">
+            <div class="cart-page-section-heading" v-if="!$store.state.cart.count">
                 <p class="text-dark mb-0">{{ labels.emptyCart }}</p>
             </div>
 
 
 
         <!-- Item-->
-        <div class="d-sm-flex justify-content-between align-items-center my-2 pb-3 border-bottom" v-for="item in $store.state.cart.items">
-            <div class="d-block d-sm-flex align-items-center text-center text-sm-start">
-                <a class="d-inline-block flex-shrink-0 mx-auto me-sm-4" :href="base_path + item.attributes.path">
-                    <img :src="item.associatedModel.image" width="80" :alt="item.name" :title="item.name">
+        <div class="cart-page-item" v-for="item in $store.state.cart.items" :key="item.id">
+            <div class="cart-page-product">
+                <a class="cart-page-thumb" :href="base_path + item.attributes.path">
+                    <img class="cart-page-thumb-image" :src="itemImage(item)" :alt="item.name" :title="item.name">
                 </a>
-                <div class="pt-2">
-                    <h3 class="product-title fs-base mb-2"><a :href="base_path + item.attributes.path">{{ item.name }}</a></h3>
+                <div class="cart-page-product-info">
+                    <h3 class="product-title cart-page-title"><a :href="base_path + item.attributes.path">{{ item.name }}</a></h3>
 
-                    <div class="fs-lg text-accent pt-2">{{ Object.keys(item.conditions).length ? item.associatedModel.main_special_text : item.associatedModel.main_price_text }}</div>
-                    <div class="fs-lg text-accent pt-2" v-if="item.associatedModel.secondary_price">{{ Object.keys(item.conditions).length ? item.associatedModel.secondary_special_text : item.associatedModel.secondary_price_text }}</div>
+                    <div class="text-accent cart-page-price">{{ Object.keys(item.conditions).length ? item.associatedModel.main_special_text : item.associatedModel.main_price_text }}</div>
+                    <div class="text-accent cart-page-price cart-page-price-secondary" v-if="item.associatedModel.secondary_price">{{ Object.keys(item.conditions).length ? item.associatedModel.secondary_special_text : item.associatedModel.secondary_price_text }}</div>
                 </div>
             </div>
-            <div class="pt-2 pt-sm-0 ps-sm-3 mx-auto mx-sm-0 text-center text-sm-start" style="max-width: 9rem;">
-                <label class="form-label">{{ labels.quantity }}</label>
-                <input class="form-control" type="number" v-model="item.quantity" min="1" :max="item.associatedModel.quantity" @click.prevent="updateCart(item)">
-                <button class="btn btn-link px-0 text-danger" type="button" @click.prevent="removeFromCart(item)"><i class="fa-solid fa-circle-xmark me-2" aria-hidden="true"></i><span class="fs-sm">{{ labels.remove }}</span></button>
+            <div class="cart-page-controls">
+                <label class="form-label cart-page-quantity-label">{{ labels.quantity }}</label>
+                <input class="form-control cart-page-quantity" type="number" v-model="item.quantity" min="1" :max="item.associatedModel.quantity" @click.prevent="updateCart(item)">
+                <button class="btn btn-link text-danger cart-page-remove" type="button" @click.prevent="removeFromCart(item)"><i class="fa-solid fa-circle-xmark" aria-hidden="true"></i><span>{{ labels.remove }}</span></button>
             </div>
         </div>
 
@@ -47,6 +47,8 @@
 </template>
 
 <script>
+    import { resolveCartItemImage } from '../../cart-image';
+
     export default {
         props: {
             continueurl: String,
@@ -109,6 +111,10 @@
         },
 
         methods: {
+
+            itemImage(item) {
+                return resolveCartItemImage(item);
+            },
 
             /**
              *
@@ -195,5 +201,117 @@
 .mobile-prices {
     font-size: .66rem;
     color: #999999;
+}
+.cart-page-section-heading {
+    display: flex;
+    padding: .8rem 0 .35rem;
+}
+.cart-page-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 1.25rem;
+    min-width: 0;
+    padding: .65rem 0;
+    border-bottom: 1px solid #eee4c9;
+}
+.cart-page-product {
+    display: grid;
+    grid-template-columns: 3.75rem minmax(0, 1fr);
+    align-items: center;
+    gap: .85rem;
+    min-width: 0;
+}
+.cart-page-thumb {
+    display: flex;
+    width: 3.75rem;
+    height: 4.25rem;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: .2rem;
+    background: #f6f4ee;
+}
+.cart-page-thumb-image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+.cart-page-product-info {
+    min-width: 0;
+}
+.cart-page-title {
+    margin: 0 0 .3rem;
+    overflow: hidden;
+    font-size: .98rem;
+    line-height: 1.3;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.cart-page-price {
+    padding: 0;
+    font-size: .98rem;
+    line-height: 1.25;
+}
+.cart-page-price-secondary {
+    margin-top: .15rem;
+    color: #7d879c !important;
+    font-size: .75rem;
+}
+.cart-page-controls {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: .55rem;
+}
+.cart-page-quantity-label {
+    margin: 0;
+    font-size: .78rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.cart-page-quantity {
+    width: 4.25rem;
+    height: 2.35rem;
+    padding: .35rem .55rem;
+}
+.cart-page-remove {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    margin: 0;
+    padding: .35rem .2rem;
+    font-size: .82rem;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+@media (max-width: 575.98px) {
+    .cart-page-section-heading {
+        padding-top: .65rem;
+    }
+    .cart-page-item {
+        grid-template-columns: minmax(0, 1fr);
+        gap: .5rem;
+        padding: .7rem 0;
+    }
+    .cart-page-product {
+        grid-template-columns: 3.5rem minmax(0, 1fr);
+        gap: .75rem;
+    }
+    .cart-page-thumb {
+        width: 3.5rem;
+        height: 4rem;
+    }
+    .cart-page-title {
+        display: -webkit-box;
+        white-space: normal;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+    }
+    .cart-page-controls {
+        justify-content: flex-start;
+        padding-left: 4.25rem;
+    }
 }
 </style>

@@ -33,6 +33,66 @@ class AuthenticationTest extends TestCase
         $response->assertRedirect(RouteServiceProvider::HOME);
     }
 
+    public function test_customer_login_from_checkout_returns_to_the_same_checkout_url()
+    {
+        $user = User::factory()->create();
+
+        $response = $this
+            ->withSession([
+                'checkout.address' => ['fname' => '', 'lname' => '', 'email' => ''],
+            ])
+            ->post('/login', [
+                'email' => $user->email,
+                'password' => 'password',
+                '_redirect_to' => '/naplata?step=podaci',
+            ]);
+
+        $this->assertAuthenticatedAs($user);
+        $response->assertRedirect('/naplata?step=podaci');
+    }
+
+    public function test_login_ignores_non_checkout_redirects()
+    {
+        $user = User::factory()->create();
+
+        $response = $this->post('/login', [
+            'email' => $user->email,
+            'password' => 'password',
+            '_redirect_to' => '//example.com/account',
+        ]);
+
+        $this->assertAuthenticatedAs($user);
+        $response->assertRedirect(RouteServiceProvider::HOME);
+    }
+
+    public function test_two_factor_customer_login_from_checkout_returns_to_checkout()
+    {
+        $user = User::factory()->create();
+        $user->forceFill([
+            'two_factor_secret' => encrypt('test-secret'),
+            'two_factor_recovery_codes' => encrypt(json_encode(['recovery-code'])),
+        ])->save();
+
+        $loginResponse = $this
+            ->withSession([
+                'checkout.address' => ['fname' => '', 'lname' => '', 'email' => ''],
+            ])
+            ->post('/login', [
+                'email' => $user->email,
+                'password' => 'password',
+                '_redirect_to' => '/naplata?step=podaci',
+            ]);
+
+        $loginResponse->assertRedirect(route('two-factor.login'));
+
+        $response = $this->post('/two-factor-challenge', [
+            'recovery_code' => 'recovery-code',
+        ]);
+
+        $this->assertAuthenticatedAs($user);
+        $response->assertRedirect('/naplata?step=podaci');
+    }
+
     public function test_administrator_login_ignores_frontend_intended_url()
     {
         $admin = $this->createAdministrator();

@@ -4,10 +4,58 @@ namespace Tests\Feature;
 
 use App\Helpers\Session\CheckoutSession;
 use App\Http\Livewire\Front\Checkout;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class CheckoutAddressAutofillTest extends TestCase
 {
+    use RefreshDatabase;
+
+    public function test_authenticated_checkout_replaces_a_guest_address_with_profile_data(): void
+    {
+        $user = User::factory()->create();
+        $user->details()->create([
+            'fname' => 'Ana',
+            'lname' => 'Anić',
+            'phone' => '0912345678',
+            'address' => 'Ilica 1',
+            'city' => 'Zagreb',
+            'zip' => '10000',
+            'state' => 'Croatia',
+            'company' => '',
+            'oib' => '',
+            'role' => 'customer',
+            'status' => true,
+        ]);
+
+        session([
+            'checkout.address' => [
+                'fname' => '',
+                'lname' => '',
+                'email' => '',
+                'phone' => '',
+                'address' => '',
+                'city' => '',
+                'zip' => '',
+                'state' => 'Croatia',
+                'company' => '',
+                'oib' => '',
+            ],
+        ]);
+
+        $this->actingAs($user);
+
+        $checkout = new Checkout();
+        $checkout->mount();
+
+        $this->assertSame('Ana', $checkout->address['fname']);
+        $this->assertSame('Anić', $checkout->address['lname']);
+        $this->assertSame($user->email, $checkout->address['email']);
+        $this->assertSame('Ilica 1', $checkout->address['address']);
+        $this->assertSame($user->id, CheckoutSession::getAddressUserId());
+    }
+
     public function test_entering_postal_code_fills_the_city_and_session(): void
     {
         $checkout = new Checkout();

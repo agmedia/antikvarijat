@@ -3,6 +3,11 @@
         $authForm = old('_auth_form', 'signin');
         $hasAuthErrors = old('_auth_form') && $errors->any();
         $loginOpen = $authForm !== 'signup';
+        $checkoutRouteNames = [
+            'kosarica', 'naplata', 'pregled', 'checkout', 'checkout.*',
+            'en.kosarica', 'en.naplata', 'en.pregled', 'en.checkout', 'en.checkout.*',
+        ];
+        $checkoutReturnUrl = request()->routeIs($checkoutRouteNames) ? request()->getRequestUri() : null;
     @endphp
     <div class="modal fade account-auth-modal" id="signin-modal" tabindex="-1" aria-label="{{ __('front.auth.account_access') }}" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
@@ -29,6 +34,9 @@
                     <form method="POST" class="needs-validation tab-pane fade {{ $loginOpen ? 'show active' : '' }}" action="{{ route('login') }}" autocomplete="on" novalidate id="signin-tab" role="tabpanel" aria-labelledby="pills-signin-tab">
                         @csrf
                         <input type="hidden" name="_auth_form" value="signin">
+                        @if ($checkoutReturnUrl)
+                            <input type="hidden" name="_redirect_to" value="{{ $checkoutReturnUrl }}">
+                        @endif
 
                         @if (session('status'))
                             <div class="alert alert-success py-2 px-3" role="status">{{ session('status') }}</div>
