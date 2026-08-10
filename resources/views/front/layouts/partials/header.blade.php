@@ -5,18 +5,23 @@
             @php
                 $isEnglish = app()->getLocale() === \App\Helpers\LocaleHelper::ENGLISH_LOCALE;
                 $languageSwitcherUrls = $languageSwitcherUrls ?? \App\Helpers\LocaleHelper::languageSwitcherUrls();
+                $isCatalogRoute = request()->routeIs('catalog.route', 'en.catalog.route');
+                $activeCatalogGroup = request()->route('group') ?? ($group ?? null);
+                $isBooksActive = $isCatalogRoute && in_array($activeCatalogGroup, ['knjige', 'books'], true);
+                $isMapsActive = $isCatalogRoute && in_array($activeCatalogGroup, ['zemljovidi-i-vedute', 'maps-and-views'], true);
+                $initialMobileNavigationView = $isBooksActive ? 'books' : ($isMapsActive ? 'maps' : 'main');
             @endphp
 
             <!-- Logo -->
-            <a class="navbar-brand d-none d-sm-block flex-shrink-0 me-3 p-0" href="{{ \App\Helpers\LocaleHelper::route('index') }}">
+            <a class="navbar-brand d-none d-lg-block flex-shrink-0 me-3 p-0" href="{{ \App\Helpers\LocaleHelper::route('index') }}">
                 <img src="{{ asset('media/img/logodark.svg') }}" width="180" height="76" alt="Antikvarijat Biblos">
             </a>
-            <a class="navbar-brand d-sm-none me-2 p-0 front-header-logo-mobile" href="{{ \App\Helpers\LocaleHelper::route('index') }}">
-                <img src="{{ asset('media/img/logodark.svg') }}" width="140" alt="Antikvarijat Biblos">
+            <a class="navbar-brand d-lg-none me-2 p-0 front-header-logo-mobile" href="{{ \App\Helpers\LocaleHelper::route('index') }}">
+                <img src="{{ asset('media/img/logobijeli.svg') }}" width="140" alt="Antikvarijat Biblos">
             </a>
 
             <!-- VIDLJIV SEARCH (desktop) -->
-            <form action="{{ \App\Helpers\LocaleHelper::route('pretrazi') }}" id="search-form-first" method="get" class="d-none d-lg-flex flex-nowrap mx-3 mx-lg-5 flex-grow-1"  role="search">
+            <form action="{{ \App\Helpers\LocaleHelper::route('pretrazi') }}" id="search-form-first" method="get" class="front-search-form d-none d-lg-flex flex-nowrap mx-3 mx-lg-5 flex-grow-1" role="search" data-autosuggest-form>
 
                 <div class="dropdown w-100">
                 <div class="input-group ">
@@ -24,26 +29,16 @@
                     <input class="form-control rounded-start ps-5" type="text"
                            name="{{ config('settings.search_keyword') }}"
                            value="{{ request()->query('pojam') ?: '' }}"
-                           placeholder="{{ __('front.search.placeholder') }}" id="search_box" data-toggle="dropdown" aria-haspopup="true" autocomplete="off" aria-expanded="false" onkeyup="javascript:load_data(this.value)">
-                    <button type="submit" class="btn btn-primary btn-lg fs-base"><i class="fa-solid fa-magnifying-glass"></i></button>
+                           placeholder="{{ __('front.search.placeholder') }}" id="search_box" autocomplete="off" aria-autocomplete="list" aria-controls="search_result" aria-expanded="false" data-autosuggest-input data-results-id="search_result">
+                    <button type="submit" class="btn btn-primary btn-lg fs-base" aria-label="{{ __('front.search.search') }}"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i></button>
                 </div>
-                <div id="search_result" class="live-search"></div>
+                <div id="search_result" class="live-search" role="listbox"></div>
                 </div>
             </form>
 
-           {{--  <form action="{{ route('pretrazi') }}" id="search-form-first" class="w-100 d-none d-lg-flex flex-nowrap mx-4" method="get">
-                <div class="dropdown w-100">
-                    <div class="input-group "><i class="fa-solid fa-magnifying-glass position-absolute top-50 start-0 translate-middle-y ms-3"></i>
-                        <input class="form-control rounded-start w-100" type="text" name="{{ config('settings.search_keyword') }}" value="{{ request()->query('pojam') ?: '' }}" placeholder="Search books" id="search_box" data-toggle="dropdown" aria-haspopup="true" autocomplete="off" aria-expanded="false" onkeyup="javascript:load_data(this.value)">
-                    </div>
-
-                    <div id="search_result" class="live-search"></div>
-                </div>
-            </form>--}}
-
             <!-- Toolbar -->
             <div class="navbar-toolbar d-flex align-items-center front-header-toolbar">
-                <button class="navbar-toggler front-header-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapseMain">
+                <button class="navbar-toggler front-header-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileNavigation" aria-controls="mobileNavigation" aria-label="{{ __('front.nav.menu') }}">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
@@ -59,20 +54,17 @@
                     </button>
                 @endauth
 
-                <div class="dropdown ms-3 front-header-language">
-                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle front-language-toggle" type="button" data-bs-toggle="dropdown">
-                        {{ strtoupper(app()->getLocale()) }}
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        @foreach ($languageSwitcherUrls as $language)
-                            <li>
-                                <a class="dropdown-item{{ $language['active'] ? ' active' : '' }}" href="{{ $language['url'] }}">
-                                    {{ $language['name'] }}
-                                </a>
-                            </li>
-                        @endforeach
-                    </ul>
-                </div>
+                <nav class="front-language-switch d-none d-lg-inline-flex" aria-label="{{ __('front.nav.language') }}">
+                    @foreach ($languageSwitcherUrls as $language)
+                        <a
+                            class="front-language-switch__option{{ $language['active'] ? ' is-active' : '' }}"
+                            href="{{ $language['url'] }}"
+                            lang="{{ $language['locale'] }}"
+                            title="{{ $language['name'] }}"
+                            @if($language['active']) aria-current="page" @endif
+                        >{{ strtoupper($language['locale']) }}</a>
+                    @endforeach
+                </nav>
 
                 <div class="ms-3 front-header-cart">
                     <cart-nav-icon carturl="{{ \App\Helpers\LocaleHelper::route('kosarica') }}" checkouturl="{{ \App\Helpers\LocaleHelper::route('naplata') }}"></cart-nav-icon>
@@ -82,77 +74,152 @@
         </div>
     </div>
 
-    <!-- DONJI RED: NAVIGACIJA (ispod searcha) -->
-    <div class="navbar navbar-expand-lg navbar-dark bg-dark navbar-xs-light bg-xs-light navbar-stuck-menu mt-0 pt-0 pb-0 ">
+    <!-- Stalno vidljiva mobilna pretraga -->
+    <div class="mobile-header-search d-lg-none">
         <div class="container">
-            <div class="collapse navbar-collapse w-100" id="navbarCollapseMain">
+            <form action="{{ \App\Helpers\LocaleHelper::route('pretrazi') }}" id="search-form-mobile" method="get" class="mobile-header-search-form" role="search" data-autosuggest-form>
+                <label class="visually-hidden" for="mobile_search_box">{{ __('front.search.placeholder') }}</label>
+                <div class="mobile-header-search-field">
+                    <input id="mobile_search_box" type="search"
+                           name="{{ config('settings.search_keyword') }}"
+                           value="{{ request()->query('pojam') ?: '' }}"
+                           placeholder="{{ __('front.search.placeholder') }}"
+                           autocomplete="off" aria-autocomplete="list" aria-controls="mobile_search_result" aria-expanded="false" data-autosuggest-input data-results-id="mobile_search_result">
+                    <button class="mobile-search-close" type="button" aria-label="{{ __('front.search.close') }}" data-mobile-search-close>
+                        <i class="fa-regular fa-xmark" aria-hidden="true"></i>
+                    </button>
+                    <button type="submit" aria-label="{{ __('front.search.search') }}">
+                        <i class="fa-regular fa-magnifying-glass" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <div id="mobile_search_result" class="live-search mobile-search-results" role="listbox"></div>
+            </form>
+        </div>
+    </div>
 
-                <!-- Mobile search (ostaje za mobitel) -->
-                <form action="{{ \App\Helpers\LocaleHelper::route('pretrazi') }}" id="search-form-mobile" method="get" class="w-100 d-lg-none my-3">
-                    <div class="input-group">
-                        <i class="fa-solid fa-magnifying-glass position-absolute top-50 start-0 translate-middle-y text-muted fs-base ms-3"></i>
-                        <input class="form-control rounded-start ps-5" type="text"
-                               name="{{ config('settings.search_keyword') }}"
-                               value="{{ request()->query('pojam') ?: '' }}"
-                               placeholder="{{ __('front.search.placeholder') }}">
-                        <button type="submit" class="btn btn-primary btn-lg fs-base"><i class="fa-solid fa-magnifying-glass"></i></button>
-                    </div>
-                </form>
-
-                <!-- Linkovi -->
+    <!-- Desktop navigacija -->
+    <div class="navbar navbar-expand-lg navbar-dark bg-dark navbar-stuck-menu d-none d-lg-flex mt-0 pt-0 pb-0">
+        <div class="container">
+            <div class="navbar-collapse w-100">
                 <ul class="navbar-nav pe-lg-2 me-lg-2 w-100">
-                    <!-- Knjige -->
-                    <li class="nav-item d-none d-lg-block">
+                    <li class="nav-item">
                         <a class="nav-link" href="{{ \App\Helpers\LocaleHelper::route('catalog.route', ['group' => 'knjige']) }}">
                             <i class="fa-regular fa-books d-none d-xl-inline-block align-middle me-1 icon-gold" aria-hidden="true"></i>
                             {{ __('front.nav.books') }}
                         </a>
                     </li>
-                    <li class="nav-item d-lg-none dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
-                            <i class="fa-regular fa-books d-none d-xl-inline-block align-middle me-1 icon-gold" aria-hidden="true"></i>
-                            {{ __('front.nav.books') }}
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ \App\Helpers\LocaleHelper::route('catalog.route', ['group' => 'knjige']) }}">{{ __('front.nav.all_books') }}</a></li>
-                            @foreach($knjige as $navitem)
-                                <li><a class="dropdown-item" href="{{ \App\Helpers\LocaleHelper::categoryUrl($navitem) }}">{{ $navitem->title }}</a></li>
-                            @endforeach
-                        </ul>
-                    </li>
-
-                    <!-- Zemljovidi i vedute -->
-                    <li class="nav-item d-none d-lg-block">
+                    <li class="nav-item">
                         <a class="nav-link" href="{{ \App\Helpers\LocaleHelper::route('catalog.route', ['group' => 'zemljovidi-i-vedute']) }}">
                             <i class="fa-regular fa-map d-none d-xl-inline-block align-middle me-1 icon-gold" aria-hidden="true"></i>{{ __('front.nav.maps_and_vedute') }}
                         </a>
                     </li>
-                    <li class="nav-item d-lg-none dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
-                            <i class="fa-regular fa-map d-none d-xl-inline-block align-middle me-1 icon-gold" aria-hidden="true"></i>{{ __('front.nav.maps_and_vedute') }}
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ \App\Helpers\LocaleHelper::route('catalog.route', ['group' => 'zemljovidi-i-vedute']) }}">{{ __('front.nav.all_maps_and_vedute') }}</a></li>
-                            @foreach($zemljovidi_vedute as $nav_item)
-                                <li><a class="dropdown-item" href="{{ \App\Helpers\LocaleHelper::categoryUrl($nav_item) }}">{{ $nav_item->title }}</a></li>
-                            @endforeach
-                        </ul>
-                    </li>
-
-                    <!-- Ostalo -->
                     <li class="nav-item"><a class="nav-link" href="{{ \App\Helpers\LocaleHelper::route('catalog.route.author') }}"><i class="fa-regular fa-user d-none d-xl-inline-block align-middle me-1 icon-gold" aria-hidden="true"></i>{{ __('front.nav.authors') }}</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ \App\Helpers\LocaleHelper::route('catalog.route.publisher') }}"><i class="fa-regular fa-building d-none d-xl-inline-block align-middle me-1 icon-gold" aria-hidden="true"></i>{{ __('front.nav.publishers') }}</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ \App\Helpers\LocaleHelper::route('catalog.route.blog') }}"><i class="fa-regular fa-newspaper d-none d-xl-inline-block align-middle me-1 icon-gold" aria-hidden="true"></i>{{ __('front.nav.blog') }}</a></li>
-
-                    <!-- Mobile-only dodatni linkovi -->
                     <li class="nav-item ms-lg-auto"><a class="nav-link" href="{{ \App\Helpers\LocaleHelper::route('catalog.route.page',['page' => 'o-nama']) }}"><i class="fa-regular fa-circle-info d-none d-xl-inline-block align-middle me-1 icon-gold" aria-hidden="true"></i>{{ __('front.nav.about_us') }}</a></li>
-                    <li class="nav-item d-lg-none"><a class="nav-link" href="{{ \App\Helpers\LocaleHelper::route('catalog.route.blog') }}">{{ __('front.nav.media') }}</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ \App\Helpers\LocaleHelper::route('otkup.knjiga') }}"><i class="fa-regular fa-book-open d-none d-xl-inline-block align-middle me-1 icon-gold" aria-hidden="true"></i>{{ __('front.nav.book_purchase') }}</a></li>
                     <li class="nav-item "><a class="nav-link" href="{{ \App\Helpers\LocaleHelper::route('faq') }}"><i class="fa-regular fa-circle-question d-none d-xl-inline-block align-middle me-1 icon-gold" aria-hidden="true"></i>{{ __('front.nav.faq') }}</a></li>
                     <li class="nav-item "><a class="nav-link" href="{{ \App\Helpers\LocaleHelper::route('kontakt') }}"><i class="fa-regular fa-envelope d-none d-xl-inline-block align-middle me-1 icon-gold" aria-hidden="true"></i>{{ __('front.nav.contact') }}</a></li>
                 </ul>
-
             </div>
+        </div>
+    </div>
+
+    <!-- Mobilna navigacija -->
+    <div class="offcanvas mobile-navigation d-lg-none" tabindex="-1" id="mobileNavigation" aria-label="{{ __('front.nav.menu') }}">
+        <div class="mobile-navigation-shell" data-active-view="{{ $initialMobileNavigationView }}" data-initial-view="{{ $initialMobileNavigationView }}">
+            <section class="mobile-navigation-view{{ $initialMobileNavigationView === 'main' ? ' is-active' : '' }}" data-mobile-nav-view="main" aria-hidden="{{ $initialMobileNavigationView === 'main' ? 'false' : 'true' }}">
+                <div class="mobile-navigation-header">
+                    <a class="mobile-navigation-brand" href="{{ \App\Helpers\LocaleHelper::route('index') }}" aria-label="Antikvarijat Biblos">
+                        <img src="{{ asset('media/img/logobijeli.svg') }}" width="112" alt="">
+                    </a>
+                    <div class="mobile-navigation-header-actions">
+                        <div class="mobile-language-top" aria-label="{{ __('front.nav.language') }}">
+                            @foreach ($languageSwitcherUrls as $language)
+                                <a class="{{ $language['active'] ? 'is-active' : '' }}" href="{{ $language['url'] }}" @if($language['active']) aria-current="page" @endif>{{ strtoupper($language['locale']) }}</a>
+                            @endforeach
+                        </div>
+                        <button class="mobile-navigation-close" type="button" data-bs-dismiss="offcanvas" aria-label="{{ __('front.nav.close_menu') }}">
+                            <i class="fa-regular fa-xmark" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mobile-navigation-scroll">
+                    <nav aria-label="{{ __('front.nav.menu') }}">
+                        <ul class="mobile-menu-list">
+                            <li><button class="{{ $isBooksActive ? 'is-active' : '' }}" type="button" data-mobile-nav-open="books" aria-controls="mobileNavigationBooks"><span class="mobile-menu-icon"><i class="fa-regular fa-books" aria-hidden="true"></i></span><span>{{ __('front.nav.books') }}</span><i class="fa-regular fa-chevron-right" aria-hidden="true"></i></button></li>
+                            <li><button class="{{ $isMapsActive ? 'is-active' : '' }}" type="button" data-mobile-nav-open="maps" aria-controls="mobileNavigationMaps"><span class="mobile-menu-icon"><i class="fa-regular fa-map" aria-hidden="true"></i></span><span>{{ __('front.nav.maps_and_vedute') }}</span><i class="fa-regular fa-chevron-right" aria-hidden="true"></i></button></li>
+                            <li class="mobile-menu-separator" role="separator"></li>
+                            <li><a class="{{ request()->routeIs('catalog.route.author', 'en.catalog.route.author') ? 'is-active' : '' }}" href="{{ \App\Helpers\LocaleHelper::route('catalog.route.author') }}"><span class="mobile-menu-icon"><i class="fa-regular fa-user-pen" aria-hidden="true"></i></span><span>{{ __('front.nav.authors') }}</span><i class="fa-regular fa-chevron-right" aria-hidden="true"></i></a></li>
+                            <li><a class="{{ request()->routeIs('catalog.route.publisher', 'en.catalog.route.publisher') ? 'is-active' : '' }}" href="{{ \App\Helpers\LocaleHelper::route('catalog.route.publisher') }}"><span class="mobile-menu-icon"><i class="fa-regular fa-building" aria-hidden="true"></i></span><span>{{ __('front.nav.publishers') }}</span><i class="fa-regular fa-chevron-right" aria-hidden="true"></i></a></li>
+                            <li><a class="{{ request()->routeIs('catalog.route.blog', 'en.catalog.route.blog') ? 'is-active' : '' }}" href="{{ \App\Helpers\LocaleHelper::route('catalog.route.blog') }}"><span class="mobile-menu-icon"><i class="fa-regular fa-newspaper" aria-hidden="true"></i></span><span>{{ __('front.nav.blog') }}</span><i class="fa-regular fa-chevron-right" aria-hidden="true"></i></a></li>
+                            <li class="mobile-menu-separator" role="separator"></li>
+                            <li><a href="{{ \App\Helpers\LocaleHelper::route('catalog.route.page',['page' => 'o-nama']) }}"><span class="mobile-menu-icon"><i class="fa-regular fa-circle-info" aria-hidden="true"></i></span><span>{{ __('front.nav.about_us') }}</span><i class="fa-regular fa-chevron-right" aria-hidden="true"></i></a></li>
+                            <li><a class="{{ request()->routeIs('otkup.knjiga', 'en.otkup.knjiga') ? 'is-active' : '' }}" href="{{ \App\Helpers\LocaleHelper::route('otkup.knjiga') }}"><span class="mobile-menu-icon"><i class="fa-regular fa-book-open" aria-hidden="true"></i></span><span>{{ __('front.nav.book_purchase') }}</span><i class="fa-regular fa-chevron-right" aria-hidden="true"></i></a></li>
+                            <li><a class="{{ request()->routeIs('faq', 'en.faq') ? 'is-active' : '' }}" href="{{ \App\Helpers\LocaleHelper::route('faq') }}"><span class="mobile-menu-icon"><i class="fa-regular fa-circle-question" aria-hidden="true"></i></span><span>{{ __('front.nav.faq') }}</span><i class="fa-regular fa-chevron-right" aria-hidden="true"></i></a></li>
+                            <li><a class="{{ request()->routeIs('kontakt', 'en.kontakt') ? 'is-active' : '' }}" href="{{ \App\Helpers\LocaleHelper::route('kontakt') }}"><span class="mobile-menu-icon"><i class="fa-regular fa-envelope" aria-hidden="true"></i></span><span>{{ __('front.nav.contact') }}</span><i class="fa-regular fa-chevron-right" aria-hidden="true"></i></a></li>
+                        </ul>
+                    </nav>
+
+                </div>
+            </section>
+
+            <section class="mobile-navigation-view{{ $initialMobileNavigationView === 'books' ? ' is-active' : '' }}" id="mobileNavigationBooks" data-mobile-nav-view="books" aria-hidden="{{ $initialMobileNavigationView === 'books' ? 'false' : 'true' }}">
+                <div class="mobile-navigation-header mobile-navigation-subheader">
+                    <button class="mobile-navigation-back" type="button" data-mobile-nav-back>
+                        <i class="fa-regular fa-arrow-left" aria-hidden="true"></i><span>{{ __('front.nav.back') }}</span>
+                    </button>
+                    <h2>{{ __('front.nav.books') }}</h2>
+                    <button class="mobile-navigation-close" type="button" data-bs-dismiss="offcanvas" aria-label="{{ __('front.nav.close_menu') }}"><i class="fa-regular fa-xmark" aria-hidden="true"></i></button>
+                </div>
+                <div class="mobile-navigation-scroll mobile-category-view">
+                    <label class="mobile-category-filter">
+                        <i class="fa-regular fa-magnifying-glass" aria-hidden="true"></i>
+                        <span class="visually-hidden">{{ __('front.nav.filter_categories') }}</span>
+                        <input type="search" placeholder="{{ __('front.nav.filter_categories') }}" autocomplete="off" data-mobile-category-filter="mobileBookCategoryList">
+                    </label>
+                    <a class="mobile-category-all" href="{{ \App\Helpers\LocaleHelper::route('catalog.route', ['group' => 'knjige']) }}"><span class="mobile-menu-icon"><i class="fa-regular fa-books" aria-hidden="true"></i></span><span>{{ __('front.nav.all_books') }}</span><i class="fa-regular fa-chevron-right" aria-hidden="true"></i></a>
+                    <ul class="mobile-category-list" id="mobileBookCategoryList">
+                        @foreach($knjige as $navitem)
+                            @php
+                                $categoryUrl = rtrim(\App\Helpers\LocaleHelper::categoryUrl($navitem), '/');
+                                $isCurrentCategory = request()->url() === $categoryUrl || \Illuminate\Support\Str::startsWith(request()->url(), $categoryUrl . '/');
+                            @endphp
+                            <li><a class="{{ $isCurrentCategory ? 'is-active' : '' }}" href="{{ $categoryUrl }}" @if($isCurrentCategory) aria-current="page" @endif><span>{{ $navitem->title }}</span><i class="fa-regular fa-chevron-right" aria-hidden="true"></i></a></li>
+                        @endforeach
+                    </ul>
+                    <p class="mobile-category-empty" data-mobile-category-empty hidden>{{ __('front.nav.no_categories') }}</p>
+                </div>
+            </section>
+
+            <section class="mobile-navigation-view{{ $initialMobileNavigationView === 'maps' ? ' is-active' : '' }}" id="mobileNavigationMaps" data-mobile-nav-view="maps" aria-hidden="{{ $initialMobileNavigationView === 'maps' ? 'false' : 'true' }}">
+                <div class="mobile-navigation-header mobile-navigation-subheader">
+                    <button class="mobile-navigation-back" type="button" data-mobile-nav-back>
+                        <i class="fa-regular fa-arrow-left" aria-hidden="true"></i><span>{{ __('front.nav.back') }}</span>
+                    </button>
+                    <h2>{{ __('front.nav.maps_and_vedute') }}</h2>
+                    <button class="mobile-navigation-close" type="button" data-bs-dismiss="offcanvas" aria-label="{{ __('front.nav.close_menu') }}"><i class="fa-regular fa-xmark" aria-hidden="true"></i></button>
+                </div>
+                <div class="mobile-navigation-scroll mobile-category-view">
+                    <label class="mobile-category-filter">
+                        <i class="fa-regular fa-magnifying-glass" aria-hidden="true"></i>
+                        <span class="visually-hidden">{{ __('front.nav.filter_categories') }}</span>
+                        <input type="search" placeholder="{{ __('front.nav.filter_categories') }}" autocomplete="off" data-mobile-category-filter="mobileMapCategoryList">
+                    </label>
+                    <a class="mobile-category-all" href="{{ \App\Helpers\LocaleHelper::route('catalog.route', ['group' => 'zemljovidi-i-vedute']) }}"><span class="mobile-menu-icon"><i class="fa-regular fa-map" aria-hidden="true"></i></span><span>{{ __('front.nav.all_maps_and_vedute') }}</span><i class="fa-regular fa-chevron-right" aria-hidden="true"></i></a>
+                    <ul class="mobile-category-list" id="mobileMapCategoryList">
+                        @foreach($zemljovidi_vedute as $nav_item)
+                            @php
+                                $categoryUrl = rtrim(\App\Helpers\LocaleHelper::categoryUrl($nav_item), '/');
+                                $isCurrentCategory = request()->url() === $categoryUrl || \Illuminate\Support\Str::startsWith(request()->url(), $categoryUrl . '/');
+                            @endphp
+                            <li><a class="{{ $isCurrentCategory ? 'is-active' : '' }}" href="{{ $categoryUrl }}" @if($isCurrentCategory) aria-current="page" @endif><span>{{ $nav_item->title }}</span><i class="fa-regular fa-chevron-right" aria-hidden="true"></i></a></li>
+                        @endforeach
+                    </ul>
+                    <p class="mobile-category-empty" data-mobile-category-empty hidden>{{ __('front.nav.no_categories') }}</p>
+                </div>
+            </section>
         </div>
     </div>
 </header>
@@ -160,34 +227,62 @@
 @push('js_after')
     <script>
         const DEBOUNCE_MS = 200;
-        let t = null;
+        let searchDebounceTimer = null;
+        let activeSearchRequest = null;
+        let mobileSearchScrollPosition = 0;
 
-        function debouncedLoad(q){ clearTimeout(t); t = setTimeout(()=>load_data(q), DEBOUNCE_MS); }
+        function debouncedLoad(input){
+            clearTimeout(searchDebounceTimer);
+            searchDebounceTimer = setTimeout(function () {
+                load_data(input.value, input.dataset.resultsId, input.id);
+            }, DEBOUNCE_MS);
+        }
 
         function escapeHtml(s){ return String(s ?? '')
             .replace(/&/g,'&amp;').replace(/</g,'&lt;')
             .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); }
 
+        function openMobileSearch() {
+            if (!window.matchMedia('(max-width: 991.98px)').matches || document.body.classList.contains('mobile-search-open')) {
+                return;
+            }
+
+            mobileSearchScrollPosition = window.scrollY;
+            document.body.style.top = '-' + mobileSearchScrollPosition + 'px';
+            document.body.classList.add('mobile-search-open');
+        }
+
+        function closeMobileSearch() {
+            if (!document.body.classList.contains('mobile-search-open')) {
+                return;
+            }
+
+            document.body.classList.remove('mobile-search-open');
+            document.body.style.top = '';
+            window.scrollTo(0, mobileSearchScrollPosition);
+        }
+
 
         // Close helpers
         function closeSearch(){
-            $('#search_result').removeClass('show').empty();
+            $('.live-search').removeClass('show').empty();
             $('#search_overlay').addClass('d-none');
-            $('#search_box').attr('aria-expanded', 'false');
+            $('[data-autosuggest-input]').attr('aria-expanded', 'false');
+            closeMobileSearch();
         }
 
         // Overlay klik zatvara
         $(document).on('click', '#search_overlay', closeSearch);
+        $(document).on('click', '[data-mobile-search-close]', closeSearch);
 
         // ESC zatvara
         $(document).on('keydown', function(e){
             if(e.key === 'Escape') closeSearch();
         });
 
-        // klik izvan forme zatvara
+        // Klik izvan aktivne pretrage zatvara rezultate.
         $(document).on('click', function(e){
-            const $form = $('#search-form-first');
-            if(!$form.is(e.target) && $form.has(e.target).length === 0){
+            if (!$(e.target).closest('[data-autosuggest-form], .live-search').length) {
                 closeSearch();
             }
         });
@@ -208,19 +303,24 @@
         const TEXT_NO_RESULTS = '{{ __('front.search.no_results') }}';
         const TEXT_SEARCH_ERROR = '{{ __('front.search.error') }}';
 
-        function load_data(query) {
+        function load_data(query, resultId, inputId) {
+            const $result = $('#' + resultId);
+            const $input = $('#' + inputId);
+
             if (query.length > 2) {
                 let all = SEARCH_URL + '?pojam=' + encodeURIComponent(query);
 
-                $.ajax({
+                if (activeSearchRequest) {
+                    activeSearchRequest.abort();
+                }
+
+                activeSearchRequest = $.ajax({
                     method: 'get',
                     url: '{{ route('api.front.autocomplete') }}' + '?pojam_api=' + encodeURIComponent(query)+ '&group=' + encodeURIComponent(CAT_GROUP) + '&locale=' + encodeURIComponent(SEARCH_LOCALE),
                     success: function(json, textStatus, xhr) {
 
                         // pokušaj pročitati ukupan broj iz HTTP headera (helper ga šalje u legacy modu)
                         const headerTotal = parseInt(xhr.getResponseHeader('X-Total-Count') || '0', 10);
-
-                        console.log(headerTotal);
 
                         let html = '';
 
@@ -316,16 +416,31 @@
 
                         }
 
-                        $('#search_result').html(html).addClass('show');
+                        $result.html(html).addClass('show');
                         $('#search_overlay').removeClass('d-none'); // overlay ostaje proziran ali klikatljiv
-                        $('#search_box').attr('aria-expanded', 'true');
+                        $input.attr('aria-expanded', 'true');
+
+                        if (resultId === 'mobile_search_result') {
+                            openMobileSearch();
+                        }
                     },
 
                     error: function(xhr, ajaxOptions, thrownError) {
-                        console.log(thrownError + "\r\n" + xhr.statusText + "\r\n" + xhr.responseText);
-                        $('#search_result').html('<div class="result-text text-danger">' + TEXT_SEARCH_ERROR + '</div>').addClass('show');
+                        if (xhr.statusText === 'abort') {
+                            return;
+                        }
+
+                        $result.html('<div class="result-text text-danger">' + TEXT_SEARCH_ERROR + '</div>').addClass('show');
                         $('#search_overlay').removeClass('d-none');
-                        $('#search_box').attr('aria-expanded', 'true');
+                        $input.attr('aria-expanded', 'true');
+
+                        if (resultId === 'mobile_search_result') {
+                            openMobileSearch();
+                        }
+                    },
+
+                    complete: function () {
+                        activeSearchRequest = null;
                     }
                 });
             } else {
@@ -333,9 +448,104 @@
             }
         }
 
-        // ako želiš debounce na keyup bez mijenjanja HTML-a:
-        document.getElementById('search_box')?.addEventListener('input', function(e){
-            debouncedLoad(e.target.value);
+        document.querySelectorAll('[data-autosuggest-input]').forEach(function (input) {
+            input.addEventListener('input', function () {
+                debouncedLoad(input);
+            });
+        });
+
+        const mobileNavigation = document.getElementById('mobileNavigation');
+        const mobileNavigationShell = mobileNavigation?.querySelector('.mobile-navigation-shell');
+        let mobileNavigationTrigger = null;
+
+        function scrollToActiveMobileNavigationItem() {
+            const activeView = mobileNavigation?.querySelector('.mobile-navigation-view.is-active');
+            const scrollContainer = activeView?.querySelector('.mobile-navigation-scroll');
+            const activeItem = scrollContainer?.querySelector('[aria-current="page"]');
+
+            if (!scrollContainer || !activeItem) {
+                return;
+            }
+
+            const containerRect = scrollContainer.getBoundingClientRect();
+            const activeItemRect = activeItem.getBoundingClientRect();
+            const centeredScrollTop = scrollContainer.scrollTop
+                + activeItemRect.top
+                - containerRect.top
+                - ((containerRect.height - activeItemRect.height) / 2);
+
+            scrollContainer.scrollTo({
+                top: Math.max(0, centeredScrollTop),
+                behavior: 'auto'
+            });
+        }
+
+        function showMobileNavigationView(viewName) {
+            if (!mobileNavigationShell) {
+                return;
+            }
+
+            mobileNavigationShell.dataset.activeView = viewName;
+            mobileNavigationShell.querySelectorAll('[data-mobile-nav-view]').forEach(function (view) {
+                const isActive = view.dataset.mobileNavView === viewName;
+                view.classList.toggle('is-active', isActive);
+                view.setAttribute('aria-hidden', isActive ? 'false' : 'true');
+
+                if (isActive) {
+                    view.querySelector('.mobile-navigation-scroll')?.scrollTo(0, 0);
+                }
+            });
+
+            window.requestAnimationFrame(scrollToActiveMobileNavigationItem);
+        }
+
+        mobileNavigation?.querySelectorAll('[data-mobile-nav-open]').forEach(function (trigger) {
+            trigger.addEventListener('click', function () {
+                mobileNavigationTrigger = trigger;
+                showMobileNavigationView(trigger.dataset.mobileNavOpen);
+                mobileNavigationShell.querySelector('.mobile-navigation-view.is-active [data-mobile-nav-back]')?.focus();
+            });
+        });
+
+        mobileNavigation?.querySelectorAll('[data-mobile-nav-back]').forEach(function (trigger) {
+            trigger.addEventListener('click', function () {
+                showMobileNavigationView('main');
+                mobileNavigationTrigger?.focus();
+            });
+        });
+
+        mobileNavigation?.querySelectorAll('[data-mobile-category-filter]').forEach(function (input) {
+            input.addEventListener('input', function () {
+                const list = document.getElementById(input.dataset.mobileCategoryFilter);
+                const normalizedQuery = input.value.toLocaleLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+                let visibleCount = 0;
+
+                list?.querySelectorAll('li').forEach(function (item) {
+                    const normalizedLabel = item.textContent.toLocaleLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                    const isVisible = normalizedLabel.includes(normalizedQuery);
+                    item.hidden = !isVisible;
+                    visibleCount += isVisible ? 1 : 0;
+                });
+
+                const emptyState = input.closest('.mobile-category-view')?.querySelector('[data-mobile-category-empty]');
+                if (emptyState) {
+                    emptyState.hidden = visibleCount > 0;
+                }
+            });
+        });
+
+        mobileNavigation?.addEventListener('hidden.bs.offcanvas', function () {
+            showMobileNavigationView(mobileNavigationShell?.dataset.initialView || 'main');
+            mobileNavigationTrigger = null;
+
+            mobileNavigation.querySelectorAll('[data-mobile-category-filter]').forEach(function (input) {
+                input.value = '';
+                input.dispatchEvent(new Event('input'));
+            });
+        });
+
+        mobileNavigation?.addEventListener('shown.bs.offcanvas', function () {
+            window.requestAnimationFrame(scrollToActiveMobileNavigationItem);
         });
     </script>
 @endpush

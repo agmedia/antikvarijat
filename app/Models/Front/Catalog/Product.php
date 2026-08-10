@@ -701,6 +701,16 @@ class Product extends Model
             });
         }
 
+        foreach ([
+            'pismo' => 'letter',
+            'stanje' => 'condition',
+            'uvez' => 'binding',
+        ] as $parameter => $column) {
+            if ($request->filled($parameter)) {
+                $query->where($column, (string) $request->input($parameter));
+            }
+        }
+
         $sort = $request->input('sort');
 
         if (is_string($sort) && $sort !== '' && $this->applyCatalogSort($query, $sort)) {

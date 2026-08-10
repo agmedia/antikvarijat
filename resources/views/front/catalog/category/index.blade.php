@@ -189,9 +189,11 @@
                          author="{{ isset($author) ? $author['slug'] : null }}"
                          publisher="{{ isset($publisher) ? $publisher['slug'] : null }}"
                          locale="{{ app()->getLocale() }}"
-                         :initial-categories='@json($initialCategories ?? [])'>
+                         :initial-categories='@json($initialCategories ?? [])'
+                         :initial-attributes='@json($initialAttributes ?? [])'>
                 @include('front.catalog.category.partials.filter-fallback', [
                     'initialCategories' => $initialCategories ?? [],
+                    'initialAttributes' => $initialAttributes ?? [],
                     'group' => $group ?? null,
                     'cat' => $cat ?? null,
                     'subcat' => $subcat ?? null,

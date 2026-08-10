@@ -643,9 +643,40 @@ class CatalogRouteController extends Controller
 
         return [
             'initialCategories' => $initialCategories,
+            'initialAttributes' => $this->resolveInitialProductAttributes(),
             'initialProductsPaginator' => $initialProductsPaginator,
             'initialProductsData' => $this->mapProductsPaginator($initialProductsPaginator),
         ];
+    }
+
+    private function resolveInitialProductAttributes(): array
+    {
+        return Cache::remember('catalog.filter.product-attributes.v2', now()->addHours(6), function () {
+            $attributes = [];
+
+            foreach (['letter', 'condition', 'binding'] as $column) {
+                $attributes[$column] = Product::query()
+                    ->active()
+                    ->hasStock()
+                    ->whereNotNull($column)
+                    ->where($column, '<>', '')
+                    ->select($column)
+                    ->selectRaw('COUNT(*) as products_count')
+                    ->groupBy($column)
+                    ->orderByDesc('products_count')
+                    ->get()
+                    ->map(function (Product $product) use ($column) {
+                        return [
+                            'value' => $product->{$column},
+                            'count' => (int) $product->products_count,
+                        ];
+                    })
+                    ->values()
+                    ->all();
+            }
+
+            return $attributes;
+        });
     }
 
     private function resolveInitialProductsPaginator(
@@ -738,6 +769,12 @@ class CatalogRouteController extends Controller
             $requestData['end'] = $query['end'];
         }
 
+        foreach (['pismo', 'stanje', 'uvez'] as $attribute) {
+            if (!empty($query[$attribute]) && is_scalar($query[$attribute])) {
+                $requestData[$attribute] = (string) $query[$attribute];
+            }
+        }
+
         if (!empty($query['sort'])) {
             $requestData['sort'] = $query['sort'];
         }
@@ -765,7 +802,7 @@ class CatalogRouteController extends Controller
             return false;
         }
 
-        foreach (['ids', 'cat', 'subcat', 'autor', 'nakladnik', 'start', 'end', 'sort', config('settings.search_keyword', 'pojam')] as $key) {
+        foreach (['ids', 'cat', 'subcat', 'autor', 'nakladnik', 'start', 'end', 'pismo', 'stanje', 'uvez', 'sort', config('settings.search_keyword', 'pojam')] as $key) {
             if (!empty($requestData[$key])) {
                 return false;
             }

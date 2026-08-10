@@ -73,4 +73,3 @@
         </div>
     </div>
 </div>
-<hr class="d-sm-none">

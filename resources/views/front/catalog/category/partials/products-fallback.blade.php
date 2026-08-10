@@ -1,29 +1,52 @@
 <section class="col-lg-9 catalog-products-section">
     @if ($initialProductsPaginator)
-        <div class="d-flex justify-content-center justify-content-sm-between align-items-center pt-2 pb-4 pb-sm-5">
-            <div class="d-flex flex-wrap">
-                <div class="dropdown me-2 d-sm-none">
-                    <a class="btn btn-primary dropdown-toggle collapsed" href="#shop-sidebar" data-bs-toggle="collapse" aria-expanded="false"><i class="fa-solid fa-filter"></i></a>
+        <div class="catalog-products-toolbar d-flex justify-content-center justify-content-sm-between align-items-center pt-2 pb-4 pb-sm-5">
+            <div class="catalog-products-toolbar__controls d-flex flex-wrap">
+                @php
+                    $activeFilterCount = count(array_filter(explode('+', (string) request('autor'))))
+                        + count(array_filter(explode('+', (string) request('nakladnik'))))
+                        + (request()->filled('start') ? 1 : 0)
+                        + (request()->filled('end') ? 1 : 0)
+                        + (request()->filled('pismo') ? 1 : 0)
+                        + (request()->filled('stanje') ? 1 : 0)
+                        + (request()->filled('uvez') ? 1 : 0);
+                @endphp
+                <div class="me-2 d-lg-none">
+                    <a class="btn collapsed catalog-filter-trigger" href="#shop-sidebar" data-bs-toggle="collapse" aria-expanded="false" aria-label="{{ __('front.js.filter.filters') }}">
+                        <i class="fa-duotone fa-sliders" aria-hidden="true"></i>
+                        <span class="visually-hidden">{{ __('front.js.filter.filters') }}</span>
+                        @if ($activeFilterCount)
+                            <span class="catalog-filter-trigger-count">{{ $activeFilterCount }}</span>
+                        @endif
+                    </a>
                 </div>
-                <div class="d-flex align-items-center flex-nowrap me-3 me-sm-4 pb-3">
+                <div class="catalog-sort-control d-flex align-items-center flex-nowrap me-3 me-sm-4 pb-3">
                     @php
                         $currentSort = request()->get('sort', '');
                     @endphp
                     <select class="form-select" aria-label="{{ __('front.js.products.sort') }}" disabled>
-                        <option value="" disabled @selected($currentSort === '')>{{ __('front.js.products.sort') }}</option>
+                        <option value="" disabled {{ $currentSort === '' ? 'selected' : '' }}>{{ __('front.js.products.sort') }}</option>
                         @foreach (config('settings.sorting_list') as $item)
-                            <option value="{{ $item['value'] }}" @selected($currentSort == $item['value'])>{{ $item['title'] }}</option>
+                            <option value="{{ $item['value'] }}" {{ $currentSort == $item['value'] ? 'selected' : '' }}>{{ $item['title'] }}</option>
                         @endforeach
                     </select>
                 </div>
             </div>
-            <div class="d-flex pb-3">
-                <span class="fs-sm text-light btn btn-primary btn-sm text-nowrap ms-2 d-none d-sm-block">{{ __('front.js.products.total') }} {{ number_format($initialProductsPaginator->total(), 0, ',', '.') }} {{ __('front.js.products.items') }}</span>
+            <div class="catalog-products-toolbar__aside d-flex pb-3">
+                <div class="catalog-view-switch d-flex d-lg-none" role="group" aria-label="{{ __('front.js.filter.view') }}">
+                    <button type="button" class="catalog-view-switch__button" aria-pressed="false" aria-label="{{ __('front.js.filter.one_column') }}">
+                        <i class="fa-regular fa-square" aria-hidden="true"></i>
+                    </button>
+                    <button type="button" class="catalog-view-switch__button is-active" aria-pressed="true" aria-label="{{ __('front.js.filter.two_columns') }}">
+                        <i class="fa-regular fa-grid-2" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <span class="fs-sm text-light btn btn-primary btn-sm text-nowrap ms-2 d-none d-lg-block">{{ __('front.js.products.total') }} {{ number_format($initialProductsPaginator->total(), 0, ',', '.') }} {{ __('front.js.products.items') }}</span>
             </div>
         </div>
 
         @if ($initialProductsPaginator->count())
-            <div class="row row-cols-2 row-cols-sm-3 row-cols-md-3 row-cols-lg-3 row-cols-xl-4 row-cols-xxl-4 mb-3 px-2 catalog-products-grid">
+            <div class="row row-cols-2 row-cols-sm-3 row-cols-md-3 row-cols-lg-3 row-cols-xl-4 row-cols-xxl-4 mb-3 px-2 catalog-products-grid catalog-products-grid--mobile-2">
                 @foreach ($initialProductsPaginator as $product)
                     <div class="col px-2 mb-4">
                         @include('front.catalog.category.product')

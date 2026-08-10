@@ -1,0 +1,244 @@
+.directory-hero {
+    padding: 2rem 0;
+    background-color: #eeeee9;
+    background-image: url('/media/img/farmer.png');
+    background-repeat: repeat;
+}
+
+.directory-hero__content {
+    text-align: center;
+}
+
+.directory-hero__title {
+    margin: 0 0 .35rem;
+    color: #314837 !important;
+    font-size: clamp(1.75rem, 2.5vw, 2.2rem);
+    line-height: 1.2;
+}
+
+.directory-hero__subtitle {
+    margin: 0;
+    color: #687269;
+    font-size: .95rem;
+}
+
+.directory-page {
+    padding-bottom: 3rem;
+}
+
+.directory-alphabet {
+    padding: 1.5rem 0;
+    border-bottom: 1px solid #e1e6e2;
+}
+
+.directory-alphabet__label {
+    margin: 0 0 .75rem;
+    color: #747d76;
+    font-size: .76rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.directory-alphabet__grid {
+    display: grid;
+    grid-template-columns: repeat(17, minmax(2.5rem, 1fr));
+    gap: .4rem;
+    max-width: 68rem;
+    margin: 0 auto;
+}
+
+.directory-letter {
+    display: inline-flex;
+    min-width: 0;
+    min-height: 2.6rem;
+    align-items: center;
+    justify-content: center;
+    padding: .35rem .2rem;
+    border: 1px solid #dfe5e1;
+    border-radius: .35rem;
+    background: #fff;
+    color: #314837;
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1;
+    text-decoration: none;
+}
+
+a.directory-letter:focus-visible {
+    outline: 2px solid #bfa76a;
+    outline-offset: 2px;
+}
+
+a.directory-letter:hover {
+    color: #314837;
+    text-decoration: none;
+}
+
+.directory-letter.is-current {
+    border-color: #6f634d;
+    background: #6f634d;
+    color: #fff;
+}
+
+.directory-letter.is-disabled {
+    border-color: #edf0ee;
+    background: #f7f8f7;
+    color: #abb1ad;
+}
+
+.directory-results {
+    padding-top: 2rem;
+}
+
+.directory-results__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.directory-results__title {
+    margin: 0;
+    color: #314837 !important;
+    font-size: 1.35rem;
+    line-height: 1.3;
+}
+
+.directory-results__count {
+    color: #747d76;
+    font-size: .84rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.directory-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .65rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.directory-card {
+    display: flex;
+    min-height: 4.5rem;
+    height: 100%;
+    align-items: center;
+    padding: .8rem 1rem;
+    border: 1px solid #e0e5e1;
+    border-radius: .4rem;
+    background: #fff;
+    color: #314837;
+    text-decoration: none;
+}
+
+.directory-card:focus-visible {
+    outline: 2px solid #bfa76a;
+    outline-offset: 2px;
+}
+
+.directory-card:hover {
+    color: #314837;
+    text-decoration: none;
+}
+
+.directory-card__content {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: .25rem;
+}
+
+.directory-card__title {
+    overflow-wrap: anywhere;
+    font-size: .98rem;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+.directory-card__meta {
+    display: flex;
+    align-items: baseline;
+    gap: .3rem;
+    color: #7a837c;
+    font-size: .78rem;
+}
+
+.directory-card__meta strong {
+    color: #314837;
+    font-size: .92rem;
+    font-weight: 800;
+}
+
+.directory-empty {
+    padding: 2rem;
+    border: 1px solid #e0e5e1;
+    color: #7a837c;
+    text-align: center;
+}
+
+.directory-empty i {
+    margin-bottom: .5rem;
+    color: #bfa76a;
+}
+
+.directory-empty p {
+    margin: 0;
+}
+
+@media (max-width: 1199.98px) {
+    .directory-alphabet__grid {
+        grid-template-columns: repeat(12, minmax(2.5rem, 1fr));
+    }
+}
+
+@media (max-width: 991.98px) {
+    .directory-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 767.98px) {
+    .directory-hero {
+        padding: 1.5rem 0;
+    }
+
+    .directory-alphabet__grid {
+        display: flex;
+        gap: .4rem;
+        margin-right: -.75rem;
+        margin-left: -.75rem;
+        padding: 0 .75rem .5rem;
+        overflow-x: auto;
+        scrollbar-width: thin;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .directory-letter {
+        flex: 0 0 2.6rem;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .directory-page {
+        padding-right: .85rem;
+        padding-left: .85rem;
+    }
+
+    .directory-results {
+        padding-top: 1.5rem;
+    }
+
+    .directory-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .directory-card {
+        min-height: 4rem;
+        padding: .7rem .8rem;
+    }
+}

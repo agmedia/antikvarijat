@@ -1,10 +1,16 @@
 <template>
     <section class="col-lg-9 catalog-products-section">
         <!-- Toolbar-->
-        <div class="d-flex justify-content-center justify-content-sm-between align-items-center pt-2 pb-4 pb-sm-5">
-            <div class="d-flex flex-wrap">
-                <div class="dropdown me-2 d-sm-none"><a class="btn btn-primary dropdown-toggle collapsed" href="#shop-sidebar" data-bs-toggle="collapse" aria-expanded="false"><i class="fa-solid fa-filter" aria-hidden="true"></i></a></div>
-                <div class="d-flex align-items-center flex-nowrap me-3 me-sm-4 pb-3">
+        <div class="catalog-products-toolbar d-flex justify-content-center justify-content-sm-between align-items-center pt-2 pb-4 pb-sm-5">
+            <div class="catalog-products-toolbar__controls d-flex flex-wrap">
+                <div class="me-2 d-lg-none">
+                    <a class="btn collapsed catalog-filter-trigger" href="#shop-sidebar" v-on:click.prevent="openFilters" aria-expanded="false" aria-controls="shop-sidebar" :aria-label="filterButtonLabel">
+                        <i class="fa-duotone fa-sliders" aria-hidden="true"></i>
+                        <span class="visually-hidden">{{ filterButtonLabel }}</span>
+                        <span class="catalog-filter-trigger-count" v-if="activeFilterCount">{{ activeFilterCount }}</span>
+                    </a>
+                </div>
+                <div class="catalog-sort-control d-flex align-items-center flex-nowrap me-3 me-sm-4 pb-3">
                     <label class="text-light opacity-75 text-nowrap fs-sm me-2 d-none d-sm-block" for="sorting"></label>
                     <select class="form-select" v-model="sorting">
                         <option value="" disabled>{{ labels.sort }}</option>
@@ -16,12 +22,22 @@
                     </select>
                 </div>
             </div>
-            <div class="d-flex pb-3"><span class="fs-sm text-light btn btn-primary btn-sm text-nowrap ms-2 d-none d-sm-block">{{ labels.total }} {{ formatNumber(products.total || 0) }} {{ labels.items }}</span></div>
+            <div class="catalog-products-toolbar__aside d-flex pb-3">
+                <div class="catalog-view-switch d-flex d-lg-none" role="group" :aria-label="viewLabels.group">
+                    <button type="button" class="catalog-view-switch__button" :class="{ 'is-active': mobileColumns === 1 }" v-on:click="setMobileColumns(1)" :aria-pressed="mobileColumns === 1 ? 'true' : 'false'" :aria-label="viewLabels.oneColumn">
+                        <i class="fa-regular fa-square" aria-hidden="true"></i>
+                    </button>
+                    <button type="button" class="catalog-view-switch__button" :class="{ 'is-active': mobileColumns === 2 }" v-on:click="setMobileColumns(2)" :aria-pressed="mobileColumns === 2 ? 'true' : 'false'" :aria-label="viewLabels.twoColumns">
+                        <i class="fa-regular fa-grid-2" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <span class="fs-sm text-light btn btn-primary btn-sm text-nowrap ms-2 d-none d-lg-block">{{ labels.total }} {{ formatNumber(products.total || 0) }} {{ labels.items }}</span>
+            </div>
         </div>
 
         <!-- Products grid-->
 
-        <div class="row row-cols-2 row-cols-sm-3 row-cols-md-3 row-cols-lg-3 row-cols-xl-4 row-cols-xxl-4 mb-3 px-2 catalog-products-grid" v-if="products.total">
+        <div class="row row-cols-2 row-cols-sm-3 row-cols-md-3 row-cols-lg-3 row-cols-xl-4 row-cols-xxl-4 mb-3 px-2 catalog-products-grid" :class="'catalog-products-grid--mobile-' + mobileColumns" v-if="products.total">
 
 
 
@@ -91,8 +107,6 @@
                         </div>
                     </div>
                 </div>
-                <hr class="d-sm-none">
-
             </div>
         </div>
 
@@ -216,6 +230,39 @@
 
             numberLocale() {
                 return this.locale === 'en' ? 'en-US' : 'hr-HR';
+            },
+
+            viewLabels() {
+                const t = (window.FrontTranslations && window.FrontTranslations.js && window.FrontTranslations.js.filter)
+                    ? window.FrontTranslations.js.filter
+                    : {};
+
+                return {
+                    group: t.view || (this.locale === 'en' ? 'Product view' : 'Prikaz proizvoda'),
+                    oneColumn: t.one_column || (this.locale === 'en' ? 'One column' : 'Jedan stupac'),
+                    twoColumns: t.two_columns || (this.locale === 'en' ? 'Two columns' : 'Dva stupca')
+                };
+            },
+
+            filterButtonLabel() {
+                const t = (window.FrontTranslations && window.FrontTranslations.js && window.FrontTranslations.js.filter)
+                    ? window.FrontTranslations.js.filter
+                    : {};
+
+                return t.filters || (this.locale === 'en' ? 'Filters' : 'Filtri');
+            },
+
+            activeFilterCount() {
+                const query = this.$route.query || {};
+                const countValues = value => value ? String(value).split('+').filter(Boolean).length : 0;
+
+                return countValues(query.autor)
+                    + countValues(query.nakladnik)
+                    + (query.start ? 1 : 0)
+                    + (query.end ? 1 : 0)
+                    + (query.pismo ? 1 : 0)
+                    + (query.stanje ? 1 : 0)
+                    + (query.uvez ? 1 : 0);
             }
         },
         //
@@ -230,6 +277,9 @@
                 nakladnik: '',
                 start: '',
                 end: '',
+                pismo: '',
+                stanje: '',
+                uvez: '',
                 sorting: '',
                 search_query: '',
                 page: 1,
@@ -238,6 +288,7 @@
                 products_loaded: !!bootstrappedProducts,
                 search_zero_result: false,
                 navigation_zero_result: false,
+                mobileColumns: 2,
             }
         },
         //
@@ -252,6 +303,7 @@
         },
         //
         mounted() {
+            this.restoreMobileColumns();
             this.syncQuery(this.$route);
 
             if (this.products_loaded) {
@@ -265,6 +317,49 @@
         },
 
         methods: {
+            restoreMobileColumns() {
+                try {
+                    const savedColumns = Number(window.localStorage.getItem('catalog-mobile-columns'));
+
+                    if ([1, 2].includes(savedColumns)) this.mobileColumns = savedColumns;
+                } catch (error) {
+                    this.mobileColumns = 2;
+                }
+            },
+
+            setMobileColumns(columns) {
+                this.mobileColumns = columns === 1 ? 1 : 2;
+
+                try {
+                    window.localStorage.setItem('catalog-mobile-columns', String(this.mobileColumns));
+                } catch (error) {
+                    // Prikaz i dalje radi kada preglednik blokira lokalnu pohranu.
+                }
+            },
+
+            openFilters(event) {
+                const sidebar = document.getElementById('shop-sidebar');
+                const trigger = event && event.currentTarget ? event.currentTarget : null;
+
+                if (!sidebar) return;
+
+                sidebar.classList.remove('collapse', 'collapsing');
+                sidebar.style.height = '';
+                sidebar.classList.add('show');
+                sidebar.setAttribute('aria-hidden', 'false');
+                document.body.classList.add('catalog-filter-open');
+
+                if (trigger) {
+                    trigger.classList.remove('collapsed');
+                    trigger.setAttribute('aria-expanded', 'true');
+                }
+
+                this.$nextTick(() => {
+                    const closeButton = sidebar.querySelector('.catalog-filter-close');
+                    if (closeButton) closeButton.focus();
+                });
+            },
+
             /**
              *
              */
@@ -305,7 +400,6 @@
              * @param value
              */
             setQueryParam(type, value) {
-                this.closeFilter();
                 this.$router.push({query: this.resolveQuery()}).catch(()=>{});
 
                 if (value == '' || value == 1) {
@@ -321,6 +415,9 @@
                 let params = {
                     start: this.start,
                     end: this.end,
+                    pismo: this.pismo,
+                    stanje: this.stanje,
+                    uvez: this.uvez,
                     autor: this.autor,
                     nakladnik: this.nakladnik,
                     sort: this.sorting,
@@ -341,6 +438,9 @@
             syncQuery(params) {
                 this.start = params.query.start ? params.query.start : '';
                 this.end = params.query.end ? params.query.end : '';
+                this.pismo = params.query.pismo ? params.query.pismo : '';
+                this.stanje = params.query.stanje ? params.query.stanje : '';
+                this.uvez = params.query.uvez ? params.query.uvez : '';
                 this.autor = params.query.autor ? params.query.autor : '';
                 this.nakladnik = params.query.nakladnik ? params.query.nakladnik : '';
                 this.page = params.query.page ? Number(params.query.page) : 1;
@@ -366,6 +466,9 @@
                     nakladnik: this.nakladnik,
                     start: this.start,
                     end: this.end,
+                    pismo: this.pismo,
+                    stanje: this.stanje,
+                    uvez: this.uvez,
                     sort: this.sorting,
                     pojam: this.search_query,
                     locale: this.locale
@@ -465,13 +568,6 @@
                     id: id,
                     quantity: 1
                 })
-            },
-
-            /**
-             *
-             */
-            closeFilter() {
-                $('#shop-sidebar').removeClass('collapse show');
             }
         }
     };

@@ -8,6 +8,13 @@ return [
 
     'nav' => [
         'home' => 'Home',
+        'menu' => 'Menu',
+        'language' => 'Language',
+        'categories' => 'Categories',
+        'filter_categories' => 'Filter categories',
+        'no_categories' => 'No categories match that search.',
+        'back' => 'Back',
+        'close_menu' => 'Close menu',
         'account' => 'Account',
         'books' => 'Books',
         'all_books' => 'All books',
@@ -24,6 +31,8 @@ return [
     ],
 
     'search' => [
+        'search' => 'Search',
+        'close' => 'Close search',
         'placeholder' => 'Search by title or author',
         'search_by_author' => 'Search by author',
         'results_for' => 'Search results for',
@@ -340,14 +349,26 @@ return [
     'authors' => [
         'meta_title' => 'Book authors - Antikvarijat Biblos',
         'meta_description' => 'Browse authors and available books at Antikvarijat Biblos.',
-        'title' => 'Authors list',
+        'title' => 'Authors',
+        'subtitle' => 'Choose the author’s initial.',
     ],
 
     'publishers' => [
         'meta_title' => 'Book publishers - Antikvarijat Biblos',
         'meta_description' => 'Browse publishers and available books at Antikvarijat Biblos.',
-        'title' => 'Publishers list',
-        'subtitle' => 'Search by the first letter of the publisher name',
+        'title' => 'Publishers',
+        'subtitle' => 'Choose the publisher’s initial.',
+    ],
+
+    'directories' => [
+        'select_letter' => 'Initial',
+        'show_letter' => 'Show results for the letter :letter',
+        'results_for_letter' => 'Results for :letter',
+        'results_count' => '{0} No results|{1} :count result|[2,*] :count results',
+        'books_label' => 'Titles:',
+        'open_author' => 'View books by :name',
+        'open_publisher' => 'View books from :name',
+        'empty' => 'There are currently no results for this letter.',
     ],
 
     'general' => [
@@ -727,11 +748,22 @@ return [
         ],
         'filter' => [
             'filter' => 'Filter',
+            'filters' => 'Filters',
             'categories' => 'Categories',
             'back' => 'Back',
             'show_less' => 'Show less',
             'show_all_categories' => 'Show all categories',
             'publication_year' => 'Year of publication',
+            'details' => 'Book details',
+            'letter' => 'Script',
+            'all_letters' => 'All scripts',
+            'condition' => 'Condition',
+            'all_conditions' => 'All conditions',
+            'binding' => 'Binding',
+            'all_bindings' => 'All bindings',
+            'one_column' => 'One column',
+            'two_columns' => 'Two columns',
+            'view' => 'Product view',
             'from' => 'From',
             'to' => 'To',
             'year_short' => 'y',
@@ -740,6 +772,35 @@ return [
             'search_author' => 'Search author',
             'search_publisher' => 'Search publishers',
             'clear_all' => 'Clear all',
+            'clear' => 'Clear',
+            'show_results' => 'Show results',
+            'close' => 'Close filters',
+            'from_year' => 'From year',
+            'to_year' => 'To year',
+            'no_matches' => 'No matching results.',
+            'attribute_values' => [
+                'letter' => [
+                    'Latinica' => 'Latin',
+                    'Ćirilica' => 'Cyrillic',
+                    'Gotica' => 'Gothic',
+                    'Glagoljica' => 'Glagolitic',
+                    'Arapsko' => 'Arabic',
+                ],
+                'condition' => [
+                    'Nova knjiga' => 'New book',
+                    'Vrlo dobro' => 'Very good',
+                    'Odlično' => 'Excellent',
+                    'Dobro' => 'Good',
+                ],
+                'binding' => [
+                    'Meki' => 'Paperback',
+                    'Tvrdi' => 'Hardcover',
+                    'Tvrdi s ovitkom' => 'Hardcover with dust jacket',
+                    'Meki s ovitkom' => 'Paperback with dust jacket',
+                    'Tvrdi sa ovitkom' => 'Hardcover with dust jacket',
+                    'Meki sa ovitkom' => 'Paperback with dust jacket',
+                ],
+            ],
         ],
         'pagination' => [
             'navigation' => 'Pagination',

@@ -1,7 +1,16 @@
 /* */
 let storage_cart = {
     name: 'sl_cart',
-    cart: { count: 0 }
+    cart: {
+        items: [],
+        count: 0,
+        subtotal: 0,
+        total: 0,
+        conditions: [],
+        detail_con: [],
+        coupon: null,
+        secondary_price: false
+    }
 };
 const currentLocale = (document.documentElement.lang || 'hr').toLowerCase();
 const frontTranslations = window.FrontTranslations || {};
@@ -235,7 +244,7 @@ class AgService {
     formatMainPrice(price) {
 
         if(store.state.settings) {
-            let list = store.state.settings['currency.list'];
+            let list = store.state.settings['currency.list'] || [];
             let main_currency = {};
 
             list.forEach((item) => {
@@ -246,8 +255,15 @@ class AgService {
 
             let left = main_currency.symbol_left ? main_currency.symbol_left + ' ' : '';
             let right = main_currency.symbol_right ? ' ' + main_currency.symbol_right : '';
+            let currency_value = Number(main_currency.value);
+            let decimal_places = Number(main_currency.decimal_places);
+            let numeric_price = Number(price);
 
-            return left + Number(price * main_currency.value).toFixed(main_currency.decimal_places) + right;
+            currency_value = Number.isFinite(currency_value) ? currency_value : 1;
+            decimal_places = Number.isFinite(decimal_places) ? decimal_places : 2;
+            numeric_price = Number.isFinite(numeric_price) ? numeric_price : 0;
+
+            return left + Number(numeric_price * currency_value).toFixed(decimal_places) + right;
         }
     }
 
@@ -259,7 +275,7 @@ class AgService {
      */
     formatSecondaryPrice(price) {
         if(store.state.settings) {
-        let list = store.state.settings['currency.list'];
+        let list = store.state.settings['currency.list'] || [];
         let main_currency = {};
 
         list.forEach((item) => {
@@ -271,8 +287,15 @@ class AgService {
 
         let left = main_currency.symbol_left ? main_currency.symbol_left + ' ' : '';
         let right = main_currency.symbol_right ? ' ' + main_currency.symbol_right : '';
+        let currency_value = Number(main_currency.value);
+        let decimal_places = Number(main_currency.decimal_places);
+        let numeric_price = Number(price);
 
-        return left + Number(price * main_currency.value).toFixed(main_currency.decimal_places) + right;
+        currency_value = Number.isFinite(currency_value) ? currency_value : 1;
+        decimal_places = Number.isFinite(decimal_places) ? decimal_places : 2;
+        numeric_price = Number.isFinite(numeric_price) ? numeric_price : 0;
+
+        return left + Number(numeric_price * currency_value).toFixed(decimal_places) + right;
         }
     }
 
@@ -409,7 +432,12 @@ let store = {
             let state = context.state;
 
             state.service.checkCart(ids).then(response => {
+                if (!response || !response.cart) {
+                    return;
+                }
+
                 state.storage.setCart(response.cart);
+                state.cart = response.cart;
 
                 if (response.message && window.location.pathname != '/uspjeh') {
                     //window.ToastWarningLong.fire(response.message)
@@ -451,7 +479,10 @@ let store = {
          * @param context
          */
         flushCart(context) {
-            context.state.cart = context.state.storage.setCart(storage_cart.cart);
+            const emptyCart = { ...storage_cart.cart };
+
+            context.state.storage.setCart(emptyCart);
+            context.state.cart = emptyCart;
         },
 
         /**
@@ -478,7 +509,11 @@ let store = {
          * @returns {*}
          */
         setCart(state) {
-            return state.cart = state.service.getCart().then(cart => {
+            return state.service.getCart().then(cart => {
+                if (!cart) {
+                    return;
+                }
+
                 state.cart = cart;
 
                 return state.storage.setCart(cart);

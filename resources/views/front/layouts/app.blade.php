@@ -109,6 +109,7 @@
     <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('vendor/cookieconsent/cookieconsent.css') }}">
     <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('css/account-auth.css') }}">
     <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('css/account.css') }}">
+    <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('css/mobile-navigation.css') }}">
     @include('front.layouts.partials.cookie-consent-head')
 
     @if (config('app.env') == 'production')
@@ -219,157 +220,6 @@
 
     @stack('css_after')
 
-    <style>
-        [v-cloak] { display:none !important; }
-
-        .grecaptcha-badge {
-            visibility: hidden !important;
-        }
-
-        .front-header-account-icon,
-        .front-header-cart-icon {
-            color: #152c18;
-        }
-
-        .front-header-toolbar {
-            flex: 0 0 auto;
-            align-items: center;
-            gap: .55rem;
-            margin-left: auto;
-            white-space: nowrap;
-        }
-
-        .front-header-toolbar > .ms-3,
-        .front-header-cart .navbar-tool {
-            margin-left: 0 !important;
-        }
-
-        .front-header-account,
-        .front-header-cart,
-        .front-header-cart .navbar-tool {
-            width: 44px;
-            height: 44px;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .front-header-account .navbar-tool-icon-box,
-        .front-header-cart .navbar-tool-icon-box {
-            display: inline-flex;
-            width: 44px;
-            height: 44px;
-            align-items: center;
-            justify-content: center;
-            line-height: 1;
-        }
-
-        .front-header-account .navbar-tool-icon,
-        .front-header-cart .navbar-tool-icon {
-            font-size: 1.2rem;
-            line-height: 1;
-        }
-
-        .front-header-language {
-            margin-left: 0 !important;
-        }
-
-        .front-language-toggle {
-            display: inline-flex;
-            min-width: 4.25rem;
-            height: 44px;
-            align-items: center;
-            justify-content: center;
-            gap: .4rem;
-            padding: .5rem .75rem;
-        }
-
-        .front-header-cart .navbar-tool-label {
-            top: -.15rem;
-            right: -.1rem;
-            min-width: 1.25rem;
-            border: 2px solid #fff;
-            line-height: 1rem;
-        }
-
-        @media (min-width: 992px) {
-            .front-header-account .navbar-tool-tooltip {
-                top: calc(100% + .35rem);
-                z-index: 1040;
-            }
-
-            .front-header-account:hover .navbar-tool-tooltip {
-                top: calc(100% + .2rem);
-            }
-        }
-
-        @media (max-width: 575.98px) {
-            .front-header-main {
-                flex-wrap: nowrap;
-                padding-top: .5rem;
-                padding-bottom: .5rem;
-            }
-
-            .front-header-row {
-                flex-wrap: nowrap !important;
-                gap: .375rem;
-                padding-right: .75rem;
-                padding-left: .75rem;
-            }
-
-            .front-header-logo-mobile {
-                flex: 1 1 auto;
-                min-width: 0;
-                margin-right: .25rem !important;
-            }
-
-            .front-header-logo-mobile > img {
-                width: min(120px, 34vw);
-                height: auto;
-            }
-
-            .front-header-toolbar {
-                gap: .25rem;
-            }
-
-            .front-header-toolbar .ms-3 {
-                margin-left: 0 !important;
-            }
-
-            .front-header-toggler {
-                padding: .5rem;
-            }
-
-            .front-header-toolbar .navbar-tool-icon-box {
-                width: 2.5rem;
-                height: 2.5rem;
-                line-height: 1;
-            }
-
-            .front-header-toolbar .navbar-tool-icon {
-                font-size: 1.1rem;
-                line-height: 1;
-            }
-
-            .front-language-toggle {
-                min-width: 3.15rem;
-                height: 2.5rem;
-                padding: .35rem .45rem;
-                line-height: 1.1;
-            }
-
-            .front-header-account,
-            .front-header-cart,
-            .front-header-cart .navbar-tool {
-                width: 2.5rem;
-                height: 2.5rem;
-            }
-
-            .front-header-cart {
-                width: 2.5rem;
-            }
-        }
-    </style>
-
 
 
 </head>
@@ -377,13 +227,13 @@
 <body class="paper-white-bck">
 @if (config('app.env') == 'production')
     <!-- Google Tag Manager (noscript) -->
-    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TV7RKFH"
-                      height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <noscript><iframe class="gtm-noscript-frame" src="https://www.googletagmanager.com/ns.html?id=GTM-TV7RKFH"
+                      height="0" width="0"></iframe></noscript>
     <!-- End Google Tag Manager (noscript) -->
 @endif
 
 <!-- Topbar-->
-<div class="topbar topbar-light  d-none d-md-block" style="background-image: url({{ asset('media/img/farmer.png') }});background-repeat: repeat">
+<div class="topbar topbar-light front-topbar-pattern d-none d-md-block">
     <div class="container">
         <div class="topbar-text text-nowrap">
             <a class="topbar-link me-4" href="tel:+38514816574"><i class="fa-solid fa-phone"></i> +385 1 48 16 574</a>
@@ -413,7 +263,6 @@
 
     @include('front.layouts.partials.footer')
 
-    @include('front.layouts.partials.handheld')
 </div>
 
 <button type="button"
@@ -582,7 +431,6 @@
 
 @stack('js_after')
 <div id="search_overlay"
-     class="position-fixed top-0 start-0 w-100 h-100 bg-semi-transparent  d-none"
-     style="z-index:1040;"></div>
+     class="search-overlay position-fixed top-0 start-0 w-100 h-100 bg-semi-transparent d-none"></div>
 </body>
 </html>

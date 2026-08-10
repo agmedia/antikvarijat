@@ -286,6 +286,12 @@ class FilterController extends Controller
             $request_data['end'] = $params['end'];
         }
 
+        foreach (['pismo', 'stanje', 'uvez'] as $attribute) {
+            if (isset($params[$attribute]) && is_scalar($params[$attribute]) && $params[$attribute] !== '') {
+                $request_data[$attribute] = (string) $params[$attribute];
+            }
+        }
+
         if (isset($params['sort']) && $params['sort']) {
             $request_data['sort'] = $params['sort'];
         }
@@ -385,7 +391,7 @@ class FilterController extends Controller
             return false;
         }
 
-        foreach (['ids', 'cat', 'subcat', 'autor', 'nakladnik', 'start', 'end', 'sort', config('settings.search_keyword', 'pojam')] as $key) {
+        foreach (['ids', 'cat', 'subcat', 'autor', 'nakladnik', 'start', 'end', 'pismo', 'stanje', 'uvez', 'sort', config('settings.search_keyword', 'pojam')] as $key) {
             if (!empty($requestData[$key])) {
                 return false;
             }

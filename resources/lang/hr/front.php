@@ -8,6 +8,13 @@ return [
 
     'nav' => [
         'home' => 'Naslovnica',
+        'menu' => 'Izbornik',
+        'language' => 'Jezik',
+        'categories' => 'Kategorije',
+        'filter_categories' => 'Filtriraj kategorije',
+        'no_categories' => 'Nema kategorija za taj pojam.',
+        'back' => 'Natrag',
+        'close_menu' => 'Zatvori izbornik',
         'account' => 'Korisnički račun',
         'books' => 'Knjige',
         'all_books' => 'Sve knjige',
@@ -24,6 +31,8 @@ return [
     ],
 
     'search' => [
+        'search' => 'Pretraži',
+        'close' => 'Zatvori pretragu',
         'placeholder' => 'Pretražite po nazivu ili autoru',
         'search_by_author' => 'Pretražite po autoru',
         'results_for' => 'Rezultati pretrage za pojam',
@@ -296,14 +305,26 @@ return [
     'authors' => [
         'meta_title' => 'Autori knjiga - Antikvarijat Biblos',
         'meta_description' => 'Pregled autora i knjiga u ponudi Antikvarijata Biblos. Pretražite autore po početnom slovu i pronađite dostupne naslove.',
-        'title' => 'Lista autora',
+        'title' => 'Autori',
+        'subtitle' => 'Odaberite početno slovo autora.',
     ],
 
     'publishers' => [
         'meta_title' => 'Nakladnici knjiga - Antikvarijat Biblos',
         'meta_description' => 'Pregled nakladnika i dostupnih naslova u Antikvarijatu Biblos. Pretražite nakladnike po početnom slovu i pronađite tražene knjige.',
-        'title' => 'Lista nakladnika',
-        'subtitle' => 'Pretraživanje prema početnom slovu imena nakladnika',
+        'title' => 'Nakladnici',
+        'subtitle' => 'Odaberite početno slovo nakladnika.',
+    ],
+
+    'directories' => [
+        'select_letter' => 'Početno slovo',
+        'show_letter' => 'Prikaži rezultate za slovo :letter',
+        'results_for_letter' => 'Rezultati za :letter',
+        'results_count' => '{0} Nema rezultata|{1} :count rezultat|[2,4] :count rezultata|[5,*] :count rezultata',
+        'books_label' => 'Naslova:',
+        'open_author' => 'Pogledajte knjige autora :name',
+        'open_publisher' => 'Pogledajte knjige nakladnika :name',
+        'empty' => 'Trenutačno nema rezultata za ovo slovo.',
     ],
 
     'general' => [
@@ -682,12 +703,23 @@ return [
             'no_products_text' => 'Pogledajte u nekoj drugoj kategoriji ili probajte sa tražilicom.',
         ],
         'filter' => [
-            'filter' => 'Filtriraj',
+            'filter' => 'Filter',
+            'filters' => 'Filtri',
             'categories' => 'Kategorije',
             'back' => 'Povratak',
             'show_less' => 'Prikaži manje',
             'show_all_categories' => 'Prikaži sve kategorije',
             'publication_year' => 'Godina izdanja',
+            'details' => 'Karakteristike',
+            'letter' => 'Pismo',
+            'all_letters' => 'Sva pisma',
+            'condition' => 'Stanje',
+            'all_conditions' => 'Sva stanja',
+            'binding' => 'Uvez',
+            'all_bindings' => 'Svi uvezi',
+            'one_column' => 'Jedan stupac',
+            'two_columns' => 'Dva stupca',
+            'view' => 'Prikaz proizvoda',
             'from' => 'Od',
             'to' => 'Do',
             'year_short' => 'g',
@@ -696,6 +728,35 @@ return [
             'search_author' => 'Pretraži autora',
             'search_publisher' => 'Pretraži nakladnike',
             'clear_all' => 'Očisti sve',
+            'clear' => 'Očisti',
+            'show_results' => 'Prikaži rezultate',
+            'close' => 'Zatvori filtre',
+            'from_year' => 'Početna godina',
+            'to_year' => 'Završna godina',
+            'no_matches' => 'Nema pronađenih rezultata.',
+            'attribute_values' => [
+                'letter' => [
+                    'Latinica' => 'Latinica',
+                    'Ćirilica' => 'Ćirilica',
+                    'Gotica' => 'Gotica',
+                    'Glagoljica' => 'Glagoljica',
+                    'Arapsko' => 'Arapsko',
+                ],
+                'condition' => [
+                    'Nova knjiga' => 'Nova knjiga',
+                    'Vrlo dobro' => 'Vrlo dobro',
+                    'Odlično' => 'Odlično',
+                    'Dobro' => 'Dobro',
+                ],
+                'binding' => [
+                    'Meki' => 'Meki',
+                    'Tvrdi' => 'Tvrdi',
+                    'Tvrdi s ovitkom' => 'Tvrdi s ovitkom',
+                    'Meki s ovitkom' => 'Meki s ovitkom',
+                    'Tvrdi sa ovitkom' => 'Tvrdi s ovitkom',
+                    'Meki sa ovitkom' => 'Meki s ovitkom',
+                ],
+            ],
         ],
         'pagination' => [
             'navigation' => 'Navigacija po stranicama',
