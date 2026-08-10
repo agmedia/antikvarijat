@@ -1,0 +1,459 @@
+.account-hero {
+    padding: 1.5rem 0;
+    background-color: #fff;
+    background-image: url('../media/img/farmer.png');
+    background-repeat: repeat;
+    color: #4b566b;
+}
+
+.account-hero .breadcrumb,
+.account-hero .breadcrumb-item,
+.account-hero .breadcrumb-item::before,
+.account-hero .breadcrumb a {
+    color: #7d879c;
+}
+
+.account-hero .breadcrumb a:hover {
+    color: #9f8339;
+}
+
+.account-hero__title {
+    margin: 0;
+    color: #373f50 !important;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.account-page {
+    padding-top: 1.875rem;
+    color: #4b566b;
+}
+
+.account-card {
+    border: 1px solid rgba(49, 72, 55, .08);
+    border-radius: .65rem;
+    background: #fff;
+    box-shadow: 0 .9rem 2.3rem rgba(49, 72, 55, .09);
+}
+
+.account-sidebar {
+    overflow: hidden;
+}
+
+.account-user-panel {
+    display: flex;
+    align-items: center;
+    gap: .85rem;
+    padding: 1.3rem 1.25rem;
+}
+
+.account-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 3rem;
+    width: 3rem;
+    height: 3rem;
+    border: 1px solid rgba(191, 167, 106, .35);
+    border-radius: 50%;
+    background: #f6f2e7;
+    color: #373f50;
+    font-weight: 700;
+}
+
+.account-user-panel__body {
+    min-width: 0;
+}
+
+.account-user-panel__name {
+    overflow: hidden;
+    margin: 0 0 .12rem;
+    color: #373f50;
+    font-size: 1rem;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.account-user-panel__email {
+    display: block;
+    overflow: hidden;
+    color: #7d879c;
+    font-size: .8rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.account-nav-heading {
+    padding: .75rem 1.25rem;
+    border-top: 1px solid #edf0ed;
+    border-bottom: 1px solid #edf0ed;
+    background: #f8f8f4;
+    color: #7a827d;
+    font-size: .73rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.account-nav {
+    padding: .45rem;
+}
+
+.account-nav__item + .account-nav__item {
+    margin-top: .18rem;
+}
+
+.account-nav__link {
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+    min-height: 46px;
+    padding: .7rem .85rem;
+    border-radius: .4rem;
+    color: #4b566b;
+    font-size: .9rem;
+    font-weight: 500;
+    transition: background-color .16s ease, color .16s ease;
+}
+
+.account-nav__link i {
+    width: 1.25rem;
+    color: #8b968e;
+    text-align: center;
+}
+
+.account-nav__link:hover {
+    background: #f7f5ee;
+    color: #373f50;
+}
+
+.account-nav__link.active {
+    background: #f0eddf;
+    color: #373f50;
+    box-shadow: inset 3px 0 0 #bfa76a;
+}
+
+.account-nav__link.active i {
+    color: #a58841;
+}
+
+.account-nav__link--logout {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    text-align: left;
+}
+
+.account-content-card {
+    min-height: 100%;
+    padding: 1.4rem;
+}
+
+.account-content-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.4rem;
+    padding-bottom: 1.2rem;
+    border-bottom: 1px solid #e8ece8;
+}
+
+.account-content-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: .8rem;
+}
+
+.account-content-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 2.7rem;
+    width: 2.7rem;
+    height: 2.7rem;
+    border-radius: .48rem;
+    background: #f0eddf;
+    color: #8f7333;
+    font-size: 1.1rem;
+}
+
+.account-content-title {
+    margin: 0 0 .2rem;
+    color: #373f50 !important;
+    font-size: 1.15rem;
+    font-weight: 600;
+}
+
+.account-content-subtitle {
+    margin: 0;
+    color: #7d879c;
+    font-size: .86rem;
+    line-height: 1.5;
+}
+
+.account-section-title {
+    display: flex;
+    align-items: center;
+    gap: .45rem;
+    margin: 0 0 1rem;
+    padding-bottom: .72rem;
+    border-bottom: 1px solid #e8ece8;
+    color: #373f50 !important;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.account-form-actions {
+    margin-top: .4rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid #e8ece8;
+}
+
+.account-table-wrap {
+    overflow: hidden;
+    border: 1px solid #e3e8e4;
+    border-radius: .5rem;
+}
+
+.account-table-wrap .table {
+    margin: 0;
+}
+
+.account-table-wrap thead th {
+    border-bottom-color: #e3e8e4;
+    background: #f8f8f4;
+    color: #314837;
+    font-size: .8rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.account-empty {
+    display: flex;
+    min-height: 230px;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    border: 1px dashed #d7ddd8;
+    border-radius: .5rem;
+    background: #fafbf9;
+    color: #718077;
+    text-align: center;
+}
+
+.account-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .8rem;
+    margin-bottom: 1.5rem;
+}
+
+.account-summary-item {
+    padding: 1rem;
+    border: 1px solid #e4e9e5;
+    border-radius: .45rem;
+    background: #fafbf9;
+}
+
+.account-summary-item__label {
+    color: #748078;
+    font-size: .76rem;
+}
+
+.account-summary-item__value {
+    margin-top: .15rem;
+    color: #373f50;
+    font-size: 1.45rem;
+    font-weight: 600;
+}
+
+.account-review-prompt-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .8rem;
+}
+
+.account-review-prompt {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr);
+    gap: .8rem;
+    align-items: center;
+    padding: .8rem;
+    border: 1px solid #e3e8e4;
+    border-radius: .45rem;
+}
+
+.account-review-prompt__image {
+    width: 56px;
+    height: 72px;
+    border-radius: .2rem;
+    object-fit: cover;
+}
+
+.account-review-prompt__name {
+    display: -webkit-box;
+    overflow: hidden;
+    color: #373f50;
+    font-size: .83rem;
+    font-weight: 600;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.account-review-card {
+    display: grid;
+    grid-template-columns: 70px minmax(0, 1fr) auto;
+    gap: 1rem;
+    padding: 1rem;
+    border: 1px solid #e3e8e4;
+    border-radius: .5rem;
+    background: #fff;
+}
+
+.account-review-card + .account-review-card {
+    margin-top: .8rem;
+}
+
+.account-review-card__cover {
+    width: 70px;
+    height: 92px;
+    border-radius: .25rem;
+    object-fit: cover;
+}
+
+.account-review-card__product {
+    color: #373f50;
+    font-size: .9rem;
+    font-weight: 600;
+}
+
+.account-review-card__meta {
+    margin: .2rem 0 .55rem;
+    color: #7c867f;
+    font-size: .76rem;
+}
+
+.account-review-card__stars {
+    color: #b28d35;
+    letter-spacing: .08rem;
+}
+
+.account-review-card__title {
+    margin: .45rem 0 .2rem;
+    color: #373f50;
+    font-weight: 600;
+}
+
+.account-review-card__body {
+    margin: 0;
+    color: #5f6b63;
+    font-size: .84rem;
+    line-height: 1.55;
+}
+
+.account-status {
+    display: inline-flex;
+    align-items: center;
+    padding: .35rem .55rem;
+    border-radius: 999px;
+    background: #f0eddf;
+    color: #765f2e;
+    font-size: .72rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.account-status--approved {
+    background: #e7f3e9;
+    color: #356a40;
+}
+
+.account-status--rejected {
+    background: #fbe9e9;
+    color: #a04141;
+}
+
+.account-recommendations-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.account-recommendations-grid .catalog-product-card {
+    height: 100%;
+    margin: 0 !important;
+}
+
+.account-recommendation-note {
+    display: flex;
+    align-items: flex-start;
+    gap: .75rem;
+    margin-bottom: 1.25rem;
+    padding: .9rem 1rem;
+    border-left: 3px solid #bfa76a;
+    border-radius: .25rem;
+    background: #f8f6ef;
+    color: #637067;
+    font-size: .84rem;
+}
+
+@media (min-width: 768px) {
+    .account-content-card {
+        padding: 1.8rem;
+    }
+}
+
+@media (max-width: 1199.98px) {
+    .account-recommendations-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 991.98px) {
+    .account-content-header {
+        flex-direction: column;
+    }
+
+    .account-recommendations-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 575.98px) {
+    .account-hero {
+        padding: 1rem 0;
+    }
+
+    .account-summary-grid,
+    .account-review-prompt-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .account-review-card {
+        grid-template-columns: 56px minmax(0, 1fr);
+    }
+
+    .account-review-card__cover {
+        width: 56px;
+        height: 74px;
+    }
+
+    .account-review-card__status {
+        grid-column: 2;
+    }
+
+    .account-content-icon {
+        display: none;
+    }
+
+    .account-recommendations-grid {
+        gap: .55rem;
+    }
+
+    .account-recommendations-grid .card-body {
+        padding-right: .65rem;
+        padding-left: .65rem;
+    }
+}

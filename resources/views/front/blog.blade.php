@@ -14,8 +14,8 @@
 
 @push('meta_tags')
     @if (isset($blogs))
-        <script src="{{ asset('js/imagesloaded/imagesloaded.pkgd.min.js') }}"></script>
-        <script src="{{ asset('js/shufflejs/dist/shuffle.min.js') }}"></script>
+        <script src="{{ \App\Helpers\Asset::url('js/imagesloaded/imagesloaded.pkgd.min.js') }}"></script>
+        <script src="{{ \App\Helpers\Asset::url('js/shufflejs/dist/shuffle.min.js') }}"></script>
     @else
         <meta property="article:published_time" content="{{ optional(\Illuminate\Support\Carbon::make($blog->publish_date ?: $blog->created_at))->toAtomString() }}">
         <meta property="article:modified_time" content="{{ optional(\Illuminate\Support\Carbon::make($blog->updated_at))->toAtomString() }}">
@@ -25,7 +25,7 @@
 
 @push('css_after')
     @if (! isset($blogs))
-        <link rel="stylesheet" media="screen" href="{{ asset('js/simple-lightbox.css?v2.14.0') }}">
+        <link rel="stylesheet" media="screen" href="{{ \App\Helpers\Asset::url('js/simple-lightbox.css') }}">
     @endif
 @endpush
 
@@ -37,7 +37,7 @@
 
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb breadcrumb-dark flex-lg-nowrap justify-content-center ">
-                        <li class="breadcrumb-item"><a class="text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('index') }}"><i class="ci-home"></i>{{ __('front.nav.home') }}</a></li>
+                        <li class="breadcrumb-item"><a class="text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('index') }}"><i class="fa-solid fa-house"></i>{{ __('front.nav.home') }}</a></li>
                            @if(isset($blogs))
                      <li class="breadcrumb-item text-nowrap active" aria-current="page">{{ __('front.blog.title') }}</li>
                 @else
@@ -126,7 +126,7 @@
 
 @push('js_after')
     @if (! isset($blogs))
-        <script src="{{ asset('js/simple-lightbox.js?v2.14.0') }}"></script>
+        <script src="{{ \App\Helpers\Asset::url('js/simple-lightbox.js') }}"></script>
         <script>
             (function () {
                 var $gallery = new SimpleLightbox('.blog-gallery a', {});

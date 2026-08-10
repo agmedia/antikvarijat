@@ -1,8 +1,8 @@
 @extends('back.layouts.backend')
 
 @push('css_before')
-    <link rel="stylesheet" href="{{ asset('js/plugins/select2/css/select2.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('js/plugins/flatpickr/flatpickr.min.css') }}">
+    <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('js/plugins/select2/css/select2.min.css') }}">
+    <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('js/plugins/flatpickr/flatpickr.min.css') }}">
 @endpush
 
 @section('content')
@@ -187,8 +187,8 @@
 @endsection
 
 @push('js_after')
-    <script src="{{ asset('js/plugins/ckeditor5-classic/build/ckeditor.js') }}"></script>
-    <script src="{{ asset('js/plugins/flatpickr/flatpickr.min.js') }}"></script>
+    <script src="{{ \App\Helpers\Asset::url('js/plugins/ckeditor5-classic/build/ckeditor.js') }}"></script>
+    <script src="{{ \App\Helpers\Asset::url('js/plugins/flatpickr/flatpickr.min.js') }}"></script>
 
     <!-- Page JS Helpers (CKEditor 5 plugins) -->
     <script>jQuery(function(){Dashmix.helpers(['flatpickr']);});</script>

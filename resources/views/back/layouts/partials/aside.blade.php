@@ -43,42 +43,42 @@
                         </a>
                     </div>
                     <div class="col-4 mb-1">
-                        <a class="d-block py-3 text-white font-size-sm font-w600 bg-xwork" data-toggle="theme" data-theme="{{ asset('css/themes/xwork.css') }}" href="#">
+                        <a class="d-block py-3 text-white font-size-sm font-w600 bg-xwork" data-toggle="theme" data-theme="{{ \App\Helpers\Asset::url('css/themes/xwork.css') }}" href="#">
                             xWork
                         </a>
                     </div>
                     <div class="col-4 mb-1">
-                        <a class="d-block py-3 text-white font-size-sm font-w600 bg-xmodern" data-toggle="theme" data-theme="{{ asset('css/themes/xmodern.css') }}" href="#">
+                        <a class="d-block py-3 text-white font-size-sm font-w600 bg-xmodern" data-toggle="theme" data-theme="{{ \App\Helpers\Asset::url('css/themes/xmodern.css') }}" href="#">
                             xModern
                         </a>
                     </div>
                     <div class="col-4 mb-1">
-                        <a class="d-block py-3 text-white font-size-sm font-w600 bg-xeco" data-toggle="theme" data-theme="{{ asset('css/themes/xeco.css') }}" href="#">
+                        <a class="d-block py-3 text-white font-size-sm font-w600 bg-xeco" data-toggle="theme" data-theme="{{ \App\Helpers\Asset::url('css/themes/xeco.css') }}" href="#">
                             xEco
                         </a>
                     </div>
                     <div class="col-4 mb-1">
-                        <a class="d-block py-3 text-white font-size-sm font-w600 bg-xsmooth" data-toggle="theme" data-theme="{{ asset('css/themes/xsmooth.css') }}" href="#">
+                        <a class="d-block py-3 text-white font-size-sm font-w600 bg-xsmooth" data-toggle="theme" data-theme="{{ \App\Helpers\Asset::url('css/themes/xsmooth.css') }}" href="#">
                             xSmooth
                         </a>
                     </div>
                     <div class="col-4 mb-1">
-                        <a class="d-block py-3 text-white font-size-sm font-w600 bg-xinspire" data-toggle="theme" data-theme="{{ asset('css/themes/xinspire.css') }}" href="#">
+                        <a class="d-block py-3 text-white font-size-sm font-w600 bg-xinspire" data-toggle="theme" data-theme="{{ \App\Helpers\Asset::url('css/themes/xinspire.css') }}" href="#">
                             xInspire
                         </a>
                     </div>
                     <div class="col-4 mb-1">
-                        <a class="d-block py-3 text-white font-size-sm font-w600 bg-xdream" data-toggle="theme" data-theme="{{ asset('css/themes/xdream.css') }}" href="#">
+                        <a class="d-block py-3 text-white font-size-sm font-w600 bg-xdream" data-toggle="theme" data-theme="{{ \App\Helpers\Asset::url('css/themes/xdream.css') }}" href="#">
                             xDream
                         </a>
                     </div>
                     <div class="col-4 mb-1">
-                        <a class="d-block py-3 text-white font-size-sm font-w600 bg-xpro" data-toggle="theme" data-theme="{{ asset('css/themes/xpro.css') }}" href="#">
+                        <a class="d-block py-3 text-white font-size-sm font-w600 bg-xpro" data-toggle="theme" data-theme="{{ \App\Helpers\Asset::url('css/themes/xpro.css') }}" href="#">
                             xPro
                         </a>
                     </div>
                     <div class="col-4 mb-1">
-                        <a class="d-block py-3 text-white font-size-sm font-w600 bg-xplay" data-toggle="theme" data-theme="{{ asset('css/themes/xplay.css') }}" href="#">
+                        <a class="d-block py-3 text-white font-size-sm font-w600 bg-xplay" data-toggle="theme" data-theme="{{ \App\Helpers\Asset::url('css/themes/xplay.css') }}" href="#">
                             xPlay
                         </a>
                     </div>

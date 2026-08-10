@@ -9,7 +9,7 @@
                 <h2 class="h3 text-center">{{ $data['title'] }}</h2>
                 <p class="text-muted-light text-center ">{{ $data['subtitle'] }}</p>
                 @if($data['url'] !='/')
-                    <p class=" text-center">  <a class="btn btn-primary btn-shadow " href="{{ url($data['url']) }}">Pogledajte ponudu <i class="ci-arrow-right "></i></a></p>
+                    <p class=" text-center">  <a class="btn btn-primary btn-shadow " href="{{ url($data['url']) }}">Pogledajte ponudu <i class="fa-solid fa-arrow-right "></i></a></p>
                 @endif
 
                 <div class="tns-carousel pt-4">
@@ -30,7 +30,7 @@
         <h2 class="h3 text-center">{{ $data['title'] }}</h2>
         <p class="text-muted-light text-center">{{ $data['subtitle'] }}</p>
         @if($data['url'] !='/')
-            <p class=" text-center">  <a class="btn btn-primary btn-shadow " href="{{ url($data['url']) }}">Pogledajte ponudu <i class="ci-arrow-right "></i></a></p>
+            <p class=" text-center">  <a class="btn btn-primary btn-shadow " href="{{ url($data['url']) }}">Pogledajte ponudu <i class="fa-solid fa-arrow-right "></i></a></p>
         @endif
 
         <div class="tns-carousel pt-4">

@@ -50,7 +50,7 @@
                                             <h2 class="display-6 from-bottom ">Hrvatska RARA</h2>
                                             <p class="h5 fw-light pb-3 from-bottom delay-2">{{ __('front.home.rara_subtitle') }}</p>
 
-                                            <div class="d-table scale-up delay-4 mx-auto mx-md-0"><a class="btn btn-primary btn-shadow" href="{{ url($isEnglish ? 'en/books/hrvatska-rara' : 'knjige/hrvatska-rara') }}">{{ __('front.home.view_selection') }}<i class="ci-arrow-right ms-2 me-n1"></i></a></div>
+                                            <div class="d-table scale-up delay-4 mx-auto mx-md-0"><a class="btn btn-primary btn-shadow" href="{{ url($isEnglish ? 'en/books/hrvatska-rara' : 'knjige/hrvatska-rara') }}">{{ __('front.home.view_selection') }}<i class="fa-solid fa-arrow-right ms-2 me-n1"></i></a></div>
                                         </div>
                                     </div>
                                 </div>
@@ -62,7 +62,7 @@
                                             <h2 class="display-6 from-bottom ">{{ __('front.home.maps_title') }}</h2>
                                             <p class="h5 fw-light pb-3 from-bottom delay-2">{{ __('front.home.maps_subtitle') }}</p>
 
-                                            <div class="d-table scale-up delay-4 mx-auto mx-md-0"><a class="btn btn-primary btn-shadow" href="{{ url($isEnglish ? 'en/maps-and-views' : 'zemljovidi-i-vedute') }}">{{ __('front.home.view_selection') }}<i class="ci-arrow-right ms-2 me-n1"></i></a></div>
+                                            <div class="d-table scale-up delay-4 mx-auto mx-md-0"><a class="btn btn-primary btn-shadow" href="{{ url($isEnglish ? 'en/maps-and-views' : 'zemljovidi-i-vedute') }}">{{ __('front.home.view_selection') }}<i class="fa-solid fa-arrow-right ms-2 me-n1"></i></a></div>
                                         </div>
                                     </div>
                                 </div>
@@ -79,18 +79,18 @@
                                 <a class="d-flex align-items-center rounded-3 pt-2 ps-2 mb-4 me-3 me-xl-0 mbanner" href="{{ url($isEnglish ? 'en/books/knjizevnost' : 'knjige/knjizevnost') }}" ><img src="{{ asset('media/img/knjizevnost-ikona.png') }}" width="100" alt="Banner" loading="eager" decoding="async">
                                     <div class="py-4 px-2">
                                         <h5 class="mb-2"><span class="fw-light">{{ __('front.home.category') }}:</span> <br> {{ __('front.home.literature') }}</h5>
-                                        <div class="text-dark fs-sm">{{ __('front.home.explore_titles') }}<i class="ci-arrow-right fs-xs ms-1"></i></div>
+                                        <div class="text-dark fs-sm">{{ __('front.home.explore_titles') }}<i class="fa-solid fa-arrow-right fs-xs ms-1"></i></div>
                                     </div>
                                 </a>
                                 <a class="d-flex align-items-center rounded-3 pt-2 ps-2 mb-4 me-4 me-xl-0 mbanner" href="{{ url($isEnglish ? 'en/books/filozofija' : 'knjige/filozofija') }}" ><img src="{{ asset('media/img/umjetnost-ikona.png') }}" width="100" alt="Banner" loading="eager" decoding="async">
                                     <div class="py-4 px-2">
                                         <h5 class="mb-2"><span class="fw-light">{{ __('front.home.category') }}:</span> <br> {{ __('front.home.philosophy') }}</h5>
-                                        <div class="text-dark fs-sm">{{ __('front.home.explore_titles') }}<i class="ci-arrow-right fs-xs ms-1"></i></div>
+                                        <div class="text-dark fs-sm">{{ __('front.home.explore_titles') }}<i class="fa-solid fa-arrow-right fs-xs ms-1"></i></div>
                                     </div></a>
                                 <a class="d-flex align-items-center rounded-3 pt-2 ps-2 mb-4 me-3 me-xl-0 mbanner" href="{{ url($isEnglish ? 'en/books/povijest' : 'knjige/povijest') }}" ><img src="{{ asset('media/img/povijest-ikona.png') }}" width="100" alt="Banner" loading="eager" decoding="async">
                                     <div class="py-4 px-2">
                                         <h5 class="mb-2"><span class="fw-light">{{ __('front.home.category') }}:</span> <br> {{ __('front.home.history') }}</h5>
-                                        <div class="text-dark fs-sm">{{ __('front.home.explore_titles') }}<i class="ci-arrow-right fs-xs ms-1"></i></div>
+                                        <div class="text-dark fs-sm">{{ __('front.home.explore_titles') }}<i class="fa-solid fa-arrow-right fs-xs ms-1"></i></div>
                                     </div></a>
                             </div>
                         </div>
@@ -111,7 +111,7 @@
                 <div class="order-lg-2 mb-3 mb-lg-0 pt-lg-2">
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb breadcrumb-dark flex-lg-nowrap justify-content-center justify-content-lg-start">
-                            <li class="breadcrumb-item"><a class="text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('index') }}"><i class="ci-home"></i>{{ __('front.nav.home') }}</a></li>
+                            <li class="breadcrumb-item"><a class="text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('index') }}"><i class="fa-solid fa-house"></i>{{ __('front.nav.home') }}</a></li>
                             <li class="breadcrumb-item text-nowrap active" aria-current="page">{{ $page->title }}</li>
                         </ol>
                     </nav>

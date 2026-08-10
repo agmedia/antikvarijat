@@ -11,7 +11,7 @@
             <div class="order-lg-2 mb-3 mb-lg-0 pt-lg-2">
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb flex-lg-nowrap justify-content-center justify-content-lg-start">
-                        <li class="breadcrumb-item"><a class="text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('index') }}"><i class="ci-home"></i>{{ __('front.nav.home') }}</a></li>
+                        <li class="breadcrumb-item"><a class="text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('index') }}"><i class="fa-solid fa-house"></i>{{ __('front.nav.home') }}</a></li>
                         <li class="breadcrumb-item text-nowrap active" aria-current="page">{{ __('front.contact.breadcrumb') }}</li>
                     </ol>
                 </nav>
@@ -28,7 +28,7 @@
             @include('front.layouts.partials.success-session')
 
             <div class="col-xl-3 col-sm-6 mb-grid-gutter"><a class="card h-100" href="#map" data-scroll="">
-                    <div class="card-body text-center"><i class="ci-location h3 mt-2 mb-4 text-primary"></i>
+                    <div class="card-body text-center"><i class="fa-solid fa-location-dot h3 mt-2 mb-4 text-primary"></i>
                         <h3 class="h6 mb-2">{{ __('front.general.address') }}</h3>
                         <p class="fs-sm text-muted">{!! str_replace(', ', ', <br>', __('front.general.address_value_long')) !!}</p>
                     </div>
@@ -36,7 +36,7 @@
             </div>
             <div class="col-xl-3 col-sm-6 mb-grid-gutter">
                 <div class="card h-100">
-                    <div class="card-body text-center"><i class="ci-time h3 mt-2 mb-4 text-primary"></i>
+                    <div class="card-body text-center"><i class="fa-solid fa-clock h3 mt-2 mb-4 text-primary"></i>
                         <h3 class="h6 mb-3">{{ __('front.general.opening_hours') }}</h3>
                         <ul class="list-unstyled fs-sm text-muted mb-0">
                             <li>{{ __('front.general.opening_hours_weekdays') }}</li>
@@ -47,7 +47,7 @@
             </div>
             <div class="col-xl-3 col-sm-6  mb-grid-gutter">
                 <div class="card h-100">
-                    <div class="card-body text-center"><i class="ci-phone h3 mt-2 mb-4 text-primary"></i>
+                    <div class="card-body text-center"><i class="fa-solid fa-phone h3 mt-2 mb-4 text-primary"></i>
                         <h3 class="h6 mb-3">{{ __('front.general.phones') }}</h3>
                         <ul class="list-unstyled fs-sm mb-0">
                             <li><a class="nav-link-style text-primary" href="tel:+38514816574"> +385 1 48 16 574</a></li>
@@ -58,7 +58,7 @@
             </div>
             <div class="col-xl-3 col-sm-6 mb-grid-gutter">
                 <div class="card h-100">
-                    <div class="card-body text-center"><i class="ci-mail h3 mt-2 mb-4 text-primary"></i>
+                    <div class="card-body text-center"><i class="fa-solid fa-envelope h3 mt-2 mb-4 text-primary"></i>
                         <h3 class="h6 mb-3">{{ __('front.general.email_address') }}</h3>
                         <ul class="list-unstyled fs-sm mb-0">
                             <li><a class="nav-link-style text-primary" href="mailto:info@antikvarijat-biblos.hr">info@antikvarijat-biblos.hr</a></li>

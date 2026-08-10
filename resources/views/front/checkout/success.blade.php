@@ -42,14 +42,14 @@
         <div class="container">
             <div class="row">
                 <div class="col-xl-3 col-sm-6 mb-grid-gutter"><a class="card h-100" href="#map" data-scroll="">
-                        <div class="card-body text-center"><i class="ci-location h3 mt-2 mb-4 text-primary"></i>
+                        <div class="card-body text-center"><i class="fa-solid fa-location-dot h3 mt-2 mb-4 text-primary"></i>
                             <h3 class="h6 mb-2">{{ __('front.general.address') }}</h3>
                             <p class="fs-sm text-muted">{{ __('front.general.address_value') }}</p>
-                            <div class="fs-sm text-primary">{{ __('front.general.click_for_map') }}<i class="ci-arrow-right align-middle ms-1"></i></div>
+                            <div class="fs-sm text-primary">{{ __('front.general.click_for_map') }}<i class="fa-solid fa-arrow-right align-middle ms-1"></i></div>
                         </div></a></div>
                 <div class="col-xl-3 col-sm-6 mb-grid-gutter">
                     <div class="card h-100">
-                        <div class="card-body text-center"><i class="ci-time h3 mt-2 mb-4 text-primary"></i>
+                        <div class="card-body text-center"><i class="fa-solid fa-clock h3 mt-2 mb-4 text-primary"></i>
                             <h3 class="h6 mb-3">{{ __('front.general.opening_hours') }}</h3>
                             <ul class="list-unstyled fs-sm text-muted mb-0">
                                 <li>{{ __('front.general.opening_hours_weekdays') }}</li>
@@ -60,7 +60,7 @@
                 </div>
                 <div class="col-xl-3 col-sm-6  mb-grid-gutter">
                     <div class="card h-100">
-                        <div class="card-body text-center"><i class="ci-phone h3 mt-2 mb-4 text-primary"></i>
+                        <div class="card-body text-center"><i class="fa-solid fa-phone h3 mt-2 mb-4 text-primary"></i>
                             <h3 class="h6 mb-3">{{ __('front.general.phones') }}</h3>
                             <ul class="list-unstyled fs-sm mb-0">
                                 <li><a class="nav-link-style text-primary" href="tel:+38514816574"> +385 1 48 16 574</a></li>
@@ -71,7 +71,7 @@
                 </div>
                 <div class="col-xl-3 col-sm-6 mb-grid-gutter">
                     <div class="card h-100">
-                        <div class="card-body text-center"><i class="ci-mail h3 mt-2 mb-4 text-primary"></i>
+                        <div class="card-body text-center"><i class="fa-solid fa-envelope h3 mt-2 mb-4 text-primary"></i>
                             <h3 class="h6 mb-3">{{ __('front.general.email_address') }}</h3>
                             <ul class="list-unstyled fs-sm mb-0">
                                 <li><a class="nav-link-style text-primary" href="mailto:info@antikvarijat-biblos.hr">info@antikvarijat-biblos.hr</a></li>

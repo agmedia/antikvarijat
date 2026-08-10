@@ -1,7 +1,7 @@
 @extends('back.layouts.backend')
 
 @push('css_after')
-    <link rel="stylesheet" href="{{ asset('vendor/lightgallery/css/lightgallery-bundle.min.css') }}">
+    <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('vendor/lightgallery/css/lightgallery-bundle.min.css') }}">
 @endpush
 
 @section('content')
@@ -66,7 +66,7 @@
 @endsection
 
 @push('js_after')
-    <script src="{{ asset('vendor/lightgallery/lightgallery.min.js') }}"></script>
+    <script src="{{ \App\Helpers\Asset::url('vendor/lightgallery/lightgallery.min.js') }}"></script>
     <script>
         (function () {
             const gallery = document.getElementById('purchase-gallery');

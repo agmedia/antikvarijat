@@ -1,10 +1,10 @@
 @extends('back.layouts.backend')
 
 @push('css_before')
-    <link rel="stylesheet" href="{{ asset('js/plugins/select2/css/select2.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('js/plugins/dropzone/min/dropzone.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('js/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/plugins/slim/slim.css') }}">
+    <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('js/plugins/select2/css/select2.min.css') }}">
+    <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('js/plugins/dropzone/min/dropzone.min.css') }}">
+    <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('js/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.min.css') }}">
+    <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('css/plugins/slim/slim.css') }}">
 
     @stack('product_css')
 @endpush
@@ -554,12 +554,12 @@
 
 @push('js_after')
     <!-- Page JS Plugins -->
-    <script src="{{ asset('js/plugins/select2/js/select2.full.min.js') }}"></script>
-    <script src="{{ asset('js/plugins/ckeditor5-classic/build/ckeditor.js') }}"></script>
-    <script src="{{ asset('js/plugins/dropzone/min/dropzone.min.js') }}"></script>
-    <script src="{{ asset('js/plugins/bootstrap-datepicker/js/bootstrap-datepicker.min.js') }}"></script>
-    <script src="{{ asset('js/plugins/jquery.maskedinput/jquery.maskedinput.min.js') }}"></script>
-    <script src="{{ asset('js/plugins/slim/slim.kickstart.js') }}"></script>
+    <script src="{{ \App\Helpers\Asset::url('js/plugins/select2/js/select2.full.min.js') }}"></script>
+    <script src="{{ \App\Helpers\Asset::url('js/plugins/ckeditor5-classic/build/ckeditor.js') }}"></script>
+    <script src="{{ \App\Helpers\Asset::url('js/plugins/dropzone/min/dropzone.min.js') }}"></script>
+    <script src="{{ \App\Helpers\Asset::url('js/plugins/bootstrap-datepicker/js/bootstrap-datepicker.min.js') }}"></script>
+    <script src="{{ \App\Helpers\Asset::url('js/plugins/jquery.maskedinput/jquery.maskedinput.min.js') }}"></script>
+    <script src="{{ \App\Helpers\Asset::url('js/plugins/slim/slim.kickstart.js') }}"></script>
 
     <!-- Page JS Helpers (CKEditor 5 plugins) -->
     <script>jQuery(function(){Dashmix.helpers(['datepicker']);});</script>

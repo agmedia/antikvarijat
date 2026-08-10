@@ -37,8 +37,8 @@ Vue.component('cart-nav-icon', require('./components/CartNavIcon/CartNavIcon').d
 Vue.component('cart-footer-icon', require('./components/CartFooterIcon/CartFooterIcon').default);
 Vue.component('add-to-cart-btn', require('./components/AddToCartBtn/AddToCartBtn').default);
 Vue.component('add-to-cart-btn-simple', require('./components/AddToCartBtnSimple/AddToCartBtnSimple').default);
-Vue.component('cart-view', () => import(/* webpackChunkName: "cart-checkout" */ './components/CartView/CartView.vue'));
-Vue.component('cart-view-aside', () => import(/* webpackChunkName: "cart-checkout" */ './components/CartViewAside/CartViewAside.vue'));
+Vue.component('cart-view', require('./components/CartView/CartView.vue').default);
+Vue.component('cart-view-aside', require('./components/CartViewAside/CartViewAside.vue').default);
 Vue.component('filter-view', FilterView);
 Vue.component('products-view', ProductsView);
 Vue.component('pagination', Pagination);

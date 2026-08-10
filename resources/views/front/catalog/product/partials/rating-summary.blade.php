@@ -16,7 +16,7 @@
         aria-label="{{ __('front.reviews.rating_summary', ['rating' => $cardReviewAverageFormatted, 'count' => $cardReviewCount]) }}">
         <span class="star-rating" aria-hidden="true">
             @for ($star = 1; $star <= 5; $star++)
-                <i class="star-rating-icon {{ $star <= round($cardReviewAverage) ? 'ci-star-filled active' : 'ci-star' }}"></i>
+                <i class="star-rating-icon {{ $star <= round($cardReviewAverage) ? 'fa-solid fa-star active' : 'fa-duotone fa-star' }}"></i>
             @endfor
         </span>
         <span class="fs-xs text-muted">{{ $cardReviewAverageFormatted }} ({{ $cardReviewCount }})</span>

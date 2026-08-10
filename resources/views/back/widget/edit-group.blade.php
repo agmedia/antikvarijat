@@ -1,7 +1,7 @@
 @extends('back.layouts.backend')
 
 @push('css_before')
-    <link rel="stylesheet" href="{{ asset('js/plugins/select2/css/select2.min.css') }}">
+    <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('js/plugins/select2/css/select2.min.css') }}">
     <style>
         span.select2-results ul.select2-results__options {
             min-height: 250px;
@@ -121,7 +121,7 @@
 
 
 @push('js_after')
-    <script src="{{ asset('js/plugins/select2/js/select2.full.min.js') }}"></script>
+    <script src="{{ \App\Helpers\Asset::url('js/plugins/select2/js/select2.full.min.js') }}"></script>
 
     <script>
         $(() => {

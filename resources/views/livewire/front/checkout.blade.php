@@ -2,28 +2,28 @@
     <div class="steps steps-dark pt-2 pb-3 mb-5">
         <a class="step-item active" href="{{ \App\Helpers\LocaleHelper::route('kosarica') }}">
             <div class="step-progress"><span class="step-count">1</span></div>
-            <div class="step-label"><i class="ci-cart"></i>{{ __('front.checkout.cart') }}</div>
+            <div class="step-label"><i class="fa-regular fa-bag-shopping"></i>{{ __('front.checkout.cart') }}</div>
         </a>
         <a class="step-item @if($step == 'podaci') current @endif @if(in_array($step, ['podaci', 'dostava', 'placanje'])) active @endif" wire:click="changeStep('podaci')" href="javascript:void(0);">
             <div class="step-progress"><span class="step-count">2</span></div>
-            <div class="step-label"><i class="ci-user-circle"></i>{{ __('front.checkout.details') }}</div>
+            <div class="step-label"><i class="fa-duotone fa-circle-user"></i>{{ __('front.checkout.details') }}</div>
         </a>
         <a class="step-item @if($step == 'dostava') current @endif @if(in_array($step, ['dostava', 'placanje'])) active @endif" wire:click="changeStep('dostava')" href="javascript:void(0);">
             <div class="step-progress"><span class="step-count">3</span></div>
-            <div class="step-label"><i class="ci-package"></i>{{ __('front.checkout.shipping') }}</div>
+            <div class="step-label"><i class="fa-duotone fa-box"></i>{{ __('front.checkout.shipping') }}</div>
         </a>
         <a class="step-item @if($step == 'placanje') current @endif @if(in_array($step, ['placanje'])) active @endif" wire:click="changeStep('placanje')" href="javascript:void(0);">
             <div class="step-progress"><span class="step-count">4</span></div>
-            <div class="step-label"><i class="ci-card"></i>{{ __('front.checkout.payment') }}</div>
+            <div class="step-label"><i class="fa-duotone fa-credit-card"></i>{{ __('front.checkout.payment') }}</div>
         </a>
         <a class="step-item" href="{{ ($payment != '') ? \App\Helpers\LocaleHelper::route('pregled') : '#' }}">
             <div class="step-progress"><span class="step-count">5</span></div>
-            <div class="step-label"><i class="ci-eye"></i>{{ __('front.checkout.review') }}</div>
+            <div class="step-label"><i class="fa-solid fa-eye"></i>{{ __('front.checkout.review') }}</div>
         </a>
 
         <a class="step-item" href="#">
             <div class="step-progress"><span class="step-count">6</span></div>
-            <div class="step-label"><i class="ci-check-circle"></i>{{ __('front.checkout.success') }}</div>
+            <div class="step-label"><i class="fa-solid fa-circle-check"></i>{{ __('front.checkout.success') }}</div>
         </a>
     </div>
 
@@ -84,7 +84,7 @@
         @if (auth()->guest())
             <div class="alert alert-secondary d-flex mb-3" role="alert">
                 <div class="alert-icon">
-                    <i class="ci-user"></i>
+                    <i class="fa-solid fa-user"></i>
                 </div>
                 <div><a data-bs-toggle="collapse" href="#collapseLogin" role="button" aria-expanded="false" aria-controls="collapseLogin" class="alert-link">{{ __('front.checkout.login') }} </a> {{ __('front.checkout.registered_users') }}</div>
             </div>
@@ -256,8 +256,8 @@
         </div>
 
         <div class="d-flex pt-4 mt-3">
-            <div class="w-50 pe-3"><a class="btn btn-secondary d-block w-100" href="{{ \App\Helpers\LocaleHelper::route('kosarica') }}"><i class="ci-arrow-left mt-sm-0 me-1"></i><span class="d-none d-sm-inline">{{ __('front.checkout.back_to_cart') }}</span><span class="d-inline d-sm-none">{{ __('front.checkout.back') }}</span></a></div>
-            <div class="w-50 ps-2"><button class="btn btn-primary d-block w-100" wire:click="changeStep('dostava')" type="button"><span class="d-none d-sm-inline">{{ __('front.checkout.choose_shipping') }}</span><span class="d-inline d-sm-none">{{ __('front.checkout.continue') }}</span><i class="ci-arrow-right mt-sm-0 ms-1"></i></button></div>
+            <div class="w-50 pe-3"><a class="btn btn-secondary d-block w-100" href="{{ \App\Helpers\LocaleHelper::route('kosarica') }}"><i class="fa-solid fa-arrow-left mt-sm-0 me-1"></i><span class="d-none d-sm-inline">{{ __('front.checkout.back_to_cart') }}</span><span class="d-inline d-sm-none">{{ __('front.checkout.back') }}</span></a></div>
+            <div class="w-50 ps-2"><button class="btn btn-primary d-block w-100" wire:click="changeStep('dostava')" type="button"><span class="d-none d-sm-inline">{{ __('front.checkout.choose_shipping') }}</span><span class="d-inline d-sm-none">{{ __('front.checkout.continue') }}</span><i class="fa-solid fa-arrow-right mt-sm-0 ms-1"></i></button></div>
         </div>
 
     @endif
@@ -330,8 +330,8 @@
         @endforeach
         @error('shipping') <small class="text-danger">{{ __('front.checkout.shipping_required') }}</small> @enderror
         <div class=" d-flex pt-4 mt-3">
-            <div class="w-50 pe-3"><button class="btn btn-secondary d-block w-100" wire:click="changeStep('podaci')" type="button"><i class="ci-arrow-left mt-sm-0 me-1"></i><span class="d-none d-sm-inline">{{ __('front.checkout.back_to_details') }}</span><span class="d-inline d-sm-none">{{ __('front.checkout.back') }}</span></button></div>
-            <div class="w-50 ps-2"><button class="btn btn-primary d-block w-100" wire:click="changeStep('placanje')" type="button"><span class="d-none d-sm-inline">{{ __('front.checkout.choose_payment') }}</span><span class="d-inline d-sm-none">{{ __('front.checkout.continue') }}</span><i class="ci-arrow-right mt-sm-0 ms-1"></i></button></div>
+            <div class="w-50 pe-3"><button class="btn btn-secondary d-block w-100" wire:click="changeStep('podaci')" type="button"><i class="fa-solid fa-arrow-left mt-sm-0 me-1"></i><span class="d-none d-sm-inline">{{ __('front.checkout.back_to_details') }}</span><span class="d-inline d-sm-none">{{ __('front.checkout.back') }}</span></button></div>
+            <div class="w-50 ps-2"><button class="btn btn-primary d-block w-100" wire:click="changeStep('placanje')" type="button"><span class="d-none d-sm-inline">{{ __('front.checkout.choose_payment') }}</span><span class="d-inline d-sm-none">{{ __('front.checkout.continue') }}</span><i class="fa-solid fa-arrow-right mt-sm-0 ms-1"></i></button></div>
         </div>
     @endif
 
@@ -359,8 +359,8 @@
         </div>
         @error('payment') <small class="text-danger">{{ __('front.checkout.payment_required') }}</small> @enderror
         <div class=" d-flex pt-4 mt-3">
-            <div class="w-50 pe-3"><button class="btn btn-secondary d-block w-100" wire:click="changeStep('dostava')" type="button"><i class="ci-arrow-left mt-sm-0 me-1"></i><span class="d-none d-sm-inline">{{ __('front.checkout.back_to_shipping') }}</span><span class="d-inline d-sm-none">{{ __('front.checkout.back') }}</span></button></div>
-            <div class="w-50 ps-2"><a class="btn btn-primary d-block w-100" href="{{ ($payment != '') ? \App\Helpers\LocaleHelper::route('pregled') : '#' }}"><span class="d-none d-sm-inline">{{ __('front.checkout.review_order') }}</span><span class="d-inline d-sm-none">{{ __('front.checkout.continue') }}</span><i class="ci-arrow-right mt-sm-0 ms-1"></i></a></div>
+            <div class="w-50 pe-3"><button class="btn btn-secondary d-block w-100" wire:click="changeStep('dostava')" type="button"><i class="fa-solid fa-arrow-left mt-sm-0 me-1"></i><span class="d-none d-sm-inline">{{ __('front.checkout.back_to_shipping') }}</span><span class="d-inline d-sm-none">{{ __('front.checkout.back') }}</span></button></div>
+            <div class="w-50 ps-2"><a class="btn btn-primary d-block w-100" href="{{ ($payment != '') ? \App\Helpers\LocaleHelper::route('pregled') : '#' }}"><span class="d-none d-sm-inline">{{ __('front.checkout.review_order') }}</span><span class="d-inline d-sm-none">{{ __('front.checkout.continue') }}</span><i class="fa-solid fa-arrow-right mt-sm-0 ms-1"></i></a></div>
         </div>
     @endif
 
@@ -369,8 +369,8 @@
 
 
 @push('js_after')
-{{--    <link rel="stylesheet" href="{{ asset('js/plugins/select2/css/select2.min.css') }}">--}}
-{{--    <script src="{{ asset('js/plugins/select2/js/select2.full.min.js') }}"></script>--}}
+{{--    <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('js/plugins/select2/css/select2.min.css') }}">--}}
+{{--    <script src="{{ \App\Helpers\Asset::url('js/plugins/select2/js/select2.full.min.js') }}"></script>--}}
 
 
 <script>

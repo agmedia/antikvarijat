@@ -96,7 +96,7 @@
 @endsection
 
 @push('js_after')
-    <script src="{{ asset('js/plugins/ckeditor/ckeditor.js') }}"></script>
+    <script src="{{ \App\Helpers\Asset::url('js/plugins/ckeditor/ckeditor.js') }}"></script>
 
 
     <!-- Page JS Helpers (CKEditor 5 plugins) -->

@@ -166,7 +166,7 @@
 
 @push('js_after')
     <!-- Page JS Plugins -->
-    <script src="{{ asset('js/plugins/ckeditor5-classic/build/ckeditor.js') }}"></script>
+    <script src="{{ \App\Helpers\Asset::url('js/plugins/ckeditor5-classic/build/ckeditor.js') }}"></script>
 
     <script>
         $(() => {

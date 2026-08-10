@@ -1,6 +1,6 @@
 @extends('back.layouts.backend')
 @push('css_before')
-    <link rel="stylesheet" href="{{ asset('js/plugins/select2/css/select2.min.css') }}">
+    <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('js/plugins/select2/css/select2.min.css') }}">
 @endpush
 
 @section('content')
@@ -262,10 +262,10 @@
 @endpush
 
 @push('js_after')
-    <script src="{{ asset('js/vue.js') }}"></script>
-    <script src="{{ asset('js/components/ag-order-products.js') }}"></script>
+    <script src="{{ \App\Helpers\Asset::url('js/vue.js') }}"></script>
+    <script src="{{ \App\Helpers\Asset::url('js/components/ag-order-products.js') }}"></script>
 
-    <script src="{{ asset('js/plugins/select2/js/select2.full.min.js') }}"></script>
+    <script src="{{ \App\Helpers\Asset::url('js/plugins/select2/js/select2.full.min.js') }}"></script>
     <script>
         $(() => {
             $('#shipping-select').select2({});

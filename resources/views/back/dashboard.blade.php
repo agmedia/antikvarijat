@@ -1243,7 +1243,7 @@
 
 @push('js_after')
     @if($canViewSales)
-    <script src="{{ asset('js/plugins/chart.js/Chart.bundle.min.js') }}"></script>
+    <script src="{{ \App\Helpers\Asset::url('js/plugins/chart.js/Chart.bundle.min.js') }}"></script>
     <script>
         (() => {
             const currentYear = {{ now()->year }};

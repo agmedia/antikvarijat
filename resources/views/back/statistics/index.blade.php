@@ -260,11 +260,11 @@
 @endsection
 
 @push('css_before')
-    <link rel="stylesheet" href="{{ asset('js/plugins/jvectormap/dist/jquery-jvectormap.css') }}">
+    <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('js/plugins/jvectormap/dist/jquery-jvectormap.css') }}">
 @endpush
 
 @push('css_after')
-    <link rel="stylesheet" href="{{ asset('js/plugins/bootstrap-datepicker/css/bootstrap-datepicker.css') }}">
+    <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('js/plugins/bootstrap-datepicker/css/bootstrap-datepicker.css') }}">
     <style>
         .statistics-hero { border-bottom: 1px solid #ded8cc; background: #f7f4ed !important; }
         .statistics-hero .content-full { padding-top: 1.45rem !important; padding-bottom: 1.45rem !important; }
@@ -390,12 +390,12 @@
 @endpush
 
 @push('js_after')
-    <script src="{{ asset('js/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js') }}"></script>
-    <script src="{{ asset('js/plugins/bootstrap-datepicker/locales/bootstrap-datepicker.hr.min.js') }}"></script>
-    <script src="{{ asset('js/plugins/chart.js/Chart.bundle.min.js') }}"></script>
-    <script src="{{ asset('js/plugins/jvectormap/dist/jquery-jvectormap.min.js') }}"></script>
-    <script src="{{ asset('js/plugins/jvectormap/maps/jquery-jvectormap-world-mill-en.js') }}"></script>
-    <script src="{{ asset('js/plugins/jvectormap/maps/jquery-jvectormap-europe-mill-en.js') }}"></script>
+    <script src="{{ \App\Helpers\Asset::url('js/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js') }}"></script>
+    <script src="{{ \App\Helpers\Asset::url('js/plugins/bootstrap-datepicker/locales/bootstrap-datepicker.hr.min.js') }}"></script>
+    <script src="{{ \App\Helpers\Asset::url('js/plugins/chart.js/Chart.bundle.min.js') }}"></script>
+    <script src="{{ \App\Helpers\Asset::url('js/plugins/jvectormap/dist/jquery-jvectormap.min.js') }}"></script>
+    <script src="{{ \App\Helpers\Asset::url('js/plugins/jvectormap/maps/jquery-jvectormap-world-mill-en.js') }}"></script>
+    <script src="{{ \App\Helpers\Asset::url('js/plugins/jvectormap/maps/jquery-jvectormap-europe-mill-en.js') }}"></script>
     <script>
         (() => {
             'use strict';

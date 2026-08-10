@@ -73,7 +73,7 @@
 @endpush
 
 @push('css_after')
-    <link rel="stylesheet" href="{{ asset('css/category.css?v=' . filemtime(public_path('css/category.css'))) }}">
+    <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('css/category.css') }}">
 @endpush
 
 
@@ -87,7 +87,7 @@
                 <div class="order-lg-2 mb-3 mb-lg-0 pt-lg-2  ">
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb breadcrumb-dark flex-lg-nowrap justify-content-center justify-content-lg-start">
-                            <li class="breadcrumb-item"><a class="text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('index') }}"><i class="ci-home"></i>{{ __('front.nav.home') }}</a></li>
+                            <li class="breadcrumb-item"><a class="text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('index') }}"><i class="fa-solid fa-house"></i>{{ __('front.nav.home') }}</a></li>
                             @if ($group && ! $cat && ! $subcat)
                                 <li class="breadcrumb-item text-nowrap active" aria-current="page">{{ \App\Helpers\LocaleHelper::groupTitle($group) }}</li>
                             @elseif ($group && $cat)
@@ -132,7 +132,7 @@
                 <div class="order-lg-2 mb-3 mb-lg-0 pt-lg-2">
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb breadcrumb-dark flex-lg-nowrap justify-content-center justify-content-lg-start">
-                            <li class="breadcrumb-item"><a class="text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('index') }}"><i class="ci-home"></i>{{ __('front.nav.home') }}</a></li>
+                            <li class="breadcrumb-item"><a class="text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('index') }}"><i class="fa-solid fa-house"></i>{{ __('front.nav.home') }}</a></li>
                             <li class="breadcrumb-item text-nowrap active" aria-current="page"><a class="text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('catalog.route.author') }}">{{ __('front.nav.authors') }}</a></li>
                             @if ( ! $cat && ! $subcat)
                                 <li class="breadcrumb-item text-nowrap active" aria-current="page">{{ $author->title }}</li>
@@ -157,7 +157,7 @@
                 <div class="order-lg-2 mb-3 mb-lg-0 pt-lg-2">
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb breadcrumb-dark flex-lg-nowrap justify-content-center justify-content-lg-start">
-                            <li class="breadcrumb-item"><a class="text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('index') }}"><i class="ci-home"></i>{{ __('front.nav.home') }}</a></li>
+                            <li class="breadcrumb-item"><a class="text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('index') }}"><i class="fa-solid fa-house"></i>{{ __('front.nav.home') }}</a></li>
                             <li class="breadcrumb-item text-nowrap active" aria-current="page"><a class="text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('catalog.route.publisher') }}">{{ __('front.nav.publishers') }}</a></li>
                             @if ( ! $cat && ! $subcat)
                                 <li class="breadcrumb-item text-nowrap active" aria-current="page">{{ $publisher->title }}</li>

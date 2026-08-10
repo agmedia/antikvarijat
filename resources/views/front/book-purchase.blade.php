@@ -22,7 +22,7 @@
 @endpush
 
 @push('css_after')
-    <link rel="stylesheet" media="screen" href="{{ asset('js/simple-lightbox.css?v2.14.0') }}">
+    <link rel="stylesheet" media="screen" href="{{ \App\Helpers\Asset::url('js/simple-lightbox.css') }}">
 @endpush
 
 @section('content')
@@ -31,7 +31,7 @@
             <div class="order-lg-2 mb-3 mb-lg-0 pt-lg-2">
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb flex-lg-nowrap justify-content-center justify-content-lg-start">
-                        <li class="breadcrumb-item"><a class="text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('index') }}"><i class="ci-home"></i> {{ __('front.nav.home') }}</a></li>
+                        <li class="breadcrumb-item"><a class="text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('index') }}"><i class="fa-solid fa-house"></i> {{ __('front.nav.home') }}</a></li>
                         <li class="breadcrumb-item text-nowrap active" aria-current="page">{{ $bookPurchaseContent['title'] }}</li>
                     </ol>
                 </nav>
@@ -183,7 +183,7 @@
 
 @push('js_after')
     @include('front.layouts.partials.recaptcha-js')
-    <script src="{{ asset('js/simple-lightbox.js?v2.14.0') }}"></script>
+    <script src="{{ \App\Helpers\Asset::url('js/simple-lightbox.js') }}"></script>
     @php
         $bookPurchaseLabels = [
             'noFileSelected' => __('front.book_purchase.no_file_selected'),

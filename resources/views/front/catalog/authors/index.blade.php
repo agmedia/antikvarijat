@@ -11,7 +11,7 @@
 @endpush
 
 @push('css_after')
-    <link rel="stylesheet" href="{{ asset('css/category.css?v=' . filemtime(public_path('css/category.css'))) }}">
+    <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('css/category.css') }}">
 @endpush
 
 @section('content')
@@ -27,7 +27,7 @@
                     <form action="{{ \App\Helpers\LocaleHelper::route('pretrazi', ['tip' => 'author']) }}" method="get" style="max-width:500px; margin: 0 auto;margin-top:30px">
                         <div class="input-group input-group-lg flex-nowrap">
                             <input type="text" class="form-control rounded-start" name="{{ config('settings.search_keyword') }}" placeholder="{{ __('front.search.search_by_author') }}">
-                            <button class="btn btn-primary btn-lg fs-base" type="submit"><i class="ci-search"></i></button>
+                            <button class="btn btn-primary btn-lg fs-base" type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
                         </div>
                     </form>
                 </div>

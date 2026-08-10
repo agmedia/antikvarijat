@@ -7,7 +7,7 @@
                     <h3 class="fw-bold text-primary">{{ $store.state.service.formatMainPrice($store.state.cart.total) }}</h3>
                     <h4 class="fs-sm" v-if="$store.state.cart.secondary_price">{{ $store.state.service.formatSecondaryPrice($store.state.cart.total) }}</h4>
                 </div>
-                <a class="btn btn-primary btn-shadow d-block w-100 mt-4" :href="checkouturl">{{ labels.continueToCheckout }} <i class="ci-arrow-right fs-sm"></i></a>
+                <a class="btn btn-primary btn-shadow d-block w-100 mt-4" :href="checkouturl">{{ labels.continueToCheckout }} <i class="fa-solid fa-arrow-right fs-sm" aria-hidden="true"></i></a>
             </div>
         </div>
 

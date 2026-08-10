@@ -1,0 +1,282 @@
+.account-auth-modal .modal-dialog {
+    max-width: 540px;
+}
+
+.auth-gateway {
+    display: flex;
+    min-height: 54vh;
+    align-items: center;
+    padding: 5rem 0;
+    background: linear-gradient(rgba(49, 72, 55, .92), rgba(49, 72, 55, .92)), url('../media/img/indexslika.jpg') center/cover no-repeat;
+}
+
+.auth-gateway__mark {
+    width: 72px;
+    height: 72px;
+    margin-bottom: 1rem;
+    border: 3px solid rgba(255, 255, 255, .7);
+    border-radius: 50%;
+}
+
+.auth-gateway__title {
+    margin-bottom: .4rem;
+    color: #fff !important;
+}
+
+.auth-gateway__text {
+    margin: 0;
+    color: #d9ca9d;
+}
+
+.account-auth-modal .modal-content {
+    overflow: hidden;
+    border: 0;
+    border-radius: .75rem;
+    box-shadow: 0 1.5rem 4rem rgba(26, 39, 31, .24);
+}
+
+.account-auth-modal .modal-header {
+    align-items: stretch;
+    min-height: 64px;
+    padding: 0 .65rem 0 1.25rem;
+    border-bottom: 1px solid #e5e8e5;
+    background: #fff;
+}
+
+.account-auth-modal .nav-tabs {
+    gap: 1.25rem;
+    margin: 0;
+    border: 0;
+}
+
+.account-auth-modal .nav-tabs .nav-link {
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 64px;
+    padding: 0 .15rem;
+    border: 0 !important;
+    border-radius: 0 !important;
+    outline: 0;
+    background: transparent !important;
+    color: #596475;
+    font-weight: 500;
+    box-shadow: none !important;
+    transition: color .16s ease;
+}
+
+.account-auth-modal .nav-tabs .nav-link::after {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 2px;
+    background: #bfa76a;
+    content: '';
+    transform: scaleX(0);
+    transition: transform .16s ease;
+}
+
+.account-auth-modal .nav-tabs .nav-link:hover,
+.account-auth-modal .nav-tabs .nav-link:focus-visible,
+.account-auth-modal .nav-tabs .nav-link.active {
+    color: #314837;
+}
+
+.account-auth-modal .nav-tabs .nav-link:focus-visible {
+    border-radius: .25rem !important;
+    box-shadow: 0 0 0 .2rem rgba(191, 167, 106, .2) !important;
+}
+
+.account-auth-modal .nav-tabs .nav-link.active::after {
+    transform: scaleX(1);
+}
+
+.account-auth-modal .account-auth-close {
+    align-self: center;
+    display: inline-flex;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: #697568;
+    font-size: 1.15rem;
+    transition: background-color .16s ease, color .16s ease, box-shadow .16s ease;
+}
+
+.account-auth-modal .account-auth-close:hover {
+    background: #f1f4f1;
+    color: #314837;
+}
+
+.account-auth-modal .account-auth-close:focus-visible {
+    outline: 0;
+    box-shadow: 0 0 0 .2rem rgba(191, 167, 106, .22);
+}
+
+.account-auth-modal .modal-body {
+    padding: 1.75rem 1.5rem 1.5rem;
+}
+
+.account-auth-modal .form-label {
+    margin-bottom: .4rem;
+    color: #314837;
+    font-size: .9rem;
+    font-weight: 500;
+}
+
+.account-auth-modal .form-control {
+    min-height: 48px;
+    border-color: #d5dcd7;
+}
+
+.account-auth-modal .form-control:focus {
+    border-color: #bfa76a;
+    box-shadow: 0 0 0 .2rem rgba(191, 167, 106, .18);
+}
+
+.account-auth-modal .auth-password-field {
+    position: relative;
+}
+
+.account-auth-modal .auth-password-field .form-control {
+    padding-right: 3rem;
+}
+
+.account-auth-modal .password-visibility-toggle {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    bottom: 2px;
+    display: inline-flex;
+    width: 44px;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: .3rem;
+    background: transparent;
+    color: #697568;
+    cursor: pointer;
+    transition: background-color .16s ease, color .16s ease, box-shadow .16s ease;
+}
+
+.account-auth-modal .password-visibility-toggle:hover {
+    background: #f3f5f3;
+    color: #314837;
+}
+
+.account-auth-modal .password-visibility-toggle:focus-visible {
+    outline: 0;
+    box-shadow: 0 0 0 .2rem rgba(191, 167, 106, .2);
+}
+
+.account-auth-modal .google-login-button {
+    display: flex;
+    min-height: 50px;
+    align-items: center;
+    justify-content: center;
+    gap: .9rem;
+    width: 100%;
+    padding: .7rem 1rem;
+    border: 1px solid #cdd5d0;
+    border-radius: .4rem;
+    background: #fff;
+    color: #28342d;
+    font-weight: 600;
+    text-decoration: none;
+    transition: border-color .16s ease, background-color .16s ease, box-shadow .16s ease;
+}
+
+.account-auth-modal .google-login-button:hover {
+    border-color: #a9b5ad;
+    background: #f8faf8;
+    color: #28342d;
+}
+
+.account-auth-modal .google-login-button:focus-visible {
+    outline: 0;
+    border-color: #bfa76a;
+    box-shadow: 0 0 0 .2rem rgba(191, 167, 106, .2);
+}
+
+.account-auth-modal .google-login-button > i {
+    flex: 0 0 20px;
+    width: 20px;
+    color: #4285f4;
+    font-size: 1.15rem;
+}
+
+.account-auth-modal .google-login-divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 1rem 0;
+    color: #7a847d;
+    font-size: .82rem;
+}
+
+.account-auth-modal .google-login-divider::before,
+.account-auth-modal .google-login-divider::after {
+    flex: 1 1 auto;
+    height: 1px;
+    background: #dde2de;
+    content: '';
+}
+
+.account-auth-modal .btn-primary {
+    min-height: 46px;
+    color: #203528;
+    font-weight: 700;
+}
+
+.account-auth-modal .btn-primary:hover,
+.account-auth-modal .btn-primary:focus {
+    color: #203528;
+}
+
+.account-auth-modal .form-check-input {
+    width: 1.05rem;
+    height: 1.05rem;
+    margin-top: .16rem;
+}
+
+.account-auth-modal a:not(.google-login-button) {
+    color: #846f39;
+    text-underline-offset: .16em;
+}
+
+.account-auth-modal a:not(.google-login-button):hover,
+.account-auth-modal a:not(.google-login-button):focus-visible {
+    color: #314837;
+}
+
+.account-auth-modal .auth-terms {
+    color: #6a746d;
+    font-size: .78rem;
+    line-height: 1.5;
+}
+
+@media (max-width: 575.98px) {
+    .account-auth-modal .modal-dialog {
+        margin: .75rem;
+    }
+
+    .account-auth-modal .modal-header {
+        padding: 0 1rem;
+    }
+
+    .account-auth-modal .nav-tabs {
+        gap: 1rem;
+    }
+
+    .account-auth-modal .modal-body {
+        padding: 1.25rem 1rem;
+    }
+}

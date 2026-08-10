@@ -1,9 +1,9 @@
 @extends('back.layouts.backend')
 
 @push('css_before')
-    <link rel="stylesheet" href="{{ asset('js/plugins/select2/css/select2.min.css') }}">
+    <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('js/plugins/select2/css/select2.min.css') }}">
     <!-- Page JS Plugins CSS -->
-    <link rel="stylesheet" href="{{ asset('js/plugins/magnific-popup/magnific-popup.css') }}">
+    <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('js/plugins/magnific-popup/magnific-popup.css') }}">
 @endpush
 
 @section('content')
@@ -256,12 +256,12 @@
 @push('js_after')
 
     <!-- Page JS Plugins -->
-    <script src="{{ asset('js/plugins/magnific-popup/jquery.magnific-popup.min.js') }}"></script>
+    <script src="{{ \App\Helpers\Asset::url('js/plugins/magnific-popup/jquery.magnific-popup.min.js') }}"></script>
 
     <!-- Page JS Helpers (Magnific Popup Plugin) -->
     <script>jQuery(function(){Dashmix.helpers('magnific-popup');});</script>
 
-    <script src="{{ asset('js/plugins/select2/js/select2.full.min.js') }}"></script>
+    <script src="{{ \App\Helpers\Asset::url('js/plugins/select2/js/select2.full.min.js') }}"></script>
     <script>
         $(() => {
             $('#status-select').select2({});

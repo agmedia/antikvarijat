@@ -2,7 +2,7 @@
     <!-- Success alert -->
     <div class="alert alert-success d-flex" role="alert">
         <div class="alert-icon">
-            <i class="ci-check-circle"></i>
+            <i class="fa-solid fa-circle-check"></i>
         </div>
         <div>{{ __('front.messages.success') }} {{ session('success') }}</div>
     </div>

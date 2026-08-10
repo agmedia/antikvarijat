@@ -1,7 +1,7 @@
 <template>
 
 
-        <button class="btn btn-primary  btn-sm" type="button" @click="addToCart()">+<i class="ci-cart fs-base ms-1"></i></button>
+        <button class="btn btn-primary  btn-sm" type="button" @click="addToCart()">+<i class="fa-regular fa-bag-shopping fs-base ms-1" aria-hidden="true"></i></button>
 
 
 </template>

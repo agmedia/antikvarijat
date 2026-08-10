@@ -3,7 +3,7 @@
         <div class="d-flex justify-content-center justify-content-sm-between align-items-center pt-2 pb-4 pb-sm-5">
             <div class="d-flex flex-wrap">
                 <div class="dropdown me-2 d-sm-none">
-                    <a class="btn btn-primary dropdown-toggle collapsed" href="#shop-sidebar" data-bs-toggle="collapse" aria-expanded="false"><i class="ci-filter-alt"></i></a>
+                    <a class="btn btn-primary dropdown-toggle collapsed" href="#shop-sidebar" data-bs-toggle="collapse" aria-expanded="false"><i class="fa-solid fa-filter"></i></a>
                 </div>
                 <div class="d-flex align-items-center flex-nowrap me-3 me-sm-4 pb-3">
                     @php

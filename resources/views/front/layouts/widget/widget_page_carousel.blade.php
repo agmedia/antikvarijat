@@ -10,11 +10,11 @@
     <div class="d-flex flex-wrap justify-content-between align-items-center pt-1  pb-3 mb-2">
         <h2 class="h3 mb-0 pt-0 font-title me-3 "><span class="border-color"> {{ $data['title'] }}</span></h2>
         @if ($data['tablename'] == 'blog')
-        <a class="btn btn-outline-primary btn-sm btn-shadow mt-0" href="{{ \App\Helpers\LocaleHelper::route('catalog.route.blog') }}"><span class="d-none d-sm-inline-block">{{ __('front.widgets.view_all') }}</span> <i class="ci-arrow-right fs-xs "></i></a>
+        <a class="btn btn-outline-primary btn-sm btn-shadow mt-0" href="{{ \App\Helpers\LocaleHelper::route('catalog.route.blog') }}"><span class="d-none d-sm-inline-block">{{ __('front.widgets.view_all') }}</span> <i class="fa-solid fa-arrow-right fs-xs "></i></a>
         @endif
 
         @if ($data['tablename'] == 'reviews')
-            <a class="btn btn-outline-primary btn-sm btn-shadow mt-0" target="_blanks" href="https://www.google.com/search?sca_esv=0a74b9f5a5d821da&si=AMgyJEuzsz2NflaaWzrzdpjxXXRaJ2hfdMsbe_mSWso6src8sypp-5CetgPBI0vwf0AeIVtJomeCeueKZqvh42JWVyfZbtudLrwN3Q3Pg_0VkMmG8Q15iQREGs_PaSOZFoKeKAtW2JSU&q=Biblos+Recenzije&sa=X&ved=2ahUKEwiNlo_I8pmPAxX1Q_EDHSMbBUEQ0bkNegQIJxAE&biw=1512&bih=832&dpr=2"><span class="d-none d-sm-inline-block">{{ __('front.widgets.google_reviews') }}</span> <i class="ci-arrow-right fs-xs"></i></a>
+            <a class="btn btn-outline-primary btn-sm btn-shadow mt-0" target="_blanks" href="https://www.google.com/search?sca_esv=0a74b9f5a5d821da&si=AMgyJEuzsz2NflaaWzrzdpjxXXRaJ2hfdMsbe_mSWso6src8sypp-5CetgPBI0vwf0AeIVtJomeCeueKZqvh42JWVyfZbtudLrwN3Q3Pg_0VkMmG8Q15iQREGs_PaSOZFoKeKAtW2JSU&q=Biblos+Recenzije&sa=X&ved=2ahUKEwiNlo_I8pmPAxX1Q_EDHSMbBUEQ0bkNegQIJxAE&biw=1512&bih=832&dpr=2"><span class="d-none d-sm-inline-block">{{ __('front.widgets.google_reviews') }}</span> <i class="fa-solid fa-arrow-right fs-xs"></i></a>
         @endif
     </div>
 
@@ -25,7 +25,7 @@
                     <!-- Product-->
                         <div class="article mb-grid-gutter">
                             <a class="card border-0 shadow" href="{{ \App\Helpers\LocaleHelper::route('catalog.route', ['group' => $item->getRawOriginal('group'), 'cat' => $item]) }}">
-                                <span class="blog-entry-meta-label fs-sm"><i class="ci-book text-primary me-0"></i></span>
+                                <span class="blog-entry-meta-label fs-sm"><i class="fa-duotone fa-books text-primary me-0"></i></span>
                                 <img class="card-img-top" loading="lazy" width="400" height="300" src="{{ $item['image'] }}" alt="{{ __('front.widgets.category_alt', ['title' => $item['title']]) }}">
                                 <div class="card-body py-2 text-center px-0">
                                     <h3 class="h6 mt-1 font-title text-primary">{{ $item['title'] }}</h3>
@@ -59,13 +59,13 @@
                                 <div class="star-rating"> @for ($i = 0; $i < 5; $i++)
                                         @if (floor($review->stars) - $i >= 1)
                                             {{--Full Start--}}
-                                            <i class="star-rating-icon ci-star-filled active"></i>
+                                            <i class="star-rating-icon fa-solid fa-star active"></i>
                                         @elseif ($review->stars - $i > 0)
                                             {{--Half Start--}}
-                                            <i class="star-rating-icon ci-star"></i>
+                                            <i class="star-rating-icon fa-duotone fa-star"></i>
                                         @else
                                             {{--Empty Start--}}
-                                            <i class="star-rating-icon ci-star"></i>
+                                            <i class="star-rating-icon fa-duotone fa-star"></i>
                                         @endif
                                     @endfor
                                 </div>

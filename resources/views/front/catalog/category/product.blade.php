@@ -40,7 +40,7 @@
         <h3 class="product-title fs-sm mb-0"><a href="{{ url($product->url) }}">{{ $product->name }}</a></h3>
         @if ($product->category_string)
             <div class="d-flex flex-wrap justify-content-between align-items-center">
-                <div class="fs-sm me-2 one-line"><i class="ci-book text-muted fs-xs"></i> {!! $product->category_string !!}</div>
+                <div class="fs-sm me-2 one-line"><i class="fa-duotone fa-books text-muted fs-xs"></i> {!! $product->category_string !!}</div>
             </div>
         @endif
         <div class="d-flex flex-wrap justify-content-between align-items-center price-box mt-2">
@@ -67,7 +67,7 @@
 
         <div class="product-floating-btn">
         <add-to-cart-btn-simple id="{{ $product->id }}">
-            <a href="{{ url($product->url) }}" class="btn btn-primary btn-sm" aria-label="{{ __('front.product.open') }} {{ $product->name }}">+<i class="ci-cart fs-base ms-1"></i></a>
+            <a href="{{ url($product->url) }}" class="btn btn-primary btn-sm" aria-label="{{ __('front.product.open') }} {{ $product->name }}">+<i class="fa-regular fa-bag-shopping fs-base ms-1"></i></a>
         </add-to-cart-btn-simple>
         </div>
 </div>

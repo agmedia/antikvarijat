@@ -21,14 +21,16 @@
         <!-- Fonts and Styles -->
         @stack('css_before')
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
-        <link rel="stylesheet" id="css-main" href="{{ asset('css/dashmix.css') }}">
-        <link rel="stylesheet" href="{{ asset('vendor/fontawesome-pro/css/fontawesome.min.css') }}">
-        <link rel="stylesheet" href="{{ asset('vendor/fontawesome-pro/css/solid.min.css') }}">
-        <link rel="stylesheet" href="{{ asset('vendor/fontawesome-pro/css/duotone.min.css') }}">
-        <link rel="stylesheet" href="{{ asset('css/admin-refresh.css') }}?v={{ filemtime(public_path('css/admin-refresh.css')) }}">
+        <link rel="stylesheet" id="css-main" href="{{ \App\Helpers\Asset::url('css/dashmix.css') }}">
+        <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('vendor/fontawesome-pro/css/fontawesome.min.css') }}">
+        <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('vendor/fontawesome-pro/css/solid.min.css') }}">
+        <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('vendor/fontawesome-pro/css/regular.min.css') }}">
+        <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('vendor/fontawesome-pro/css/duotone.min.css') }}">
+        <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('vendor/fontawesome-pro/css/brands.min.css') }}">
+        <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('css/admin-refresh.css') }}">
 
         <!-- You can include a specific file from public/css/themes/ folder to alter the default color theme of the template. eg: -->
-        <!-- <link rel="stylesheet" id="css-theme" href="{{ asset('css/themes/xwork.css') }}"> -->
+        <!-- <link rel="stylesheet" id="css-theme" href="{{ \App\Helpers\Asset::url('css/themes/xwork.css') }}"> -->
         @stack('css_after')
 
         <!-- Scripts -->
@@ -78,8 +80,8 @@
         @livewireScripts
 
         <!-- END Page Container -->
-        <script src="{{ asset('js/dashmix.app.js') }}"></script>
-        <script src="{{ asset('/js/laravel.app.js') }}"></script>
+        <script src="{{ \App\Helpers\Asset::url('js/dashmix.app.js') }}"></script>
+        <script src="{{ \App\Helpers\Asset::url('js/laravel.app.js') }}"></script>
 
         <script>
             const confirmPopUp = Swal.mixin({
@@ -178,6 +180,6 @@
         </script>
 
         @stack('js_after')
-        <script src="{{ asset('js/admin-editor-ux.js') }}?v={{ filemtime(public_path('js/admin-editor-ux.js')) }}"></script>
+        <script src="{{ \App\Helpers\Asset::url('js/admin-editor-ux.js') }}"></script>
     </body>
 </html>

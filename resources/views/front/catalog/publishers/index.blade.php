@@ -11,7 +11,7 @@
 @endpush
 
 @push('css_after')
-    <link rel="stylesheet" href="{{ asset('css/category.css?v=' . filemtime(public_path('css/category.css'))) }}">
+    <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('css/category.css') }}">
 @endpush
 
 @section('content')

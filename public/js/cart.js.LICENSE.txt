@@ -9,3 +9,10 @@
  * (c) 2021 Evan You
  * @license MIT
  */
+
+/*!
+* CookieConsent 3.1.0
+* https://github.com/orestbida/cookieconsent
+* Author Orest Bida
+* Released under the MIT License
+*/

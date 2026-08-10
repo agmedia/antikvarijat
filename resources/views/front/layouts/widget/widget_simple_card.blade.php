@@ -10,7 +10,7 @@
                         <div class="pt-5 py-sm-4 px-4 ps-md-4 pe-md-0 text-center text-sm-start">
                                 <h3 class=" font-title">{{ $widget['title'] }}</h3>
                                 <p class=" pb-2">{{ $widget['subtitle'] }}</p>
-                            <a class="btn btn-primary btn-sm btn-shadow mt-0" href="{{ url(\App\Helpers\LocaleHelper::localizedUrl($widget['url'])) }}">{{ __('front.widgets.read_more') }} <i class="ci-arrow-right ms-2 me-n1"></i></a>
+                            <a class="btn btn-primary btn-sm btn-shadow mt-0" href="{{ url(\App\Helpers\LocaleHelper::localizedUrl($widget['url'])) }}">{{ __('front.widgets.read_more') }} <i class="fa-solid fa-arrow-right ms-2 me-n1"></i></a>
                         </div>
                        <img class="d-block mx-auto mx-sm-0 rounded-end" src="{{ $widget['image'] }}" width="220" height="263" alt="{{ $widget['title'] }}">
                 </div>

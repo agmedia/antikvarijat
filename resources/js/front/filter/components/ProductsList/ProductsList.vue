@@ -3,7 +3,7 @@
         <!-- Toolbar-->
         <div class="d-flex justify-content-center justify-content-sm-between align-items-center pt-2 pb-4 pb-sm-5">
             <div class="d-flex flex-wrap">
-                <div class="dropdown me-2 d-sm-none"><a class="btn btn-primary dropdown-toggle collapsed" href="#shop-sidebar" data-bs-toggle="collapse" aria-expanded="false"><i class="ci-filter-alt"></i></a></div>
+                <div class="dropdown me-2 d-sm-none"><a class="btn btn-primary dropdown-toggle collapsed" href="#shop-sidebar" data-bs-toggle="collapse" aria-expanded="false"><i class="fa-solid fa-filter" aria-hidden="true"></i></a></div>
                 <div class="d-flex align-items-center flex-nowrap me-3 me-sm-4 pb-3">
                     <label class="text-light opacity-75 text-nowrap fs-sm me-2 d-none d-sm-block" for="sorting"></label>
                     <select class="form-select" v-model="sorting">
@@ -58,14 +58,14 @@
                                     v-for="star in 5"
                                     :key="star"
                                     class="star-rating-icon"
-                                    :class="star <= Math.round(reviewAverage(product)) ? 'ci-star-filled active' : 'ci-star'"></i>
+                                    :class="star <= Math.round(reviewAverage(product)) ? 'fa-solid fa-star active' : 'fa-duotone fa-star'"></i>
                             </span>
                             <span class="fs-xs text-muted">{{ formatReviewAverage(product) }} ({{ reviewCount(product) }})</span>
                         </a>
                         <h3 class="product-title fs-sm mb-0"><a :href="origin + product.url">{{ product.name }}</a></h3>
                         <div class="d-flex flex-wrap justify-content-between align-items-center" v-if="product.card_category">
                             <div class="fs-sm me-2 one-line">
-                                <i class="ci-book text-muted fs-xs" aria-hidden="true"></i>
+                                <i class="fa-duotone fa-books text-muted fs-xs" aria-hidden="true"></i>
                                 <a class="product-category-link fs-xs ms-1" :href="product.card_category.url">{{ product.card_category.title }}</a>
                             </div>
                         </div>
@@ -83,7 +83,7 @@
                         </div>
                     </div>
                     <div class="product-floating-btn">
-                       <button type="button" class="btn btn-primary  btn-sm" v-on:click="add(product.id)">+<i class="ci-cart"></i></button>
+                       <button type="button" class="btn btn-primary  btn-sm" v-on:click="add(product.id)">+<i class="fa-regular fa-bag-shopping" aria-hidden="true"></i></button>
                     </div>
                 </div>
                 <hr class="d-sm-none">

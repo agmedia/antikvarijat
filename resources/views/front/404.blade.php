@@ -21,7 +21,7 @@
                     <div class="col-sm-4 mb-3">
                         <a class="card h-100 border-0 shadow-sm" href="{{ \App\Helpers\LocaleHelper::route('index') }}">
                             <div class="card-body">
-                                <div class="d-flex align-items-center"><i class="ci-home text-primary h4 mb-0"></i>
+                                <div class="d-flex align-items-center"><i class="fa-solid fa-house text-primary h4 mb-0"></i>
                                     <div class="ps-3">
                                         <h5 class="fs-sm mb-0">{{ __('front.nav.home') }}</h5><span class="text-muted fs-ms">{{ __('front.not_found.home_text') }}</span>
                                     </div>
@@ -31,7 +31,7 @@
                     </div>
                     <div class="col-sm-4 mb-3"><a class="card h-100 border-0 shadow-sm" href="{{ \App\Helpers\LocaleHelper::route('pretrazi') }}">
                             <div class="card-body">
-                                <div class="d-flex align-items-center"><i class="ci-search text-success h4 mb-0"></i>
+                                <div class="d-flex align-items-center"><i class="fa-solid fa-magnifying-glass text-success h4 mb-0"></i>
                                     <div class="ps-3">
                                         <h5 class="fs-sm mb-0">{{ __('front.not_found.search') }}</h5><span class="text-muted fs-ms">{{ __('front.not_found.search_text') }}</span>
                                     </div>
@@ -39,7 +39,7 @@
                             </div></a></div>
                     <div class="col-sm-4 mb-3"><a class="card h-100 border-0 shadow-sm" href="{{ \App\Helpers\LocaleHelper::route('faq') }}">
                             <div class="card-body">
-                                <div class="d-flex align-items-center"><i class="ci-help text-info h4 mb-0"></i>
+                                <div class="d-flex align-items-center"><i class="fa-solid fa-circle-question text-info h4 mb-0"></i>
                                     <div class="ps-3">
                                         <h5 class="fs-sm mb-0">{{ __('front.faq.title') }}</h5><span class="text-muted fs-ms">{{ __('front.not_found.faq_text') }}</span>
                                     </div>

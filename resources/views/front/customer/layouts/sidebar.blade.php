@@ -1,36 +1,55 @@
-<aside class="col-lg-4 pt-4 pt-lg-0 pe-xl-5">
-    <div class="bg-white rounded-3 shadow-lg pt-1 mb-5 mb-lg-0">
-        <div class="d-md-flex justify-content-between align-items-center text-center text-md-start p-4">
-            <div class="d-md-flex align-items-center">
-                <div class="img-thumbnail rounded-circle position-relative flex-shrink-0 mx-auto mb-2 mx-md-0 mb-md-0" style="width: 6.375rem;"><img class="rounded-circle" src="{{ asset('media/img/faviconbiblos.png') }}" alt="Susan Gardner"></div>
-                <div class="ps-md-3">
-                    <h3 class="fs-base mb-0">{{ $user->details->fname ? $user->details->fname . ' ' . $user->details->lname: $user->name }}</h3><span class="text-accent fs-sm">{{ $user->email }}</span>
-                </div>
-            </div><a class="btn btn-primary d-lg-none mb-2 mt-3 mt-md-0" href="#account-menu" data-bs-toggle="collapse" aria-expanded="false"><i class="ci-menu me-2"></i>{{ __('front.account.navigation') }}</a>
-        </div>
-        <div class="d-lg-block collapse" id="account-menu">
-            <div class="bg-secondary px-4 py-3">
-                <h3 class="fs-sm mb-0 text-muted">{{ __('front.account.menu_title') }}</h3>
+@php
+    $details = $user->details;
+    $displayName = trim((string) optional($details)->fname . ' ' . (string) optional($details)->lname) ?: $user->name;
+    $initials = collect(preg_split('/\s+/', trim($displayName)))
+        ->filter()
+        ->take(2)
+        ->map(fn ($part) => \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($part, 0, 1)))
+        ->implode('');
+@endphp
+
+<aside class="col-lg-4 col-xl-3">
+    <div class="account-card account-sidebar mb-4 mb-lg-0">
+        <div class="account-user-panel">
+            <span class="account-avatar" aria-hidden="true">{{ $initials ?: 'BB' }}</span>
+            <div class="account-user-panel__body">
+                <h2 class="account-user-panel__name">{{ $displayName }}</h2>
+                <span class="account-user-panel__email">{{ $user->email }}</span>
             </div>
-            <ul class="list-unstyled mb-0">
-                <li class="border-bottom mb-0">
-                    <a class="nav-link-style d-flex align-items-center px-4 py-3 {{ request()->routeIs('moj-racun', 'en.moj-racun') ? 'active' : '' }}" href="{{ \App\Helpers\LocaleHelper::route('moj-racun') }}">
-                        <i class="ci-user opacity-60 me-2"></i>{{ __('front.account.my_data') }}
+            <button class="btn btn-primary btn-sm d-lg-none ms-auto" type="button" data-bs-toggle="collapse" data-bs-target="#account-menu" aria-controls="account-menu" aria-expanded="false" aria-label="{{ __('front.account.navigation') }}">
+                <i class="fa-solid fa-bars" aria-hidden="true"></i>
+            </button>
+        </div>
+
+        <div class="collapse d-lg-block" id="account-menu">
+            <div class="account-nav-heading">{{ __('front.account.menu_title') }}</div>
+            <ul class="account-nav list-unstyled mb-0">
+                <li class="account-nav__item">
+                    <a class="account-nav__link {{ request()->routeIs('moj-racun', 'en.moj-racun') ? 'active' : '' }}" href="{{ \App\Helpers\LocaleHelper::route('moj-racun') }}">
+                        <i class="fa-duotone fa-user" aria-hidden="true"></i>{{ __('front.account.my_data') }}
                     </a>
                 </li>
-
-                <li class="border-bottom mb-0">
-                    <a class="nav-link-style d-flex align-items-center px-4 py-3 {{ request()->routeIs('moje-narudzbe', 'en.moje-narudzbe') ? 'active' : '' }}" href="{{ \App\Helpers\LocaleHelper::route('moje-narudzbe') }}">
-                        <i class="ci-bag opacity-60 me-2"></i>{{ __('front.account.orders') }}
+                <li class="account-nav__item">
+                    <a class="account-nav__link {{ request()->routeIs('moje-narudzbe', 'en.moje-narudzbe') ? 'active' : '' }}" href="{{ \App\Helpers\LocaleHelper::route('moje-narudzbe') }}">
+                        <i class="fa-regular fa-bag-shopping" aria-hidden="true"></i>{{ __('front.account.orders') }}
                     </a>
                 </li>
-
-                <li class="mb-0">
-                    <a class="nav-link-style d-flex align-items-center px-4 py-3" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                        <i class="ci-sign-out opacity-60 me-2"></i>{{ __('front.account.logout') }}
+                <li class="account-nav__item">
+                    <a class="account-nav__link {{ request()->routeIs('moji-dojmovi', 'en.moji-dojmovi') ? 'active' : '' }}" href="{{ \App\Helpers\LocaleHelper::route('moji-dojmovi') }}">
+                        <i class="fa-duotone fa-star" aria-hidden="true"></i>{{ __('front.account.reviews') }}
                     </a>
-                    <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                </li>
+                <li class="account-nav__item">
+                    <a class="account-nav__link {{ request()->routeIs('preporuke-za-vas', 'en.preporuke-za-vas') ? 'active' : '' }}" href="{{ \App\Helpers\LocaleHelper::route('preporuke-za-vas') }}">
+                        <i class="fa-duotone fa-books" aria-hidden="true"></i>{{ __('front.account.recommendations') }}
+                    </a>
+                </li>
+                <li class="account-nav__item">
+                    <form action="{{ route('logout') }}" method="POST">
                         @csrf
+                        <button class="account-nav__link account-nav__link--logout" type="submit">
+                            <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i>{{ __('front.account.logout') }}
+                        </button>
                     </form>
                 </li>
             </ul>

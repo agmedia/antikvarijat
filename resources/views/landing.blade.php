@@ -18,20 +18,25 @@
     <meta name="msapplication-TileColor" content="#ffffff">
     <meta name="theme-color" content="#ffffff">
     <!-- Vendor Styles including: Font Icons, Plugins, etc.-->
-    <link rel="stylesheet" media="screen" href="vendor/simplebar/dist/simplebar.min.css"/>
-    <link rel="stylesheet" media="screen" href="vendor/tiny-slider/dist/tiny-slider.css"/>
+    <link rel="stylesheet" media="screen" href="{{ \App\Helpers\Asset::url('vendor/simplebar/dist/simplebar.min.css') }}"/>
+    <link rel="stylesheet" media="screen" href="{{ \App\Helpers\Asset::url('vendor/tiny-slider/dist/tiny-slider.css') }}"/>
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <!-- Main Theme Styles + Bootstrap-->
-    <link rel="stylesheet" media="screen" href="css/theme.min.css">
+    <link rel="stylesheet" media="screen" href="{{ \App\Helpers\Asset::url('css/theme.min.css') }}">
+    <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('vendor/fontawesome-pro/css/fontawesome.min.css') }}">
+    <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('vendor/fontawesome-pro/css/solid.min.css') }}">
+    <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('vendor/fontawesome-pro/css/regular.min.css') }}">
+    <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('vendor/fontawesome-pro/css/duotone.min.css') }}">
+    <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('vendor/fontawesome-pro/css/brands.min.css') }}">
 </head>
 <!-- Body-->
 <body class="handheld-toolbar-enabled">
 <!-- Topbar-->
 <div class="topbar topbar-light bg-light">
     <div class="container">
-        <div class="topbar-text text-nowrap "><i class="ci-phone"></i><a class="topbar-link me-4" href="tel:+38514816574">+385 1 48 16 574</a> <i class="ci-location"></i><a class="topbar-link" href="Palmotićeva 28, Zagreb ">Palmotićeva 28, Zagreb </a></div>
+        <div class="topbar-text text-nowrap "><i class="fa-solid fa-phone"></i><a class="topbar-link me-4" href="tel:+38514816574">+385 1 48 16 574</a> <i class="fa-solid fa-location-dot"></i><a class="topbar-link" href="Palmotićeva 28, Zagreb ">Palmotićeva 28, Zagreb </a></div>
 
-        <div class="ms-3 text-nowrap"><a class="topbar-link d-none d-md-inline-block" href="order-tracking.html"><i class="ci-time"></i>PON-PET: 9-20 | SUB: 9-14</a>
+        <div class="ms-3 text-nowrap"><a class="topbar-link d-none d-md-inline-block" href="order-tracking.html"><i class="fa-solid fa-clock"></i>PON-PET: 9-20 | SUB: 9-14</a>
         </div>
     </div>
 </div>
@@ -43,9 +48,9 @@
             <!-- Toolbar-->
             <div class="navbar-toolbar d-flex align-items-center order-lg-3">
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse"><span class="navbar-toggler-icon"></span></button><a class="navbar-tool d-none d-lg-flex" href="javascript:void(0)" data-bs-toggle="collapse" data-bs-target="#searchBox" role="button" aria-expanded="false" aria-controls="searchBox"><span class="navbar-tool-tooltip">Pretraži</span>
-                    <div class="navbar-tool-icon-box"><i class="navbar-tool-icon ci-search"></i></div></a><a class="navbar-tool ms-12" href="#signin-modal" data-bs-toggle="modal"><span class="navbar-tool-tooltip">Korisnički račun</span>
-                    <div class="navbar-tool-icon-box"><i class="navbar-tool-icon ci-user"></i></div></a>
-                <div class="navbar-tool dropdown ms-1"><a class="navbar-tool-icon-box bg-secondary dropdown-toggle" href="food-delivery-cart.html"><span class="navbar-tool-label">1</span><i class="navbar-tool-icon ci-cart"></i></a>
+                    <div class="navbar-tool-icon-box"><i class="navbar-tool-icon fa-solid fa-magnifying-glass"></i></div></a><a class="navbar-tool ms-12" href="#signin-modal" data-bs-toggle="modal"><span class="navbar-tool-tooltip">Korisnički račun</span>
+                    <div class="navbar-tool-icon-box"><i class="navbar-tool-icon fa-regular fa-user"></i></div></a>
+                <div class="navbar-tool dropdown ms-1"><a class="navbar-tool-icon-box bg-secondary dropdown-toggle" href="food-delivery-cart.html"><span class="navbar-tool-label">1</span><i class="navbar-tool-icon fa-regular fa-bag-shopping"></i></a>
                     <!-- Cart dropdown-->
                     <div class="dropdown-menu dropdown-menu-end">
                         <div class="widget widget-cart px-3 pt-2 pb-3" style="width: 20rem;">
@@ -62,22 +67,22 @@
 
                             </div>
                             <div class="d-flex flex-wrap justify-content-between align-items-center py-3">
-                                <div class="fs-sm me-2 py-2"><span class="text-muted">Ukupno:</span><span class="text-accent fs-base ms-1">80.<small>00kn</small></span></div><a class="btn btn-outline-secondary btn-sm" href="kosarica.html">Košarica<i class="ci-arrow-right ms-1 me-n1"></i></a>
-                            </div><a class="btn btn-primary btn-sm d-block w-100" href="checkout.html"><i class="ci-card me-2 fs-base align-middle"></i>Dovrši kupnju</a>
+                                <div class="fs-sm me-2 py-2"><span class="text-muted">Ukupno:</span><span class="text-accent fs-base ms-1">80.<small>00kn</small></span></div><a class="btn btn-outline-secondary btn-sm" href="kosarica.html">Košarica<i class="fa-solid fa-arrow-right ms-1 me-n1"></i></a>
+                            </div><a class="btn btn-primary btn-sm d-block w-100" href="checkout.html"><i class="fa-duotone fa-credit-card me-2 fs-base align-middle"></i>Dovrši kupnju</a>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="collapse navbar-collapse me-auto mx-auto order-lg-2" id="navbarCollapse">
                 <!-- Search-->
-                <div class="input-group d-lg-none my-3"><i class="ci-search position-absolute top-50 start-0 translate-middle-y text-muted fs-base ms-3"></i>
+                <div class="input-group d-lg-none my-3"><i class="fa-solid fa-magnifying-glass position-absolute top-50 start-0 translate-middle-y text-muted fs-base ms-3"></i>
                     <input class="form-control rounded-start" type="text" placeholder="Pretražite po nazivu ili autoru">
                 </div>
                 <!-- Categories dropdown-->
                 <ul class="navbar-nav  pe-lg-2 me-lg-2 ">
-                    <li class="nav-item "><a class="nav-link " href="category.html" ><i class="ci-book align-middle mt-n1 me-2"></i>Knjige</a>
-                    <li class="nav-item"><a class="nav-link " href="category.html"><i class="ci-map align-middle mt-n1 me-2"></i> Vedute & zemljovidi</a></li>
-                    <li class="nav-item"><a class="nav-link " href="category.html"><i class="ci-discount align-middle mt-n1 me-2"></i> Na sniženju </a></li>
+                    <li class="nav-item "><a class="nav-link " href="category.html" ><i class="fa-duotone fa-books align-middle mt-n1 me-2"></i>Knjige</a>
+                    <li class="nav-item"><a class="nav-link " href="category.html"><i class="fa-regular fa-map align-middle mt-n1 me-2"></i> Vedute & zemljovidi</a></li>
+                    <li class="nav-item"><a class="nav-link " href="category.html"><i class="fa-duotone fa-badge-percent align-middle mt-n1 me-2"></i> Na sniženju </a></li>
 
 
                     </li>
@@ -90,7 +95,7 @@
     <div class="search-box collapse" id="searchBox">
         <div class="card pt-3 pb-3 border-0 rounded-0">
             <div class="container">
-                <div class="input-group"><i class="ci-search position-absolute top-50 start-0 translate-middle-y text-muted fs-base ms-3"></i>
+                <div class="input-group"><i class="fa-solid fa-magnifying-glass position-absolute top-50 start-0 translate-middle-y text-muted fs-base ms-3"></i>
                     <input class="form-control rounded-start" type="text" placeholder="Pretražite po nazivu ili autoru">
                 </div>
             </div>
@@ -112,7 +117,7 @@
                     <div class="input-group input-group-lg flex-nowrap">
                         <input class="form-control rounded-start" type="text" placeholder="Pretražite po nazivu ili autoru">
 
-                        <button class="btn btn-primary btn-lg  fs-base" type="button" ><i class="ci-search "></i></button>
+                        <button class="btn btn-primary btn-lg  fs-base" type="button" ><i class="fa-solid fa-magnifying-glass "></i></button>
 
                     </div>
 
@@ -138,9 +143,9 @@
                     <div>
                         <div class="card product-card-alt">
                             <div class="product-thumb">
-                                <button class="btn-wishlist btn-sm" type="button"><i class="ci-heart"></i></button>
-                                <div class="product-card-actions"><a class="btn btn-light btn-icon btn-shadow fs-base mx-2" href="product.html"><i class="ci-eye"></i></a>
-                                    <button class="btn btn-light btn-icon btn-shadow fs-base mx-2" type="button"><i class="ci-cart"></i></button>
+                                <button class="btn-wishlist btn-sm" type="button"><i class="fa-regular fa-heart"></i></button>
+                                <div class="product-card-actions"><a class="btn btn-light btn-icon btn-shadow fs-base mx-2" href="product.html"><i class="fa-solid fa-eye"></i></a>
+                                    <button class="btn btn-light btn-icon btn-shadow fs-base mx-2" type="button"><i class="fa-regular fa-bag-shopping"></i></button>
                                 </div><a class="product-thumb-overlay" href="product.html"></a><img src="img/knjiga.jpg" alt="Product">
                             </div>
                             <div class="card-body">
@@ -148,12 +153,12 @@
                                     <div class="text-muted fs-xs me-1"><a class="product-meta fw-medium" href="product.html">
 
                                             Wroblewski David </a></div>
-                                    <div class="star-rating"><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i>
+                                    <div class="star-rating"><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i>
                                     </div>
                                 </div>
                                 <h3 class="product-title fs-sm mb-2"><a href="product.html">Priča o Edgaru Sawtelleu</a></h3>
                                 <div class="d-flex flex-wrap justify-content-between align-items-center">
-                                    <div class="fs-sm me-2"><i class="ci-book text-muted me-1"></i><span class="fs-xs ms-1">Književnost</span></div>
+                                    <div class="fs-sm me-2"><i class="fa-duotone fa-books text-muted me-1"></i><span class="fs-xs ms-1">Književnost</span></div>
                                     <div class="bg-faded-accent text-accent rounded-1 py-1 px-2">80.<small>00kn</small></div>
                                 </div>
                             </div>
@@ -163,9 +168,9 @@
                     <div>
                         <div class="card product-card-alt">
                             <div class="product-thumb">
-                                <button class="btn-wishlist btn-sm" type="button"><i class="ci-heart"></i></button>
-                                <div class="product-card-actions"><a class="btn btn-light btn-icon btn-shadow fs-base mx-2" href="product.html"><i class="ci-eye"></i></a>
-                                    <button class="btn btn-light btn-icon btn-shadow fs-base mx-2" type="button"><i class="ci-cart"></i></button>
+                                <button class="btn-wishlist btn-sm" type="button"><i class="fa-regular fa-heart"></i></button>
+                                <div class="product-card-actions"><a class="btn btn-light btn-icon btn-shadow fs-base mx-2" href="product.html"><i class="fa-solid fa-eye"></i></a>
+                                    <button class="btn btn-light btn-icon btn-shadow fs-base mx-2" type="button"><i class="fa-regular fa-bag-shopping"></i></button>
                                 </div><a class="product-thumb-overlay" href="product.html"></a><img src="img/knjiga2.jpg" alt="Product">
                             </div>
                             <div class="card-body">
@@ -173,12 +178,12 @@
                                     <div class="text-muted fs-xs me-1"><a class="product-meta fw-medium" href="product.html">
 
                                             Lynds Gayle </a></div>
-                                    <div class="star-rating"><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i>
+                                    <div class="star-rating"><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i>
                                     </div>
                                 </div>
                                 <h3 class="product-title fs-sm mb-2"><a href="product.html">Mozaik</a></h3>
                                 <div class="d-flex flex-wrap justify-content-between align-items-center">
-                                    <div class="fs-sm me-2"><i class="ci-book text-muted me-1"></i><span class="fs-xs ms-1">Književnost</span></div>
+                                    <div class="fs-sm me-2"><i class="fa-duotone fa-books text-muted me-1"></i><span class="fs-xs ms-1">Književnost</span></div>
                                     <div class="bg-faded-accent text-accent rounded-1 py-1 px-2">80.<small>00kn</small></div>
                                 </div>
                             </div>
@@ -188,9 +193,9 @@
                     <div>
                         <div class="card product-card-alt">
                             <div class="product-thumb">
-                                <button class="btn-wishlist btn-sm" type="button"><i class="ci-heart"></i></button>
-                                <div class="product-card-actions"><a class="btn btn-light btn-icon btn-shadow fs-base mx-2" href="product.html"><i class="ci-eye"></i></a>
-                                    <button class="btn btn-light btn-icon btn-shadow fs-base mx-2" type="button"><i class="ci-cart"></i></button>
+                                <button class="btn-wishlist btn-sm" type="button"><i class="fa-regular fa-heart"></i></button>
+                                <div class="product-card-actions"><a class="btn btn-light btn-icon btn-shadow fs-base mx-2" href="product.html"><i class="fa-solid fa-eye"></i></a>
+                                    <button class="btn btn-light btn-icon btn-shadow fs-base mx-2" type="button"><i class="fa-regular fa-bag-shopping"></i></button>
                                 </div><a class="product-thumb-overlay" href="product.html"></a><img src="img/knjiga3.jpg" alt="Product">
                             </div>
                             <div class="card-body">
@@ -198,12 +203,12 @@
                                     <div class="text-muted fs-xs me-1"><a class="product-meta fw-medium" href="product.html">
 
                                             Gall Zlatko </a></div>
-                                    <div class="star-rating"><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i>
+                                    <div class="star-rating"><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i>
                                     </div>
                                 </div>
                                 <h3 class="product-title fs-sm mb-2"><a href="product.html">Velika svjetska rock enciklopedija</a></h3>
                                 <div class="d-flex flex-wrap justify-content-between align-items-center">
-                                    <div class="fs-sm me-2"><i class="ci-book text-muted me-1"></i><span class="fs-xs ms-1">Glazba</span></div>
+                                    <div class="fs-sm me-2"><i class="fa-duotone fa-books text-muted me-1"></i><span class="fs-xs ms-1">Glazba</span></div>
                                     <div class="bg-faded-accent text-accent rounded-1 py-1 px-2">100.<small>00kn</small></div>
                                 </div>
                             </div>
@@ -213,9 +218,9 @@
                     <div>
                         <div class="card product-card-alt">
                             <div class="product-thumb">
-                                <button class="btn-wishlist btn-sm" type="button"><i class="ci-heart"></i></button>
-                                <div class="product-card-actions"><a class="btn btn-light btn-icon btn-shadow fs-base mx-2" href="product.html"><i class="ci-eye"></i></a>
-                                    <button class="btn btn-light btn-icon btn-shadow fs-base mx-2" type="button"><i class="ci-cart"></i></button>
+                                <button class="btn-wishlist btn-sm" type="button"><i class="fa-regular fa-heart"></i></button>
+                                <div class="product-card-actions"><a class="btn btn-light btn-icon btn-shadow fs-base mx-2" href="product.html"><i class="fa-solid fa-eye"></i></a>
+                                    <button class="btn btn-light btn-icon btn-shadow fs-base mx-2" type="button"><i class="fa-regular fa-bag-shopping"></i></button>
                                 </div><a class="product-thumb-overlay" href="product.html"></a><img src="img/knjiga4.jpg" alt="Product">
                             </div>
                             <div class="card-body">
@@ -223,12 +228,12 @@
                                     <div class="text-muted fs-xs me-1"><a class="product-meta fw-medium" href="product.html">
 
                                             Camus Albert </a></div>
-                                    <div class="star-rating"><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i>
+                                    <div class="star-rating"><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i>
                                     </div>
                                 </div>
                                 <h3 class="product-title fs-sm mb-2"><a href="product.html">Stranac</a></h3>
                                 <div class="d-flex flex-wrap justify-content-between align-items-center">
-                                    <div class="fs-sm me-2"><i class="ci-book text-muted me-1"></i><span class="fs-xs ms-1">Književnost</span></div>
+                                    <div class="fs-sm me-2"><i class="fa-duotone fa-books text-muted me-1"></i><span class="fs-xs ms-1">Književnost</span></div>
                                     <div class="bg-faded-accent text-accent rounded-1 py-1 px-2">100.<small>00kn</small></div>
                                 </div>
                             </div>
@@ -238,9 +243,9 @@
                     <div>
                         <div class="card product-card-alt">
                             <div class="product-thumb">
-                                <button class="btn-wishlist btn-sm" type="button"><i class="ci-heart"></i></button>
-                                <div class="product-card-actions"><a class="btn btn-light btn-icon btn-shadow fs-base mx-2" href="product.html"><i class="ci-eye"></i></a>
-                                    <button class="btn btn-light btn-icon btn-shadow fs-base mx-2" type="button"><i class="ci-cart"></i></button>
+                                <button class="btn-wishlist btn-sm" type="button"><i class="fa-regular fa-heart"></i></button>
+                                <div class="product-card-actions"><a class="btn btn-light btn-icon btn-shadow fs-base mx-2" href="product.html"><i class="fa-solid fa-eye"></i></a>
+                                    <button class="btn btn-light btn-icon btn-shadow fs-base mx-2" type="button"><i class="fa-regular fa-bag-shopping"></i></button>
                                 </div><a class="product-thumb-overlay" href="product.html"></a><img src="img/knjiga3.jpg" alt="Product">
                             </div>
                             <div class="card-body">
@@ -248,12 +253,12 @@
                                     <div class="text-muted fs-xs me-1"><a class="product-meta fw-medium" href="product.html">
 
                                             Gall Zlatko </a></div>
-                                    <div class="star-rating"><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i>
+                                    <div class="star-rating"><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i>
                                     </div>
                                 </div>
                                 <h3 class="product-title fs-sm mb-2"><a href="product.html">Velika svjetska rock enciklopedija</a></h3>
                                 <div class="d-flex flex-wrap justify-content-between align-items-center">
-                                    <div class="fs-sm me-2"><i class="ci-book text-muted me-1"></i><span class="fs-xs ms-1">Glazba</span></div>
+                                    <div class="fs-sm me-2"><i class="fa-duotone fa-books text-muted me-1"></i><span class="fs-xs ms-1">Glazba</span></div>
                                     <div class="bg-faded-accent text-accent rounded-1 py-1 px-2">100.<small>00kn</small></div>
                                 </div>
                             </div>
@@ -281,8 +286,8 @@
             <div>
                 <div class="card product-card-alt">
                     <div class="product-thumb">
-                        <div class="product-card-actions"><a class="btn btn-light btn-icon btn-shadow fs-base mx-2" href="product.html"><i class="ci-eye"></i></a>
-                            <button class="btn btn-light btn-icon btn-shadow fs-base mx-2" type="button"><i class="ci-cart"></i></button>
+                        <div class="product-card-actions"><a class="btn btn-light btn-icon btn-shadow fs-base mx-2" href="product.html"><i class="fa-solid fa-eye"></i></a>
+                            <button class="btn btn-light btn-icon btn-shadow fs-base mx-2" type="button"><i class="fa-regular fa-bag-shopping"></i></button>
                         </div><a class="product-thumb-overlay" href="product.html"></a><img src="img/knjiga.jpg" alt="Product">
                     </div>
                     <div class="card-body">
@@ -290,12 +295,12 @@
                             <div class="text-muted fs-xs me-1"><a class="product-meta fw-medium" href="product.html">
 
                                     Wroblewski David </a></div>
-                            <div class="star-rating"><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i>
+                            <div class="star-rating"><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i>
                             </div>
                         </div>
                         <h3 class="product-title fs-sm mb-2"><a href="product.html">Priča o Edgaru Sawtelleu</a></h3>
                         <div class="d-flex flex-wrap justify-content-between align-items-center">
-                            <div class="fs-sm me-2"><i class="ci-book text-muted me-1"></i><span class="fs-xs ms-1">Književnost</span></div>
+                            <div class="fs-sm me-2"><i class="fa-duotone fa-books text-muted me-1"></i><span class="fs-xs ms-1">Književnost</span></div>
                             <div class="bg-faded-accent text-accent rounded-1 py-1 px-2">80.<small>00kn</small></div>
                         </div>
                     </div>
@@ -306,8 +311,8 @@
                 <div class="card product-card-alt">
                     <div class="product-thumb">
 
-                        <div class="product-card-actions"><a class="btn btn-light btn-icon btn-shadow fs-base mx-2" href="product.html"><i class="ci-eye"></i></a>
-                            <button class="btn btn-light btn-icon btn-shadow fs-base mx-2" type="button"><i class="ci-cart"></i></button>
+                        <div class="product-card-actions"><a class="btn btn-light btn-icon btn-shadow fs-base mx-2" href="product.html"><i class="fa-solid fa-eye"></i></a>
+                            <button class="btn btn-light btn-icon btn-shadow fs-base mx-2" type="button"><i class="fa-regular fa-bag-shopping"></i></button>
                         </div><a class="product-thumb-overlay" href="product.html"></a><img src="img/knjiga2.jpg" alt="Product">
                     </div>
                     <div class="card-body">
@@ -315,12 +320,12 @@
                             <div class="text-muted fs-xs me-1"><a class="product-meta fw-medium" href="product.html">
 
                                     Lynds Gayle </a></div>
-                            <div class="star-rating"><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i>
+                            <div class="star-rating"><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i>
                             </div>
                         </div>
                         <h3 class="product-title fs-sm mb-2"><a href="product.html">Mozaik</a></h3>
                         <div class="d-flex flex-wrap justify-content-between align-items-center">
-                            <div class="fs-sm me-2"><i class="ci-book text-muted me-1"></i><span class="fs-xs ms-1">Književnost</span></div>
+                            <div class="fs-sm me-2"><i class="fa-duotone fa-books text-muted me-1"></i><span class="fs-xs ms-1">Književnost</span></div>
                             <div class="bg-faded-accent text-accent rounded-1 py-1 px-2">80.<small>00kn</small></div>
                         </div>
                     </div>
@@ -331,8 +336,8 @@
                 <div class="card product-card-alt">
                     <div class="product-thumb">
 
-                        <div class="product-card-actions"><a class="btn btn-light btn-icon btn-shadow fs-base mx-2" href="product.html"><i class="ci-eye"></i></a>
-                            <button class="btn btn-light btn-icon btn-shadow fs-base mx-2" type="button"><i class="ci-cart"></i></button>
+                        <div class="product-card-actions"><a class="btn btn-light btn-icon btn-shadow fs-base mx-2" href="product.html"><i class="fa-solid fa-eye"></i></a>
+                            <button class="btn btn-light btn-icon btn-shadow fs-base mx-2" type="button"><i class="fa-regular fa-bag-shopping"></i></button>
                         </div><a class="product-thumb-overlay" href="product.html"></a><img src="img/knjiga3.jpg" alt="Product">
                     </div>
                     <div class="card-body">
@@ -340,12 +345,12 @@
                             <div class="text-muted fs-xs me-1"><a class="product-meta fw-medium" href="product.html">
 
                                     Gall Zlatko </a></div>
-                            <div class="star-rating"><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i>
+                            <div class="star-rating"><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i>
                             </div>
                         </div>
                         <h3 class="product-title fs-sm mb-2"><a href="product.html">Velika svjetska rock enciklopedija</a></h3>
                         <div class="d-flex flex-wrap justify-content-between align-items-center">
-                            <div class="fs-sm me-2"><i class="ci-book text-muted me-1"></i><span class="fs-xs ms-1">Glazba</span></div>
+                            <div class="fs-sm me-2"><i class="fa-duotone fa-books text-muted me-1"></i><span class="fs-xs ms-1">Glazba</span></div>
                             <div class="bg-faded-accent text-accent rounded-1 py-1 px-2">100.<small>00kn</small></div>
                         </div>
                     </div>
@@ -355,9 +360,9 @@
             <div>
                 <div class="card product-card-alt">
                     <div class="product-thumb">
-                        <button class="btn-wishlist btn-sm" type="button"><i class="ci-heart"></i></button>
-                        <div class="product-card-actions"><a class="btn btn-light btn-icon btn-shadow fs-base mx-2" href="product.html"><i class="ci-eye"></i></a>
-                            <button class="btn btn-light btn-icon btn-shadow fs-base mx-2" type="button"><i class="ci-cart"></i></button>
+                        <button class="btn-wishlist btn-sm" type="button"><i class="fa-regular fa-heart"></i></button>
+                        <div class="product-card-actions"><a class="btn btn-light btn-icon btn-shadow fs-base mx-2" href="product.html"><i class="fa-solid fa-eye"></i></a>
+                            <button class="btn btn-light btn-icon btn-shadow fs-base mx-2" type="button"><i class="fa-regular fa-bag-shopping"></i></button>
                         </div><a class="product-thumb-overlay" href="product.html"></a><img src="img/knjiga4.jpg" alt="Product">
                     </div>
                     <div class="card-body">
@@ -365,12 +370,12 @@
                             <div class="text-muted fs-xs me-1"><a class="product-meta fw-medium" href="product.html">
 
                                     Camus Albert </a></div>
-                            <div class="star-rating"><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i>
+                            <div class="star-rating"><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i>
                             </div>
                         </div>
                         <h3 class="product-title fs-sm mb-2"><a href="product.html">Stranac</a></h3>
                         <div class="d-flex flex-wrap justify-content-between align-items-center">
-                            <div class="fs-sm me-2"><i class="ci-book text-muted me-1"></i><span class="fs-xs ms-1">Književnost</span></div>
+                            <div class="fs-sm me-2"><i class="fa-duotone fa-books text-muted me-1"></i><span class="fs-xs ms-1">Književnost</span></div>
                             <div class="bg-faded-accent text-accent rounded-1 py-1 px-2">100.<small>00kn</small></div>
                         </div>
                     </div>
@@ -380,9 +385,9 @@
             <div>
                 <div class="card product-card-alt">
                     <div class="product-thumb">
-                        <button class="btn-wishlist btn-sm" type="button"><i class="ci-heart"></i></button>
-                        <div class="product-card-actions"><a class="btn btn-light btn-icon btn-shadow fs-base mx-2" href="product.html"><i class="ci-eye"></i></a>
-                            <button class="btn btn-light btn-icon btn-shadow fs-base mx-2" type="button"><i class="ci-cart"></i></button>
+                        <button class="btn-wishlist btn-sm" type="button"><i class="fa-regular fa-heart"></i></button>
+                        <div class="product-card-actions"><a class="btn btn-light btn-icon btn-shadow fs-base mx-2" href="product.html"><i class="fa-solid fa-eye"></i></a>
+                            <button class="btn btn-light btn-icon btn-shadow fs-base mx-2" type="button"><i class="fa-regular fa-bag-shopping"></i></button>
                         </div><a class="product-thumb-overlay" href="product.html"></a><img src="img/knjiga3.jpg" alt="Product">
                     </div>
                     <div class="card-body">
@@ -390,12 +395,12 @@
                             <div class="text-muted fs-xs me-1"><a class="product-meta fw-medium" href="product.html">
 
                                     Gall Zlatko </a></div>
-                            <div class="star-rating"><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i>
+                            <div class="star-rating"><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i>
                             </div>
                         </div>
                         <h3 class="product-title fs-sm mb-2"><a href="product.html">Velika svjetska rock enciklopedija</a></h3>
                         <div class="d-flex flex-wrap justify-content-between align-items-center">
-                            <div class="fs-sm me-2"><i class="ci-book text-muted me-1"></i><span class="fs-xs ms-1">Glazba</span></div>
+                            <div class="fs-sm me-2"><i class="fa-duotone fa-books text-muted me-1"></i><span class="fs-xs ms-1">Glazba</span></div>
                             <div class="bg-faded-accent text-accent rounded-1 py-1 px-2">100.<small>00kn</small></div>
                         </div>
                     </div>
@@ -413,7 +418,7 @@
             <div class="d-sm-flex justify-content-between align-items-center bg-third overflow-hidden rounded-3">
                 <div class="py-4 my-2 my-md-0 py-md-5 px-4 ms-md-3 text-center text-sm-start">
 
-                    <h3 class="mb-4">Stare i rijetke knjige</h3><a class="btn btn-primary btn-shadow btn-sm" href="#">Pogledajte ponudu <i class="ci-arrow-right "></i></a>
+                    <h3 class="mb-4">Stare i rijetke knjige</h3><a class="btn btn-primary btn-shadow btn-sm" href="#">Pogledajte ponudu <i class="fa-solid fa-arrow-right "></i></a>
                 </div><img class="d-block ms-auto" src="img/bannerstaro.jpg" alt="Stare i rijetke knjige">
             </div>
         </div>
@@ -422,7 +427,7 @@
                 <div class="py-4 my-2 px-4 text-center">
                     <div class="py-1">
                         <h3 class="mb-4 text-white">Vedute i karte</h3>
-                        <a class="btn btn-primary btn-shadow btn-sm" href="#">Pogledajte ponudu <i class="ci-arrow-right "></i></a>
+                        <a class="btn btn-primary btn-shadow btn-sm" href="#">Pogledajte ponudu <i class="fa-solid fa-arrow-right "></i></a>
                     </div>
                 </div>
             </div>
@@ -449,9 +454,9 @@
             <div>
                 <div class="card product-card-alt">
                     <div class="product-thumb">
-                        <button class="btn-wishlist btn-sm" type="button"><i class="ci-heart"></i></button>
-                        <div class="product-card-actions"><a class="btn btn-light btn-icon btn-shadow fs-base mx-2" href="#"><i class="ci-eye"></i></a>
-                            <button class="btn btn-light btn-icon btn-shadow fs-base mx-2" type="button"><i class="ci-cart"></i></button>
+                        <button class="btn-wishlist btn-sm" type="button"><i class="fa-regular fa-heart"></i></button>
+                        <div class="product-card-actions"><a class="btn btn-light btn-icon btn-shadow fs-base mx-2" href="#"><i class="fa-solid fa-eye"></i></a>
+                            <button class="btn btn-light btn-icon btn-shadow fs-base mx-2" type="button"><i class="fa-regular fa-bag-shopping"></i></button>
                         </div><a class="product-thumb-overlay" href="product.html"></a><img src="img/knjiga.jpg" alt="Product">
                     </div>
                     <div class="card-body">
@@ -459,12 +464,12 @@
                             <div class="text-muted fs-xs me-1"><a class="product-meta fw-medium" href="product.html">
 
                                     Wroblewski David </a></div>
-                            <div class="star-rating"><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i>
+                            <div class="star-rating"><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i>
                             </div>
                         </div>
                         <h3 class="product-title fs-sm mb-2"><a href="product.html">Priča o Edgaru Sawtelleu</a></h3>
                         <div class="d-flex flex-wrap justify-content-between align-items-center">
-                            <div class="fs-sm me-2"><i class="ci-book text-muted me-1"></i><span class="fs-xs ms-1">Književnost</span></div>
+                            <div class="fs-sm me-2"><i class="fa-duotone fa-books text-muted me-1"></i><span class="fs-xs ms-1">Književnost</span></div>
                             <div class="bg-faded-accent text-accent rounded-1 py-1 px-2">80.<small>00kn</small></div>
                         </div>
                     </div>
@@ -474,9 +479,9 @@
             <div>
                 <div class="card product-card-alt">
                     <div class="product-thumb">
-                        <button class="btn-wishlist btn-sm" type="button"><i class="ci-heart"></i></button>
-                        <div class="product-card-actions"><a class="btn btn-light btn-icon btn-shadow fs-base mx-2" href="product.html"><i class="ci-eye"></i></a>
-                            <button class="btn btn-light btn-icon btn-shadow fs-base mx-2" type="button"><i class="ci-cart"></i></button>
+                        <button class="btn-wishlist btn-sm" type="button"><i class="fa-regular fa-heart"></i></button>
+                        <div class="product-card-actions"><a class="btn btn-light btn-icon btn-shadow fs-base mx-2" href="product.html"><i class="fa-solid fa-eye"></i></a>
+                            <button class="btn btn-light btn-icon btn-shadow fs-base mx-2" type="button"><i class="fa-regular fa-bag-shopping"></i></button>
                         </div><a class="product-thumb-overlay" href="product.html"></a><img src="img/knjiga2.jpg" alt="Product">
                     </div>
                     <div class="card-body">
@@ -484,12 +489,12 @@
                             <div class="text-muted fs-xs me-1"><a class="product-meta fw-medium" href="product.html">
 
                                     Lynds Gayle </a></div>
-                            <div class="star-rating"><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i>
+                            <div class="star-rating"><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i>
                             </div>
                         </div>
                         <h3 class="product-title fs-sm mb-2"><a href="product.html">Mozaik</a></h3>
                         <div class="d-flex flex-wrap justify-content-between align-items-center">
-                            <div class="fs-sm me-2"><i class="ci-book text-muted me-1"></i><span class="fs-xs ms-1">Književnost</span></div>
+                            <div class="fs-sm me-2"><i class="fa-duotone fa-books text-muted me-1"></i><span class="fs-xs ms-1">Književnost</span></div>
                             <div class="bg-faded-accent text-accent rounded-1 py-1 px-2">80.<small>00kn</small></div>
                         </div>
                     </div>
@@ -499,9 +504,9 @@
             <div>
                 <div class="card product-card-alt">
                     <div class="product-thumb">
-                        <button class="btn-wishlist btn-sm" type="button"><i class="ci-heart"></i></button>
-                        <div class="product-card-actions"><a class="btn btn-light btn-icon btn-shadow fs-base mx-2" href="product.html"><i class="ci-eye"></i></a>
-                            <button class="btn btn-light btn-icon btn-shadow fs-base mx-2" type="button"><i class="ci-cart"></i></button>
+                        <button class="btn-wishlist btn-sm" type="button"><i class="fa-regular fa-heart"></i></button>
+                        <div class="product-card-actions"><a class="btn btn-light btn-icon btn-shadow fs-base mx-2" href="product.html"><i class="fa-solid fa-eye"></i></a>
+                            <button class="btn btn-light btn-icon btn-shadow fs-base mx-2" type="button"><i class="fa-regular fa-bag-shopping"></i></button>
                         </div><a class="product-thumb-overlay" href="product.html"></a><img src="img/knjiga3.jpg" alt="Product">
                     </div>
                     <div class="card-body">
@@ -509,12 +514,12 @@
                             <div class="text-muted fs-xs me-1"><a class="product-meta fw-medium" href="product.html">
 
                                     Gall Zlatko </a></div>
-                            <div class="star-rating"><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i>
+                            <div class="star-rating"><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i>
                             </div>
                         </div>
                         <h3 class="product-title fs-sm mb-2"><a href="product.html">Velika svjetska rock enciklopedija</a></h3>
                         <div class="d-flex flex-wrap justify-content-between align-items-center">
-                            <div class="fs-sm me-2"><i class="ci-book text-muted me-1"></i><span class="fs-xs ms-1">Glazba</span></div>
+                            <div class="fs-sm me-2"><i class="fa-duotone fa-books text-muted me-1"></i><span class="fs-xs ms-1">Glazba</span></div>
                             <div class="bg-faded-accent text-accent rounded-1 py-1 px-2">100.<small>00kn</small></div>
                         </div>
                     </div>
@@ -524,9 +529,9 @@
             <div>
                 <div class="card product-card-alt">
                     <div class="product-thumb">
-                        <button class="btn-wishlist btn-sm" type="button"><i class="ci-heart"></i></button>
-                        <div class="product-card-actions"><a class="btn btn-light btn-icon btn-shadow fs-base mx-2" href="product.html"><i class="ci-eye"></i></a>
-                            <button class="btn btn-light btn-icon btn-shadow fs-base mx-2" type="button"><i class="ci-cart"></i></button>
+                        <button class="btn-wishlist btn-sm" type="button"><i class="fa-regular fa-heart"></i></button>
+                        <div class="product-card-actions"><a class="btn btn-light btn-icon btn-shadow fs-base mx-2" href="product.html"><i class="fa-solid fa-eye"></i></a>
+                            <button class="btn btn-light btn-icon btn-shadow fs-base mx-2" type="button"><i class="fa-regular fa-bag-shopping"></i></button>
                         </div><a class="product-thumb-overlay" href="product.html"></a><img src="img/knjiga4.jpg" alt="Product">
                     </div>
                     <div class="card-body">
@@ -534,12 +539,12 @@
                             <div class="text-muted fs-xs me-1"><a class="product-meta fw-medium" href="product.html">
 
                                     Camus Albert </a></div>
-                            <div class="star-rating"><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i>
+                            <div class="star-rating"><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i>
                             </div>
                         </div>
                         <h3 class="product-title fs-sm mb-2"><a href="product.html">Stranac</a></h3>
                         <div class="d-flex flex-wrap justify-content-between align-items-center">
-                            <div class="fs-sm me-2"><i class="ci-book text-muted me-1"></i><span class="fs-xs ms-1">Književnost</span></div>
+                            <div class="fs-sm me-2"><i class="fa-duotone fa-books text-muted me-1"></i><span class="fs-xs ms-1">Književnost</span></div>
                             <div class="bg-faded-accent text-accent rounded-1 py-1 px-2">100.<small>00kn</small></div>
                         </div>
                     </div>
@@ -549,9 +554,9 @@
             <div>
                 <div class="card product-card-alt">
                     <div class="product-thumb">
-                        <button class="btn-wishlist btn-sm" type="button"><i class="ci-heart"></i></button>
-                        <div class="product-card-actions"><a class="btn btn-light btn-icon btn-shadow fs-base mx-2" href="product.html"><i class="ci-eye"></i></a>
-                            <button class="btn btn-light btn-icon btn-shadow fs-base mx-2" type="button"><i class="ci-cart"></i></button>
+                        <button class="btn-wishlist btn-sm" type="button"><i class="fa-regular fa-heart"></i></button>
+                        <div class="product-card-actions"><a class="btn btn-light btn-icon btn-shadow fs-base mx-2" href="product.html"><i class="fa-solid fa-eye"></i></a>
+                            <button class="btn btn-light btn-icon btn-shadow fs-base mx-2" type="button"><i class="fa-regular fa-bag-shopping"></i></button>
                         </div><a class="product-thumb-overlay" href="product.html"></a><img src="img/knjiga3.jpg" alt="Product">
                     </div>
                     <div class="card-body">
@@ -559,12 +564,12 @@
                             <div class="text-muted fs-xs me-1"><a class="product-meta fw-medium" href="product.html">
 
                                     Gall Zlatko </a></div>
-                            <div class="star-rating"><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i><i class="star-rating-icon ci-star-filled active"></i>
+                            <div class="star-rating"><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i><i class="star-rating-icon fa-solid fa-star active"></i>
                             </div>
                         </div>
                         <h3 class="product-title fs-sm mb-2"><a href="product.html">Velika svjetska rock enciklopedija</a></h3>
                         <div class="d-flex flex-wrap justify-content-between align-items-center">
-                            <div class="fs-sm me-2"><i class="ci-book text-muted me-1"></i><span class="fs-xs ms-1">Glazba</span></div>
+                            <div class="fs-sm me-2"><i class="fa-duotone fa-books text-muted me-1"></i><span class="fs-xs ms-1">Glazba</span></div>
                             <div class="bg-faded-accent text-accent rounded-1 py-1 px-2">100.<small>00kn</small></div>
                         </div>
                     </div>
@@ -621,14 +626,14 @@
         <div class="container">
             <div class="row">
                 <div class="col-xl-3 col-sm-6 mb-grid-gutter"><a class="card h-100" href="#map" data-scroll="">
-                        <div class="card-body text-center"><i class="ci-location h3 mt-2 mb-4 text-primary"></i>
+                        <div class="card-body text-center"><i class="fa-solid fa-location-dot h3 mt-2 mb-4 text-primary"></i>
                             <h3 class="h6 mb-2">Adresa</h3>
                             <p class="fs-sm text-muted">Palmotićeva 28, Zagreb</p>
-                            <div class="fs-sm text-primary">Kliknite za mapu<i class="ci-arrow-right align-middle ms-1"></i></div>
+                            <div class="fs-sm text-primary">Kliknite za mapu<i class="fa-solid fa-arrow-right align-middle ms-1"></i></div>
                         </div></a></div>
                 <div class="col-xl-3 col-sm-6 mb-grid-gutter">
                     <div class="card h-100">
-                        <div class="card-body text-center"><i class="ci-time h3 mt-2 mb-4 text-primary"></i>
+                        <div class="card-body text-center"><i class="fa-solid fa-clock h3 mt-2 mb-4 text-primary"></i>
                             <h3 class="h6 mb-3">Radno vrijeme</h3>
                             <ul class="list-unstyled fs-sm text-muted mb-0">
                                 <li>Pon - pet: 09 - 20h</li>
@@ -639,7 +644,7 @@
                 </div>
                 <div class="col-xl-3 col-sm-6  mb-grid-gutter">
                     <div class="card h-100">
-                        <div class="card-body text-center"><i class="ci-phone h3 mt-2 mb-4 text-primary"></i>
+                        <div class="card-body text-center"><i class="fa-solid fa-phone h3 mt-2 mb-4 text-primary"></i>
                             <h3 class="h6 mb-3">Telefoni</h3>
                             <ul class="list-unstyled fs-sm mb-0">
                                 <li><a class="nav-link-style text-primary" href="tel:+38514816574"> +385 1 48 16 574</a></li>
@@ -650,7 +655,7 @@
                 </div>
                 <div class="col-xl-3 col-sm-6 mb-grid-gutter">
                     <div class="card h-100">
-                        <div class="card-body text-center"><i class="ci-mail h3 mt-2 mb-4 text-primary"></i>
+                        <div class="card-body text-center"><i class="fa-solid fa-envelope h3 mt-2 mb-4 text-primary"></i>
                             <h3 class="h6 mb-3">Email adresa</h3>
                             <ul class="list-unstyled fs-sm mb-0">
                                 <li><a class="nav-link-style text-primary" href="mailto:info@antikvarijat-biblos.hr">info@antikvarijat-biblos.hr</a></li>
@@ -673,7 +678,7 @@
                     <h6 class="d-inline-block pe-3 me-3 border-end border-light"><span class="text-primary">65,478 </span><span class="fw-normal text-white">Artikala</span></h6>
                     <h6 class="d-inline-block pe-3 me-3 "><span class="text-primary">2,521 </span><span class="fw-normal text-white">Kupaca</span></h6>
 
-                    <div class="widget mt-4 text-md-nowrap text-center text-md-start"><a class="btn-social bs-light bs-instagram me-2 mb-2" href="#"><i class="ci-instagram"></i></a><a class="btn-social bs-light bs-facebook me-2 mb-2" href="#"><i class="ci-facebook"></i></a></div>
+                    <div class="widget mt-4 text-md-nowrap text-center text-md-start"><a class="btn-social bs-light bs-instagram me-2 mb-2" href="#"><i class="fa-brands fa-instagram"></i></a><a class="btn-social bs-light bs-facebook me-2 mb-2" href="#"><i class="fa-brands fa-facebook-f"></i></a></div>
                 </div>
                 <!-- Mobile dropdown menu (visible on screens below md)-->
                 <div class="col-12 d-md-none text-center mb-4 pb-2">
@@ -721,7 +726,7 @@
                 <div class="row pt-3 pb-3">
                     <div class="col-md-3 col-sm-6 mb-4">
                         <div class="d-flex">
-                            <i class="ci-gift text-primary" style="font-size: 2.25rem;"></i>
+                            <i class="fa-duotone fa-gift text-primary" style="font-size: 2.25rem;"></i>
                             <div class="ps-3">
                                 <h6 class="fs-base text-light mb-1">Besplatna dostava</h6>
                                 <p class="mb-0 fs-ms text-light opacity-50">Za sve narudžbe u RH iznad 500 kn.</p>
@@ -730,7 +735,7 @@
                     </div>
                     <div class="col-md-3 col-sm-6 mb-4">
                         <div class="d-flex">
-                            <i class="ci-security-check text-primary" style="font-size: 2.25rem;"></i>
+                            <i class="fa-duotone fa-shield-check text-primary" style="font-size: 2.25rem;"></i>
                             <div class="ps-3">
                                 <h6 class="fs-base text-light mb-1">Zaštita kupca</h6>
                                 <p class="mb-0 fs-ms text-light opacity-50">Od narudžbe pa sve do dostave</p>
@@ -739,7 +744,7 @@
                     </div>
                     <div class="col-md-3 col-sm-6 mb-4">
                         <div class="d-flex">
-                            <i class="ci-support text-primary" style="font-size: 2.25rem;"></i>
+                            <i class="fa-regular fa-headset text-primary" style="font-size: 2.25rem;"></i>
                             <div class="ps-3">
                                 <h6 class="fs-base text-light mb-1">Korisnička podrška</h6>
                                 <p class="mb-0 fs-ms text-light opacity-50">Prije i nakon vaše kupnje</p>
@@ -748,7 +753,7 @@
                     </div>
                     <div class="col-md-3 col-sm-6 mb-4">
                         <div class="d-flex">
-                            <i class="ci-card text-primary" style="font-size: 2.25rem;"></i>
+                            <i class="fa-duotone fa-credit-card text-primary" style="font-size: 2.25rem;"></i>
                             <div class="ps-3">
                                 <h6 class="fs-base text-light mb-1">100% sigurna kupnja</h6>
                                 <p class="mb-0 fs-ms text-light opacity-50">Sigurno i pozdano plaćanje karticama</p>
@@ -769,15 +774,15 @@
     </footer>
     <!-- Toolbar for handheld devices (Marketplace)-->
     <div class="handheld-toolbar">
-        <div class="d-table table-layout-fixed w-100"><a class="d-table-cell handheld-toolbar-item" href="dashboard-favorites.html"><span class="handheld-toolbar-icon"><i class="ci-heart"></i></span><span class="handheld-toolbar-label">Lista želja</span></a><a class="d-table-cell handheld-toolbar-item" href="javascript:void(0)" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" onclick="window.scrollTo(0, 0)"><span class="handheld-toolbar-icon"><i class="ci-menu"></i></span><span class="handheld-toolbar-label">Menu</span></a><a class="d-table-cell handheld-toolbar-item" href="marketplace-cart.html"><span class="handheld-toolbar-icon"><i class="ci-cart"></i><span class="badge bg-primary rounded-pill ms-1">1</span></span><span class="handheld-toolbar-label">80.00kn</span></a></div>
+        <div class="d-table table-layout-fixed w-100"><a class="d-table-cell handheld-toolbar-item" href="dashboard-favorites.html"><span class="handheld-toolbar-icon"><i class="fa-regular fa-heart"></i></span><span class="handheld-toolbar-label">Lista želja</span></a><a class="d-table-cell handheld-toolbar-item" href="javascript:void(0)" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" onclick="window.scrollTo(0, 0)"><span class="handheld-toolbar-icon"><i class="fa-solid fa-bars"></i></span><span class="handheld-toolbar-label">Menu</span></a><a class="d-table-cell handheld-toolbar-item" href="marketplace-cart.html"><span class="handheld-toolbar-icon"><i class="fa-regular fa-bag-shopping"></i><span class="badge bg-primary rounded-pill ms-1">1</span></span><span class="handheld-toolbar-label">80.00kn</span></a></div>
     </div>
-    <!-- Back To Top Button--><a class="btn-scroll-top" href="#top" data-scroll><span class="btn-scroll-top-tooltip text-muted fs-sm me-2">Top</span><i class="btn-scroll-top-icon ci-arrow-up">   </i></a>
+    <!-- Back To Top Button--><a class="btn-scroll-top" href="#top" data-scroll><span class="btn-scroll-top-tooltip text-muted fs-sm me-2">Top</span><i class="btn-scroll-top-icon fa-solid fa-arrow-up">   </i></a>
     <!-- Vendor scrits: js libraries and plugins-->
-    <script src="vendor/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="vendor/simplebar/dist/simplebar.min.js"></script>
-    <script src="vendor/tiny-slider/dist/min/tiny-slider.js"></script>
-    <script src="vendor/smooth-scroll/dist/smooth-scroll.polyfills.min.js"></script>
+    <script src="{{ \App\Helpers\Asset::url('vendor/bootstrap/dist/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ \App\Helpers\Asset::url('vendor/simplebar/dist/simplebar.min.js') }}"></script>
+    <script src="{{ \App\Helpers\Asset::url('vendor/tiny-slider/dist/min/tiny-slider.js') }}"></script>
+    <script src="{{ \App\Helpers\Asset::url('vendor/smooth-scroll/dist/smooth-scroll.polyfills.min.js') }}"></script>
     <!-- Main theme script-->
-    <script src="js/theme.min.js"></script>
+    <script src="{{ \App\Helpers\Asset::url('js/theme.min.js') }}"></script>
 </body>
 </html>

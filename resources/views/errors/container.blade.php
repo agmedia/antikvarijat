@@ -19,7 +19,7 @@
     <!-- Vendor Styles including: Font Icons, Plugins, etc.-->
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <!-- Main Theme Styles + Bootstrap-->
-    <link rel="stylesheet" media="screen" href="{{ config('settings.images_domain') . 'css/theme.min.css?v=' . filemtime(public_path('css/theme.min.css')) }}">
+    <link rel="stylesheet" media="screen" href="{{ \App\Helpers\Asset::url('css/theme.min.css') }}">
     <!-- Fire the plugin -->
     <script>
         document.addEventListener(
@@ -60,17 +60,17 @@
     @include('front.layouts.partials.footer')
 </div><!-- #wrapper end -->
 
-<link rel="stylesheet" media="screen" href="{{ config('settings.images_domain') . 'css/tiny-slider.css?v=1.2' }}"/>
+<link rel="stylesheet" media="screen" href="{{ \App\Helpers\Asset::url('css/tiny-slider.css') }}"/>
 <!-- Vendor scrits: js libraries and plugins-->
-<script src="{{ asset('js/jquery/jquery-2.1.1.min.js?v=1.2') }}"></script>
-<script src="{{ asset('js/bootstrap.bundle.min.js?v=1.2') }}"></script>
-<script src="{{ asset('js/tiny-slider.js?v=1.2') }}"></script>
-<script src="{{ asset('js/smooth-scroll.polyfills.min.js?v=1.2') }}"></script>
+<script src="{{ \App\Helpers\Asset::url('js/jquery/jquery-2.1.1.min.js') }}"></script>
+<script src="{{ \App\Helpers\Asset::url('js/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ \App\Helpers\Asset::url('js/tiny-slider.js') }}"></script>
+<script src="{{ \App\Helpers\Asset::url('js/smooth-scroll.polyfills.min.js') }}"></script>
 <!-- Main theme script-->
 
-<script src="{{ asset('js/cart.js?v=' . filemtime(public_path('js/cart.js'))) }}"></script>
+<script src="{{ \App\Helpers\Asset::url('js/cart.js') }}"></script>
 
-<script src="{{ asset('js/theme.min.js') }}"></script>
+<script src="{{ \App\Helpers\Asset::url('js/theme.min.js') }}"></script>
 @stack('js')
 <script>
     jQuery(function() {

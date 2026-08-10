@@ -49,6 +49,12 @@ return [
         'use_public_endpoint' => env('GOOGLE_TRANSLATE_USE_PUBLIC_ENDPOINT', true),
     ],
 
+    'google_login' => [
+        'enabled' => env('GOOGLE_LOGIN_ENABLED', false),
+        'client_id' => env('GOOGLE_LOGIN_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_LOGIN_CLIENT_SECRET'),
+    ],
+
     'vialibri' => [
         'access_code' => env('VIALIBRI_ACCESS_CODE'),
     ],

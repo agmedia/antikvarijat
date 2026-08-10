@@ -40,7 +40,7 @@
             <div class="order-lg-2 mb-3 mb-lg-0 pb-lg-2">
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb breadcrumb-dark flex-lg-nowrap justify-content-center justify-content-lg-start">
-                        <li class="breadcrumb-item"><a class="text-nowrap" href="{{ route('index') }}"><i class="ci-home"></i>Naslovnica</a></li>
+                        <li class="breadcrumb-item"><a class="text-nowrap" href="{{ route('index') }}"><i class="fa-solid fa-house"></i>Naslovnica</a></li>
 
                         @if ($group)
                             @if ($group && ! $cat && ! $subcat)

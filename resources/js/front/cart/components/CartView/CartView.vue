@@ -6,9 +6,9 @@
 
 
 
-            <div role="alert" class="alert alert-secondary d-flex fs-sm" v-if="$store.state.cart.total < freeship && $store.state.cart.count"><div class="alert-icon"><i class="ci-gift"></i></div> <div>{{ labels.freeShippingRemainingStart }} {{ $store.state.service.formatMainPrice(freeship - $store.state.cart.total) }} <span v-if="$store.state.cart.secondary_price">({{ $store.state.service.formatSecondaryPrice(freeship - $store.state.cart.total) }})</span> {{ labels.freeShippingRemainingEnd }}</div></div>
+            <div role="alert" class="alert alert-secondary d-flex fs-sm" v-if="$store.state.cart.total < freeship && $store.state.cart.count"><div class="alert-icon"><i class="fa-duotone fa-gift" aria-hidden="true"></i></div> <div>{{ labels.freeShippingRemainingStart }} {{ $store.state.service.formatMainPrice(freeship - $store.state.cart.total) }} <span v-if="$store.state.cart.secondary_price">({{ $store.state.service.formatSecondaryPrice(freeship - $store.state.cart.total) }})</span> {{ labels.freeShippingRemainingEnd }}</div></div>
 
-            <div role="alert" class="alert alert-secondary d-flex fs-sm" v-if="$store.state.cart.total > freeship && $store.state.cart.count"><div class="alert-icon"><i class="ci-gift"></i></div> <div>{{ labels.freeShippingUnlocked }}</div></div>
+            <div role="alert" class="alert alert-secondary d-flex fs-sm" v-if="$store.state.cart.total > freeship && $store.state.cart.count"><div class="alert-icon"><i class="fa-duotone fa-gift" aria-hidden="true"></i></div> <div>{{ labels.freeShippingUnlocked }}</div></div>
 
             <div class="d-flex pt-3 pb-2 mt-1">
                 <h2 class="h6 text-dark mb-0">{{ labels.items }}</h2>
@@ -35,12 +35,12 @@
             <div class="pt-2 pt-sm-0 ps-sm-3 mx-auto mx-sm-0 text-center text-sm-start" style="max-width: 9rem;">
                 <label class="form-label">{{ labels.quantity }}</label>
                 <input class="form-control" type="number" v-model="item.quantity" min="1" :max="item.associatedModel.quantity" @click.prevent="updateCart(item)">
-                <button class="btn btn-link px-0 text-danger" type="button" @click.prevent="removeFromCart(item)"><i class="ci-close-circle me-2"></i><span class="fs-sm">{{ labels.remove }}</span></button>
+                <button class="btn btn-link px-0 text-danger" type="button" @click.prevent="removeFromCart(item)"><i class="fa-solid fa-circle-xmark me-2" aria-hidden="true"></i><span class="fs-sm">{{ labels.remove }}</span></button>
             </div>
         </div>
 
         <div class="d-flex pt-3 pb-2 mt-1" v-if="show_buttons">
-            <a class="btn btn-outline-primary btn-sm btn-shadow mt-3" :href="continueurl"><i class="ci-arrow-left me-2"></i>{{ labels.backToShop }}</a>
+            <a class="btn btn-outline-primary btn-sm btn-shadow mt-3" :href="continueurl"><i class="fa-solid fa-arrow-left me-2" aria-hidden="true"></i>{{ labels.backToShop }}</a>
         </div>
 
     </div>

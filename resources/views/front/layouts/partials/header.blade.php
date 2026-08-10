@@ -20,12 +20,12 @@
 
                 <div class="dropdown w-100">
                 <div class="input-group ">
-                    <i class="ci-search position-absolute top-50 start-0 translate-middle-y text-muted fs-base ms-3"></i>
+                    <i class="fa-solid fa-magnifying-glass position-absolute top-50 start-0 translate-middle-y text-muted fs-base ms-3"></i>
                     <input class="form-control rounded-start ps-5" type="text"
                            name="{{ config('settings.search_keyword') }}"
                            value="{{ request()->query('pojam') ?: '' }}"
                            placeholder="{{ __('front.search.placeholder') }}" id="search_box" data-toggle="dropdown" aria-haspopup="true" autocomplete="off" aria-expanded="false" onkeyup="javascript:load_data(this.value)">
-                    <button type="submit" class="btn btn-primary btn-lg fs-base"><i class="ci-search"></i></button>
+                    <button type="submit" class="btn btn-primary btn-lg fs-base"><i class="fa-solid fa-magnifying-glass"></i></button>
                 </div>
                 <div id="search_result" class="live-search"></div>
                 </div>
@@ -33,7 +33,7 @@
 
            {{--  <form action="{{ route('pretrazi') }}" id="search-form-first" class="w-100 d-none d-lg-flex flex-nowrap mx-4" method="get">
                 <div class="dropdown w-100">
-                    <div class="input-group "><i class="ci-search position-absolute top-50 start-0 translate-middle-y ms-3"></i>
+                    <div class="input-group "><i class="fa-solid fa-magnifying-glass position-absolute top-50 start-0 translate-middle-y ms-3"></i>
                         <input class="form-control rounded-start w-100" type="text" name="{{ config('settings.search_keyword') }}" value="{{ request()->query('pojam') ?: '' }}" placeholder="Search books" id="search_box" data-toggle="dropdown" aria-haspopup="true" autocomplete="off" aria-expanded="false" onkeyup="javascript:load_data(this.value)">
                     </div>
 
@@ -47,10 +47,17 @@
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
-                <a class="navbar-tool ms-3 front-header-account" href="{{ route('login') }}">
-                    <span class="navbar-tool-tooltip">{{ __('front.nav.account') }}</span>
-                    <div class="navbar-tool-icon-box"><i class="navbar-tool-icon ci-user"></i></div>
-                </a>
+                @auth
+                    <a class="navbar-tool ms-3 front-header-account" href="{{ \App\Helpers\LocaleHelper::route('moj-racun') }}" aria-label="{{ __('front.nav.account') }}">
+                        <span class="navbar-tool-tooltip">{{ __('front.nav.account') }}</span>
+                        <div class="navbar-tool-icon-box"><i class="navbar-tool-icon fa-regular fa-user front-header-account-icon" aria-hidden="true"></i></div>
+                    </a>
+                @else
+                    <button class="navbar-tool ms-3 front-header-account border-0 bg-transparent p-0" type="button" data-auth-tab="signin" data-bs-toggle="modal" data-bs-target="#signin-modal" aria-label="{{ __('front.auth.login_title') }}">
+                        <span class="navbar-tool-tooltip">{{ __('front.auth.login_title') }}</span>
+                        <span class="navbar-tool-icon-box"><i class="navbar-tool-icon fa-regular fa-user front-header-account-icon" aria-hidden="true"></i></span>
+                    </button>
+                @endauth
 
                 <div class="dropdown ms-3 front-header-language">
                     <button class="btn btn-outline-secondary btn-sm dropdown-toggle front-language-toggle" type="button" data-bs-toggle="dropdown">
@@ -83,12 +90,12 @@
                 <!-- Mobile search (ostaje za mobitel) -->
                 <form action="{{ \App\Helpers\LocaleHelper::route('pretrazi') }}" id="search-form-mobile" method="get" class="w-100 d-lg-none my-3">
                     <div class="input-group">
-                        <i class="ci-search position-absolute top-50 start-0 translate-middle-y text-muted fs-base ms-3"></i>
+                        <i class="fa-solid fa-magnifying-glass position-absolute top-50 start-0 translate-middle-y text-muted fs-base ms-3"></i>
                         <input class="form-control rounded-start ps-5" type="text"
                                name="{{ config('settings.search_keyword') }}"
                                value="{{ request()->query('pojam') ?: '' }}"
                                placeholder="{{ __('front.search.placeholder') }}">
-                        <button type="submit" class="btn btn-primary btn-lg fs-base"><i class="ci-search"></i></button>
+                        <button type="submit" class="btn btn-primary btn-lg fs-base"><i class="fa-solid fa-magnifying-glass"></i></button>
                     </div>
                 </form>
 
@@ -97,21 +104,13 @@
                     <!-- Knjige -->
                     <li class="nav-item d-none d-lg-block">
                         <a class="nav-link" href="{{ \App\Helpers\LocaleHelper::route('catalog.route', ['group' => 'knjige']) }}">
-                            <svg class="d-none d-xl-inline-block align-middle me-1 icon-gold" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M12 4l-8 2v12l8-2"/>
-                                <path d="M12 4l8 2v12l-8-2"/>
-                                <path d="M12 4v12"/>
-                            </svg>
+                            <i class="fa-regular fa-books d-none d-xl-inline-block align-middle me-1 icon-gold" aria-hidden="true"></i>
                             {{ __('front.nav.books') }}
                         </a>
                     </li>
                     <li class="nav-item d-lg-none dropdown">
                         <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
-                            <svg class="d-none d-xl-inline-block align-middle me-1 icon-gold" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M12 4l-8 2v12l8-2"/>
-                                <path d="M12 4l8 2v12l-8-2"/>
-                                <path d="M12 4v12"/>
-                            </svg>
+                            <i class="fa-regular fa-books d-none d-xl-inline-block align-middle me-1 icon-gold" aria-hidden="true"></i>
                             {{ __('front.nav.books') }}
                         </a>
                         <ul class="dropdown-menu">
@@ -125,20 +124,12 @@
                     <!-- Zemljovidi i vedute -->
                     <li class="nav-item d-none d-lg-block">
                         <a class="nav-link" href="{{ \App\Helpers\LocaleHelper::route('catalog.route', ['group' => 'zemljovidi-i-vedute']) }}">
-                            <svg class="d-none d-xl-inline-block align-middle me-1 icon-gold" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M3 7l6-2 6 2 6-2v10l-6 2-6-2-6 2z"/>
-                                <path d="M9 5v12"/>
-                                <path d="M15 7v12"/>
-                            </svg>{{ __('front.nav.maps_and_vedute') }}
+                            <i class="fa-regular fa-map d-none d-xl-inline-block align-middle me-1 icon-gold" aria-hidden="true"></i>{{ __('front.nav.maps_and_vedute') }}
                         </a>
                     </li>
                     <li class="nav-item d-lg-none dropdown">
                         <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
-                            <svg class="d-none d-xl-inline-block align-middle me-1 icon-gold" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M3 7l6-2 6 2 6-2v10l-6 2-6-2-6 2z"/>
-                                <path d="M9 5v12"/>
-                                <path d="M15 7v12"/>
-                            </svg>{{ __('front.nav.maps_and_vedute') }}
+                            <i class="fa-regular fa-map d-none d-xl-inline-block align-middle me-1 icon-gold" aria-hidden="true"></i>{{ __('front.nav.maps_and_vedute') }}
                         </a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="{{ \App\Helpers\LocaleHelper::route('catalog.route', ['group' => 'zemljovidi-i-vedute']) }}">{{ __('front.nav.all_maps_and_vedute') }}</a></li>
@@ -149,44 +140,16 @@
                     </li>
 
                     <!-- Ostalo -->
-                    <li class="nav-item"><a class="nav-link" href="{{ \App\Helpers\LocaleHelper::route('catalog.route.author') }}"> <svg class="d-none d-xl-inline-block align-middle me-1 icon-gold" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="12" cy="8" r="4"/>
-                                <path d="M4 20c0-3.5 4-6 8-6s8 2.5 8 6"/>
-                            </svg>{{ __('front.nav.authors') }}</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ \App\Helpers\LocaleHelper::route('catalog.route.publisher') }}"><svg class="d-none d-xl-inline-block align-middle me-1 icon-gold" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                                 <path d="M4 20h16"/>
-                                <rect x="6" y="6" width="12" height="12" rx="1"/>
-                                <path d="M9 9h6"/>
-                                <path d="M9 12h6"/>
-                                <path d="M9 15h6"/>
-                            </svg>{{ __('front.nav.publishers') }}</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ \App\Helpers\LocaleHelper::route('catalog.route.blog') }}"><svg class="d-none d-xl-inline-block align-middle me-1 icon-gold" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="5" y="3" width="14" height="18" rx="2"/>
-                                <path d="M8 8h8"/>
-                                <path d="M8 12h8"/>
-                                <path d="M8 16h6"/>
-                            </svg>{{ __('front.nav.blog') }}</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ \App\Helpers\LocaleHelper::route('catalog.route.author') }}"><i class="fa-regular fa-user d-none d-xl-inline-block align-middle me-1 icon-gold" aria-hidden="true"></i>{{ __('front.nav.authors') }}</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ \App\Helpers\LocaleHelper::route('catalog.route.publisher') }}"><i class="fa-regular fa-building d-none d-xl-inline-block align-middle me-1 icon-gold" aria-hidden="true"></i>{{ __('front.nav.publishers') }}</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ \App\Helpers\LocaleHelper::route('catalog.route.blog') }}"><i class="fa-regular fa-newspaper d-none d-xl-inline-block align-middle me-1 icon-gold" aria-hidden="true"></i>{{ __('front.nav.blog') }}</a></li>
 
                     <!-- Mobile-only dodatni linkovi -->
-                    <li class="nav-item ms-lg-auto"><a class="nav-link" href="{{ \App\Helpers\LocaleHelper::route('catalog.route.page',['page' => 'o-nama']) }}"><svg class="d-none d-xl-inline-block align-middle me-1 icon-gold" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="12" cy="12" r="9"/>
-                                <path d="M12 10v6"/>
-                                <path d="M12 7h.01"/>
-                            </svg>{{ __('front.nav.about_us') }}</a></li>
+                    <li class="nav-item ms-lg-auto"><a class="nav-link" href="{{ \App\Helpers\LocaleHelper::route('catalog.route.page',['page' => 'o-nama']) }}"><i class="fa-regular fa-circle-info d-none d-xl-inline-block align-middle me-1 icon-gold" aria-hidden="true"></i>{{ __('front.nav.about_us') }}</a></li>
                     <li class="nav-item d-lg-none"><a class="nav-link" href="{{ \App\Helpers\LocaleHelper::route('catalog.route.blog') }}">{{ __('front.nav.media') }}</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ \App\Helpers\LocaleHelper::route('otkup.knjiga') }}"><svg class="d-none d-xl-inline-block align-middle me-1 icon-gold" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-                            </svg>{{ __('front.nav.book_purchase') }}</a></li>
-                    <li class="nav-item "><a class="nav-link" href="{{ \App\Helpers\LocaleHelper::route('faq') }}"><svg class="d-none d-xl-inline-block align-middle me-1 icon-gold" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="12" cy="12" r="9"/>
-                                <path d="M9.5 9a3 3 0 1 1 5.5 1.5c0 1.5-2 2-2 3.5"/>
-                                <path d="M12 17h.01"/>
-                            </svg>{{ __('front.nav.faq') }}</a></li>
-                    <li class="nav-item "><a class="nav-link" href="{{ \App\Helpers\LocaleHelper::route('kontakt') }}"><svg class="d-none d-xl-inline-block align-middle me-1 icon-gold" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="4" y="6" width="16" height="12" rx="2"/>
-                                <path d="M5 7l7 6 7-6"/>
-                            </svg>{{ __('front.nav.contact') }}</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ \App\Helpers\LocaleHelper::route('otkup.knjiga') }}"><i class="fa-regular fa-book-open d-none d-xl-inline-block align-middle me-1 icon-gold" aria-hidden="true"></i>{{ __('front.nav.book_purchase') }}</a></li>
+                    <li class="nav-item "><a class="nav-link" href="{{ \App\Helpers\LocaleHelper::route('faq') }}"><i class="fa-regular fa-circle-question d-none d-xl-inline-block align-middle me-1 icon-gold" aria-hidden="true"></i>{{ __('front.nav.faq') }}</a></li>
+                    <li class="nav-item "><a class="nav-link" href="{{ \App\Helpers\LocaleHelper::route('kontakt') }}"><i class="fa-regular fa-envelope d-none d-xl-inline-block align-middle me-1 icon-gold" aria-hidden="true"></i>{{ __('front.nav.contact') }}</a></li>
                 </ul>
 
             </div>

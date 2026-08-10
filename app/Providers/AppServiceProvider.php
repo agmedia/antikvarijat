@@ -8,6 +8,7 @@ use App\Models\Front\Page;
 use App\Models\User;
 use App\Models\ProductReview;
 use App\Models\Back\Marketing\Wishlist;
+use App\Services\GoogleLoginSettingsService;
 use Illuminate\Auth\Notifications\ResetPassword as ResetPasswordNotification;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Pagination\Paginator;
@@ -75,6 +76,10 @@ class AppServiceProvider extends ServiceProvider
 
     protected function registerFrontendViewComposers(): void
     {
+        View::composer('front.layouts.modals.login', function ($view) {
+            $view->with('googleLoginEnabled', app(GoogleLoginSettingsService::class)->enabled());
+        });
+
         View::composer(['front.layouts.partials.footer', 'front.checkout.view'], function ($view) {
             $locale = app()->getLocale();
 

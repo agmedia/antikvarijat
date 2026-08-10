@@ -11,7 +11,7 @@
             <div class="order-lg-2 mb-3 mb-lg-0 pt-lg-2">
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb breadcrumb-dark flex-lg-nowrap justify-content-center justify-content-lg-start">
-                        <li class="breadcrumb-item"><a class="text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('index') }}"><i class="ci-home"></i>{{ __('front.nav.home') }}</a></li>
+                        <li class="breadcrumb-item"><a class="text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('index') }}"><i class="fa-solid fa-house"></i>{{ __('front.nav.home') }}</a></li>
                         <li class="breadcrumb-item text-nowrap active" aria-current="page">{{ __('front.checkout.checkout') }}</li>
                     </ol>
                 </nav>

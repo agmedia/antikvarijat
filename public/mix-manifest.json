@@ -3,7 +3,6 @@
     "/js/filter.js": "/js/filter.js",
     "/js/components/ag-order-products.js": "/js/components/ag-order-products.js",
     "/js/ag-input-field.js": "/js/ag-input-field.js",
-    "/js/cart/cart-checkout.js": "/js/cart/cart-checkout.js",
     "/css/category.css": "/css/category.css",
     "/css/product.css": "/css/product.css",
     "/vendor/cookieconsent/cookieconsent.css": "/vendor/cookieconsent/cookieconsent.css"

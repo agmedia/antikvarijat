@@ -27,6 +27,7 @@ use App\Http\Controllers\Back\Settings\App\ShippingController;
 use App\Http\Controllers\Back\Settings\App\TaxController;
 use App\Http\Controllers\Back\Settings\FaqController;
 use App\Http\Controllers\Back\Settings\GoogleApiController;
+use App\Http\Controllers\Back\Settings\GoogleLoginSettingsController;
 use App\Http\Controllers\Back\Settings\HistoryController;
 use App\Http\Controllers\Back\Settings\PageController;
 use App\Http\Controllers\Back\Settings\QuickMenuController;
@@ -41,11 +42,19 @@ use App\Http\Controllers\Front\CheckoutController;
 use App\Http\Controllers\Front\ContractWithdrawalController;
 use App\Http\Controllers\Front\CustomerController;
 use App\Http\Controllers\Front\HomeController;
+use App\Http\Controllers\Front\GoogleLoginController;
 use App\Http\Controllers\Front\ProductReviewController;
 use App\Http\Controllers\Front\VialibriFeedController;
 use App\Http\Controllers\Front\WishlistTrackingController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Back\Marketing\WishlistController;
+
+Route::get('/prijava/google', [GoogleLoginController::class, 'redirect'])
+    ->middleware('throttle:10,1')
+    ->name('google.login.redirect');
+Route::get('/prijava/google/povratak', [GoogleLoginController::class, 'callback'])
+    ->middleware('throttle:10,1')
+    ->name('google.login.callback');
 
 
 /*Route::domain('https://images.antikvarijatbibl.lin73.host25.com/')->group(function () {
@@ -234,6 +243,8 @@ Route::middleware(['auth:sanctum', 'verified', 'no.customers'])->prefix('admin')
         Route::get('google-api/translate/{job}', [GoogleApiController::class, 'status'])->name('google.api.translate.status');
         Route::post('google-api/translate/{job}/process', [GoogleApiController::class, 'process'])->name('google.api.translate.process');
         Route::post('google-api/translate/{job}/cancel', [GoogleApiController::class, 'cancel'])->name('google.api.translate.cancel');
+        Route::get('google-login', [GoogleLoginSettingsController::class, 'edit'])->name('google-login.edit');
+        Route::patch('google-login', [GoogleLoginSettingsController::class, 'update'])->name('google-login.update');
         // INFO PAGES
         Route::get('pages', [PageController::class, 'index'])->name('pages');
         Route::get('page/create', [PageController::class, 'create'])->name('pages.create');
@@ -291,12 +302,16 @@ Route::middleware(['auth:sanctum', 'verified'])->prefix('moj-racun')->group(func
     Route::get('/', [CustomerController::class, 'index'])->name('moj-racun');
     Route::patch('/snimi/{user}', [CustomerController::class, 'save'])->name('moj-racun.snimi');
     Route::get('/narudzbe', [CustomerController::class, 'orders'])->name('moje-narudzbe');
+    Route::get('/dojmovi', [CustomerController::class, 'reviews'])->name('moji-dojmovi');
+    Route::get('/preporuke', [CustomerController::class, 'recommendations'])->name('preporuke-za-vas');
 });
 
 Route::middleware(['auth:sanctum', 'verified'])->prefix('en/my-account')->as('en.')->group(function () {
     Route::get('/', [CustomerController::class, 'index'])->name('moj-racun');
     Route::patch('/save/{user}', [CustomerController::class, 'save'])->name('moj-racun.snimi');
     Route::get('/orders', [CustomerController::class, 'orders'])->name('moje-narudzbe');
+    Route::get('/reviews', [CustomerController::class, 'reviews'])->name('moji-dojmovi');
+    Route::get('/recommendations', [CustomerController::class, 'recommendations'])->name('preporuke-za-vas');
 });
 
 /**

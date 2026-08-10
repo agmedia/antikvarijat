@@ -13,7 +13,7 @@
         <nav class="mb-4" aria-label="breadcrumb">
             <ol class="breadcrumb flex-lg-nowrap">
                 <li class="breadcrumb-item">
-                    <a class="text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('index') }}"><i class="ci-home"></i> {{ __('front.nav.home') }}</a>
+                    <a class="text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('index') }}"><i class="fa-solid fa-house"></i> {{ __('front.nav.home') }}</a>
                 </li>
                 <li class="breadcrumb-item">
                     <a class="text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('contract-withdrawal.create') }}">{{ __('contract_withdrawal.review.breadcrumb_withdrawal') }}</a>
@@ -63,7 +63,7 @@
 
                 <div class="withdrawal-review-actions">
                     <a class="withdrawal-edit-link" href="{{ \App\Helpers\LocaleHelper::route('contract-withdrawal.create') }}">
-                        <i class="ci-arrow-left me-2"></i>{{ __('contract_withdrawal.review.edit') }}
+                        <i class="fa-solid fa-arrow-left me-2"></i>{{ __('contract_withdrawal.review.edit') }}
                     </a>
 
                     <form method="POST" action="{{ \App\Helpers\LocaleHelper::route('contract-withdrawal.store') }}" data-confirm-withdrawal-form>

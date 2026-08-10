@@ -21,10 +21,10 @@
     <!-- Fonts and Styles -->
     @stack('css_before')
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
-    <link rel="stylesheet" id="css-main" href="{{ asset('css/dashmix.css') }}">
+    <link rel="stylesheet" id="css-main" href="{{ \App\Helpers\Asset::url('css/dashmix.css') }}">
 
     <!-- You can include a specific file from public/css/themes/ folder to alter the default color theme of the template. eg: -->
-<!-- <link rel="stylesheet" id="css-theme" href="{{ asset('css/themes/xwork.css') }}"> -->
+<!-- <link rel="stylesheet" id="css-theme" href="{{ \App\Helpers\Asset::url('css/themes/xwork.css') }}"> -->
 @stack('css_after')
 
 <!-- Scripts -->
@@ -39,10 +39,10 @@
 </div>
 
 <!-- Dashmix Core JS -->
-<script src="{{ asset('/js/dashmix.app.js') }}"></script>
+<script src="{{ \App\Helpers\Asset::url('js/dashmix.app.js') }}"></script>
 
 <!-- Laravel Original JS -->
-<script src="{{ asset('/js/laravel.app.js') }}"></script>
+<script src="{{ \App\Helpers\Asset::url('js/laravel.app.js') }}"></script>
 
 @stack('js_after')
 </body>

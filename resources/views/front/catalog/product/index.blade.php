@@ -16,10 +16,10 @@
 @endpush
 
 @push('css_after')
-    <link rel="stylesheet" media="screen" href="{{ asset('js/slick/slick.css') }}">
-    <link rel="stylesheet" media="screen" href="{{ asset('js/slick/slick-theme.css') }}">
-    <link rel="stylesheet" media="screen" href="{{ asset('js/simple-lightbox.css?v2.14.0') }}">
-    <link rel="stylesheet" media="screen" href="{{ asset('css/product.css?v=' . filemtime(public_path('css/product.css'))) }}">
+    <link rel="stylesheet" media="screen" href="{{ \App\Helpers\Asset::url('js/slick/slick.css') }}">
+    <link rel="stylesheet" media="screen" href="{{ \App\Helpers\Asset::url('js/slick/slick-theme.css') }}">
+    <link rel="stylesheet" media="screen" href="{{ \App\Helpers\Asset::url('js/simple-lightbox.css') }}">
+    <link rel="stylesheet" media="screen" href="{{ \App\Helpers\Asset::url('css/product.css') }}">
 @endpush
 
 @php
@@ -72,7 +72,7 @@
        <!-- Page title + breadcrumb-->
        <nav class="my-3" aria-label="breadcrumb">
            <ol class="breadcrumb flex-lg-nowrap">
-               <li class="breadcrumb-item"><a class="text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('index') }}"><i class="ci-home"></i>{{ __('front.nav.home') }}</a></li>
+               <li class="breadcrumb-item"><a class="text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('index') }}"><i class="fa-solid fa-house"></i>{{ __('front.nav.home') }}</a></li>
                @if ($group)
                    @if ($group && ! $cat && ! $subcat)
                        <li class="breadcrumb-item text-nowrap active" aria-current="page">{{ \App\Helpers\LocaleHelper::groupTitle($group) }}</li>
@@ -179,7 +179,7 @@
                        >
                            <span class="product-rating-stars" aria-hidden="true">
                                @for ($star = 1; $star <= 5; $star++)
-                                   <i class="{{ $star <= round($reviewAverage) ? 'ci-star-filled active' : 'ci-star' }}"></i>
+                                   <i class="{{ $star <= round($reviewAverage) ? 'fa-solid fa-star active' : 'fa-duotone fa-star' }}"></i>
                                @endfor
                            </span>
                            <span class="product-rating-anchor__summary">{{ $reviewAverageFormatted }} / 5 · {{ $reviewCountLabel }}</span>
@@ -219,7 +219,7 @@
                        <!-- Light alert -->
                        <div class="alert alert-secondary d-flex fs-sm" role="alert">
                            <div class="alert-icon">
-                               <i class="ci-gift"></i>
+                               <i class="fa-duotone fa-gift"></i>
                            </div>
                            <div>{{ __('front.product.free_delivery_notice', ['amount' => config('settings.free_shipping')]) }}</div>
                        </div>
@@ -227,7 +227,7 @@
                    <!-- Product panels-->
                    <div class="accordion mb-4" id="productPanels">
                        <div class="accordion-item">
-                           <h3 class="accordion-header"><a class="accordion-button" href="#productInfo" role="button" data-bs-toggle="collapse" aria-expanded="true" aria-controls="productInfo"><i class="ci-announcement text-muted fs-lg align-middle mt-n1 me-2"></i>{{ __('front.product.basic_information') }}</a></h3>
+                           <h3 class="accordion-header"><a class="accordion-button" href="#productInfo" role="button" data-bs-toggle="collapse" aria-expanded="true" aria-controls="productInfo"><i class="fa-duotone fa-bullhorn text-muted fs-lg align-middle mt-n1 me-2"></i>{{ __('front.product.basic_information') }}</a></h3>
                            <div class="accordion-collapse collapse show" id="productInfo" data-bs-parent="#productPanels">
                                <div class="accordion-body">
 
@@ -264,7 +264,7 @@
                            </div>
                        </div>
                        <div class="accordion-item">
-                           <h3 class="accordion-header"><a class="accordion-button collapsed" href="#shippingOptions" role="button" data-bs-toggle="collapse" aria-expanded="true" aria-controls="shippingOptions"><i class="ci-delivery text-muted lead align-middle mt-n1 me-2"></i>{{ __('front.product.shipping_options') }}</a></h3>
+                           <h3 class="accordion-header"><a class="accordion-button collapsed" href="#shippingOptions" role="button" data-bs-toggle="collapse" aria-expanded="true" aria-controls="shippingOptions"><i class="fa-duotone fa-truck-fast text-muted lead align-middle mt-n1 me-2"></i>{{ __('front.product.shipping_options') }}</a></h3>
                            <div class="accordion-collapse collapse" id="shippingOptions" data-bs-parent="#productPanels">
                                <div class="accordion-body fs-sm">
 
@@ -306,7 +306,7 @@
                            </div>
                        </div>
                        <div class="accordion-item">
-                           <h3 class="accordion-header"><a class="accordion-button collapsed" href="#localStore" role="button" data-bs-toggle="collapse" aria-expanded="true" aria-controls="localStore"><i class="ci-card text-muted fs-lg align-middle mt-n1 me-2"></i>{{ __('front.product.payment_methods') }}</a></h3>
+                           <h3 class="accordion-header"><a class="accordion-button collapsed" href="#localStore" role="button" data-bs-toggle="collapse" aria-expanded="true" aria-controls="localStore"><i class="fa-duotone fa-credit-card text-muted fs-lg align-middle mt-n1 me-2"></i>{{ __('front.product.payment_methods') }}</a></h3>
                            <div class="accordion-collapse collapse" id="localStore" data-bs-parent="#productPanels">
                                <div class="accordion-body fs-sm">
 
@@ -504,7 +504,7 @@
                                            <div>
                                                <div class="product-rating-stars mb-1" aria-hidden="true">
                                                    @for ($star = 1; $star <= 5; $star++)
-                                                       <i class="{{ $star <= round($reviewAverage) ? 'ci-star-filled active' : 'ci-star' }}"></i>
+                                                       <i class="{{ $star <= round($reviewAverage) ? 'fa-solid fa-star active' : 'fa-duotone fa-star' }}"></i>
                                                    @endfor
                                                </div>
                                                <div class="small text-muted">{{ __('front.reviews.average', ['rating' => $reviewAverageFormatted]) }}</div>
@@ -593,7 +593,7 @@
                                            <label
                                                class="product-review-rating__star"
                                                for="review-rating-{{ $rating }}">
-                                               <i class="ci-star-filled" aria-hidden="true"></i>
+                                               <i class="fa-solid fa-star" aria-hidden="true"></i>
                                            </label>
                                        @endfor
                                    </div>
@@ -669,8 +669,8 @@
 @endsection
 
 @push('js_after')
-    <script src="{{ asset('js/slick/slick.min.js') }}"></script>
-    <script src="{{ asset('js/simple-lightbox.js?v2.14.0') }}"></script>
+    <script src="{{ \App\Helpers\Asset::url('js/slick/slick.min.js') }}"></script>
+    <script src="{{ \App\Helpers\Asset::url('js/simple-lightbox.js') }}"></script>
 
 
     <script type="application/ld+json">

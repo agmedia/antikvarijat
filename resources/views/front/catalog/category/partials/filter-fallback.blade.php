@@ -45,7 +45,7 @@
                             }
                         @endphp
                         <a class="btn btn-sm btn-outline-primary mt-3" href="{{ $parentCategoryUrl }}">
-                            <i class="ci-arrow-left fs-xs me-1" aria-hidden="true"></i> {{ __('front.js.filter.back') }}
+                            <i class="fa-solid fa-arrow-left fs-xs me-1" aria-hidden="true"></i> {{ __('front.js.filter.back') }}
                         </a>
                     @endif
                 </div>
@@ -74,7 +74,7 @@
                     <h3 class="widget-title">{{ __('front.js.filter.authors') }}<span class="spinner-border spinner-border-sm float-end"></span></h3>
                     <div class="input-group input-group-sm mb-2 autocomplete">
                         <input type="search" class="form-control rounded-end pe-5" placeholder="{{ __('front.js.filter.search_author') }}">
-                        <i class="ci-search position-absolute top-50 end-0 translate-middle-y fs-sm me-3" aria-hidden="true"></i>
+                        <i class="fa-solid fa-magnifying-glass position-absolute top-50 end-0 translate-middle-y fs-sm me-3" aria-hidden="true"></i>
                     </div>
                     <ul class="widget-list widget-filter-list list-unstyled pt-1 catalog-filter-options" aria-hidden="true"></ul>
                 </div>
@@ -85,13 +85,13 @@
                     <h3 class="widget-title">{{ __('front.js.filter.publishers') }}<span class="spinner-border spinner-border-sm float-end"></span></h3>
                     <div class="input-group input-group-sm mb-2 autocomplete">
                         <input type="search" class="form-control rounded-end pe-5" placeholder="{{ __('front.js.filter.search_publisher') }}">
-                        <i class="ci-search position-absolute top-50 end-0 translate-middle-y fs-sm me-3" aria-hidden="true"></i>
+                        <i class="fa-solid fa-magnifying-glass position-absolute top-50 end-0 translate-middle-y fs-sm me-3" aria-hidden="true"></i>
                     </div>
                     <ul class="widget-list widget-filter-list list-unstyled pt-1 catalog-filter-options" aria-hidden="true"></ul>
                 </div>
             @endunless
 
-            <a class="btn btn-primary mt-4" href="{{ url()->current() }}"><i class="ci-trash" aria-hidden="true"></i> {{ __('front.js.filter.clear_all') }}</a>
+            <a class="btn btn-primary mt-4" href="{{ url()->current() }}"><i class="fa-solid fa-trash-can" aria-hidden="true"></i> {{ __('front.js.filter.clear_all') }}</a>
         </div>
     </div>
 </aside>

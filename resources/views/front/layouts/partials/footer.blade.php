@@ -11,8 +11,8 @@
                 <h6 class="d-inline-block pe-3 me-3 "><span class="text-primary">{{ $users + 850 }} </span><span class="fw-normal text-dark">{{ __('front.footer.customers') }}</span></h6>
 
                 <div class="widget mt-4 text-md-nowrap text-center text-md-start">
-                    <a class="btn-social bs-drk bs-instagram me-2 mb-2" href="https://www.instagram.com/antikvarijat_biblos/"><i class="ci-instagram"></i></a>
-                    <a class="btn-social bs-dark bs-facebook me-2 mb-2" href="https://www.facebook.com/AntikvarijatBiblos/"><i class="ci-facebook"></i></a>
+                    <a class="btn-social bs-drk bs-instagram me-2 mb-2" href="https://www.instagram.com/antikvarijat_biblos/"><i class="fa-brands fa-instagram" aria-hidden="true"></i></a>
+                    <a class="btn-social bs-dark bs-facebook me-2 mb-2" href="https://www.facebook.com/AntikvarijatBiblos/"><i class="fa-brands fa-facebook-f" aria-hidden="true"></i></a>
                 </div>
             </div>
             <!-- Mobile dropdown menu (visible on screens below md)-->
@@ -77,7 +77,7 @@
             <div class="row pt-3 pb-3 d-none d-sm-flex">
                 <div class="col-md-3 col-sm-6 my-2">
                     <div class="d-flex">
-                        <i class="ci-gift text-primary" style="font-size: 2.25rem;"></i>
+                        <i class="fa-duotone fa-gift text-primary" style="font-size: 2.25rem;"></i>
                         <div class="ps-3">
                             <h6 class="fs-base text-light mb-1">{{ __('front.footer.free_delivery') }}</h6>
                             <p class="mb-0 fs-ms text-light opacity-50">{{ __('front.footer.free_delivery_text') }}</p>
@@ -86,7 +86,7 @@
                 </div>
                 <div class="col-md-3 col-sm-6 my-2">
                     <div class="d-flex">
-                        <i class="ci-security-check text-primary" style="font-size: 2.25rem;"></i>
+                        <i class="fa-duotone fa-shield-check text-primary" style="font-size: 2.25rem;"></i>
                         <div class="ps-3">
                             <h6 class="fs-base text-light mb-1">{{ __('front.footer.buyer_protection') }}</h6>
                             <p class="mb-0 fs-ms text-light opacity-50">{{ __('front.footer.buyer_protection_text') }}</p>
@@ -95,7 +95,7 @@
                 </div>
                 <div class="col-md-3 col-sm-6 my-2">
                     <div class="d-flex">
-                        <i class="ci-message text-primary" style="font-size: 2.25rem;"></i>
+                        <i class="fa-duotone fa-message text-primary" style="font-size: 2.25rem;"></i>
                         <div class="ps-3">
                             <h6 class="fs-base text-light mb-1">{{ __('front.footer.support') }}</h6>
                             <p class="mb-0 fs-ms text-light opacity-50">{{ __('front.footer.support_text') }}</p>
@@ -104,7 +104,7 @@
                 </div>
                 <div class="col-md-3 col-sm-6 my-2">
                     <div class="d-flex">
-                        <i class="ci-card text-primary" style="font-size: 2.25rem;"></i>
+                        <i class="fa-duotone fa-credit-card text-primary" style="font-size: 2.25rem;"></i>
                         <div class="ps-3">
                             <h6 class="fs-base text-light mb-1">{{ __('front.footer.secure_shopping') }}</h6>
                             <p class="mb-0 fs-ms text-light opacity-50">{{ __('front.footer.secure_shopping_text') }}</p>

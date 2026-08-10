@@ -4,7 +4,7 @@
     <div class="d-block pt-0 pb-2  text-start" >
         <div class="alert alert-info  d-flex"  role="alert">
             <div class="alert-icon">
-                <i class="ci-announcement"></i>
+                <i class="fa-duotone fa-bullhorn"></i>
             </div>
             <div><small>{{ __('front.checkout.terms_notice') }}</small></div>
         </div>
@@ -27,10 +27,10 @@
     </div>
     <div class="d-flex mt-3">
     <div class="w-50 pe-3">
-        <a class="btn btn-secondary d-block w-100" href="{{ \App\Helpers\LocaleHelper::route('naplata') }}"><i class="ci-arrow-left  me-1"></i><span class="d-none d-sm-inline">{{ __('front.checkout.back_to_payment') }}</span><span class="d-inline d-sm-none">{{ __('front.checkout.back') }}</span></a>
+        <a class="btn btn-secondary d-block w-100" href="{{ \App\Helpers\LocaleHelper::route('naplata') }}"><i class="fa-solid fa-arrow-left  me-1"></i><span class="d-none d-sm-inline">{{ __('front.checkout.back_to_payment') }}</span><span class="d-inline d-sm-none">{{ __('front.checkout.back') }}</span></a>
     </div>
     <div class="w-50 ps-2">
-        <button id="paySubmit" class="btn btn-green d-block w-100" type="submit"><span class="d-none d-sm-inline">{{ __('front.checkout.complete_order') }}</span><span class="d-inline d-sm-none">{{ __('front.checkout.complete_purchase') }}</span><i class="ci-arrow-right  ms-1"></i></button>
+        <button id="paySubmit" class="btn btn-green d-block w-100" type="submit"><span class="d-none d-sm-inline">{{ __('front.checkout.complete_order') }}</span><span class="d-inline d-sm-none">{{ __('front.checkout.complete_purchase') }}</span><i class="fa-solid fa-arrow-right  ms-1"></i></button>
     </div>
     </div>
 </form>

@@ -99,11 +99,16 @@
     <!-- Vendor Styles including: Font Icons, Plugins, etc.-->
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <!-- Main Theme Styles + Bootstrap-->
-    <link rel="stylesheet" media="screen" href="{{ asset('css/theme.min.css?v=' . filemtime(public_path('css/theme.min.css'))) }}">
-    <link rel="stylesheet" media="screen" href="{{ config('settings.images_domain') . 'css/tiny-slider.css?v=1.2' }}"/>
-    <link rel="stylesheet" href="{{ asset('vendor/fontawesome-pro/css/fontawesome.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('vendor/fontawesome-pro/css/solid.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('vendor/cookieconsent/cookieconsent.css?v=3.1.0') }}">
+    <link rel="stylesheet" media="screen" href="{{ \App\Helpers\Asset::url('css/theme.min.css') }}">
+    <link rel="stylesheet" media="screen" href="{{ \App\Helpers\Asset::url('css/tiny-slider.css') }}"/>
+    <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('vendor/fontawesome-pro/css/fontawesome.min.css') }}">
+    <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('vendor/fontawesome-pro/css/solid.min.css') }}">
+    <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('vendor/fontawesome-pro/css/regular.min.css') }}">
+    <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('vendor/fontawesome-pro/css/duotone.min.css') }}">
+    <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('vendor/fontawesome-pro/css/brands.min.css') }}">
+    <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('vendor/cookieconsent/cookieconsent.css') }}">
+    <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('css/account-auth.css') }}">
+    <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('css/account.css') }}">
     @include('front.layouts.partials.cookie-consent-head')
 
     @if (config('app.env') == 'production')
@@ -217,6 +222,82 @@
     <style>
         [v-cloak] { display:none !important; }
 
+        .front-header-account-icon,
+        .front-header-cart-icon {
+            color: #152c18;
+        }
+
+        .front-header-toolbar {
+            flex: 0 0 auto;
+            align-items: center;
+            gap: .55rem;
+            margin-left: auto;
+            white-space: nowrap;
+        }
+
+        .front-header-toolbar > .ms-3,
+        .front-header-cart .navbar-tool {
+            margin-left: 0 !important;
+        }
+
+        .front-header-account,
+        .front-header-cart,
+        .front-header-cart .navbar-tool {
+            width: 44px;
+            height: 44px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .front-header-account .navbar-tool-icon-box,
+        .front-header-cart .navbar-tool-icon-box {
+            display: inline-flex;
+            width: 44px;
+            height: 44px;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+
+        .front-header-account .navbar-tool-icon,
+        .front-header-cart .navbar-tool-icon {
+            font-size: 1.2rem;
+            line-height: 1;
+        }
+
+        .front-header-language {
+            margin-left: 0 !important;
+        }
+
+        .front-language-toggle {
+            display: inline-flex;
+            min-width: 4.25rem;
+            height: 44px;
+            align-items: center;
+            justify-content: center;
+            gap: .4rem;
+            padding: .5rem .75rem;
+        }
+
+        .front-header-cart .navbar-tool-label {
+            top: -.15rem;
+            right: -.1rem;
+            min-width: 1.25rem;
+            border: 2px solid #fff;
+            line-height: 1rem;
+        }
+
+        @media (min-width: 992px) {
+            .front-header-account .navbar-tool-tooltip {
+                top: calc(100% + .35rem);
+                z-index: 1040;
+            }
+
+            .front-header-account:hover .navbar-tool-tooltip {
+                top: calc(100% + .2rem);
+            }
+        }
+
         @media (max-width: 575.98px) {
             .front-header-main {
                 flex-wrap: nowrap;
@@ -243,10 +324,7 @@
             }
 
             .front-header-toolbar {
-                flex: 0 0 auto;
                 gap: .25rem;
-                margin-left: auto;
-                white-space: nowrap;
             }
 
             .front-header-toolbar .ms-3 {
@@ -258,24 +336,32 @@
             }
 
             .front-header-toolbar .navbar-tool-icon-box {
-                width: 2.25rem;
-                height: 2.25rem;
-                line-height: 2.25rem;
+                width: 2.5rem;
+                height: 2.5rem;
+                line-height: 1;
             }
 
             .front-header-toolbar .navbar-tool-icon {
                 font-size: 1.1rem;
-                line-height: 2.25rem;
+                line-height: 1;
             }
 
             .front-language-toggle {
                 min-width: 3.15rem;
+                height: 2.5rem;
                 padding: .35rem .45rem;
                 line-height: 1.1;
             }
 
+            .front-header-account,
+            .front-header-cart,
+            .front-header-cart .navbar-tool {
+                width: 2.5rem;
+                height: 2.5rem;
+            }
+
             .front-header-cart {
-                width: 2.25rem;
+                width: 2.5rem;
             }
         }
     </style>
@@ -296,16 +382,18 @@
 <div class="topbar topbar-light  d-none d-md-block" style="background-image: url({{ asset('media/img/farmer.png') }});background-repeat: repeat">
     <div class="container">
         <div class="topbar-text text-nowrap">
-            <a class="topbar-link me-4" href="tel:+38514816574"><i class="ci-phone"></i> +385 1 48 16 574</a>
+            <a class="topbar-link me-4" href="tel:+38514816574"><i class="fa-solid fa-phone"></i> +385 1 48 16 574</a>
 
-            <a class="topbar-link d-none d-xl-inline-block" href="mailto:info@antikvarijat-biblos.hr"><i class="ci-mail"></i> info@antikvarijat-biblos.hr</a>
+            <a class="topbar-link d-none d-xl-inline-block" href="mailto:info@antikvarijat-biblos.hr"><i class="fa-solid fa-envelope"></i> info@antikvarijat-biblos.hr</a>
         </div>
         <div class="ms-3 text-nowrap">
-            <a class="topbar-link me-4" href="https://www.google.com/maps/place/Biblos/@45.810942,15.9794894,17.53z/data=!4m5!3m4!1s0x4765d7aac4f8b023:0xb60bceb791b31ede!8m2!3d45.8106161!4d15.9816921?hl=hr" target="_blank"><i class="ci-location"></i> {{ __('front.general.address_value') }} </a>
-            <a class="topbar-link d-none d-md-inline-block me-0" href="{{ \App\Helpers\LocaleHelper::route('kontakt') }}"><i class="ci-time"></i> {{ __('front.general.opening_hours_short') }}</a>
+            <a class="topbar-link me-4" href="https://www.google.com/maps/place/Biblos/@45.810942,15.9794894,17.53z/data=!4m5!3m4!1s0x4765d7aac4f8b023:0xb60bceb791b31ede!8m2!3d45.8106161!4d15.9816921?hl=hr" target="_blank"><i class="fa-solid fa-location-dot"></i> {{ __('front.general.address_value') }} </a>
+            <a class="topbar-link d-none d-md-inline-block me-0" href="{{ \App\Helpers\LocaleHelper::route('kontakt') }}"><i class="fa-solid fa-clock"></i> {{ __('front.general.opening_hours_short') }}</a>
         </div>
     </div>
 </div>
+
+@include('front.layouts.modals.login')
 
 <div id="agapp">
     @include('front.layouts.partials.header')
@@ -328,12 +416,12 @@
 </button>
 
 <!-- Back To Top Button-->
-<a class="btn-scroll-top" href="#top" data-scroll><span class="btn-scroll-top-tooltip text-muted fs-sm me-2">Top</span><i class="btn-scroll-top-icon ci-arrow-up"></i></a>
+<a class="btn-scroll-top" href="#top" data-scroll><span class="btn-scroll-top-tooltip text-muted fs-sm me-2">Top</span><i class="btn-scroll-top-icon fa-solid fa-arrow-up"></i></a>
 <!-- Vendor scrits: js libraries and plugins-->
-<script src="{{ asset('js/jquery/jquery-2.1.1.min.js?v=1.3') }}"></script>
-<script src="{{ asset('js/bootstrap.bundle.min.js?v=1.3') }}"></script>
-<script src="{{ asset('js/tiny-slider.js?v=1.2') }}"></script>
-<script src="{{ asset('js/smooth-scroll.polyfills.min.js?v=1.3') }}"></script>
+<script src="{{ \App\Helpers\Asset::url('js/jquery/jquery-2.1.1.min.js') }}"></script>
+<script src="{{ \App\Helpers\Asset::url('js/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ \App\Helpers\Asset::url('js/tiny-slider.js') }}"></script>
+<script src="{{ \App\Helpers\Asset::url('js/smooth-scroll.polyfills.min.js') }}"></script>
 
 <!-- Main theme script-->
 
@@ -341,14 +429,133 @@
     window.AppLocale = @json(app()->getLocale());
     window.FrontTranslations = @json(trans('front'), JSON_UNESCAPED_UNICODE);
 </script>
-<script src="{{ asset('js/cart.js?v=' . filemtime(public_path('js/cart.js'))) }}"></script>
+<script src="{{ \App\Helpers\Asset::url('js/cart.js') }}"></script>
 
 
 
 
 
-<script src="{{ asset('js/theme.min.js') }}"></script>
+<script src="{{ \App\Helpers\Asset::url('js/theme.min.js') }}"></script>
 @include('front.layouts.partials.cookie-consent')
+
+@guest
+    <script>
+        (function () {
+            const modalElement = document.getElementById('signin-modal');
+            const recaptchaSiteKey = @json(config('services.recaptcha.sitekey'));
+            const requestedForm = @json(old('_auth_form') ?: (request()->routeIs('register') ? 'signup' : 'signin'));
+            const shouldOpen = @json((bool) (session('auth_error') || old('_auth_form') || request()->routeIs('login', 'register')));
+            let recaptchaLoader = null;
+            let modalInstance = null;
+
+            if (!modalElement) {
+                return;
+            }
+
+            function activateTab(name) {
+                const trigger = document.getElementById(name === 'signup' ? 'pills-signup-tab' : 'pills-signin-tab');
+
+                if (trigger) {
+                    new bootstrap.Tab(trigger).show();
+                }
+            }
+
+            function loadRecaptcha() {
+                if (!recaptchaSiteKey || (window.grecaptcha && typeof window.grecaptcha.ready === 'function')) {
+                    return Promise.resolve(window.grecaptcha || null);
+                }
+
+                if (recaptchaLoader) {
+                    return recaptchaLoader;
+                }
+
+                recaptchaLoader = new Promise(function (resolve, reject) {
+                    const script = document.createElement('script');
+                    script.src = 'https://www.google.com/recaptcha/api.js?render=' + encodeURIComponent(recaptchaSiteKey);
+                    script.async = true;
+                    script.defer = true;
+                    script.onload = function () { resolve(window.grecaptcha); };
+                    script.onerror = reject;
+                    document.head.appendChild(script);
+                });
+
+                return recaptchaLoader;
+            }
+
+            function refreshRecaptcha() {
+                const input = document.getElementById('auth-recaptcha');
+
+                if (!input || !window.grecaptcha || !recaptchaSiteKey) {
+                    return;
+                }
+
+                window.grecaptcha.ready(function () {
+                    window.grecaptcha.execute(recaptchaSiteKey, { action: 'register' }).then(function (token) {
+                        input.value = token || '';
+                    });
+                });
+            }
+
+            modalElement.addEventListener('show.bs.modal', function (event) {
+                const form = event.relatedTarget && event.relatedTarget.getAttribute('data-auth-tab');
+                activateTab(form || requestedForm || 'signin');
+
+                loadRecaptcha().then(refreshRecaptcha).catch(function () {});
+            });
+
+            modalElement.querySelectorAll('.password-visibility-toggle').forEach(function (toggle) {
+                toggle.addEventListener('click', function () {
+                    const input = document.getElementById(toggle.getAttribute('aria-controls'));
+                    const icon = toggle.querySelector('i');
+
+                    if (!input) {
+                        return;
+                    }
+
+                    const isVisible = input.type === 'text';
+                    input.type = isVisible ? 'password' : 'text';
+                    toggle.setAttribute('aria-pressed', isVisible ? 'false' : 'true');
+
+                    if (icon) {
+                        icon.classList.toggle('fa-eye', isVisible);
+                        icon.classList.toggle('fa-eye-slash', !isVisible);
+                    }
+                });
+            });
+
+            function focusActiveAuthField() {
+                const activePane = modalElement.querySelector('.tab-pane.active');
+                const firstField = activePane && activePane.querySelector('input:not([type="hidden"]):not([disabled])');
+
+                if (firstField) {
+                    firstField.focus();
+                }
+            }
+
+            modalElement.addEventListener('shown.bs.modal', focusActiveAuthField);
+            modalElement.querySelectorAll('[data-bs-toggle="tab"]').forEach(function (tab) {
+                tab.addEventListener('shown.bs.tab', focusActiveAuthField);
+            });
+
+            modalElement.querySelectorAll('form.needs-validation').forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+
+                    form.classList.add('was-validated');
+                });
+            });
+
+            if (shouldOpen) {
+                activateTab(requestedForm || 'signin');
+                modalInstance = new bootstrap.Modal(modalElement);
+                modalInstance.show();
+            }
+        })();
+    </script>
+@endguest
 
 <script>
     $(() => {

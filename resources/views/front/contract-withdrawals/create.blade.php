@@ -12,7 +12,7 @@
         <nav class="mb-4" aria-label="breadcrumb">
             <ol class="breadcrumb flex-lg-nowrap">
                 <li class="breadcrumb-item">
-                    <a class="text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('index') }}"><i class="ci-home"></i> {{ __('front.nav.home') }}</a>
+                    <a class="text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('index') }}"><i class="fa-solid fa-house"></i> {{ __('front.nav.home') }}</a>
                 </li>
                 <li class="breadcrumb-item text-nowrap active" aria-current="page">{{ __('contract_withdrawal.breadcrumb') }}</li>
             </ol>
@@ -27,12 +27,12 @@
 
         @if (session('success'))
             <div class="alert alert-success mb-4" role="status">
-                <i class="ci-check-circle me-2"></i>{{ session('success') }}
+                <i class="fa-solid fa-circle-check me-2"></i>{{ session('success') }}
             </div>
         @endif
         @if (session('warning'))
             <div class="alert alert-warning mb-4" role="alert">
-                <i class="ci-security-announcement me-2"></i>{{ session('warning') }}
+                <i class="fa-solid fa-triangle-exclamation me-2"></i>{{ session('warning') }}
             </div>
         @endif
         @if ($errors->any())
@@ -261,7 +261,7 @@
 
                         <button class="withdrawal-submit mt-3" type="submit" data-withdrawal-submit>
                             {{ __('contract_withdrawal.submit') }}
-                            <i class="ci-arrow-right ms-2" aria-hidden="true"></i>
+                            <i class="fa-solid fa-arrow-right ms-2" aria-hidden="true"></i>
                         </button>
                     </form>
                 </div>

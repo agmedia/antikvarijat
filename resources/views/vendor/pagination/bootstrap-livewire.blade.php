@@ -6,10 +6,10 @@
                 <ul class="pagination">
                     @if ($paginator->onFirstPage())
                         <li class="page-item disabled me-2" aria-disabled="true" aria-label="@lang('pagination.previous')">
-                            <span class="page-link" aria-hidden="true"><i class="ci-arrow-left me-2"></i> Prethodna</span>
+                            <span class="page-link" aria-hidden="true"><i class="fa-solid fa-arrow-left me-2"></i> Prethodna</span>
                         </li>
                     @else
-                        <li class="page-item me-2"><a class="page-link" href="#top" data-scroll="" wire:click="previousPage" aria-label="@lang('pagination.previous')"><i class="ci-arrow-left me-2"></i> Prethodna</a></li>
+                        <li class="page-item me-2"><a class="page-link" href="#top" data-scroll="" wire:click="previousPage" aria-label="@lang('pagination.previous')"><i class="fa-solid fa-arrow-left me-2" aria-hidden="true"></i> Prethodna</a></li>
                     @endif
                 </ul>
 
@@ -35,10 +35,10 @@
                 <ul class="pagination">
 
                     @if ($paginator->hasMorePages())
-                            <li class="page-item ms-2"><a class="page-link" href="#top" data-scroll="" wire:click="nextPage" aria-label="@lang('pagination.next')">Sljedeća<i class="ci-arrow-right ms-2"></i></a></li>
+                            <li class="page-item ms-2"><a class="page-link" href="#top" data-scroll="" wire:click="nextPage" aria-label="@lang('pagination.next')">Sljedeća<i class="fa-solid fa-arrow-right ms-2" aria-hidden="true"></i></a></li>
                     @else
                             <li class="page-item disabled ms-2" aria-disabled="true" aria-label="@lang('pagination.next')">
-                                <span class="page-link" aria-hidden="true">Sljedeća<i class="ci-arrow-right ms-2"></i></span>
+                                <span class="page-link" aria-hidden="true">Sljedeća<i class="fa-solid fa-arrow-right ms-2"></i></span>
                             </li>
                     @endif
                 </ul>
@@ -58,5 +58,4 @@
         </div>
     </div>
 @endif
-
 

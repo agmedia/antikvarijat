@@ -36,7 +36,7 @@
                     <button class="btn btn-sm btn-outline-primary mt-3"
                             @click="goToParentCategory"
                             v-if="category || subcategory">
-                        <i class="ci-arrow-left fs-xs me-1"></i> {{ labels.back }}
+                        <i class="fa-solid fa-arrow-left fs-xs me-1" aria-hidden="true"></i> {{ labels.back }}
                     </button>
 
                     <div class=" mt-3" v-if="categories.length > 16">
@@ -71,7 +71,7 @@
                 <div class="widget widget-filter mb-3 pb-4 " v-if="show_authors">
                     <h3 class="widget-title">{{ labels.authors }}<span v-if="!authors_loaded" class="spinner-border spinner-border-sm float-end"></span></h3>
                     <div class="input-group input-group-sm mb-2 autocomplete">
-                        <input type="search" v-model="searchAuthor" class="form-control rounded-end pe-5" :placeholder="labels.searchAuthor"><i class="ci-search position-absolute top-50 end-0 translate-middle-y fs-sm me-3"></i>
+                        <input type="search" v-model="searchAuthor" class="form-control rounded-end pe-5" :placeholder="labels.searchAuthor"><i class="fa-solid fa-magnifying-glass position-absolute top-50 end-0 translate-middle-y fs-sm me-3" aria-hidden="true"></i>
                     </div>
                     <ul class="widget-list widget-filter-list list-unstyled pt-1 catalog-filter-options" data-simplebar data-simplebar-auto-hide="false">
                         <li class="widget-filter-item d-flex justify-content-between align-items-center mb-1" v-for="author in authors">
@@ -86,7 +86,7 @@
                 <div class="widget widget-filter mb-3 pb-4" v-if="show_publishers">
                     <h3 class="widget-title">{{ labels.publishers }}<span v-if="!publishers_loaded" class="spinner-border spinner-border-sm float-end"></span></h3>
                     <div class="input-group input-group-sm mb-2 autocomplete">
-                        <input type="search" v-model="searchPublisher" class="form-control rounded-end pe-5" :placeholder="labels.searchPublisher"><i class="ci-search position-absolute top-50 end-0 translate-middle-y fs-sm me-3"></i>
+                        <input type="search" v-model="searchPublisher" class="form-control rounded-end pe-5" :placeholder="labels.searchPublisher"><i class="fa-solid fa-magnifying-glass position-absolute top-50 end-0 translate-middle-y fs-sm me-3" aria-hidden="true"></i>
                     </div>
                     <ul class="widget-list widget-filter-list list-unstyled pt-1 catalog-filter-options" data-simplebar data-simplebar-auto-hide="false">
                         <li class="widget-filter-item d-flex justify-content-between align-items-center mb-1" v-for="publisher in publishers">
@@ -97,7 +97,7 @@
                         </li>
                     </ul>
                 </div>
-                <button type="button" class="btn btn-primary mt-4" v-on:click="cleanQuery"><i class=" ci-trash"></i> {{ labels.clearAll }}</button>
+                <button type="button" class="btn btn-primary mt-4" v-on:click="cleanQuery"><i class="fa-solid fa-trash-can" aria-hidden="true"></i> {{ labels.clearAll }}</button>
             </div>
         </div>
     </aside>

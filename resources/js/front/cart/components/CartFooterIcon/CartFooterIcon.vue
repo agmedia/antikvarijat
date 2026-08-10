@@ -1,5 +1,5 @@
 <template>
-    <a class="d-table-cell handheld-toolbar-item" :href="carturl"><span class="handheld-toolbar-icon"><i class="ci-cart"></i><span class="badge bg-primary rounded-pill ms-1">{{ $store.state.cart ? $store.state.cart.count : 0 }}</span></span></a>
+    <a class="d-table-cell handheld-toolbar-item" :href="carturl"><span class="handheld-toolbar-icon"><i class="fa-regular fa-bag-shopping" aria-hidden="true"></i><span class="badge bg-primary rounded-pill ms-1">{{ $store.state.cart ? $store.state.cart.count : 0 }}</span></span></a>
 </template>
 
 <script>

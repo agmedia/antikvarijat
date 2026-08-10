@@ -2,12 +2,12 @@
     <div class="navbar-tool dropdown ms-1">
         <a class="navbar-tool-icon-box dropdown-toggle" :href="carturl">
             <span class="navbar-tool-label">{{ count }}</span>
-            <i class="navbar-tool-icon ci-bag"></i>
+            <i class="navbar-tool-icon fa-regular fa-bag-shopping front-header-cart-icon" aria-hidden="true"></i>
         </a>
 
         <!-- Cart dropdown -->
-        <div class="dropdown-menu dropdown-menu-end">
-            <div class="widget widget-cart px-3 pt-2 pb-3" style="width: 24rem;" v-if="count > 0">
+        <div class="dropdown-menu dropdown-menu-end cart-dropdown-menu">
+            <div class="widget widget-cart cart-dropdown-content" v-if="count > 0">
                 <div data-simplebar-auto-hide="false" v-for="item in cartItems" :key="itemKey(item)">
                     <div class="widget-cart-item pb-2 border-bottom">
                         <button class="btn-close text-danger" type="button" @click.prevent="removeFromCart(item)" aria-label="Remove">
@@ -60,13 +60,15 @@
                 </div>
 
                 <a class="btn btn-primary btn-sm d-block w-100" :href="carturl">
-                    <i class="ci-card me-2 fs-base align-middle"></i>{{ labels.checkout }}
+                    <i class="fa-duotone fa-credit-card me-2 fs-base align-middle" aria-hidden="true"></i>{{ labels.checkout }}
                 </a>
             </div>
 
-            <div class="widget widget-cart px-3 pt-2 pb-3" style="width: 20rem;" v-else>
-                <i class="fa fa-cart-arrow-down fa-2x" style="color: #aaaaaa"></i>
-                <p>{{ labels.emptyCart }}</p>
+            <div class="widget widget-cart cart-empty-state" v-else>
+                <span class="cart-empty-state__icon">
+                    <i class="fa-regular fa-bag-shopping" aria-hidden="true"></i>
+                </span>
+                <p class="cart-empty-state__text">{{ labels.emptyCart }}</p>
             </div>
         </div>
     </div>
@@ -215,3 +217,53 @@ export default {
     }
 };
 </script>
+
+<style scoped>
+.cart-dropdown-menu {
+    overflow: hidden;
+    padding: 0;
+    border: 1px solid #e3e8e4;
+    border-radius: .6rem;
+    box-shadow: 0 .75rem 2rem rgba(49, 72, 55, .14);
+}
+
+.cart-dropdown-content {
+    width: 24rem;
+    max-width: calc(100vw - 2rem);
+    padding: .8rem 1rem 1rem;
+}
+
+.cart-empty-state {
+    display: flex;
+    width: 19rem;
+    max-width: calc(100vw - 2rem);
+    min-height: 10rem;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: .8rem;
+    padding: 1.4rem;
+    background: #fff;
+    text-align: center;
+}
+
+.cart-empty-state__icon {
+    display: inline-flex;
+    width: 3.5rem;
+    height: 3.5rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #f4f1e7;
+    color: #8f7333;
+    font-size: 1.45rem;
+}
+
+.cart-empty-state__text {
+    margin: 0;
+    color: #4b566b;
+    font-size: .9rem;
+    font-weight: 500;
+    line-height: 1.45;
+}
+</style>

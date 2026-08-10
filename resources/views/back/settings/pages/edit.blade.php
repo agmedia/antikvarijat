@@ -1,8 +1,8 @@
 @extends('back.layouts.backend')
 
 @push('css_before')
-    <link rel="stylesheet" href="{{ asset('js/plugins/select2/css/select2.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('js/plugins/flatpickr/flatpickr.min.css') }}">
+    <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('js/plugins/select2/css/select2.min.css') }}">
+    <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('js/plugins/flatpickr/flatpickr.min.css') }}">
 
     <style>
         .cke_skin_kama .cke_button_CMDSuperButton .cke_label {
@@ -187,9 +187,9 @@
 @endsection
 
 @push('js_after')
-    <script src="{{ asset('js/plugins/ckeditor/ckeditor.js') }}"></script>
-    <script src="{{ asset('js/plugins/flatpickr/flatpickr.min.js') }}"></script>
-    <script src="{{ asset('js/plugins/select2/js/select2.full.min.js') }}"></script>
+    <script src="{{ \App\Helpers\Asset::url('js/plugins/ckeditor/ckeditor.js') }}"></script>
+    <script src="{{ \App\Helpers\Asset::url('js/plugins/flatpickr/flatpickr.min.js') }}"></script>
+    <script src="{{ \App\Helpers\Asset::url('js/plugins/select2/js/select2.full.min.js') }}"></script>
 
     <!-- Page JS Helpers (CKEditor 5 plugins) -->
     <script>jQuery(function(){Dashmix.helpers(['flatpickr']);});</script>

@@ -16,6 +16,8 @@ class AuthenticationTest extends TestCase
         $response = $this->get('/login');
 
         $response->assertStatus(200);
+        $response->assertSee('class="auth-password-field"', false);
+        $response->assertDontSee('class="password-toggle"', false);
     }
 
     public function test_users_can_authenticate_using_the_login_screen()
