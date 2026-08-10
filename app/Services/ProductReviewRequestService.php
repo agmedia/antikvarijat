@@ -25,13 +25,7 @@ class ProductReviewRequestService
         $maxAttempts = max(1, (int) config('reviews.request_max_attempts', 3));
 
         $eligible = Order::query()
-            ->select('orders.*')
-            ->addSelect([
-                'sent_status_at' => DB::table('order_history')
-                    ->selectRaw('MIN(created_at)')
-                    ->whereColumn('order_history.order_id', 'orders.id')
-                    ->where('order_history.status', (int) config('settings.order.status.send')),
-            ])
+            ->select(['orders.id', 'orders.payment_email'])
             ->whereIn('orders.order_status_id', Order::reviewEligibleStatusIds())
             ->whereNotNull('orders.payment_email')
             ->whereRaw("TRIM(orders.payment_email) <> ''")
@@ -89,14 +83,22 @@ class ProductReviewRequestService
                 });
             });
 
+        $uniqueEmailCandidates = DB::query()
+            ->fromSub($eligible->toBase(), 'eligible_orders')
+            ->selectRaw('MIN(eligible_orders.id) AS order_id')
+            ->groupByRaw('LOWER(TRIM(eligible_orders.payment_email))');
+
         return Order::query()
-            ->fromSub($eligible->toBase(), 'orders')
-            ->select('orders.*')
-            ->whereIn('orders.id', function ($emails) use ($eligible) {
-                $emails->fromSub((clone $eligible)->toBase(), 'email_candidates')
-                    ->selectRaw('MIN(email_candidates.id)')
-                    ->groupByRaw('LOWER(TRIM(email_candidates.payment_email))');
+            ->joinSub($uniqueEmailCandidates, 'unique_email_candidates', function ($join) {
+                $join->on('unique_email_candidates.order_id', '=', 'orders.id');
             })
+            ->select('orders.*')
+            ->addSelect([
+                'sent_status_at' => DB::table('order_history')
+                    ->selectRaw('MIN(created_at)')
+                    ->whereColumn('order_history.order_id', 'orders.id')
+                    ->where('order_history.status', (int) config('settings.order.status.send')),
+            ])
             ->orderByRaw('COALESCE(sent_status_at, orders.checkout_processed_at, orders.created_at) ASC');
     }
 

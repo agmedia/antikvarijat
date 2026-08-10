@@ -57,9 +57,25 @@ class ProductReviewBackfillService
 
     public function countCandidates(Carbon $from, Carbon $to): int
     {
-        return (int) (clone $this->candidateQuery($from, $to))
-            ->reorder()
-            ->count('orders.id');
+        return $this->selectCandidates($from, $to, 1)['eligible_count'];
+    }
+
+    /**
+     * @return array{eligible_count:int, orders:\Illuminate\Database\Eloquent\Collection}
+     */
+    public function selectCandidates(Carbon $from, Carbon $to, int $limit): array
+    {
+        $orders = $this->candidateQuery($from, $to)
+            ->addSelect(DB::raw('COUNT(*) OVER() AS candidate_total_count'))
+            ->limit(max(1, $limit))
+            ->get();
+
+        return [
+            'eligible_count' => $orders->isEmpty()
+                ? 0
+                : (int) $orders->first()->getAttribute('candidate_total_count'),
+            'orders' => $orders,
+        ];
     }
 
     public function create(
@@ -70,10 +86,9 @@ class ProductReviewBackfillService
         ?int $createdBy = null
     ): ProductReviewBackfill {
         return DB::transaction(function () use ($from, $to, $limit, $intervalSeconds, $createdBy) {
-            $eligibleCount = $this->countCandidates($from, $to);
-            $orders = $this->candidateQuery($from, $to)
-                ->limit($limit)
-                ->get();
+            $selection = $this->selectCandidates($from, $to, $limit);
+            $eligibleCount = $selection['eligible_count'];
+            $orders = $selection['orders'];
 
             $batch = ProductReviewBackfill::query()->create([
                 'date_from' => $from->toDateString(),

@@ -45,11 +45,10 @@ class CreateProductReviewBackfill extends Command
             return 1;
         }
 
-        $eligibleCount = $backfills->countCandidates($from, $to);
+        $selection = $backfills->selectCandidates($from, $to, min(10, $limit));
+        $eligibleCount = $selection['eligible_count'];
         $selectedCount = min($eligibleCount, $limit);
-        $sample = $backfills->candidateQuery($from, $to)
-            ->limit(min(10, $limit))
-            ->get();
+        $sample = $selection['orders'];
 
         $this->table(
             ['Narudžba', 'Kvalificirana od', 'E-mail'],

@@ -27,7 +27,8 @@ class ProductReviewBackfillController extends Controller
             $validated = $request->validate($this->rules($latestDate, $maxOrders, $intervalOptions));
             $from = Carbon::createFromFormat('Y-m-d', $validated['date_from'])->startOfDay();
             $to = Carbon::createFromFormat('Y-m-d', $validated['date_to'])->endOfDay();
-            $eligibleCount = $backfills->countCandidates($from, $to);
+            $selection = $backfills->selectCandidates($from, $to, min(10, (int) $validated['limit']));
+            $eligibleCount = $selection['eligible_count'];
             $selectedCount = min($eligibleCount, (int) $validated['limit']);
 
             $preview = [
@@ -35,9 +36,7 @@ class ProductReviewBackfillController extends Controller
                 'eligible_count' => $eligibleCount,
                 'selected_count' => $selectedCount,
                 'estimated_seconds' => $selectedCount * (int) $validated['interval_seconds'],
-                'orders' => $backfills->candidateQuery($from, $to)
-                    ->limit(min(10, (int) $validated['limit']))
-                    ->get()
+                'orders' => $selection['orders']
                     ->map(function ($order) use ($requests) {
                         $order->eligible_date = $requests->eligibleAt($order);
                         $order->masked_email = $this->maskedEmail((string) $order->payment_email);
