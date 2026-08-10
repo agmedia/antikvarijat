@@ -7,7 +7,7 @@
                     <h3 class="fw-bold text-primary">{{ $store.state.service.formatMainPrice($store.state.cart.total) }}</h3>
                     <h4 class="fs-sm" v-if="$store.state.cart.secondary_price">{{ $store.state.service.formatSecondaryPrice($store.state.cart.total) }}</h4>
                 </div>
-                <a class="btn btn-primary btn-shadow d-block w-100 mt-4" :href="checkouturl">{{ labels.continueToCheckout }} <i class="fa-solid fa-arrow-right fs-sm" aria-hidden="true"></i></a>
+                <a class="btn checkout-cta btn-shadow d-block w-100 mt-4" :href="checkouturl">{{ labels.continueToCheckout }} <i class="fa-solid fa-arrow-right fs-sm" aria-hidden="true"></i></a>
             </div>
         </div>
 
@@ -109,7 +109,7 @@ export default {
                 : {};
             return (document.documentElement.lang || 'hr') === 'en' ? {
                 total: t.total || 'Total',
-                continueToCheckout: t.continue_to_checkout || 'CONTINUE TO CHECKOUT',
+                continueToCheckout: t.continue_to_checkout || 'Continue to checkout',
                 orderSummary: t.order_summary || 'Order summary',
                 taxIncluded: t.tax_included || 'VAT included in the price',
                 couponQuestion: t.coupon_question || 'Do you have a discount code?',
@@ -117,7 +117,7 @@ export default {
                 add: t.add || 'Add'
             } : {
                 total: t.total || 'Total',
-                continueToCheckout: t.continue_to_checkout || 'CONTINUE TO CHECKOUT',
+                continueToCheckout: t.continue_to_checkout || 'Nastavi na naplatu',
                 orderSummary: t.order_summary || 'Order summary',
                 taxIncluded: t.tax_included || 'VAT included in the price',
                 couponQuestion: t.coupon_question || 'Do you have a discount code?',

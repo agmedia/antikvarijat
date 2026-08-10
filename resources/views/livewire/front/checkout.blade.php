@@ -275,7 +275,7 @@
 
         <div class="checkout-actions d-flex gap-3 pt-4 mt-3 border-top">
             <a class="btn btn-secondary flex-fill" href="{{ \App\Helpers\LocaleHelper::route('kosarica') }}"><i class="fa-solid fa-arrow-left me-2" aria-hidden="true"></i><span class="d-none d-sm-inline">{{ __('front.checkout.back_to_cart') }}</span><span class="d-inline d-sm-none">{{ __('front.checkout.back') }}</span></a>
-            <button class="btn btn-primary flex-fill" wire:click="changeStep('dostava')" type="button"><span class="d-none d-sm-inline">{{ __('front.checkout.choose_shipping') }}</span><span class="d-inline d-sm-none">{{ __('front.checkout.continue') }}</span><i class="fa-solid fa-arrow-right ms-2" aria-hidden="true"></i></button>
+            <button class="btn checkout-cta flex-fill" wire:click="changeStep('dostava')" type="button"><span class="d-none d-sm-inline">{{ __('front.checkout.choose_shipping') }}</span><span class="d-inline d-sm-none">{{ __('front.checkout.continue') }}</span><i class="fa-solid fa-arrow-right ms-2" aria-hidden="true"></i></button>
         </div>
 
     @endif
@@ -347,7 +347,7 @@
         @error('shipping') <div class="alert alert-danger mt-3 mb-0"><i class="fa-solid fa-circle-exclamation me-2" aria-hidden="true"></i>{{ __('front.checkout.shipping_required') }}</div> @enderror
         <div class="checkout-actions d-flex gap-3 pt-4 mt-4 border-top">
             <button class="btn btn-secondary flex-fill" wire:click="changeStep('podaci')" type="button"><i class="fa-solid fa-arrow-left me-2" aria-hidden="true"></i><span class="d-none d-sm-inline">{{ __('front.checkout.back_to_details') }}</span><span class="d-inline d-sm-none">{{ __('front.checkout.back') }}</span></button>
-            <button class="btn btn-primary flex-fill" wire:click="changeStep('placanje')" type="button"><span class="d-none d-sm-inline">{{ __('front.checkout.choose_payment') }}</span><span class="d-inline d-sm-none">{{ __('front.checkout.continue') }}</span><i class="fa-solid fa-arrow-right ms-2" aria-hidden="true"></i></button>
+            <button class="btn checkout-cta flex-fill" wire:click="changeStep('placanje')" type="button"><span class="d-none d-sm-inline">{{ __('front.checkout.choose_payment') }}</span><span class="d-inline d-sm-none">{{ __('front.checkout.continue') }}</span><i class="fa-solid fa-arrow-right ms-2" aria-hidden="true"></i></button>
         </div>
     @endif
 
@@ -381,7 +381,7 @@
         @error('payment') <div class="alert alert-danger mt-3 mb-0"><i class="fa-solid fa-circle-exclamation me-2" aria-hidden="true"></i>{{ __('front.checkout.payment_required') }}</div> @enderror
         <div class="checkout-actions d-flex gap-3 pt-4 mt-4 border-top">
             <button class="btn btn-secondary flex-fill" wire:click="changeStep('dostava')" type="button"><i class="fa-solid fa-arrow-left me-2" aria-hidden="true"></i><span class="d-none d-sm-inline">{{ __('front.checkout.back_to_shipping') }}</span><span class="d-inline d-sm-none">{{ __('front.checkout.back') }}</span></button>
-            <a class="btn btn-primary flex-fill {{ $payment === '' ? 'disabled' : '' }}" href="{{ ($payment != '') ? \App\Helpers\LocaleHelper::route('pregled') : '#' }}" @if($payment === '') aria-disabled="true" tabindex="-1" @endif><span class="d-none d-sm-inline">{{ __('front.checkout.review_order') }}</span><span class="d-inline d-sm-none">{{ __('front.checkout.continue') }}</span><i class="fa-solid fa-arrow-right ms-2" aria-hidden="true"></i></a>
+            <a class="btn checkout-cta flex-fill {{ $payment === '' ? 'disabled' : '' }}" href="{{ ($payment != '') ? \App\Helpers\LocaleHelper::route('pregled') : '#' }}" @if($payment === '') aria-disabled="true" tabindex="-1" @endif><span class="d-none d-sm-inline">{{ __('front.checkout.review_order') }}</span><span class="d-inline d-sm-none">{{ __('front.checkout.continue') }}</span><i class="fa-solid fa-arrow-right ms-2" aria-hidden="true"></i></a>
         </div>
     @endif
 

@@ -692,7 +692,7 @@ return [
             'quantity' => 'Quantity',
             'remove' => 'Remove',
             'back_to_shop' => 'Back to shop',
-            'continue_to_checkout' => 'CONTINUE TO CHECKOUT',
+            'continue_to_checkout' => 'Continue to checkout',
             'order_summary' => 'Order summary',
             'tax_included' => 'VAT included in the price',
             'coupon_question' => 'Do you have a discount code?',

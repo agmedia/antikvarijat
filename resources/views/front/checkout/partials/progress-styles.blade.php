@@ -70,6 +70,52 @@
         box-shadow: 0 .65rem 1.8rem rgba(32, 49, 39, .065) !important;
     }
 
+    .checkout-page .checkout-cta {
+        border-color: #2f7d52;
+        background: #2f7d52;
+        box-shadow: 0 .35rem .9rem rgba(47, 125, 82, .18);
+        color: #fff;
+        font-weight: 600;
+        text-transform: none;
+        transition: background-color .16s ease, border-color .16s ease, box-shadow .16s ease, transform .16s ease;
+    }
+
+    .checkout-page .checkout-cta:hover,
+    .checkout-page .checkout-cta:focus {
+        border-color: #286b46;
+        background: #286b46;
+        box-shadow: 0 .45rem 1rem rgba(40, 107, 70, .24);
+        color: #fff;
+        transform: translateY(-1px);
+    }
+
+    .checkout-page .checkout-cta:focus-visible {
+        box-shadow: 0 0 0 .2rem rgba(47, 125, 82, .25), 0 .45rem 1rem rgba(40, 107, 70, .22);
+        outline: 0;
+    }
+
+    .checkout-page .checkout-cta:active {
+        border-color: #245f3e;
+        background: #245f3e;
+        box-shadow: none;
+        transform: translateY(0);
+    }
+
+    .checkout-page .checkout-cta.disabled,
+    .checkout-page .checkout-cta:disabled {
+        border-color: #2f7d52;
+        background: #2f7d52;
+        box-shadow: none;
+        opacity: .55;
+        transform: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .checkout-page .checkout-cta {
+            transition: none;
+        }
+    }
+
     @media (max-width: 767.98px) {
         .checkout-progress-shell {
             margin-right: -.35rem;

@@ -39,7 +39,7 @@
     <input type="hidden" name="success_url" value="{{ $data['success_url'] }}">
     <input type="hidden" name="fail_url" value="{{ $data['fail_url'] }}">
     <div class="d-grid gap-2 kekspay">
-        <input type="submit" value="{{ __('front.general.confirm') }}" class="btn btn-primary d-block d-sm-none" />
+        <input type="submit" value="{{ __('front.general.confirm') }}" class="btn checkout-cta d-block d-sm-none" />
     </div>
 </form>
 <div class="clearfix"></div>

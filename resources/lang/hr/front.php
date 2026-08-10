@@ -648,7 +648,7 @@ return [
             'quantity' => 'Količina',
             'remove' => 'Ukloni',
             'back_to_shop' => 'Natrag na trgovinu',
-            'continue_to_checkout' => 'NASTAVI NA NAPLATU',
+            'continue_to_checkout' => 'Nastavi na naplatu',
             'order_summary' => 'Sažetak narudžbe',
             'tax_included' => 'PDV uračunat u cijeni',
             'coupon_question' => 'Imate li kod za popust?',
