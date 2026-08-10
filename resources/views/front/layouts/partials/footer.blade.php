@@ -120,7 +120,15 @@
 
         <div class="container">
             <div class="d-md-flex justify-content-between pt-4">
-                <div class="pt-2 pb-3 pb-lg-0 fs-sm text-dark  text-center text-md-start">© {{ __('front.footer.all_rights_reserved') }} Web by <a class="text-dark" title="Izrada web shopa - B2C ili B2B web trgovina - AG media" href="https://www.agmedia.hr/usluge/izrada-web-shopa/" target="_blank" rel="noopener">AG media</a></div>
+                <div class="pt-2 pb-3 pb-lg-0 fs-sm text-dark text-center text-md-start">
+                    <div>© {{ __('front.footer.all_rights_reserved') }} Web by <a class="text-dark" title="Izrada web shopa - B2C ili B2B web trgovina - AG media" href="https://www.agmedia.hr/usluge/izrada-web-shopa/" target="_blank" rel="noopener">AG media</a></div>
+                    <div class="mt-1 text-muted" style="font-size: .7rem;">
+                        {!! __('front.footer.recaptcha_notice', [
+                            'privacy_policy' => '<a class="text-muted text-decoration-underline" href="https://policies.google.com/privacy" target="_blank" rel="noopener">'.__('front.footer.recaptcha_privacy_policy').'</a>',
+                            'terms_of_service' => '<a class="text-muted text-decoration-underline" href="https://policies.google.com/terms" target="_blank" rel="noopener">'.__('front.footer.recaptcha_terms_of_service').'</a>',
+                        ]) !!}
+                    </div>
+                </div>
                 <div class="widget widget-links widget-light pb-4 text-center text-md-end">
                     <img class="d-inline-block" style="width: 55px;margin-right:3px" src="{{ config('settings.images_domain') }}media/cards/apple_pay.svg" width="55" height="35" alt="ApplePay"/>
                     <img class="d-inline-block" style="width: 55px;margin-right:3px" src="{{ config('settings.images_domain') }}media/cards/google_pay.svg" width="55" height="35" alt="GooglePay"/>

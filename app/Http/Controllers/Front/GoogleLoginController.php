@@ -205,6 +205,12 @@ class GoogleLoginController extends Controller
 
     private function authenticatedRedirectUrl(Request $request, User $user, ?string $redirect = null): string
     {
+        if ($user->isAdministrator()) {
+            $request->session()->forget('url.intended');
+
+            return route('dashboard');
+        }
+
         return $this->safeRedirect($request, $redirect)
             ?: (($user->details->role ?? null) === 'customer'
                 ? route('moj-racun')

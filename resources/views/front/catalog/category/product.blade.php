@@ -43,32 +43,34 @@
                 <div class="fs-sm me-2 one-line"><i class="fa-duotone fa-books text-muted fs-xs"></i> {!! $product->category_string !!}</div>
             </div>
         @endif
-        <div class="d-flex flex-wrap justify-content-between align-items-center price-box mt-2">
-            @if ($product->main_price > $product->main_special)
-                <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2 text-decoration-line-through">{{ $product->main_price_text }}</div>
-                <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2">{{ $product->main_special_text }}</div>
-            @else
-                <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2">{{ $product->main_price_text }}</div>
-            @endif
-        </div>
-        @if($product->secondary_price_text)
-            <div class="d-flex flex-wrap justify-content-between align-items-center price-box mt-2">
-                @if ($product->main_price > $product->main_special)
-                    <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2 text-decoration-line-through">{{ $product->secondary_price_text }}</div>
-                    <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2">{{ $product->secondary_special_text }}</div>
-                @else
-                    <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2">{{ $product->secondary_price_text }}</div>
+        <div class="catalog-product-purchase mt-2">
+            <div class="catalog-product-prices">
+                <div class="d-flex flex-wrap justify-content-between align-items-center price-box">
+                    @if ($product->main_price > $product->main_special)
+                        <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2 text-decoration-line-through">{{ $product->main_price_text }}</div>
+                        <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2">{{ $product->main_special_text }}</div>
+                    @else
+                        <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2">{{ $product->main_price_text }}</div>
+                    @endif
+                </div>
+                @if($product->secondary_price_text)
+                    <div class="d-flex flex-wrap justify-content-between align-items-center price-box mt-2">
+                        @if ($product->main_price > $product->main_special)
+                            <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2 text-decoration-line-through">{{ $product->secondary_price_text }}</div>
+                            <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2">{{ $product->secondary_special_text }}</div>
+                        @else
+                            <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2">{{ $product->secondary_price_text }}</div>
+                        @endif
+                    </div>
                 @endif
             </div>
-        @endif
 
-
-    </div>
-
-        <div class="product-floating-btn">
-        <add-to-cart-btn-simple id="{{ $product->id }}">
-            <a href="{{ url($product->url) }}" class="btn btn-primary btn-sm" aria-label="{{ __('front.product.open') }} {{ $product->name }}">+<i class="fa-regular fa-bag-shopping fs-base ms-1"></i></a>
-        </add-to-cart-btn-simple>
+            <div class="product-floating-btn">
+                <add-to-cart-btn-simple id="{{ $product->id }}">
+                    <a href="{{ url($product->url) }}" class="btn btn-primary btn-sm" aria-label="{{ __('front.product.open') }} {{ $product->name }}">+<i class="fa-regular fa-bag-shopping fs-base ms-1"></i></a>
+                </add-to-cart-btn-simple>
+            </div>
         </div>
+    </div>
 </div>
 <hr class="d-sm-none">

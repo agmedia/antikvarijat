@@ -33,6 +33,66 @@ class AuthenticationTest extends TestCase
         $response->assertRedirect(RouteServiceProvider::HOME);
     }
 
+    public function test_administrator_login_ignores_frontend_intended_url()
+    {
+        $admin = $this->createAdministrator();
+
+        $response = $this->withSession(['url.intended' => route('moj-racun')])
+            ->post('/login', [
+                'email' => $admin->email,
+                'password' => 'password',
+            ]);
+
+        $this->assertAuthenticatedAs($admin);
+        $response->assertRedirect(route('dashboard'));
+        $this->assertFalse(session()->has('url.intended'));
+    }
+
+    public function test_administrator_google_login_entry_ignores_frontend_redirect()
+    {
+        $admin = $this->createAdministrator();
+
+        $response = $this->actingAs($admin)->get(route('google.login.redirect', [
+            'redirect' => route('moj-racun'),
+        ]));
+
+        $response->assertRedirect(route('dashboard'));
+    }
+
+    public function test_administrator_cannot_open_customer_account()
+    {
+        $admin = $this->createAdministrator();
+
+        $response = $this->actingAs($admin)->get(route('moj-racun'));
+
+        $response->assertRedirect(route('dashboard'));
+    }
+
+    public function test_administrator_two_factor_login_ignores_frontend_intended_url()
+    {
+        $admin = $this->createAdministrator();
+        $admin->forceFill([
+            'two_factor_secret' => encrypt('test-secret'),
+            'two_factor_recovery_codes' => encrypt(json_encode(['recovery-code'])),
+        ])->save();
+
+        $loginResponse = $this->withSession(['url.intended' => route('moj-racun')])
+            ->post('/login', [
+                'email' => $admin->email,
+                'password' => 'password',
+            ]);
+
+        $loginResponse->assertRedirect(route('two-factor.login'));
+
+        $response = $this->post('/two-factor-challenge', [
+            'recovery_code' => 'recovery-code',
+        ]);
+
+        $this->assertAuthenticatedAs($admin);
+        $response->assertRedirect(route('dashboard'));
+        $this->assertFalse(session()->has('url.intended'));
+    }
+
     public function test_users_can_not_authenticate_with_invalid_password()
     {
         $user = User::factory()->create();
@@ -43,5 +103,18 @@ class AuthenticationTest extends TestCase
         ]);
 
         $this->assertGuest();
+    }
+
+    private function createAdministrator(): User
+    {
+        $admin = User::factory()->create();
+
+        $admin->details()->create([
+            'fname' => 'Admin',
+            'role' => 'admin',
+            'status' => true,
+        ]);
+
+        return $admin;
     }
 }

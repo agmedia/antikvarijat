@@ -318,6 +318,9 @@ return [
         'secure_shopping' => '100% secure shopping',
         'secure_shopping_text' => 'Secure card payments',
         'all_rights_reserved' => 'All rights reserved.',
+        'recaptcha_notice' => 'This site is protected by reCAPTCHA and the Google :privacy_policy and :terms_of_service apply.',
+        'recaptcha_privacy_policy' => 'Privacy Policy',
+        'recaptcha_terms_of_service' => 'Terms of Service',
     ],
 
     'blog' => [

@@ -63,6 +63,7 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'no.customers' => \App\Http\Middleware\RedirectCustomer::class,
+        'no.administrators' => \App\Http\Middleware\RedirectAdministratorToBackend::class,
         'not.editor' => \App\Http\Middleware\RejectEditor::class,
         'review.backfill.admin' => \App\Http\Middleware\RequireProductReviewBackfillAdmin::class,
     ];

@@ -222,6 +222,10 @@
     <style>
         [v-cloak] { display:none !important; }
 
+        .grecaptcha-badge {
+            visibility: hidden !important;
+        }
+
         .front-header-account-icon,
         .front-header-cart-icon {
             color: #152c18;

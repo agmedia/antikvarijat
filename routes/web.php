@@ -298,7 +298,7 @@ Route::middleware(['auth:sanctum', 'verified', 'no.customers'])->prefix('admin')
 /**
  * CUSTOMER BACK ROUTES
  */
-Route::middleware(['auth:sanctum', 'verified'])->prefix('moj-racun')->group(function () {
+Route::middleware(['auth:sanctum', 'verified', 'no.administrators'])->prefix('moj-racun')->group(function () {
     Route::get('/', [CustomerController::class, 'index'])->name('moj-racun');
     Route::patch('/snimi/{user}', [CustomerController::class, 'save'])->name('moj-racun.snimi');
     Route::get('/narudzbe', [CustomerController::class, 'orders'])->name('moje-narudzbe');
@@ -306,7 +306,7 @@ Route::middleware(['auth:sanctum', 'verified'])->prefix('moj-racun')->group(func
     Route::get('/preporuke', [CustomerController::class, 'recommendations'])->name('preporuke-za-vas');
 });
 
-Route::middleware(['auth:sanctum', 'verified'])->prefix('en/my-account')->as('en.')->group(function () {
+Route::middleware(['auth:sanctum', 'verified', 'no.administrators'])->prefix('en/my-account')->as('en.')->group(function () {
     Route::get('/', [CustomerController::class, 'index'])->name('moj-racun');
     Route::patch('/save/{user}', [CustomerController::class, 'save'])->name('moj-racun.snimi');
     Route::get('/orders', [CustomerController::class, 'orders'])->name('moje-narudzbe');

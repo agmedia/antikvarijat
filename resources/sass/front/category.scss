@@ -106,6 +106,15 @@ products-view > section {
     object-fit: contain;
 }
 
+.catalog-product-purchase,
+.catalog-product-prices {
+    min-width: 0;
+}
+
+.catalog-product-purchase .price-box > div {
+    white-space: nowrap;
+}
+
 .catalog-pagination-wrap {
     display: flex;
     flex-direction: column;
@@ -178,19 +187,52 @@ products-view > section {
 }
 
 @media (max-width: 499.98px) {
-    #filter-app .product-card .card-body {
-        padding-right: .75rem;
-        padding-left: .75rem;
+    #filter-app .catalog-product-card {
+        padding-right: .3rem;
+        padding-bottom: .3rem;
+        padding-left: .3rem;
     }
 
-    #filter-app .product-card .price-box {
-        padding-right: 3.5rem;
+    #filter-app .product-card .card-body {
+        display: flex;
+        flex-direction: column;
+        padding-right: .25rem;
+        padding-bottom: .25rem;
+        padding-left: .25rem;
+    }
+
+    #filter-app .catalog-product-purchase {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: .25rem;
+        margin-top: auto !important;
+        padding-top: .5rem;
+    }
+
+    #filter-app .catalog-product-prices {
+        flex: 1 1 auto;
+    }
+
+    #filter-app .product-card .price-box > div {
+        padding-right: .4rem !important;
+        padding-left: .4rem !important;
+        font-size: .75rem !important;
     }
 
     #filter-app .product-floating-btn {
-        right: .5rem;
-        bottom: .5rem;
+        position: static;
+        flex: 0 0 auto;
         opacity: 1;
+    }
+
+    #filter-app .product-floating-btn .btn {
+        padding-right: .4rem;
+        padding-left: .4rem;
+    }
+
+    #filter-app .product-floating-btn .btn .ms-1 {
+        margin-left: .2rem !important;
     }
 }
 

@@ -274,6 +274,9 @@ return [
         'secure_shopping' => '100% sigurna kupnja',
         'secure_shopping_text' => 'Sigurno i pozdano plaćanje karticama',
         'all_rights_reserved' => 'Sva prava pridržana.',
+        'recaptcha_notice' => 'Ovu stranicu štiti reCAPTCHA te se primjenjuju Googleova :privacy_policy i :terms_of_service.',
+        'recaptcha_privacy_policy' => 'Pravila privatnosti',
+        'recaptcha_terms_of_service' => 'Uvjeti pružanja usluge',
     ],
 
     'blog' => [

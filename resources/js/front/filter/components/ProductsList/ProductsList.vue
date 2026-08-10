@@ -70,20 +70,25 @@
                             </div>
                         </div>
 
-                        <div class="d-flex flex-wrap justify-content-between align-items-center price-box mt-2">
-                            <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2 text-decoration-line-through" v-if="product.special">{{ product.main_price_text }}</div>
-                            <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2" v-if="product.special">{{ product.main_special_text }}</div>
-                            <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2" v-if="!product.special">{{ product.main_price_text }}</div>
-                        </div>
+                        <div class="catalog-product-purchase mt-2">
+                            <div class="catalog-product-prices">
+                                <div class="d-flex flex-wrap justify-content-between align-items-center price-box">
+                                    <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2 text-decoration-line-through" v-if="product.special">{{ product.main_price_text }}</div>
+                                    <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2" v-if="product.special">{{ product.main_special_text }}</div>
+                                    <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2" v-if="!product.special">{{ product.main_price_text }}</div>
+                                </div>
 
-                        <div class="d-flex flex-wrap justify-content-between align-items-center price-box mt-2" v-if="product.secondary_price">
-                            <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2 text-decoration-line-through" v-if="product.special">{{ product.secondary_price_text }}</div>
-                            <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2" v-if="product.special">{{ product.secondary_special_text }}</div>
-                            <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2" v-if="!product.special">{{ product.secondary_price_text }}</div>
+                                <div class="d-flex flex-wrap justify-content-between align-items-center price-box mt-2" v-if="product.secondary_price">
+                                    <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2 text-decoration-line-through" v-if="product.special">{{ product.secondary_price_text }}</div>
+                                    <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2" v-if="product.special">{{ product.secondary_special_text }}</div>
+                                    <div class="bg-faded-accent text-accent fs-sm rounded-1 py-1 px-2" v-if="!product.special">{{ product.secondary_price_text }}</div>
+                                </div>
+                            </div>
+
+                            <div class="product-floating-btn">
+                               <button type="button" class="btn btn-primary btn-sm" v-on:click="add(product.id)">+<i class="fa-regular fa-bag-shopping ms-1" aria-hidden="true"></i></button>
+                            </div>
                         </div>
-                    </div>
-                    <div class="product-floating-btn">
-                       <button type="button" class="btn btn-primary  btn-sm" v-on:click="add(product.id)">+<i class="fa-regular fa-bag-shopping" aria-hidden="true"></i></button>
                     </div>
                 </div>
                 <hr class="d-sm-none">
