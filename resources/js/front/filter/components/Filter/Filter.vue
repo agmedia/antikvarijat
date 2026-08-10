@@ -4,7 +4,7 @@
         <div class="offcanvas offcanvas-collapse bg-white w-100 catalog-shop-sidebar catalog-filter-panel" id="shop-sidebar">
             <div class="offcanvas-cap catalog-filter-header align-items-center">
                 <div class="d-flex align-items-center gap-2">
-                    <h2 class="mb-0"><i class="fa-solid fa-filter" aria-hidden="true"></i><span>{{ labels.filter }}</span></h2>
+                    <h2 class="mb-0"><i class="fa-solid fa-sliders" aria-hidden="true"></i><span>{{ labels.filter }}</span></h2>
                     <span class="catalog-filter-active-count" v-if="activeFilterCount">{{ activeFilterCount }}</span>
                 </div>
                 <button class="catalog-filter-close ms-auto" type="button" v-on:click="closeWindow" :aria-label="labels.close">
@@ -146,7 +146,7 @@
                 <button type="button" class="catalog-filter-clear-desktop d-none d-lg-inline-flex" v-if="hasActiveFilters" v-on:click="cleanQuery"><i class="fa-solid fa-trash-can" aria-hidden="true"></i> {{ labels.clearAll }}</button>
             </div>
             <div class="catalog-filter-actions d-lg-none">
-                <button type="button" class="catalog-filter-clear" v-on:click="cleanQuery" :disabled="!hasActiveFilters">{{ labels.clear }}</button>
+                <button type="button" class="catalog-filter-clear" v-on:click="cleanQuery" :disabled="!hasActiveFilters"><i class="fa-solid fa-trash-can" aria-hidden="true"></i> {{ labels.clear }}</button>
                 <button type="button" class="btn btn-primary catalog-filter-apply" v-on:click="applyFilters">
                     {{ labels.showResults }}
                 </button>

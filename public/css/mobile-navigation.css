@@ -141,6 +141,10 @@
 }
 
 @media (max-width: 991.98px) {
+    html {
+        font-size: 16.5px;
+    }
+
     :root {
         --mobile-header-bar-height: 4.4rem;
     }

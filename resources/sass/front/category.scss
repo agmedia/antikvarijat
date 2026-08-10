@@ -1286,10 +1286,19 @@ body.catalog-filter-open {
 
     .catalog-filter-clear {
         justify-content: center;
-        min-height: 2.75rem;
-        padding: 0 .5rem;
+        min-height: 2.9rem;
+        padding: 0 .85rem;
+        border: 1px solid rgba(111, 99, 77, .35);
+        border-radius: .3rem;
+        background: #fff;
         color: #6f634d;
+        font-size: .95rem;
         white-space: nowrap;
+    }
+
+    .catalog-filter-clear > i {
+        flex: 0 0 auto;
+        font-size: .9rem;
     }
 
     .catalog-filter-apply {

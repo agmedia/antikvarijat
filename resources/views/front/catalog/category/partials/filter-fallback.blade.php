@@ -20,7 +20,7 @@
     <div class="offcanvas offcanvas-collapse bg-white w-100 catalog-shop-sidebar catalog-filter-panel" id="shop-sidebar">
         <div class="offcanvas-cap catalog-filter-header align-items-center">
             <div class="d-flex align-items-center gap-2">
-                <h2 class="mb-0"><i class="fa-solid fa-filter" aria-hidden="true"></i><span>{{ __('front.js.filter.filter') }}</span></h2>
+                <h2 class="mb-0"><i class="fa-solid fa-sliders" aria-hidden="true"></i><span>{{ __('front.js.filter.filter') }}</span></h2>
                 @if ($activeFilterCount)
                     <span class="catalog-filter-active-count">{{ $activeFilterCount }}</span>
                 @endif
@@ -186,7 +186,7 @@
             @endif
         </div>
         <div class="catalog-filter-actions d-lg-none">
-            <a class="catalog-filter-clear{{ $activeFilterCount ? '' : ' is-disabled' }}" href="{{ $activeFilterCount ? $clearFilterUrl : '#' }}" @if (! $activeFilterCount) aria-disabled="true" tabindex="-1" @endif>{{ __('front.js.filter.clear') }}</a>
+            <a class="catalog-filter-clear{{ $activeFilterCount ? '' : ' is-disabled' }}" href="{{ $activeFilterCount ? $clearFilterUrl : '#' }}" @if (! $activeFilterCount) aria-disabled="true" tabindex="-1" @endif><i class="fa-solid fa-trash-can" aria-hidden="true"></i> {{ __('front.js.filter.clear') }}</a>
             <button type="button" class="btn btn-primary catalog-filter-apply" data-bs-toggle="collapse" data-bs-target="#shop-sidebar">
                 {{ __('front.js.filter.show_results') }}
             </button>

@@ -5,7 +5,7 @@
             <div class="catalog-products-toolbar__controls d-flex flex-wrap">
                 <div class="me-2 d-lg-none">
                     <a class="btn collapsed catalog-filter-trigger" href="#shop-sidebar" v-on:click.prevent="openFilters" aria-expanded="false" aria-controls="shop-sidebar" :aria-label="filterButtonLabel">
-                        <i class="fa-duotone fa-sliders" aria-hidden="true"></i>
+                        <i class="fa-solid fa-sliders" aria-hidden="true"></i>
                         <span class="visually-hidden">{{ filterButtonLabel }}</span>
                         <span class="catalog-filter-trigger-count" v-if="activeFilterCount">{{ activeFilterCount }}</span>
                     </a>

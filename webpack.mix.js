@@ -26,6 +26,7 @@ mix
 .sass('resources/sass/front/product.scss', 'public/css/product.css')
 .sass('resources/sass/front/category.scss', 'public/css/category.css')
 .sass('resources/sass/front/directory.scss', 'public/css/directory.css')
+.sass('resources/sass/front/widgets.scss', 'public/css/widgets.css')
 /*.sass('resources/sass/main.scss', 'public/css/dashmix.css')
 .sass('resources/sass/dashmix/themes/xeco.scss', 'public/css/themes/')
 .sass('resources/sass/dashmix/themes/xinspire.scss', 'public/css/themes/')

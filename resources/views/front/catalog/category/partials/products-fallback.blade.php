@@ -13,7 +13,7 @@
                 @endphp
                 <div class="me-2 d-lg-none">
                     <a class="btn collapsed catalog-filter-trigger" href="#shop-sidebar" data-bs-toggle="collapse" aria-expanded="false" aria-label="{{ __('front.js.filter.filters') }}">
-                        <i class="fa-duotone fa-sliders" aria-hidden="true"></i>
+                        <i class="fa-solid fa-sliders" aria-hidden="true"></i>
                         <span class="visually-hidden">{{ __('front.js.filter.filters') }}</span>
                         @if ($activeFilterCount)
                             <span class="catalog-filter-trigger-count">{{ $activeFilterCount }}</span>

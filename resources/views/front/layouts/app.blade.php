@@ -110,6 +110,7 @@
     <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('css/account-auth.css') }}">
     <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('css/account.css') }}">
     <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('css/mobile-navigation.css') }}">
+    <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('css/widgets.css') }}">
     @include('front.layouts.partials.cookie-consent-head')
 
     @if (config('app.env') == 'production')

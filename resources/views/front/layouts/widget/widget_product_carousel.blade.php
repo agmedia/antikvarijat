@@ -1,5 +1,5 @@
 <!-- {"title": "Carousel", "description": "Widget za product carousel"} -->
-<section class="pt-2 pb-lg-2">
+<section class="pt-2 pb-lg-2 widget-product-carousel">
 <div class="container">
     <div class="d-flex flex-wrap justify-content-between align-items-center pt-1   pb-2 mb-2">
         <div>
