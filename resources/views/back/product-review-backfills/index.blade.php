@@ -123,7 +123,8 @@
                     @endif
 
                     @if($preview['selected_count'] > 0)
-                        <form method="POST" action="{{ route('product-review-backfills.store') }}" onsubmit="return confirm('Pokrenuti stvarno slanje za {{ $preview['selected_count'] }} primatelja?');">
+                        <form id="review-backfill-start-form" method="POST" action="{{ route('product-review-backfills.store') }}"
+                              data-recipient-count="{{ $preview['selected_count'] }}">
                             @csrf
                             <input type="hidden" name="date_from" value="{{ $preview['values']['date_from'] }}">
                             <input type="hidden" name="date_to" value="{{ $preview['values']['date_to'] }}">
@@ -133,9 +134,15 @@
                                 <input class="custom-control-input" id="review-backfill-confirmed" type="checkbox" name="confirmed" value="1" required>
                                 <label class="custom-control-label" for="review-backfill-confirmed">Provjerio/la sam razdoblje, količinu i tempo slanja.</label>
                             </div>
-                            <button class="btn btn-success px-4 text-nowrap" type="submit" @unless($available && $enabled) disabled @endunless>
+                            <button id="review-backfill-start-button" class="btn btn-success px-4 text-nowrap" type="submit"
+                                    @unless($available && $enabled) disabled aria-disabled="true" @endunless>
                                 <i class="fa-solid fa-paper-plane mr-1"></i> Pokreni slanje
                             </button>
+                            @unless($available && $enabled)
+                                <p class="small text-danger mt-2 mb-0">
+                                    Slanje nije moguće dok modul i produkcijska postavka za e-mailove nisu uključeni.
+                                </p>
+                            @endunless
                         </form>
                     @else
                         <div class="alert alert-warning mb-0">Za odabrane uvjete nema novih primatelja.</div>
@@ -194,3 +201,7 @@
         </div>
     </div>
 @endsection
+
+@push('js_after')
+    <script src="{{ \App\Helpers\Asset::url('js/product-review-backfills.js') }}"></script>
+@endpush
