@@ -235,9 +235,9 @@ body.swal2-shown #agapp[aria-hidden=true] {
 }
 
 .swal2-styled.cart-add-modal-confirm.btn {
-    border: 1px solid #bfa76a !important;
-    background: #bfa76a !important;
-    color: #1f3025 !important;
+    border: 1px solid #2f7d52 !important;
+    background: #2f7d52 !important;
+    color: #fff !important;
 }
 
 .swal2-styled.cart-add-modal-cancel.btn {
@@ -247,8 +247,8 @@ body.swal2-shown #agapp[aria-hidden=true] {
 }
 
 .swal2-styled.cart-add-modal-confirm.btn:hover {
-    border-color: #aa914f !important;
-    background: #aa914f !important;
+    border-color: #286b46 !important;
+    background: #286b46 !important;
 }
 
 .swal2-styled.cart-add-modal-cancel.btn:hover {

@@ -111,7 +111,7 @@
                         </div>
                         <div v-if="hasSecondary" class="cart-drawer-total-secondary">{{ formattedTotalSecondary }}</div>
 
-                        <a class="btn btn-primary d-block w-100 cart-drawer-checkout" :href="carturl">
+                        <a class="btn d-block w-100 cart-drawer-checkout" :href="carturl">
                             <i class="fa-duotone fa-credit-card me-2 fs-base align-middle" aria-hidden="true"></i>{{ labels.checkout }}
                         </a>
                     </footer>
@@ -661,7 +661,35 @@ export default {
     margin-top: .9rem;
     padding-top: .85rem;
     padding-bottom: .85rem;
+    border-color: #2f7d52;
+    background: #2f7d52;
+    box-shadow: 0 .35rem .9rem rgba(47, 125, 82, .18);
+    color: #fff;
     font-size: 1rem;
+    font-weight: 600;
+    text-transform: none;
+    transition: background-color .16s ease, border-color .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+
+.cart-drawer-checkout:hover,
+.cart-drawer-checkout:focus {
+    border-color: #286b46;
+    background: #286b46;
+    box-shadow: 0 .45rem 1rem rgba(40, 107, 70, .24);
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+.cart-drawer-checkout:focus-visible {
+    box-shadow: 0 0 0 .2rem rgba(47, 125, 82, .25), 0 .45rem 1rem rgba(40, 107, 70, .22);
+    outline: 0;
+}
+
+.cart-drawer-checkout:active {
+    border-color: #245f3e;
+    background: #245f3e;
+    box-shadow: none;
+    transform: translateY(0);
 }
 
 .cart-drawer-fade-enter-active,

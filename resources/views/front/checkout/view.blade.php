@@ -171,6 +171,7 @@
 @endsection
 
 @push('js_after')
+    @include('front.checkout.partials.progress-script')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.querySelector('form[name="pay"]');

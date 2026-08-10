@@ -155,7 +155,7 @@ export function showCartAddSuccessModal(swal, payload = {}) {
             htmlContainer: 'cart-add-modal-html',
             closeButton: 'cart-add-modal-close',
             actions: 'cart-add-modal-actions',
-            confirmButton: 'btn btn-primary btn-shadow cart-add-modal-confirm',
+            confirmButton: 'btn btn-shadow cart-add-modal-confirm',
             cancelButton: 'btn btn-outline-primary cart-add-modal-cancel'
         }
     }).then((result) => {

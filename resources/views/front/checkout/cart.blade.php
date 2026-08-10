@@ -78,3 +78,7 @@
 </div>
 
 @endsection
+
+@push('js_after')
+    @include('front.checkout.partials.progress-script')
+@endpush

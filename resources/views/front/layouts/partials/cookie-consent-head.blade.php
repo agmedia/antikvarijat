@@ -204,6 +204,12 @@
         }
     }
 
+    @media (max-width: 767.98px) {
+        .cookie-consent-trigger {
+            display: none !important;
+        }
+    }
+
     @media (max-width: 575.98px) {
         #cc-main .cm__body,
         #cc-main .cm__footer {

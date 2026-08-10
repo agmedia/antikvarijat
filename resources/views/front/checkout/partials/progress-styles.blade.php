@@ -123,6 +123,9 @@
             padding-right: .35rem;
             padding-left: .35rem;
             overflow-x: auto;
+            overscroll-behavior-inline: contain;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
         }
 
         .checkout-progress-shell .checkout-steps {

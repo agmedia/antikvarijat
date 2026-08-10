@@ -551,6 +551,7 @@
 
 @push('js_after')
     @livewireScripts
+    @include('front.checkout.partials.progress-script')
     <script>
         (function () {
             var hideToastTimer;
