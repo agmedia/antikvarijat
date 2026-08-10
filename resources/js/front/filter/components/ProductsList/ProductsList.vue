@@ -51,7 +51,7 @@
                             :fetchpriority="index < 2 ? 'high' : 'auto'"
                             decoding="async"
                             sizes="(max-width: 575px) 50vw, (max-width: 991px) 33vw, (max-width: 1399px) 25vw, 250px"
-                            :src="product.image.replace('.webp', '-thumb.webp')"
+                            :src="productImage(product)"
                             width="250"
                             height="300"
                             :alt="product.name">
@@ -289,6 +289,7 @@
                 search_zero_result: false,
                 navigation_zero_result: false,
                 mobileColumns: 2,
+                mobileViewport: window.matchMedia('(max-width: 991.98px)').matches,
             }
         },
         //
@@ -303,6 +304,8 @@
         },
         //
         mounted() {
+            this.mobileViewportMedia = window.matchMedia('(max-width: 991.98px)');
+            this.mobileViewportMedia.addEventListener('change', this.handleMobileViewportChange);
             this.restoreMobileColumns();
             this.syncQuery(this.$route);
 
@@ -316,7 +319,27 @@
             this.loadProductsForCurrentState();
         },
 
+        beforeDestroy() {
+            if (this.mobileViewportMedia) {
+                this.mobileViewportMedia.removeEventListener('change', this.handleMobileViewportChange);
+            }
+        },
+
         methods: {
+            handleMobileViewportChange(event) {
+                this.mobileViewport = event.matches;
+            },
+
+            productImage(product) {
+                const image = String(product.image || '');
+
+                if (this.mobileViewport && this.mobileColumns === 1) {
+                    return image;
+                }
+
+                return image.replace(/\.webp(?=([?#]|$))/i, '-thumb.webp');
+            },
+
             restoreMobileColumns() {
                 try {
                     const savedColumns = Number(window.localStorage.getItem('catalog-mobile-columns'));
