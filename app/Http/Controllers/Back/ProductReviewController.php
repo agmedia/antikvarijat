@@ -45,17 +45,19 @@ class ProductReviewController extends Controller
     {
         $validated = $request->validate([
             'status' => ['required', Rule::in(array_keys(ProductReview::statuses()))],
+            'is_featured' => ['required', 'boolean'],
         ]);
 
         $approved = $validated['status'] === ProductReview::STATUS_APPROVED;
 
         $review->forceFill([
             'status' => $validated['status'],
+            'is_featured' => $approved && $validated['is_featured'],
             'approved_at' => $approved ? ($review->approved_at ?: now()) : null,
             'approved_by' => $approved ? optional($request->user())->id : null,
         ])->save();
         Cache::forget('admin.notification_counts');
 
-        return back()->with('success', 'Status recenzije je spremljen.');
+        return back()->with('success', 'Recenzija je spremljena.');
     }
 }

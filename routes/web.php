@@ -444,6 +444,7 @@ Route::post('/dodaj-u-listu-zelja', [HomeController::class, 'wishlist'])->name('
 Route::get('/wishlist-obavijest/{wishlist}', WishlistTrackingController::class)
     ->middleware(['signed', 'throttle:60,1'])
     ->name('wishlist.track');
+Route::get('/recenzije', [ProductReviewController::class, 'index'])->name('reviews.index');
 Route::post('/recenzije', [ProductReviewController::class, 'store'])
     ->middleware('throttle:5,10')
     ->name('product-reviews.store');
@@ -495,6 +496,7 @@ Route::prefix('en')->as('en.')->group(function () {
     Route::post('/newsletter/subscribe', [HomeController::class, 'newsletter'])->name('newsletter.subscribe');
     Route::get('/faq', [CatalogRouteController::class, 'faq'])->name('faq');
     Route::post('/wishlist/add', [HomeController::class, 'wishlist'])->name('wishlist');
+    Route::get('/reviews', [ProductReviewController::class, 'index'])->name('reviews.index');
     Route::post('/reviews', [ProductReviewController::class, 'store'])
         ->middleware('throttle:5,10')
         ->name('product-reviews.store');

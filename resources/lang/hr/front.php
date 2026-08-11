@@ -98,6 +98,13 @@ return [
 
     'reviews' => [
         'title' => 'Recenzije',
+        'index_title' => 'Recenzije kupaca',
+        'index_meta_title' => 'Recenzije kupaca - Antikvarijat Biblos',
+        'index_meta_description' => 'Pročitajte iskustva kupaca i provjerene recenzije artikala iz Antikvarijata Biblos.',
+        'index_intro' => 'Iskustva čitatelja koji su knjige pronašli u Antikvarijatu Biblos.',
+        'index_empty' => 'Još nema objavljenih recenzija.',
+        'review_for' => 'Recenzija za',
+        'pagination_summary' => 'Prikazano :from–:to od :total recenzija',
         'count' => '{1} :count recenzija|[2,4] :count recenzije|[0,*] :count recenzija',
         'average' => 'Prosječna ocjena :rating od 5',
         'rating_summary' => ':rating od 5 na temelju :count recenzija',
@@ -543,6 +550,7 @@ return [
         'view_all' => 'Pogledajte sve',
         'read_more' => 'Opširnije',
         'google_reviews' => 'Google recenzije',
+        'all_reviews' => 'Sve recenzije',
         'category_alt' => 'Kategorija :title',
     ],
 

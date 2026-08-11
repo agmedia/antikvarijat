@@ -60,11 +60,13 @@ class SitemapTest extends TestCase
         $this->assertSame(url('knjige'), $hr['books']);
         $this->assertSame(url('zemljovidi-i-vedute'), $hr['maps']);
         $this->assertSame(url('blog'), $hr['blog']);
+        $this->assertSame(url('recenzije'), $hr['reviews']);
         $this->assertSame(url('snizenja'), $hr['sale']);
 
         $this->assertSame(url('en/books'), $en['books']);
         $this->assertSame(url('en/maps-and-views'), $en['maps']);
         $this->assertSame(url('en/blog'), $en['blog']);
+        $this->assertSame(url('en/reviews'), $en['reviews']);
         $this->assertSame(url('en/sale'), $en['sale']);
     }
 

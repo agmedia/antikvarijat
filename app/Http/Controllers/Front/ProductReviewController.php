@@ -15,6 +15,25 @@ use Illuminate\Support\Facades\Cache;
 
 class ProductReviewController extends Controller
 {
+    public function index()
+    {
+        $approved = ProductReview::query()->approved();
+        $summary = (clone $approved)
+            ->selectRaw('COUNT(*) as review_count, COALESCE(AVG(rating), 0) as average_rating')
+            ->first();
+        $reviews = (clone $approved)
+            ->with('product')
+            ->orderByDesc('approved_at')
+            ->orderByDesc('id')
+            ->paginate(24);
+
+        return view('front.reviews.index', [
+            'reviews' => $reviews,
+            'reviewCount' => (int) ($summary->review_count ?? 0),
+            'averageRating' => round((float) ($summary->average_rating ?? 0), 1),
+        ]);
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([

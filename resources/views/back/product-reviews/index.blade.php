@@ -63,7 +63,7 @@
                             <th>Ocjena i komentar</th>
                             <th>Kupac</th>
                             <th>Datum</th>
-                            <th style="width: 290px;">Moderacija</th>
+                            <th style="width: 320px;">Moderacija</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -102,17 +102,26 @@
                                 <td class="text-nowrap" data-label="Datum">{{ $review->created_at->format('d.m.Y. H:i') }}</td>
                                 <td data-label="Moderacija">
                                     <span class="badge badge-{{ $badge }} mb-2">{{ $statuses[$review->status] ?? $review->status }}</span>
-                                    <form method="POST" action="{{ route('product-reviews.update', $review) }}" class="d-flex align-items-center flex-nowrap">
+                                    <form method="POST" action="{{ route('product-reviews.update', $review) }}">
                                         @csrf
                                         @method('PATCH')
-                                        <select class="form-control form-control-sm mr-2 flex-grow-1" name="status" aria-label="Status recenzije" style="min-width: 0;">
-                                            @foreach ($statuses as $value => $label)
-                                                <option value="{{ $value }}" @if($review->status === $value) selected @endif>{{ $label }}</option>
-                                            @endforeach
-                                        </select>
-                                        <button class="btn btn-sm btn-primary px-3 flex-shrink-0 text-nowrap" type="submit">
-                                            <i class="fa-solid fa-floppy-disk mr-1" aria-hidden="true"></i> Spremi
-                                        </button>
+                                        <input type="hidden" name="is_featured" value="0">
+                                        <div class="custom-control custom-checkbox mb-2">
+                                            <input class="custom-control-input" id="review-featured-{{ $review->id }}" type="checkbox" name="is_featured" value="1" @if($review->is_featured) checked @endif>
+                                            <label class="custom-control-label font-w600" for="review-featured-{{ $review->id }}">
+                                                <i class="fa-solid fa-star text-warning mr-1" aria-hidden="true"></i> Istaknuto na naslovnici
+                                            </label>
+                                        </div>
+                                        <div class="d-flex align-items-center flex-nowrap">
+                                            <select class="form-control form-control-sm mr-2 flex-grow-1" name="status" aria-label="Status recenzije" style="min-width: 0;">
+                                                @foreach ($statuses as $value => $label)
+                                                    <option value="{{ $value }}" @if($review->status === $value) selected @endif>{{ $label }}</option>
+                                                @endforeach
+                                            </select>
+                                            <button class="btn btn-sm btn-primary px-3 flex-shrink-0 text-nowrap" type="submit">
+                                                <i class="fa-solid fa-floppy-disk mr-1" aria-hidden="true"></i> Spremi
+                                            </button>
+                                        </div>
                                     </form>
                                     @if ($review->approver)
                                         <div class="small text-muted mt-2">{{ $review->approver->name }} · {{ optional($review->approved_at)->format('d.m.Y. H:i') }}</div>

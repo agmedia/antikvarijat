@@ -55,6 +55,7 @@ class Metatags
         'catalog.route.publisher',
         'catalog.route.actions',
         'catalog.route.blog',
+        'reviews.index',
     ];
 
     private const SEARCH_ROUTES = [

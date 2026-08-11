@@ -12,6 +12,7 @@ use App\Models\Front\Catalog\Product;
 use App\Models\Back\Marketing\Action;
 use App\Models\Front\Catalog\Publisher;
 use App\Models\Front\Loyalty;
+use App\Models\ProductReview;
 use Darryldecode\Cart\CartCondition;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
@@ -393,7 +394,7 @@ class Helper
             }
 
             if (static::isDescriptionTarget($data, 'reviews')) {
-                $items     = static::dummyReviews();
+                $items     = static::featuredReviews();
                 $tablename = 'reviews';
             }
 
@@ -881,122 +882,16 @@ class Helper
         return false;
     }
 
-    private static function dummyReviews()
+    public static function featuredReviews(int $limit = 12): Collection
     {
-        return collect([
-            (object)[
-                'id' => 1,
-                'product_id' => 101,
-                'order_id' => 1001,
-                'user_id' => 501,
-                'lang' => 'hr',
-                'fname' => 'Dino ',
-                'lname' => 'Jevšnik Nedeljković',
-                'email' => '',
-                'avatar' => 'avatars/ana.jpg',
-                'message' => 'Ugodna atmosfera začinjena mirisom starih knjiga i svježinom novih, dok je gospodin koji tamo radi, a ujedno je i vlasnik antikvarijata, srdačan, veseo i susretljiv.☺️',
-                'stars' => 5.00,
-                'sort_order' => 0,
-                'featured' => 1,
-                'status' => 1,
-                'created_at' => '2025-08-01 10:15:00',
-                'updated_at' => '2025-08-01 10:15:00',
-            ],
-            (object)[
-                'id' => 2,
-                'product_id' => 102,
-                'order_id' => 1002,
-                'user_id' => 502,
-                'lang' => 'hr',
-                'fname' => 'Lucija ',
-                'lname' => 'Ivančić',
-                'email' => 'ivan.maric@example.com',
-                'avatar' => 'avatars/ivan.png',
-                'message' => 'Najdraži antikvarijat, uvijek pronađem nešto zanimljivo. Pozdrav najuslužnijoj ekipi, vidimo se uskoro! P.S. novi prostor je odličan!🍀💛',
-                'stars' => 5.00,
-                'sort_order' => 0,
-                'featured' => 0,
-                'status' => 1,
-                'created_at' => '2025-08-02 11:00:00',
-                'updated_at' => '2025-08-02 11:00:00',
-            ],
-            (object)[
-                'id' => 3,
-                'product_id' => 103,
-                'order_id' => 1003,
-                'user_id' => 503,
-                'lang' => 'hr',
-                'fname' => 'Mican ',
-                'lname' => 'Torban',
-                'email' => 'maja.kovac@example.com',
-                'avatar' => 'avatars/maja.jpg',
-                'message' => 'Super uređena stranica, lako se može pronaći ono što nekoga zanima.
-Kupio sam knjigu iz Biblosa, vrlo sam zadovoljan uslugom, isporukom i ljubaznim djelatnicima.
-Sve pohvale. 🙂👍',
-                'stars' => 5.00,
-                'sort_order' => 0,
-                'featured' => 1,
-                'status' => 1,
-                'created_at' => '2025-08-03 09:45:00',
-                'updated_at' => '2025-08-03 09:45:00',
-            ],
-            (object)[
-                'id' => 4,
-                'product_id' => 104,
-                'order_id' => 1004,
-                'user_id' => 504,
-                'lang' => 'hr',
-                'fname' => 'Milivoj',
-                'lname' => 'Vodopij',
-                'email' => 'petar.novak@example.com',
-                'avatar' => 'avatars/petar.png',
-                'message' => 'Najbolji izbor rabljenih knjiga u Zagrebu, a posebno starih i rijetkih izdanja, te starih zemljovida našeg područja. Može se dobiti procjena i ekspertiza za hrvatski, kao i srpski antikvarni materijal. 👍.',
-                'stars' => 5.00,
-                'sort_order' => 0,
-                'featured' => 0,
-                'status' => 1,
-                'created_at' => '2025-08-04 13:20:00',
-                'updated_at' => '2025-08-04 13:20:00',
-            ],
-            (object)[
-                'id' => 5,
-                'product_id' => 105,
-                'order_id' => 1005,
-                'user_id' => 505,
-                'lang' => 'hr',
-                'fname' => 'Aleksandar ',
-                'lname' => 'Funduk',
-                'email' => 'lucija.peric@example.com',
-                'avatar' => 'avatars/lucija.jpeg',
-                'message' => 'Vrlo ugodno iskustvo. Naručio knjigu jučer, danas je stigla. Znači u manje od 24 sata. U moru on line trgovina ima još uvijek odgovornih ljudi koji ozbiljno rade svoj posao.',
-                'stars' => 5.00,
-                'sort_order' => 0,
-                'featured' => 1,
-                'status' => 1,
-                'created_at' => '2025-08-05 08:10:00',
-                'updated_at' => '2025-08-05 08:10:00',
-            ],
-            (object)[
-                'id' => 5,
-                'product_id' => 105,
-                'order_id' => 1005,
-                'user_id' => 505,
-                'lang' => 'hr',
-                'fname' => 'Josip ',
-                'lname' => 'Ukalovic',
-                'email' => 'lucija.peric@example.com',
-                'avatar' => 'avatars/lucija.jpeg',
-                'message' => 'Odličan antikvarijat s jako dobrim izborom knjiga. Osoblje je susretljivo i spremno pomoći, vidi se da vole to što rade. Sve preporuke!',
-                'stars' => 5.00,
-                'sort_order' => 0,
-                'featured' => 1,
-                'status' => 1,
-                'created_at' => '2025-08-05 08:10:00',
-                'updated_at' => '2025-08-05 08:10:00',
-            ],
-
-
-        ]);
+        return ProductReview::query()
+            ->with('product')
+            ->approved()
+            ->featured()
+            ->orderByDesc('approved_at')
+            ->orderByDesc('id')
+            ->limit(max(1, $limit))
+            ->get();
     }
 
 

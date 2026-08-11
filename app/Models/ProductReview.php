@@ -28,6 +28,7 @@ class ProductReview extends Model
         'locale',
         'status',
         'is_verified_purchase',
+        'is_featured',
         'approved_at',
         'approved_by',
     ];
@@ -40,6 +41,7 @@ class ProductReview extends Model
         'user_id' => 'integer',
         'rating' => 'integer',
         'is_verified_purchase' => 'boolean',
+        'is_featured' => 'boolean',
         'approved_at' => 'datetime',
         'approved_by' => 'integer',
     ];
@@ -51,6 +53,11 @@ class ProductReview extends Model
     public function scopeApproved(Builder $query): Builder
     {
         return $query->where('status', static::STATUS_APPROVED);
+    }
+
+    public function scopeFeatured(Builder $query): Builder
+    {
+        return $query->where('is_featured', true);
     }
 
     public static function statuses(): array

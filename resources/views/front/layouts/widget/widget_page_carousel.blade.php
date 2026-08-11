@@ -1,6 +1,7 @@
 <!-- {"title": "Page Carousel", "description": "Category, Publisher, Reviews."} -->
+@if ($data['tablename'] !== 'reviews' || collect($data['items'])->isNotEmpty())
  @if ($data['tablename'] == 'reviews')
- <section class=" pt-5 py-3 " style="background-image: url({{ asset('media/img/farmer.png')  }});background-repeat: repeat;padding-top:30px">
+ <section class="reviews-widget py-5" style="background-image: url({{ asset('media/img/farmer.png') }});">
  @else
 
          <section class=" py-0 ">
@@ -14,7 +15,10 @@
         @endif
 
         @if ($data['tablename'] == 'reviews')
-            <a class="btn btn-outline-primary btn-sm btn-shadow mt-0" target="_blanks" href="https://www.google.com/search?sca_esv=0a74b9f5a5d821da&si=AMgyJEuzsz2NflaaWzrzdpjxXXRaJ2hfdMsbe_mSWso6src8sypp-5CetgPBI0vwf0AeIVtJomeCeueKZqvh42JWVyfZbtudLrwN3Q3Pg_0VkMmG8Q15iQREGs_PaSOZFoKeKAtW2JSU&q=Biblos+Recenzije&sa=X&ved=2ahUKEwiNlo_I8pmPAxX1Q_EDHSMbBUEQ0bkNegQIJxAE&biw=1512&bih=832&dpr=2"><span class="d-none d-sm-inline-block">{{ __('front.widgets.google_reviews') }}</span> <i class="fa-solid fa-arrow-right fs-xs"></i></a>
+            <a class="btn btn-outline-primary btn-sm btn-shadow mt-0" href="{{ \App\Helpers\LocaleHelper::route('reviews.index') }}">
+                <span class="d-none d-sm-inline-block">{{ __('front.widgets.all_reviews') }}</span>
+                <i class="fa-solid fa-arrow-right fs-xs" aria-hidden="true"></i>
+            </a>
         @endif
     </div>
 
@@ -49,37 +53,71 @@
 
     @elseif ($data['tablename'] == 'reviews')
 
-        <div class="tns-carousel pb-5">
-            <div class="tns-carousel-inner" data-carousel-options='{"items": 1, "controls": false, "nav": false, "autoplay": true, "autoHeight": true, "responsive": {"0":{"items":1, "gutter": 20},"480":{"items":2, "gutter": 20},"800":{"items":3, "gutter": 20}, "1300":{"items":4, "gutter": 30}}}'>
-            @foreach ($data['items'] as $review)
+        <div class="tns-carousel reviews-widget__carousel pb-4">
+            <div class="tns-carousel-inner" data-carousel-options='{"items": 1, "controls": false, "nav": true, "autoplay": true, "autoHeight": false, "responsive": {"0":{"items":1, "gutter":20},"576":{"items":2, "gutter":24},"992":{"items":3, "gutter":24}}}'>
+                @foreach ($data['items'] as $review)
+                    @php
+                        $widgetProduct = $review->product;
+                        $widgetProductName = $widgetProduct
+                            ? \App\Helpers\LocaleHelper::localizedField($widgetProduct, 'name')
+                            : null;
+                        $widgetProductPath = null;
+                        $widgetProductImage = null;
 
-                    <blockquote class="mb-2">
-                        <div class="card card-body fs-md text-muted border-0  p-4 shadow-sm">
-                            <div class="mb-2">
-                                <div class="star-rating"> @for ($i = 0; $i < 5; $i++)
-                                        @if (floor($review->stars) - $i >= 1)
-                                            {{--Full Start--}}
-                                            <i class="star-rating-icon fa-solid fa-star active"></i>
-                                        @elseif ($review->stars - $i > 0)
-                                            {{--Half Start--}}
-                                            <i class="star-rating-icon fa-duotone fa-star"></i>
-                                        @else
-                                            {{--Empty Start--}}
-                                            <i class="star-rating-icon fa-duotone fa-star"></i>
-                                        @endif
+                        if ($widgetProduct) {
+                            $widgetProductPath = \App\Helpers\LocaleHelper::isEnglish()
+                                ? ($widgetProduct->getRawOriginal('url_en') ?: \App\Helpers\LocaleHelper::localizedUrl($widgetProduct->getRawOriginal('url')))
+                                : $widgetProduct->getRawOriginal('url');
+                            $widgetImagePath = $widgetProduct->thumb ?: $widgetProduct->getRawOriginal('image');
+
+                            if ($widgetImagePath) {
+                                $widgetProductImage = \Illuminate\Support\Str::startsWith($widgetImagePath, ['http://', 'https://'])
+                                    ? $widgetImagePath
+                                    : rtrim(config('settings.images_domain'), '/') . '/' . ltrim($widgetImagePath, '/');
+                            }
+                        }
+                    @endphp
+
+                    <div class="reviews-widget__slide">
+                    <blockquote class="reviews-widget__card mb-0">
+                        <div class="reviews-widget__main">
+                            @if ($widgetProductImage && $widgetProductPath)
+                                <a class="reviews-widget__cover" href="{{ url($widgetProductPath) }}" aria-label="{{ $widgetProductName }}">
+                                    <img src="{{ $widgetProductImage }}" width="82" height="112" loading="lazy" alt="{{ $widgetProductName }}">
+                                </a>
+                            @endif
+
+                            <div class="reviews-widget__copy">
+                                <div class="star-rating reviews-widget__rating" aria-label="{{ __('front.reviews.rating_option', ['rating' => $review->rating]) }}">
+                                    @for ($i = 0; $i < 5; $i++)
+                                        <i class="star-rating-icon fa-{{ $review->rating - $i >= 1 ? 'solid' : 'regular' }} fa-star{{ $review->rating - $i >= 1 ? ' active' : '' }}" aria-hidden="true"></i>
                                     @endfor
                                 </div>
-                            </div>{{ strip_tags($review->message) }}
-                        </div>
-                        <footer class="d-flex justify-content-center align-items-center pt-4">
-                            <div class="ps-3">
-                                <p class="fs-sm fw-bold text-default mb-n1">{{ $review->fname }} {{ $review->lname }}</p>
+
+                                @if ($review->title)
+                                    <strong class="reviews-widget__title">{{ $review->title }}</strong>
+                                @endif
+                                <p class="reviews-widget__text">{{ $review->body }}</p>
                             </div>
+                        </div>
+
+                        <footer class="reviews-widget__footer">
+                            <div class="reviews-widget__author">
+                                <strong>{{ $review->reviewer_name }}</strong>
+                                @if ($review->is_verified_purchase)
+                                    <small><i class="fa-solid fa-circle-check" aria-hidden="true"></i>{{ __('front.reviews.verified_purchase') }}</small>
+                                @endif
+                            </div>
+
+                            @if ($widgetProductName && $widgetProductPath)
+                                <a class="reviews-widget__product" href="{{ url($widgetProductPath) }}">
+                                    <i class="fa-duotone fa-book-open" aria-hidden="true"></i>
+                                    <span>{{ __('front.reviews.review_for') }}: {{ $widgetProductName }}</span>
+                                </a>
+                            @endif
                         </footer>
                     </blockquote>
-
-
-
+                    </div>
                 @endforeach
             </div>
         </div>
@@ -107,3 +145,4 @@
     </div>
 
 </section>
+@endif

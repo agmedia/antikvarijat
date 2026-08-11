@@ -142,6 +142,13 @@ return [
 
     'reviews' => [
         'title' => 'Reviews',
+        'index_title' => 'Customer reviews',
+        'index_meta_title' => 'Customer reviews - Antikvarijat Biblos',
+        'index_meta_description' => 'Read customer experiences and verified product reviews from Antikvarijat Biblos.',
+        'index_intro' => 'Experiences shared by readers who found their books at Antikvarijat Biblos.',
+        'index_empty' => 'There are no published reviews yet.',
+        'review_for' => 'Review for',
+        'pagination_summary' => 'Showing :from–:to of :total reviews',
         'count' => '{1} :count review|[0,*] :count reviews',
         'average' => 'Average rating: :rating out of 5',
         'rating_summary' => ':rating out of 5 based on :count reviews',
@@ -587,6 +594,7 @@ return [
         'view_all' => 'View all',
         'read_more' => 'Read more',
         'google_reviews' => 'Google reviews',
+        'all_reviews' => 'All reviews',
         'category_alt' => 'Category :title',
     ],
 
