@@ -13,6 +13,10 @@
                 <div class="widget mt-4 text-md-nowrap text-center text-md-start">
                     <a class="btn-social bs-drk bs-instagram me-2 mb-2" href="https://www.instagram.com/antikvarijat_biblos/"><i class="fa-brands fa-instagram" aria-hidden="true"></i></a>
                     <a class="btn-social bs-dark bs-facebook me-2 mb-2" href="https://www.facebook.com/AntikvarijatBiblos/"><i class="fa-brands fa-facebook-f" aria-hidden="true"></i></a>
+                    <a class="btn-social bs-dark bs-google d-inline-flex w-auto align-items-center justify-content-center gap-2 px-3 me-2 mb-2" href="https://www.google.com/maps?cid=13117805627465473758" target="_blank" rel="noopener noreferrer" aria-label="Google recenzije">
+                        <i class="fa-brands fa-google" aria-hidden="true"></i>
+                        <span>Google recenzije</span>
+                    </a>
                 </div>
             </div>
             <!-- Mobile dropdown menu (visible on screens below md)-->
