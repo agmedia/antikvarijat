@@ -177,6 +177,7 @@
 
 @push('js_after')
     <script src="{{ \App\Helpers\Asset::url('js/plugins/ckeditor5-classic/build/ckeditor.js') }}"></script>
+    <script src="{{ \App\Helpers\Asset::url('js/admin-editor-source.js') }}"></script>
     <script src="{{ \App\Helpers\Asset::url('js/plugins/select2/js/select2.full.min.js') }}"></script>
 
     <script>
@@ -193,7 +194,9 @@
             ClassicEditor
             .create( document.querySelector('#description-editor'))
             .then( editor => {
-                console.log(editor);
+                window.AdminEditorSource.attach(editor, {
+                    label: 'HTML izvor hrvatskog opisa kategorije'
+                });
             } )
             .catch( error => {
                 console.error(error);
@@ -202,7 +205,9 @@
             ClassicEditor
             .create( document.querySelector('#description-en-editor'))
             .then( editor => {
-                console.log(editor);
+                window.AdminEditorSource.attach(editor, {
+                    label: 'HTML izvor engleskog opisa kategorije'
+                });
             } )
             .catch( error => {
                 console.error(error);
