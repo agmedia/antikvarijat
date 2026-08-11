@@ -383,20 +383,6 @@
                 });
             });
 
-            function focusActiveAuthField() {
-                const activePane = modalElement.querySelector('.tab-pane.active');
-                const firstField = activePane && activePane.querySelector('input:not([type="hidden"]):not([disabled])');
-
-                if (firstField) {
-                    firstField.focus();
-                }
-            }
-
-            modalElement.addEventListener('shown.bs.modal', focusActiveAuthField);
-            modalElement.querySelectorAll('[data-bs-toggle="tab"]').forEach(function (tab) {
-                tab.addEventListener('shown.bs.tab', focusActiveAuthField);
-            });
-
             modalElement.querySelectorAll('form.needs-validation').forEach(function (form) {
                 form.addEventListener('submit', function (event) {
                     if (!form.checkValidity()) {
