@@ -16,6 +16,25 @@
                     <div class="admin-inline-meta mt-2">
                         <span><i class="fa-regular fa-calendar"></i> {{ \Illuminate\Support\Carbon::make($order->created_at)->format('d.m.Y. H:i') }}</span>
                         <span class="badge badge-pill badge-{{ $order->status->color }}">{{ $order->status->title }}</span>
+                        <span>
+                            <i class="fa-duotone fa-coins" aria-hidden="true"></i>
+                            <strong class="admin-order-meta-label">Ukupno:</strong>
+                            @if ($order->id > 4627)
+                                € {{ number_format($order->total, 2, ',', '.') }}
+                            @else
+                                {{ number_format($order->total, 2, ',', '.') }} kn
+                            @endif
+                        </span>
+                        <span>
+                            <i class="fa-duotone fa-truck-fast" aria-hidden="true"></i>
+                            <strong class="admin-order-meta-label">Način dostave:</strong>
+                            {{ filled($order->shipping_method) ? $order->shipping_method : 'Nije navedeno' }}
+                        </span>
+                        <span>
+                            <i class="fa-duotone fa-credit-card" aria-hidden="true"></i>
+                            <strong class="admin-order-meta-label">Način plaćanja:</strong>
+                            {{ filled($order->payment_method) ? $order->payment_method : 'Nije navedeno' }}
+                        </span>
                     </div>
                 </div>
                 <div class="admin-page-actions">
@@ -241,6 +260,7 @@
         .admin-order-address strong { margin-bottom: .2rem; color: var(--admin-ink); font-size: 1.05rem; }
         .admin-order-address .admin-order-company { margin-top: .45rem; }
         .admin-order-address .admin-order-contact { display: inline-flex; gap: .45rem; align-items: center; margin-top: .38rem; }
+        .admin-order-meta-label { color: var(--admin-ink); font-weight: 700; }
         .admin-order-history-actions { display: flex; gap: .5rem; align-items: center; margin-left: auto; }
         .admin-order-history-table { table-layout: fixed; }
         .admin-order-history-table td:nth-child(1) { width: 12%; }
