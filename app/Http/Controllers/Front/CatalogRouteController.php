@@ -597,6 +597,7 @@ class CatalogRouteController extends Controller
                     'short_description',
                     'short_description_en',
                     'image',
+                    'publish_date',
                     'created_at',
                 ])
                 ->paginate(9);
@@ -610,7 +611,39 @@ class CatalogRouteController extends Controller
             app()->getLocale()
         );
 
-        return view('front.blog', compact('blog', 'blogSchema'));
+        $plainText = trim((string) preg_replace(
+            '/\s+/u',
+            ' ',
+            strip_tags(html_entity_decode((string) $blog->description, ENT_QUOTES | ENT_HTML5, 'UTF-8'))
+        ));
+        $wordCount = count(preg_split('/\s+/u', $plainText, -1, PREG_SPLIT_NO_EMPTY));
+        $readingMinutes = max(1, (int) ceil($wordCount / 200));
+        $articleLead = Str::limit(trim((string) preg_replace(
+            '/\s+/u',
+            ' ',
+            strip_tags(html_entity_decode((string) $blog->short_description, ENT_QUOTES | ENT_HTML5, 'UTF-8'))
+        )), 280, '…');
+
+        $navigationColumns = ['id', 'slug', 'slug_en', 'title', 'title_en', 'created_at'];
+        $newerBlog = Blog::query()
+            ->active()
+            ->where('created_at', '>', $blog->created_at)
+            ->reorder('created_at')
+            ->first($navigationColumns);
+        $olderBlog = Blog::query()
+            ->active()
+            ->where('created_at', '<', $blog->created_at)
+            ->reorder('created_at', 'desc')
+            ->first($navigationColumns);
+
+        return view('front.blog', compact(
+            'blog',
+            'blogSchema',
+            'articleLead',
+            'readingMinutes',
+            'newerBlog',
+            'olderBlog'
+        ));
     }
 
     public function faq()

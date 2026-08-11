@@ -11,6 +11,8 @@ use App\Models\Back\Orders\OrderProduct;
 use App\Models\ProductReview;
 use App\Models\User;
 use App\Services\ProductRecommendationService;
+use App\Services\Shipping\GlsTrackingService;
+use App\Services\Shipping\OrderTrackingService;
 use Illuminate\Http\Request;
 
 class CustomerController extends Controller
@@ -56,6 +58,30 @@ class CustomerController extends Controller
             ->paginate(config('settings.pagination.front'));
 
         return view('front.customer.moje-narudzbe', compact('user', 'orders'));
+    }
+
+    public function refreshOrderTracking(Request $request, $order)
+    {
+        $order = $this->ordersForUserQuery($request->user())
+            ->whereKey($order)
+            ->firstOrFail();
+        $trackingService = app(OrderTrackingService::class);
+
+        if ($trackingService->resolveCarrier($order) !== GlsTrackingService::CARRIER
+            || (! filled($order->tracking_code) && ! filled($order->shipping_parcel_id))) {
+            return redirect(LocaleHelper::route('moje-narudzbe'))
+                ->with('warning', 'Praćenje pošiljke još nije dostupno za ovu narudžbu.');
+        }
+
+        try {
+            $result = $trackingService->refresh($order);
+
+            return redirect(LocaleHelper::route('moje-narudzbe'))
+                ->with($result['updated'] ? 'success' : 'warning', $result['message']);
+        } catch (\Throwable $e) {
+            return redirect(LocaleHelper::route('moje-narudzbe'))
+                ->with('error', 'GLS status trenutačno nije moguće osvježiti. Pokušajte ponovno kasnije.');
+        }
     }
 
     public function reviews(Request $request)

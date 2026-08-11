@@ -4,12 +4,12 @@
             <li class="page-item pagination-prev-nav {{ $paginator->onFirstPage() ? 'disabled' : '' }}"
                 @if ($paginator->onFirstPage()) aria-disabled="true" @endif>
                 @if ($paginator->onFirstPage())
-                    <span class="page-link">
+                    <span class="page-link" aria-label="{{ __('front.js.pagination.previous') }}">
                         <i class="fa-regular fa-arrow-left" aria-hidden="true"></i>
                         <span class="d-none d-sm-inline">{{ __('front.js.pagination.previous') }}</span>
                     </span>
                 @else
-                    <a class="page-link" href="{{ $paginator->previousPageUrl() }}" rel="prev">
+                    <a class="page-link" href="{{ $paginator->previousPageUrl() }}" rel="prev" aria-label="{{ __('front.js.pagination.previous') }}">
                         <i class="fa-regular fa-arrow-left" aria-hidden="true"></i>
                         <span class="d-none d-sm-inline">{{ __('front.js.pagination.previous') }}</span>
                     </a>
@@ -44,12 +44,12 @@
             <li class="page-item pagination-next-nav {{ $paginator->hasMorePages() ? '' : 'disabled' }}"
                 @unless ($paginator->hasMorePages()) aria-disabled="true" @endunless>
                 @if ($paginator->hasMorePages())
-                    <a class="page-link" href="{{ $paginator->nextPageUrl() }}" rel="next">
+                    <a class="page-link" href="{{ $paginator->nextPageUrl() }}" rel="next" aria-label="{{ __('front.js.pagination.next') }}">
                         <span class="d-none d-sm-inline">{{ __('front.js.pagination.next') }}</span>
                         <i class="fa-regular fa-arrow-right" aria-hidden="true"></i>
                     </a>
                 @else
-                    <span class="page-link">
+                    <span class="page-link" aria-label="{{ __('front.js.pagination.next') }}">
                         <span class="d-none d-sm-inline">{{ __('front.js.pagination.next') }}</span>
                         <i class="fa-regular fa-arrow-right" aria-hidden="true"></i>
                     </span>

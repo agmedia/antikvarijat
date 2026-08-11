@@ -338,6 +338,13 @@ return [
         'title' => 'Media',
         'meta_title' => 'Media - Antikvarijat Biblos',
         'meta_description' => 'Media posts, articles and news - Antikvarijat Biblos',
+        'intro' => 'Stories, conversations and highlights from the world of books and culture.',
+        'read_article' => 'Read article',
+        'reading_time' => ':minutes min read',
+        'back_to_list' => 'Back to all articles',
+        'newer_article' => 'Newer article',
+        'older_article' => 'Older article',
+        'pagination_summary' => 'Showing :from–:to of :total articles',
     ],
 
     'faq' => [

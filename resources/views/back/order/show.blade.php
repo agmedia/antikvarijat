@@ -126,6 +126,73 @@
         </div>
         <!-- END Customer -->
 
+        @php
+            $trackingService = app(\App\Services\Shipping\OrderTrackingService::class);
+            $trackingCarrier = $trackingService->resolveCarrier($order);
+            $trackingUrl = $trackingService->trackingUrlForOrder($order);
+            $hasTrackingIdentifier = filled($order->tracking_code) || filled($order->shipping_parcel_id);
+        @endphp
+
+        @if($trackingCarrier || $hasTrackingIdentifier || $order->shipping_tracking_status)
+            <div class="block block-rounded">
+                <div class="block-header block-header-default">
+                    <h3 class="block-title">Praćenje GLS dostave</h3>
+                    <div class="block-options">
+                        @if($hasTrackingIdentifier)
+                            <button type="button" class="btn btn-sm btn-alt-primary" data-tracking-btn="{{ $order->id }}" onclick="refreshTracking({{ $order->id }})">
+                                Osvježi <i class="fa fa-sync-alt ml-1"></i>
+                            </button>
+                        @endif
+                    </div>
+                </div>
+                <div class="block-content">
+                    <div class="row">
+                        <div class="col-md-2 mb-3">
+                            <div class="font-size-sm text-muted">Dostavna služba</div>
+                            <div class="font-w600">GLS</div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="font-size-sm text-muted">Broj pošiljke</div>
+                            <div class="font-w600">
+                                @if($trackingUrl && $order->tracking_code)
+                                    <a href="{{ $trackingUrl }}" target="_blank" rel="noopener">{{ $order->tracking_code }}</a>
+                                @else
+                                    {{ $order->tracking_code ?: $order->shipping_parcel_id ?: 'Još nije dostupan' }}
+                                @endif
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="font-size-sm text-muted">Zadnji status</div>
+                            <div class="font-w600">{{ $order->shipping_tracking_status ?: 'Još nije osvježeno' }}</div>
+                            @if($order->shipping_tracking_status_code)
+                                <div class="font-size-sm text-muted">Kod: {{ $order->shipping_tracking_status_code }}</div>
+                            @endif
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <div class="font-size-sm text-muted">Osvježeno</div>
+                            <div class="font-w600">
+                                {{ $order->shipping_tracking_updated_at ? \Illuminate\Support\Carbon::make($order->shipping_tracking_updated_at)->format('d.m.Y H:i') : 'Nikad' }}
+                            </div>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <div class="font-size-sm text-muted">Email kupcu</div>
+                            @if($trackingEmailSentAt)
+                                <div><span class="badge badge-success">Poslan</span></div>
+                                <div class="font-size-sm text-muted">{{ $trackingEmailSentAt->format('d.m.Y H:i') }}</div>
+                            @else
+                                <div><span class="badge badge-warning">Nije poslan</span></div>
+                                @if($order->tracking_code)
+                                    <button type="button" class="btn btn-sm btn-alt-secondary mt-1" data-tracking-email-btn="{{ $order->id }}" onclick="sendTrackingEmail({{ $order->id }})">
+                                        Pošalji
+                                    </button>
+                                @endif
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+
         <!-- Log Messages -->
         <div class="block block-rounded">
             <div class="block-header block-header-default admin-order-history-header">
@@ -313,6 +380,58 @@
                     return errorToast.fire(response.data.error);
                 }
             });
+        }
+
+        function refreshTracking(orderId) {
+            setTrackingButtonLoading(orderId, true);
+
+            axios.post("{{ route('api.order.tracking.refresh') }}", { order_id: orderId })
+                .then(response => {
+                    if (response.data.message) {
+                        successToast.fire({ timer: 1500, text: response.data.message }).then(() => location.reload());
+                    } else {
+                        errorToast.fire(response.data.error || 'Tracking nije osvježen.');
+                    }
+                })
+                .catch(error => errorToast.fire(error?.response?.data?.error || 'Tracking nije osvježen.'))
+                .finally(() => setTrackingButtonLoading(orderId, false));
+        }
+
+        function setTrackingButtonLoading(orderId, isLoading) {
+            const button = document.querySelector(`[data-tracking-btn="${orderId}"]`);
+
+            if (!button) return;
+
+            button.disabled = isLoading;
+            button.innerHTML = isLoading
+                ? 'Osvježavam <i class="fa fa-spinner fa-spin ml-1"></i>'
+                : 'Osvježi <i class="fa fa-sync-alt ml-1"></i>';
+        }
+
+        function sendTrackingEmail(orderId) {
+            setTrackingEmailButtonLoading(orderId, true);
+
+            axios.post("{{ route('api.order.send.tracking-email') }}", { order_id: orderId })
+                .then(response => {
+                    if (response.data.message) {
+                        successToast.fire({ timer: 1500, text: response.data.message }).then(() => location.reload());
+                    } else {
+                        errorToast.fire(response.data.error || 'Tracking email nije poslan.');
+                    }
+                })
+                .catch(error => errorToast.fire(error?.response?.data?.error || 'Tracking email nije poslan.'))
+                .finally(() => setTrackingEmailButtonLoading(orderId, false));
+        }
+
+        function setTrackingEmailButtonLoading(orderId, isLoading) {
+            const button = document.querySelector(`[data-tracking-email-btn="${orderId}"]`);
+
+            if (!button) return;
+
+            button.disabled = isLoading;
+            button.innerHTML = isLoading
+                ? 'Šaljem <i class="fa fa-spinner fa-spin ml-1"></i>'
+                : 'Pošalji';
         }
     </script>
 

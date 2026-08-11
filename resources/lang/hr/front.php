@@ -294,6 +294,13 @@ return [
         'title' => 'Iz medija',
         'meta_title' => 'Iz medija - Antikvarijat Biblos',
         'meta_description' => 'Medijske objave, članci i obavijesti - Antikvarijat Biblos',
+        'intro' => 'Priče, razgovori i zanimljivosti iz svijeta knjiga i kulture.',
+        'read_article' => 'Pročitaj članak',
+        'reading_time' => ':minutes min čitanja',
+        'back_to_list' => 'Natrag na sve članke',
+        'newer_article' => 'Noviji članak',
+        'older_article' => 'Stariji članak',
+        'pagination_summary' => 'Prikazano :from–:to od :total članaka',
     ],
 
     'faq' => [

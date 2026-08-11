@@ -13,10 +13,7 @@
 @endif
 
 @push('meta_tags')
-    @if (isset($blogs))
-        <script src="{{ \App\Helpers\Asset::url('js/imagesloaded/imagesloaded.pkgd.min.js') }}"></script>
-        <script src="{{ \App\Helpers\Asset::url('js/shufflejs/dist/shuffle.min.js') }}"></script>
-    @else
+    @if (! isset($blogs))
         <meta property="article:published_time" content="{{ optional(\Illuminate\Support\Carbon::make($blog->publish_date ?: $blog->created_at))->toAtomString() }}">
         <meta property="article:modified_time" content="{{ optional(\Illuminate\Support\Carbon::make($blog->updated_at))->toAtomString() }}">
         <script type="application/ld+json">{!! \App\Helpers\StructuredData::toJson($blogSchema) !!}</script>
@@ -24,6 +21,7 @@
 @endpush
 
 @push('css_after')
+    <link rel="stylesheet" media="screen" href="{{ \App\Helpers\Asset::url('css/blog.css') }}">
     @if (! isset($blogs))
         <link rel="stylesheet" media="screen" href="{{ \App\Helpers\Asset::url('js/simple-lightbox.css') }}">
     @endif
@@ -31,29 +29,34 @@
 
 @section('content')
     <!-- Page Title-->
-    <div class=" bg-dark pt-4 pb-3" style="background-image: url({{ asset('media/img/farmer.png')  }});background-repeat: repeat">
-        <div class="container d-lg-block justify-content-end py-2 py-lg-3">
-            <div class="order-lg-2 mb-3 mb-lg-0 pb-lg-2">
-
+    <div class="blog-page-header bg-dark" style="background-image: url({{ asset('media/img/farmer.png') }});">
+        <div class="container py-4 py-lg-5">
+            <div class="mb-3">
                 <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb breadcrumb-dark flex-lg-nowrap justify-content-center ">
-                        <li class="breadcrumb-item"><a class="text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('index') }}"><i class="fa-solid fa-house"></i>{{ __('front.nav.home') }}</a></li>
-                           @if(isset($blogs))
-                     <li class="breadcrumb-item text-nowrap active" aria-current="page">{{ __('front.blog.title') }}</li>
-                @else
-              
-                      <li class="breadcrumb-item text-nowrap active" aria-current="page"><a class="text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('catalog.route.blog') }}">{{ __('front.blog.title') }}</a></li>
-                @endif
-                        
+                    <ol class="breadcrumb breadcrumb-dark justify-content-center mb-0">
+                        <li class="breadcrumb-item">
+                            <a class="text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('index') }}">
+                                <i class="fa-solid fa-house me-1" aria-hidden="true"></i>{{ __('front.nav.home') }}
+                            </a>
+                        </li>
+                        @if (isset($blogs))
+                            <li class="breadcrumb-item active" aria-current="page">{{ __('front.blog.title') }}</li>
+                        @else
+                            <li class="breadcrumb-item">
+                                <a href="{{ \App\Helpers\LocaleHelper::route('catalog.route.blog') }}">{{ __('front.blog.title') }}</a>
+                            </li>
+                            <li class="breadcrumb-item blog-breadcrumb-current active" aria-current="page">{{ $blog->title }}</li>
+                        @endif
                     </ol>
                 </nav>
-
             </div>
-            <div class="order-lg-1 pe-lg-4 text-center ">
-                @if(isset($blogs))
-                    <h1 class="h3 text-dark">{{ __('front.blog.title') }}</h1>
+
+            <div class="blog-page-heading mx-auto text-center">
+                @if (isset($blogs))
+                    <h1>{{ __('front.blog.title') }}</h1>
+                    <p class="mb-0">{{ __('front.blog.intro') }}</p>
                 @else
-                    <h1 class="h3 text-dark">{{ $blog->title }}</h1>
+                    <h1>{{ $blog->title }}</h1>
                 @endif
             </div>
         </div>
@@ -61,75 +64,145 @@
 
     @if(isset($blogs))
         <!-- Lista blogova -->
-        <div class="container pb-5 mb-2 mb-md-4">
-            <div class="pt-5 mt-md-2">
-                <!-- Entries grid-->
-                <div class="masonry-grid" data-columns="3">
-                    @foreach ($blogs as $blog)
-                        <article class="masonry-grid-item">
-                            <div class="card">
-                                <a class="blog-entry-thumb" href="{{ \App\Helpers\LocaleHelper::route('catalog.route.blog', ['blog' => $blog]) }}">
-                                    <img
-                                        class="card-img-top"
-                                        src="{{ $blog->thumb ?: $blog->image }}"
-                                        alt="{{ $blog->title }}"
-                                        loading="{{ $loop->index < 3 ? 'eager' : 'lazy' }}"
-                                        fetchpriority="{{ $loop->index < 2 ? 'high' : 'auto' }}"
-                                        decoding="async"
-                                        width="400">
-                                </a>
-                                <div class="card-body">
-                                    <h2 class="h6 blog-entry-title"><a href="{{ \App\Helpers\LocaleHelper::route('catalog.route.blog', ['blog' => $blog]) }}">{{ $blog->title }}</a></h2>
-                                    <p class="fs-sm">{{ $blog->short_description }}</p>
-                                </div>
-                                <div class="card-footer d-flex align-items-left fs-xs">
-                                    <div class="me-auto text-nowrap"><a class="blog-entry-meta-link text-nowrap" href="{{ \App\Helpers\LocaleHelper::route('catalog.route.blog', ['blog' => $blog]) }}">{{ \Carbon\Carbon::make($blog->created_at)->locale(app()->getLocale())->format('d.m.Y.') }}</a></div>
-                                </div>
-                            </div>
-                        </article>
-                    @endforeach
-                </div>
-
-                <div class="row py-md-3">
-                    <div class="col-lg-12">
-                        {{ $blogs->links() }}
-                    </div>
-                </div>
-            </div>
-        </div>
-    @else
-        <!-- Individualni blog -->
-        <div class="container pb-5">
-            <div class="row justify-content-center pt-5 mt-md-2">
-                <div class="col-lg-9">
-                    <div class="blog-gallery row pb-2">
-                        <div class="col-sm-12">
-                            <a class="gallery-item rounded-3 mb-grid-gutter" href="{{ $blog->image }}" data-bs-sub-html="&lt;h6 class=&quot;fs-sm text-light&quot;&gt;Gallery image caption #1&lt;/h6&gt;">
+        <main class="blog-index container py-4 py-md-5">
+            <div class="blog-grid">
+                @foreach ($blogs as $blog)
+                    @php
+                        $blogUrl = \App\Helpers\LocaleHelper::route('catalog.route.blog', ['blog' => $blog]);
+                        $publishedAt = \Illuminate\Support\Carbon::make($blog->publish_date ?: $blog->created_at);
+                        $cardImage = $blog->thumb ?: $blog->image;
+                    @endphp
+                    <article class="blog-card card">
+                        <a class="blog-card-image" href="{{ $blogUrl }}" aria-label="{{ __('front.blog.read_article') }}: {{ $blog->title }}">
+                            @if ($cardImage)
                                 <img
-                                    class="img-fluid rounded-3"
-                                    src="{{ $blog->hero ?: $blog->image }}"
+                                    src="{{ $cardImage }}"
                                     alt="{{ $blog->title }}"
-                                    loading="eager"
-                                    fetchpriority="high"
-                                    decoding="async">
-                                <span class="gallery-item-caption">{{ $blog->title }}</span>
+                                    loading="{{ $loop->index < 3 ? 'eager' : 'lazy' }}"
+                                    fetchpriority="{{ $loop->index < 2 ? 'high' : 'auto' }}"
+                                    decoding="async"
+                                    width="600"
+                                    height="375">
+                            @else
+                                <span class="blog-card-image-placeholder" aria-hidden="true">
+                                    <i class="fa-regular fa-book-open"></i>
+                                </span>
+                            @endif
+                        </a>
+
+                        <div class="blog-card-body card-body">
+                            @if ($publishedAt)
+                                <time class="blog-card-date" datetime="{{ $publishedAt->toDateString() }}">
+                                    <i class="fa-regular fa-calendar" aria-hidden="true"></i>
+                                    {{ $publishedAt->locale(app()->getLocale())->format('d.m.Y.') }}
+                                </time>
+                            @endif
+
+                            <h2 class="blog-card-title">
+                                <a href="{{ $blogUrl }}">{{ $blog->title }}</a>
+                            </h2>
+
+                            @if ($blog->short_description)
+                                <p class="blog-card-description">{{ $blog->short_description }}</p>
+                            @endif
+
+                            <a class="blog-card-link" href="{{ $blogUrl }}">
+                                {{ __('front.blog.read_article') }}
+                                <i class="fa-regular fa-arrow-right" aria-hidden="true"></i>
                             </a>
                         </div>
+                    </article>
+                @endforeach
+            </div>
+
+            @include('front.blog.partials.pagination', ['paginator' => $blogs])
+        </main>
+    @else
+        <!-- Individualni blog -->
+        @php
+            $publishedAt = \Illuminate\Support\Carbon::make($blog->publish_date ?: $blog->created_at);
+        @endphp
+        <main class="blog-article-page container py-4 py-md-5">
+            <article class="blog-article mx-auto">
+                <header class="blog-article-intro">
+                    <div class="blog-article-meta">
+                        @if ($publishedAt)
+                            <time datetime="{{ $publishedAt->toDateString() }}">
+                                <i class="fa-regular fa-calendar" aria-hidden="true"></i>
+                                {{ $publishedAt->locale(app()->getLocale())->format('d.m.Y.') }}
+                            </time>
+                            <span class="blog-meta-separator" aria-hidden="true"></span>
+                        @endif
+                        <span>
+                            <i class="fa-regular fa-clock" aria-hidden="true"></i>
+                            {{ __('front.blog.reading_time', ['minutes' => $readingMinutes]) }}
+                        </span>
                     </div>
+
+                    @if ($articleLead)
+                        <p class="blog-article-lead">{{ $articleLead }}</p>
+                    @endif
+                </header>
+
+                @if ($blog->image)
+                    <figure class="blog-gallery blog-article-hero">
+                        <a href="{{ $blog->image }}" aria-label="{{ $blog->title }}">
+                            <img
+                                src="{{ $blog->hero ?: $blog->image }}"
+                                alt="{{ $blog->title }}"
+                                loading="eager"
+                                fetchpriority="high"
+                                decoding="async">
+                        </a>
+                        <figcaption class="visually-hidden">{{ $blog->title }}</figcaption>
+                    </figure>
+                @endif
+
+                <div class="blog-article-content">
                     {!! $blog->description !!}
                 </div>
-            </div>
-        </div>
+
+                <footer class="blog-article-footer">
+                    <a class="btn btn-outline-primary" href="{{ \App\Helpers\LocaleHelper::route('catalog.route.blog') }}">
+                        <i class="fa-regular fa-arrow-left me-2" aria-hidden="true"></i>{{ __('front.blog.back_to_list') }}
+                    </a>
+                </footer>
+            </article>
+
+            @if ($newerBlog || $olderBlog)
+                <nav class="blog-article-navigation mx-auto" aria-label="{{ __('front.js.pagination.navigation') }}">
+                    @if ($newerBlog)
+                        <a class="blog-article-navigation-item blog-article-navigation-item--newer" href="{{ \App\Helpers\LocaleHelper::route('catalog.route.blog', ['blog' => $newerBlog]) }}">
+                            <i class="fa-regular fa-arrow-left" aria-hidden="true"></i>
+                            <span>
+                                <small>{{ __('front.blog.newer_article') }}</small>
+                                <strong>{{ $newerBlog->title }}</strong>
+                            </span>
+                        </a>
+                    @endif
+
+                    @if ($olderBlog)
+                        <a class="blog-article-navigation-item blog-article-navigation-item--older" href="{{ \App\Helpers\LocaleHelper::route('catalog.route.blog', ['blog' => $olderBlog]) }}">
+                            <span>
+                                <small>{{ __('front.blog.older_article') }}</small>
+                                <strong>{{ $olderBlog->title }}</strong>
+                            </span>
+                            <i class="fa-regular fa-arrow-right" aria-hidden="true"></i>
+                        </a>
+                    @endif
+                </nav>
+            @endif
+        </main>
     @endif
 
 @endsection
 
 @push('js_after')
-    @if (! isset($blogs))
+    @if (! isset($blogs) && $blog->image)
         <script src="{{ \App\Helpers\Asset::url('js/simple-lightbox.js') }}"></script>
         <script>
             (function () {
-                var $gallery = new SimpleLightbox('.blog-gallery a', {});
+                new SimpleLightbox('.blog-gallery a', {});
             })();
         </script>
     @endif

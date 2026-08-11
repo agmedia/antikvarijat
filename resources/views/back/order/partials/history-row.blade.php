@@ -11,7 +11,9 @@
         <span class="font-weight-light admin-history-date">{{ \Illuminate\Support\Carbon::make($record->created_at)->format('d.m.Y. H:i') }}</span>
     </td>
     <td data-label="Korisnik">
-        <a href="javascript:void(0)">{{ $record->user ? $record->user->name : $order->shipping_fname . ' ' . $order->shipping_lname }}</a>
+        <a href="javascript:void(0)">
+            {{ $record->user ? $record->user->name : ((int) $record->user_id === 0 ? 'Sustav' : $order->shipping_fname . ' ' . $order->shipping_lname) }}
+        </a>
     </td>
     <td data-label="Komentar">{{ $record->comment }}</td>
 </tr>

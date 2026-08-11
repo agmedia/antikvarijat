@@ -302,6 +302,7 @@ Route::middleware(['auth:sanctum', 'verified', 'no.administrators'])->prefix('mo
     Route::get('/', [CustomerController::class, 'index'])->name('moj-racun');
     Route::patch('/snimi/{user}', [CustomerController::class, 'save'])->name('moj-racun.snimi');
     Route::get('/narudzbe', [CustomerController::class, 'orders'])->name('moje-narudzbe');
+    Route::post('/narudzbe/{order}/tracking/osvjezi', [CustomerController::class, 'refreshOrderTracking'])->name('moje-narudzbe.tracking.refresh');
     Route::get('/dojmovi', [CustomerController::class, 'reviews'])->name('moji-dojmovi');
     Route::get('/preporuke', [CustomerController::class, 'recommendations'])->name('preporuke-za-vas');
 });
@@ -310,6 +311,7 @@ Route::middleware(['auth:sanctum', 'verified', 'no.administrators'])->prefix('en
     Route::get('/', [CustomerController::class, 'index'])->name('moj-racun');
     Route::patch('/save/{user}', [CustomerController::class, 'save'])->name('moj-racun.snimi');
     Route::get('/orders', [CustomerController::class, 'orders'])->name('moje-narudzbe');
+    Route::post('/orders/{order}/tracking/refresh', [CustomerController::class, 'refreshOrderTracking'])->name('moje-narudzbe.tracking.refresh');
     Route::get('/reviews', [CustomerController::class, 'reviews'])->name('moji-dojmovi');
     Route::get('/recommendations', [CustomerController::class, 'recommendations'])->name('preporuke-za-vas');
 });
@@ -383,6 +385,8 @@ Route::prefix('api/v2')->group(function () {
                 Route::post('destroy', [OrderStatusController::class, 'destroy'])->name('api.order.status.destroy');
                 Route::post('change', [OrderController::class, 'api_status_change'])->name('api.order.status.change');
                 Route::post('send/gls', [OrderController::class, 'api_send_gls'])->name('api.order.send.gls');
+                Route::post('send/tracking-email', [OrderController::class, 'api_send_tracking_email'])->name('api.order.send.tracking-email');
+                Route::post('tracking/refresh', [OrderController::class, 'api_refresh_tracking'])->name('api.order.tracking.refresh');
             });
             // PAYMENTS
             Route::prefix('payment')->group(function () {

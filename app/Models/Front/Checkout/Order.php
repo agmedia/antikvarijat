@@ -18,6 +18,11 @@ use Illuminate\Support\Facades\Schema;
 class Order extends Model
 {
 
+    protected $casts = [
+        'shipping_tracking_updated_at' => 'datetime',
+        'shipping_tracking_payload' => 'array',
+    ];
+
     /**
      * @var array
      */

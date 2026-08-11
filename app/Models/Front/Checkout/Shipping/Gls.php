@@ -41,12 +41,9 @@ class Gls
             ini_set('memory_limit', '1024M');
             ini_set('max_execution_time', 600);
 
-            //Test ClientNumber:
-            $clientNumber = 380006286; //!!!NOT FOR CUSTOMER TESTING, USE YOUR OWN, USE YOUR OWN!!!
-            //Test username:
-            $username = "info@antikvarijat-biblos.hr"; //!!!NOT FOR CUSTOMER TESTING, USE YOUR OWN, USE YOUR OWN!!!
-            //Test password:
-            $pwd      = "Frankrsto2013"; //!!!NOT FOR CUSTOMER TESTING, USE YOUR OWN, USE YOUR OWN!!!
+            $clientNumber = (int) config('services.gls.client_number');
+            $username = (string) config('services.gls.username');
+            $pwd = (string) config('services.gls.password');
             $password = hash('sha512', $pwd, true);
 
 
@@ -116,17 +113,32 @@ class Gls
 
 
             //The service URL:
-            $wsdl = "https://api.mygls.hr/SERVICE_NAME.svc?singleWsdl";
+            $wsdl = str_replace('ParcelService', 'SERVICE_NAME', (string) config('services.gls.wsdl'));
 
-            $soapOptions = array('soap_version' => SOAP_1_1, 'stream_context' => stream_context_create(array('ssl' => array('cafile' => 'cacert.pem'))));
+            $soapOptions = array('soap_version' => SOAP_1_1);
+
+            if (file_exists(base_path('cacert.pem'))) {
+                $soapOptions['stream_context'] = stream_context_create(array(
+                    'ssl' => array('cafile' => base_path('cacert.pem')),
+                ));
+            }
 
             //Parcel service:
             $serviceName = "ParcelService";
 
             return $this->PrepareLabels($username, $password, $parcels, str_replace("SERVICE_NAME", $serviceName, $wsdl), $soapOptions, $this->order);
 
-        } catch (Exception $e) {
-            echo $e->getMessage();
+        } catch (\Throwable $e) {
+            Log::error('GLS shipment creation failed.', [
+                'order_id' => data_get($this->order, 'id'),
+                'error' => $e->getMessage(),
+            ]);
+
+            return [
+                'PrepareLabelsError' => [
+                    ['ErrorDescription' => $e->getMessage()],
+                ],
+            ];
         }
     }
 
@@ -205,12 +217,38 @@ class Gls
 
         //Service calling:
         $response = $client->PrepareLabels($request);
+        $prepareLabelsResult = $response->PrepareLabelsResult ?? null;
+        $prepareLabelsErrors = json_decode(json_encode(
+            $prepareLabelsResult->PrepareLabelsError
+                ?? $prepareLabelsResult->PrepareLabelsErrorList
+                ?? []
+        ), true) ?: [];
+        $parcelInfoList = json_decode(json_encode($prepareLabelsResult->ParcelInfoList ?? []), true) ?: [];
 
         $parcelIdList = [];
-        if ($response != null && count((array) $response->PrepareLabelsResult->PrepareLabelsError) == 0 && count((array) $response->PrepareLabelsResult->ParcelInfoList) > 0) {
-            $parcelIdList[] = $response->PrepareLabelsResult->ParcelInfoList->ParcelInfo->ParcelId;
-            $order->update(['printed' => 1]);
+        $parcelNumberList = [];
+        $parcelInfo = $parcelInfoList['ParcelInfo'] ?? $parcelInfoList;
 
+        if (isset($parcelInfo['ParcelId']) || isset($parcelInfo['ParcelNumber'])) {
+            $parcelInfo = [$parcelInfo];
+        }
+
+        foreach ($parcelInfo as $info) {
+            if (! is_array($info)) {
+                continue;
+            }
+
+            if (! empty($info['ParcelId'])) {
+                $parcelIdList[] = $info['ParcelId'];
+            }
+
+            if (! empty($info['ParcelNumber'])) {
+                $parcelNumberList[] = $info['ParcelNumber'];
+            }
+        }
+
+        if ($response !== null && empty($prepareLabelsErrors) && ! empty($parcelIdList)) {
+            $order->update(['printed' => 1]);
         }
 
         //Test request:
@@ -220,7 +258,13 @@ class Gls
                                          'PrintPosition'   => 1,
                                          'ShowPrintDialog' => 0);
 
-        return $getPrintedLabelsRequest;
+        return [
+            'ParcelIdList' => $parcelIdList,
+            'ParcelNumberList' => $parcelNumberList,
+            'PrepareLabelsError' => $prepareLabelsErrors,
+            'ParcelInfoList' => $parcelInfoList,
+            'GetPrintedLabelsRequest' => $getPrintedLabelsRequest,
+        ];
     }
 
 

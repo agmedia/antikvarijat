@@ -59,6 +59,15 @@ return [
         'access_code' => env('VIALIBRI_ACCESS_CODE'),
     ],
 
+    'gls' => [
+        'client_number' => env('GLS_CLIENT_NUMBER', 380006286),
+        'username' => env('GLS_USERNAME', 'info@antikvarijat-biblos.hr'),
+        'password' => env('GLS_PASSWORD', 'Frankrsto2013'),
+        'wsdl' => env('GLS_WSDL', 'https://api.mygls.hr/ParcelService.svc?singleWsdl'),
+        'language' => env('GLS_LANGUAGE', 'HR'),
+        'tracking_url' => env('GLS_TRACKING_URL', 'https://gls-group.com/HR/hr/pracenje-posiljke/'),
+    ],
+
     /*******************************************************************************
      *                              END Copyright : AGmedia                         *
      *******************************************************************************/

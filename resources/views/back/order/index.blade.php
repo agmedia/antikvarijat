@@ -232,6 +232,14 @@
                                                 {{ number_format($order->total, 2, ',', '.') }} kn
                                             @endif
                                         </strong>
+                                        @if($order->shipping_tracking_status)
+                                            <small class="text-muted">
+                                                <i class="fa-duotone fa-truck-fast mr-1" aria-hidden="true"></i>
+                                                {{ $order->shipping_tracking_status }}
+                                            </small>
+                                        @elseif($order->tracking_code)
+                                            <small class="text-muted">GLS #{{ $order->tracking_code }}</small>
+                                        @endif
                                     </div>
                                 </td>
                                 <td class="text-right" data-label="Radnje">

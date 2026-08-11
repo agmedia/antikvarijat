@@ -33,6 +33,9 @@ class Order extends Model
 
     protected $casts = [
         'unfinished_at' => 'datetime',
+        'shipping_tracking_updated_at' => 'datetime',
+        'shipping_tracking_email_sent_at' => 'datetime',
+        'shipping_tracking_payload' => 'array',
     ];
 
     /**

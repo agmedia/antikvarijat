@@ -1,7 +1,9 @@
 @extends('front.layouts.app')
 
 @section('content')
+    @php($trackingService = app(\App\Services\Shipping\OrderTrackingService::class))
     @foreach ($orders as $order)
+        @php($trackingUrl = $trackingService->trackingUrlForOrder($order))
         <div class="modal fade" id="order-details{{ $order->id }}" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg modal-dialog-scrollable">
                 <div class="modal-content">
@@ -31,6 +33,25 @@
                                 <div class="pt-2 ps-sm-3 text-center"><span class="text-muted d-block mb-2">{{ __('front.general.total') }}</span>{{ number_format($orderProduct->total, 2, ',', '.') }} €</div>
                             </div>
                         @endforeach
+
+                        @if($order->shipping_tracking_status || $order->tracking_code || $order->shipping_parcel_id)
+                            <div class="alert alert-secondary mb-4">
+                                <div class="fw-semibold mb-1">GLS praćenje pošiljke</div>
+                                @if($order->shipping_tracking_status)
+                                    <div>{{ $order->shipping_tracking_status }}</div>
+                                @endif
+                                <div class="small text-muted mt-1">Broj pošiljke: {{ $order->tracking_code ?: $order->shipping_parcel_id }}</div>
+                                <div class="d-flex flex-wrap gap-2 mt-3">
+                                    @if($trackingUrl)
+                                        <a class="btn btn-sm btn-outline-primary" href="{{ $trackingUrl }}" target="_blank" rel="noopener">Prati na GLS stranici</a>
+                                    @endif
+                                    <form method="POST" action="{{ \App\Helpers\LocaleHelper::route('moje-narudzbe.tracking.refresh', ['order' => $order->id]) }}">
+                                        @csrf
+                                        <button class="btn btn-sm btn-outline-secondary" type="submit">Osvježi status</button>
+                                    </form>
+                                </div>
+                            </div>
+                        @endif
                     </div>
                     <div class="modal-footer flex-wrap justify-content-between bg-secondary fs-md">
                         @foreach ($order->totals as $total)
@@ -69,6 +90,7 @@
                                     <th>{{ __('front.account.order_number') }} #</th>
                                     <th>{{ __('front.account.date') }}</th>
                                     <th>{{ __('front.account.status') }}</th>
+                                    <th>Dostava</th>
                                     <th>{{ __('front.general.total') }}</th>
                                 </tr>
                                 </thead>
@@ -78,6 +100,16 @@
                                         <td class="py-3"><a class="fw-medium" href="#order-details{{ $order->id }}" data-bs-toggle="modal">#{{ $order->id }}</a></td>
                                         <td class="py-3">{{ \Illuminate\Support\Carbon::make($order->created_at)->format('d.m.Y') }}</td>
                                         <td class="py-3"><span class="badge bg-info m-0">{{ \App\Helpers\LocaleHelper::orderStatusTitle($order->status) }}</span></td>
+                                        <td class="py-3">
+                                            @if($order->shipping_tracking_status)
+                                                <span class="d-block small">{{ $order->shipping_tracking_status }}</span>
+                                                @if($trackingService->trackingUrlForOrder($order))
+                                                    <a class="small" href="{{ $trackingService->trackingUrlForOrder($order) }}" target="_blank" rel="noopener">Prati pošiljku</a>
+                                                @endif
+                                            @else
+                                                <span class="text-muted small">Nije dostupno</span>
+                                            @endif
+                                        </td>
                                         <td class="py-3">{{ number_format($order->total, 2, ',', '.') }} €</td>
                                     </tr>
                                 @endforeach

@@ -36,6 +36,9 @@ class Kernel extends ConsoleKernel
         $schedule->command('orders:send-abandoned-cart-reminders')
             ->everyMinute()
             ->withoutOverlapping();
+        $schedule->command('sync:shipment-tracking --limit=50 --stale-minutes=15')
+            ->everyFifteenMinutes()
+            ->withoutOverlapping();
     }
 
     /**
