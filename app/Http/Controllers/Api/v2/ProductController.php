@@ -7,11 +7,20 @@ use App\Models\Back\Catalog\Product\Product;
 use App\Models\Back\Catalog\Product\ProductImage;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
+    private const QUICK_EDIT_FIELDS = [
+        'polica',
+        'skl',
+        'year',
+        'dimensions',
+        'price',
+        'quantity',
+    ];
 
     /**
      * @param Request $request
@@ -68,19 +77,24 @@ class ProductController extends Controller
     public function changeStatus(Request $request)
     {
         if ($request->has('id')) {
-            $product = Product::where('id', $request->input('id'))->first();
+            $product = Product::query()->find($request->input('id'));
 
             if ($product) {
                 if ($request->input('value')) {
-                    $product->update([
-                        'status' => 1,
-                        'quantity' => $product->quantity ?: 1
-                    ]);
+                    $product->status = 1;
+                    $product->quantity = $product->quantity ?: 1;
                 } else {
-                    $product->update([
-                        'status' => 0,
-                        'quantity' => 0
-                    ]);
+                    $product->status = 0;
+                    $product->quantity = 0;
+                }
+
+                if ($product->isDirty(['status', 'quantity'])) {
+                    DB::transaction(function () use ($product) {
+                        $oldProduct = $product->historySnapshot();
+
+                        $product->save();
+                        $product->refresh()->addHistoryData('change', $oldProduct);
+                    });
                 }
 
                 return response()->json(['success' => 200]);
@@ -99,24 +113,46 @@ class ProductController extends Controller
     public function updateItem(Request $request)
     {
         if ($request->has('product')) {
-            $product = $request->input('product');
-            $target = $product['target'];
-            $currentValue = $product['item'][$target] ?? null;
-            $newValue = $product['new_value'];
+            $payload = $request->input('product');
+            $target = $payload['target'] ?? null;
+            $productId = $payload['item']['id'] ?? null;
+
+            if (! in_array($target, self::QUICK_EDIT_FIELDS, true) || ! $productId) {
+                return response()->json(['error' => 422], 422);
+            }
+
+            $product = Product::query()->find($productId);
+
+            if (! $product) {
+                return response()->json(['error' => 404], 404);
+            }
+
+            $currentValue = $product->getAttribute($target);
+            $newValue = $payload['new_value'] ?? null;
 
             if ($newValue === '...') {
                 $newValue = '';
             }
 
-            if ($target === 'skl') {
+            if (in_array($target, ['skl', 'quantity'], true)) {
                 $currentValue = ($currentValue === null || $currentValue === '') ? null : (int) $currentValue;
                 $newValue = $newValue === null ? null : trim((string) $newValue);
 
                 if ($newValue !== null && $newValue !== '' && ! ctype_digit($newValue)) {
-                    return response()->json(['error' => 422]);
+                    return response()->json(['error' => 422], 422);
                 }
 
-                $newValue = ($newValue === null || $newValue === '') ? null : (int) $newValue;
+                $newValue = ($newValue === null || $newValue === '')
+                    ? ($target === 'quantity' ? 0 : null)
+                    : (int) $newValue;
+            }
+
+            if ($target === 'price') {
+                if (! is_numeric($newValue) || (float) $newValue < 0) {
+                    return response()->json(['error' => 422], 422);
+                }
+
+                $newValue = (float) $newValue;
             }
 
             $hasChanged = $target === 'skl'
@@ -124,19 +160,20 @@ class ProductController extends Controller
                 : $currentValue != $newValue;
 
             if ($hasChanged) {
-                // If update price
-                if ($target == 'price' && $product['item']['special']) {
-                    $discount = Helper::calculateDiscount($product['item']['price'], $product['item']['special']);
-                    $new_special = Helper::calculateDiscountPrice($newValue, $discount);
+                $updates = [$target => $newValue];
 
-                    Product::where('id', $product['item']['id'])->update([
-                        'special' => $new_special
-                    ]);
+                if ($target === 'price' && ! empty($payload['item']['special'])) {
+                    $discount = Helper::calculateDiscount($product->price, $product->special);
+                    $new_special = Helper::calculateDiscountPrice($newValue, $discount);
+                    $updates['special'] = $new_special;
                 }
 
-                Product::where('id', $product['item']['id'])->update([
-                    $target => $newValue
-                ]);
+                DB::transaction(function () use ($product, $updates) {
+                    $oldProduct = $product->historySnapshot();
+
+                    $product->update($updates);
+                    $product->refresh()->addHistoryData('change', $oldProduct);
+                });
 
                 return response()->json([
                     'success' => 200,

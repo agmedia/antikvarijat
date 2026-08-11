@@ -214,8 +214,8 @@ class ProductHistory extends Model
         }
 
         // Polica changed
-        if ($this->old['polica'] != $this->new['polica']) {
-            $this->changed .= '<li>Promjenjena polica: <b>' . $this->old['polica'] . '</b> u <b>' . $this->new['polica'] . '</b></li>';
+        if (($this->old['polica'] ?? null) != ($this->new['polica'] ?? null)) {
+            $this->changed .= '<li>Promjenjena polica: <b>' . ($this->old['polica'] ?? '') . '</b> u <b>' . ($this->new['polica'] ?? '') . '</b></li>';
         }
 
         // Description changed

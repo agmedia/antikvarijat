@@ -279,7 +279,7 @@ class Product extends Model
      */
     public function edit()
     {
-        $this->old_product = $this->setHistoryProduct();
+        $this->old_product = $this->historySnapshot();
 
         $slug = $this->resolveSlug('update');
 
@@ -366,13 +366,28 @@ class Product extends Model
         return (new ProductImage())->store($product, $this->request);
     }
 
-    public function addHistoryData(string $type)
+    public function addHistoryData(string $type, ?array $oldProduct = null)
     {
-        $new = $this->setHistoryProduct();
+        $new = $this->historySnapshot();
 
-        $history = new ProductHistory([], $new, $this->old_product);
+        $history = new ProductHistory([], $new, $oldProduct ?? $this->old_product);
 
         return $history->addData($type);
+    }
+
+    /**
+     * Capture the complete product state used by the admin change history.
+     */
+    public function historySnapshot(): array
+    {
+        $product = $this->newQuery()->findOrFail($this->id);
+
+        $response                = $product->toArray();
+        $response['category']    = $product->category() ? $product->category()->toArray() : [];
+        $response['subcategory'] = $product->subcategory() ? $product->subcategory()->toArray() : [];
+        $response['images']      = $product->images()->get()->toArray();
+
+        return $response;
     }
 
     /**
@@ -508,23 +523,6 @@ class Product extends Model
     private function setRequest($request)
     {
         $this->request = $request;
-    }
-
-    private function setHistoryProduct()
-    {
-        $product = $this->where('id', $this->id)->first();
-
-        $response             = $product->toArray();
-        $response['category'] = [];
-
-        if ($product->category()) {
-            $response['category'] = $product->category()->toArray();
-        }
-
-        $response['subcategory'] = $product->subcategory() ? $product->subcategory()->toArray() : [];
-        $response['images']      = $product->images()->get()->toArray();
-
-        return $response;
     }
 
     private function cleanHTML($description = null): string
