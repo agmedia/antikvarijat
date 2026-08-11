@@ -16,11 +16,11 @@
     $clearFilterUrl = url()->current().($clearFilterQuery ? '?'.http_build_query($clearFilterQuery) : '');
 @endphp
 
-<aside class="col-lg-3 catalog-filter-column">
+<aside class="col-lg-3 catalog-filter-column" aria-labelledby="catalog-filter-title">
     <div class="offcanvas offcanvas-collapse bg-white w-100 catalog-shop-sidebar catalog-filter-panel" id="shop-sidebar">
         <div class="offcanvas-cap catalog-filter-header align-items-center">
             <div class="d-flex align-items-center gap-2">
-                <h2 class="mb-0"><i class="fa-solid fa-sliders" aria-hidden="true"></i><span>{{ __('front.js.filter.filter') }}</span></h2>
+                <h2 class="mb-0" id="catalog-filter-title"><i class="fa-solid fa-sliders" aria-hidden="true"></i><span>{{ __('front.js.filter.filter') }}</span></h2>
                 @if ($activeFilterCount)
                     <span class="catalog-filter-active-count">{{ $activeFilterCount }}</span>
                 @endif

@@ -55,6 +55,8 @@ return [
     'catalog' => [
         'group_description' => 'Pregledajte aktualnu ponudu iz odjela :name u Antikvarijatu Biblos. Dostupni artikli mogu se odmah naručiti putem interneta.',
         'category_description' => 'Istražite dostupne artikle u kategoriji :name u ponudi Antikvarijata Biblos. Sigurna kupnja i dostava.',
+        'paginated_title' => ':name – :page. stranica | Biblos',
+        'paginated_description' => ':name, :page. stranica ponude Antikvarijata Biblos. Pregledajte dostupna stara i rijetka izdanja.',
     ],
 
     'product' => [

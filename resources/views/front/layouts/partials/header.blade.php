@@ -165,12 +165,12 @@
                 </div>
             </section>
 
-            <section class="mobile-navigation-view{{ $initialMobileNavigationView === 'books' ? ' is-active' : '' }}" id="mobileNavigationBooks" data-mobile-nav-view="books" aria-hidden="{{ $initialMobileNavigationView === 'books' ? 'false' : 'true' }}">
+            <section class="mobile-navigation-view{{ $initialMobileNavigationView === 'books' ? ' is-active' : '' }}" id="mobileNavigationBooks" data-mobile-nav-view="books" aria-labelledby="mobileNavigationBooksTitle" aria-hidden="{{ $initialMobileNavigationView === 'books' ? 'false' : 'true' }}">
                 <div class="mobile-navigation-header mobile-navigation-subheader">
                     <button class="mobile-navigation-back" type="button" data-mobile-nav-back>
                         <i class="fa-regular fa-arrow-left" aria-hidden="true"></i><span>{{ __('front.nav.back') }}</span>
                     </button>
-                    <h2>{{ __('front.nav.books') }}</h2>
+                    <h2 id="mobileNavigationBooksTitle">{{ __('front.nav.books') }}</h2>
                     <button class="mobile-navigation-close" type="button" data-bs-dismiss="offcanvas" aria-label="{{ __('front.nav.close_menu') }}"><i class="fa-regular fa-xmark" aria-hidden="true"></i></button>
                 </div>
                 <div class="mobile-navigation-scroll mobile-category-view">
@@ -193,12 +193,12 @@
                 </div>
             </section>
 
-            <section class="mobile-navigation-view{{ $initialMobileNavigationView === 'maps' ? ' is-active' : '' }}" id="mobileNavigationMaps" data-mobile-nav-view="maps" aria-hidden="{{ $initialMobileNavigationView === 'maps' ? 'false' : 'true' }}">
+            <section class="mobile-navigation-view{{ $initialMobileNavigationView === 'maps' ? ' is-active' : '' }}" id="mobileNavigationMaps" data-mobile-nav-view="maps" aria-labelledby="mobileNavigationMapsTitle" aria-hidden="{{ $initialMobileNavigationView === 'maps' ? 'false' : 'true' }}">
                 <div class="mobile-navigation-header mobile-navigation-subheader">
                     <button class="mobile-navigation-back" type="button" data-mobile-nav-back>
                         <i class="fa-regular fa-arrow-left" aria-hidden="true"></i><span>{{ __('front.nav.back') }}</span>
                     </button>
-                    <h2>{{ __('front.nav.maps_and_vedute') }}</h2>
+                    <h2 id="mobileNavigationMapsTitle">{{ __('front.nav.maps_and_vedute') }}</h2>
                     <button class="mobile-navigation-close" type="button" data-bs-dismiss="offcanvas" aria-label="{{ __('front.nav.close_menu') }}"><i class="fa-regular fa-xmark" aria-hidden="true"></i></button>
                 </div>
                 <div class="mobile-navigation-scroll mobile-category-view">

@@ -55,6 +55,8 @@ return [
     'catalog' => [
         'group_description' => 'Browse the current :name selection at Antikvarijat Biblos. Available items can be ordered online.',
         'category_description' => 'Explore available items in the :name category at Antikvarijat Biblos. Secure ordering and delivery.',
+        'paginated_title' => ':name – Page :page | Biblos',
+        'paginated_description' => ':name, page :page of the Antikvarijat Biblos selection. Browse available old and rare editions.',
     ],
 
     'product' => [

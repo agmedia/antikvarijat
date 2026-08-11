@@ -6,6 +6,8 @@
     $subcat = $subcat ?? null;
     $author = $author ?? null;
     $publisher = $publisher ?? null;
+    $categoryEntity = null;
+    $categoryOgImage = null;
     $listingTitle = __('front.meta.default_title');
     $listingDescription = __('front.meta.default_description');
 
@@ -20,6 +22,14 @@
                 ?: $categoryEntity->title . ' - Antikvarijat Biblos';
             $listingDescription = trim((string) $categoryEntity->meta_description)
                 ?: __('front.catalog.category_description', ['name' => $categoryEntity->title]);
+        }
+    }
+
+    if ($categoryEntity) {
+        $categoryImage = trim((string) $categoryEntity->getRawOriginal('image'));
+
+        if ($categoryImage !== '' && ! str_ends_with($categoryImage, 'media/avatars/avatar0.jpg')) {
+            $categoryOgImage = \App\Support\AdminImage::url($categoryImage, null);
         }
     }
 
@@ -38,10 +48,26 @@
     } elseif (request()->routeIs('tag', 'en.tag')) {
         $listingTitle = __('front.search.results_for_tag') . ': ' . request()->input(config('settings.search_keyword')) . ' - Antikvarijat Biblos';
     }
+
+    $currentPage = max(1, (int) request()->query('page', 1));
+    if ($categoryEntity && ! $author && ! $publisher && $currentPage > 1) {
+        $listingTitle = __('front.catalog.paginated_title', [
+            'name' => $categoryEntity->title,
+            'page' => $currentPage,
+        ]);
+        $listingDescription = __('front.catalog.paginated_description', [
+            'name' => $categoryEntity->title,
+            'page' => $currentPage,
+        ]);
+    }
 @endphp
 @section('title', $listingTitle)
 @section('description', $listingDescription)
 @section('schema_page_type', 'CollectionPage')
+@if ($categoryOgImage)
+    @section('og_image', $categoryOgImage)
+    @section('og_image_alt', $categoryEntity->title)
+@endif
 
 @push('meta_tags')
     @if (! empty($crumbs))
@@ -78,6 +104,8 @@
 
 
 @section('content')
+
+    <main id="main-content">
 
     <!-- Page Title-->
     <div class="page-title-overlap bg-light pt-4 catalog-page-title">
@@ -231,5 +259,7 @@
             @endif
         </section>
     @endif
+
+    </main>
 
 @endsection
