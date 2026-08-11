@@ -279,6 +279,7 @@ return [
         'intro_line_2' => 'te zemljovida i veduta',
         'items' => 'Artikala',
         'customers' => 'Kupaca',
+        'google_rating_label' => 'Google ocjena :rating od 5 na temelju :count recenzija',
         'purchase_terms' => 'Uvjeti kupnje',
         'contract_withdrawal' => 'Jednostrani raskid ugovora',
         'book_purchase' => 'Otkup knjiga',

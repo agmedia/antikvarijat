@@ -23,6 +23,12 @@ products-view > section {
         width: 25%;
     }
 
+    .catalog-filter-column {
+        position: sticky;
+        top: 10.75rem;
+        align-self: flex-start;
+    }
+
     products-view > section {
         flex: 0 0 auto;
         width: 75%;
@@ -43,6 +49,12 @@ products-view > section {
 
 #filter-app {
     overflow-x: hidden;
+}
+
+@media (min-width: 992px) {
+    #filter-app {
+        overflow-x: clip;
+    }
 }
 
 .catalog-shop-sidebar {
@@ -658,7 +670,7 @@ body.catalog-filter-open {
 
 #shop-categories,
 .catalog-category-list {
-    max-height: 30rem;
+    max-height: clamp(16rem, 36vh, 22rem);
     overflow-y: auto;
 }
 

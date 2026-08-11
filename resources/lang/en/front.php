@@ -323,6 +323,7 @@ return [
         'intro_line_2' => 'maps and views',
         'items' => 'Items',
         'customers' => 'Customers',
+        'google_rating_label' => 'Google rating :rating out of 5 based on :count reviews',
         'purchase_terms' => 'Purchase terms',
         'contract_withdrawal' => 'Contract withdrawal',
         'book_purchase' => 'Book purchase',

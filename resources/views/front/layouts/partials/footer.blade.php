@@ -1,6 +1,8 @@
 <!-- Footer-->
 <footer class="bg-light pt-5" style="background-image: url({{ asset('media/img/farmer.png') }});background-repeat: repeat">
-    @php($isEnglish = app()->getLocale() === \App\Helpers\LocaleHelper::ENGLISH_LOCALE)
+    @php
+        $isEnglish = app()->getLocale() === \App\Helpers\LocaleHelper::ENGLISH_LOCALE;
+    @endphp
 
     <div class="container pt-2 pb-3">
         <div class="row">
@@ -8,15 +10,40 @@
                 <div class="text-nowrap mb-3 d-none d-sm-block"><a class="d-inline-block align-middle mt-n2 me-2" href="#"><img class="d-block" src="{{ asset('media/img/logodark.svg') }}" width="180" height="76" alt="Antikvarijat Biblos"></a></div>
                 <p class="fs-md text-dark  pb-1 d-none d-sm-block">{{ __('front.footer.intro_line_1') }}<br> {{ __('front.footer.intro_line_2') }}</p>
                 <h6 class="d-inline-block pe-3 me-3 border-end border-light"><span class="text-primary">{{ $products }} </span><span class="fw-normal text-dark">{{ __('front.footer.items') }}</span></h6>
-                <h6 class="d-inline-block pe-3 me-3 "><span class="text-primary">{{ $users + 850 }} </span><span class="fw-normal text-dark">{{ __('front.footer.customers') }}</span></h6>
+                <h6 class="d-inline-block pe-3 me-3 "><span class="text-primary">{{ $customers }} </span><span class="fw-normal text-dark">{{ __('front.footer.customers') }}</span></h6>
 
-                <div class="widget mt-4 text-md-nowrap text-center text-md-start">
-                    <a class="btn-social bs-drk bs-instagram me-2 mb-2" href="https://www.instagram.com/antikvarijat_biblos/"><i class="fa-brands fa-instagram" aria-hidden="true"></i></a>
-                    <a class="btn-social bs-dark bs-facebook me-2 mb-2" href="https://www.facebook.com/AntikvarijatBiblos/"><i class="fa-brands fa-facebook-f" aria-hidden="true"></i></a>
-                    <a class="btn-social bs-dark bs-google d-inline-flex w-auto align-items-center justify-content-center gap-2 px-3 me-2 mb-2" href="https://www.google.com/maps?cid=13117805627465473758" target="_blank" rel="noopener noreferrer" aria-label="Google recenzije">
-                        <i class="fa-brands fa-google" aria-hidden="true"></i>
-                        <span>Google recenzije</span>
-                    </a>
+                <div class="widget footer-social-links mt-4">
+                    <a class="btn-social bs-drk bs-instagram" href="https://www.instagram.com/antikvarijat_biblos/"><i class="fa-brands fa-instagram" aria-hidden="true"></i></a>
+                    <a class="btn-social bs-dark bs-facebook" href="https://www.facebook.com/AntikvarijatBiblos/"><i class="fa-brands fa-facebook-f" aria-hidden="true"></i></a>
+                    <div class="google-review-badge">
+                        <a class="btn-social bs-dark bs-google d-inline-flex w-auto align-items-center justify-content-center gap-2 px-3" href="https://www.google.com/maps?cid=13117805627465473758" target="_blank" rel="noopener noreferrer" aria-label="Google recenzije">
+                            <i class="fa-brands fa-google" aria-hidden="true"></i>
+                            <span>Google recenzije</span>
+                        </a>
+                        @if ($googleRating)
+                            @php
+                                $rating = (float) $googleRating['rating'];
+                                $ratingText = number_format($rating, 1, $isEnglish ? '.' : ',', '');
+                                $reviewCount = (int) $googleRating['review_count'];
+                                $reviewCountText = number_format($reviewCount, 0, $isEnglish ? '.' : ',', $isEnglish ? ',' : '.');
+                            @endphp
+                            <a class="google-review-summary" href="https://www.google.com/maps?cid=13117805627465473758" target="_blank" rel="noopener noreferrer" aria-label="{{ __('front.footer.google_rating_label', ['rating' => $ratingText, 'count' => $reviewCountText]) }}">
+                                <strong class="google-review-summary__rating">{{ $ratingText }}</strong>
+                                <span class="star-rating" aria-hidden="true">
+                                    @for ($star = 1; $star <= 5; $star++)
+                                        @if ($rating >= $star - 0.25)
+                                            <i class="star-rating-icon fa-solid fa-star active"></i>
+                                        @elseif ($rating >= $star - 0.75)
+                                            <i class="star-rating-icon fa-solid fa-star-half-stroke active"></i>
+                                        @else
+                                            <i class="star-rating-icon fa-regular fa-star"></i>
+                                        @endif
+                                    @endfor
+                                </span>
+                                <span class="google-review-summary__count">({{ $reviewCountText }})</span>
+                            </a>
+                        @endif
+                    </div>
                 </div>
             </div>
             <!-- Mobile dropdown menu (visible on screens below md)-->

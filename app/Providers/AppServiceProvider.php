@@ -5,9 +5,9 @@ namespace App\Providers;
 use App\Models\Front\Catalog\Category;
 use App\Models\Front\Catalog\Product;
 use App\Models\Front\Page;
-use App\Models\User;
 use App\Models\ProductReview;
 use App\Models\Back\Marketing\Wishlist;
+use App\Services\CustomerMetricsService;
 use App\Services\GoogleLoginSettingsService;
 use Illuminate\Auth\Notifications\ResetPassword as ResetPasswordNotification;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -99,6 +99,8 @@ class AppServiceProvider extends ServiceProvider
 
         View::composer('front.layouts.partials.footer', function ($view) {
             $locale = app()->getLocale();
+            $googleRating = (float) config('services.google_reviews.rating', 0);
+            $googleReviewCount = (int) config('services.google_reviews.review_count', 0);
 
             $view->with([
                 'products' => $this->rememberFrontendViewData(
@@ -109,14 +111,20 @@ class AppServiceProvider extends ServiceProvider
                     },
                     0
                 ),
-                'users' => $this->rememberFrontendViewData(
-                    'front.shared.users_count.' . $locale,
+                'customers' => $this->rememberFrontendViewData(
+                    'front.shared.unique_buyers_count.' . $locale,
                     now()->addMinutes(15),
                     function () {
-                        return User::query()->count();
+                        return app(CustomerMetricsService::class)->uniqueBuyers();
                     },
                     0
                 ),
+                'googleRating' => $googleRating > 0 && $googleReviewCount > 0
+                    ? [
+                        'rating' => min(5.0, $googleRating),
+                        'review_count' => $googleReviewCount,
+                    ]
+                    : null,
             ]);
         });
 

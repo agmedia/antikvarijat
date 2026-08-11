@@ -55,6 +55,11 @@ return [
         'client_secret' => env('GOOGLE_LOGIN_CLIENT_SECRET'),
     ],
 
+    'google_reviews' => [
+        'rating' => env('GOOGLE_REVIEWS_RATING'),
+        'review_count' => env('GOOGLE_REVIEWS_COUNT'),
+    ],
+
     'vialibri' => [
         'access_code' => env('VIALIBRI_ACCESS_CODE'),
     ],
