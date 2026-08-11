@@ -264,6 +264,49 @@ body.catalog-filter-open {
     outline-offset: 4px;
 }
 
+.catalog-filter-back {
+    justify-content: flex-start;
+    width: 100%;
+    min-height: 2.85rem;
+    padding: .5rem .65rem;
+    border: 1px solid rgba(49, 72, 55, .16);
+    border-radius: .45rem;
+    background: #f4f7f5;
+    font-weight: 650;
+    text-decoration: none;
+    transition: background-color .16s ease, border-color .16s ease, color .16s ease, transform .16s ease;
+}
+
+.catalog-filter-back > i {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.7rem;
+    height: 1.7rem;
+    flex: 0 0 1.7rem;
+    border-radius: 999px;
+    background: #314837;
+    color: #fff;
+    font-size: .72rem;
+}
+
+.catalog-filter-back:hover,
+.catalog-filter-back:focus {
+    border-color: rgba(49, 72, 55, .3);
+    background: #eaf1ec;
+    color: #263b2d;
+    text-decoration: none;
+    transform: translateY(-1px);
+}
+
+.catalog-filter-back:focus-visible {
+    outline-offset: 2px;
+}
+
+.catalog-filter-back:active {
+    transform: translateY(0);
+}
+
 .catalog-filter-year-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1229,8 +1272,6 @@ body.catalog-filter-open {
 
     .catalog-filter-back {
         min-height: 2.75rem;
-        padding: 0 .15rem;
-        color: #6f634d;
     }
 
     .catalog-filter-year-grid .form-control,

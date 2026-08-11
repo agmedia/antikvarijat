@@ -223,8 +223,8 @@ body.swal2-shown #agapp[aria-hidden=true] {
     box-sizing: border-box;
 }
 
-.swal2-styled.cart-add-modal-cancel.btn,
-.swal2-styled.cart-add-modal-confirm.btn {
+.cart-add-modal-cancel.btn,
+.cart-add-modal-confirm.btn {
     width: 100%;
     margin: 0 !important;
     padding: 0.82rem 0.9rem;
@@ -234,24 +234,41 @@ body.swal2-shown #agapp[aria-hidden=true] {
     box-shadow: none;
 }
 
-.swal2-styled.cart-add-modal-confirm.btn {
+.cart-add-modal-confirm.btn {
     border: 1px solid #2f7d52 !important;
     background: #2f7d52 !important;
     color: #fff !important;
+    box-shadow: 0 0.35rem 0.9rem rgba(47, 125, 82, 0.18);
 }
 
-.swal2-styled.cart-add-modal-cancel.btn {
+.cart-add-modal-cancel.btn {
     border: 1px solid rgba(49, 72, 55, 0.7) !important;
     background: #ffffff !important;
     color: #314837 !important;
 }
 
-.swal2-styled.cart-add-modal-confirm.btn:hover {
+.cart-add-modal-confirm.btn:hover,
+.cart-add-modal-confirm.btn:focus {
     border-color: #286b46 !important;
     background: #286b46 !important;
+    color: #fff !important;
+    box-shadow: 0 0.45rem 1rem rgba(40, 107, 70, 0.24);
+    transform: translateY(-1px);
 }
 
-.swal2-styled.cart-add-modal-cancel.btn:hover {
+.cart-add-modal-confirm.btn:focus-visible {
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(47, 125, 82, 0.25), 0 0.45rem 1rem rgba(40, 107, 70, 0.22);
+}
+
+.cart-add-modal-confirm.btn:active {
+    border-color: #245f3e !important;
+    background: #245f3e !important;
+    box-shadow: none;
+    transform: translateY(0);
+}
+
+.cart-add-modal-cancel.btn:hover {
     background: #f4f5f2 !important;
 }
 
@@ -339,8 +356,8 @@ body.swal2-shown #agapp[aria-hidden=true] {
         gap: 0.55rem;
     }
 
-    .swal2-styled.cart-add-modal-cancel.btn,
-    .swal2-styled.cart-add-modal-confirm.btn {
+    .cart-add-modal-cancel.btn,
+    .cart-add-modal-confirm.btn {
         padding: 0.78rem 0.75rem;
         font-size: 0.84rem;
     }

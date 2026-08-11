@@ -667,7 +667,7 @@ return [
             'notify_availability' => 'Obavijesti me o dostupnosti',
             'add_modal' => [
                 'heading' => 'Knjiga je u košarici 📚',
-                'lead' => 'Odličan izbor! Možete nastaviti pregledavati ili dovršiti kupnju.',
+                'lead' => 'Možete nastaviti pregledavati ili dovršiti kupnju.',
                 'productFallback' => 'Odabrana knjiga',
                 'imageAlt' => 'Dodana knjiga',
                 'added' => 'Dodano',

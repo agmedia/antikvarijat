@@ -33,7 +33,7 @@ function labels() {
         close: 'Close'
     } : {
         heading: 'Knjiga je u košarici 📚',
-        lead: 'Odličan izbor! Možete nastaviti pregledavati ili dovršiti kupnju.',
+        lead: 'Možete nastaviti pregledavati ili dovršiti kupnju.',
         productFallback: 'Odabrana knjiga',
         imageAlt: 'Dodana knjiga',
         added: 'Dodano',
@@ -144,6 +144,7 @@ export function showCartAddSuccessModal(swal, payload = {}) {
         showCloseButton: true,
         showCancelButton: true,
         showConfirmButton: true,
+        reverseButtons: true,
         confirmButtonText: copy.confirm,
         cancelButtonText: copy.cancel,
         closeButtonAriaLabel: copy.close,
