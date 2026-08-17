@@ -354,6 +354,8 @@ return [
         'back_to_list' => 'Back to all articles',
         'newer_article' => 'Newer article',
         'older_article' => 'Older article',
+        'books_by_author' => 'Books by :author',
+        'view_selection' => 'View our selection',
         'pagination_summary' => 'Showing :from–:to of :total articles',
     ],
 

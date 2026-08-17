@@ -31,6 +31,7 @@ class Blog extends Model
      */
     protected $casts = [
         'hide_from_home_widget' => 'boolean',
+        'recommendation_product_ids' => 'array',
     ];
 
 

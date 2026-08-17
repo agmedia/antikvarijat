@@ -310,6 +310,8 @@ return [
         'back_to_list' => 'Natrag na sve članke',
         'newer_article' => 'Noviji članak',
         'older_article' => 'Stariji članak',
+        'books_by_author' => 'Knjige autora :author',
+        'view_selection' => 'Pogledajte ponudu',
         'pagination_summary' => 'Prikazano :from–:to od :total članaka',
     ],
 

@@ -42,6 +42,9 @@ class BlogWidgetTest extends TestCase
             $table->unsignedInteger('viewed')->default(0);
             $table->boolean('featured')->default(false);
             $table->boolean('hide_from_home_widget')->default(false);
+            $table->string('recommendation_type', 20)->default('none');
+            $table->unsignedBigInteger('recommendation_author_id')->nullable();
+            $table->text('recommendation_product_ids')->nullable();
             $table->boolean('status')->default(false);
             $table->string('title_en')->nullable();
             $table->text('short_description_en')->nullable();

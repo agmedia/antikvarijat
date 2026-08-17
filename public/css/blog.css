@@ -438,6 +438,59 @@
   text-align: right;
 }
 
+.blog-recommendations {
+  margin-top: clamp(2.5rem, 6vw, 4.5rem);
+}
+
+.blog-recommendations .product-recommendations__title {
+  margin-bottom: 1.5rem;
+  color: #314837;
+  text-align: center;
+}
+
+.blog-recommendations .product-recommendations__carousel--short {
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.blog-recommendations .product-recommendations__carousel--count-1 {
+  width: 50%;
+}
+
+@media (min-width: 768px) {
+  .blog-recommendations .product-recommendations__carousel--count-1 {
+    width: 33.333333%;
+  }
+  .blog-recommendations .product-recommendations__carousel--count-2 {
+    width: 66.666667%;
+  }
+}
+@media (min-width: 1100px) {
+  .blog-recommendations .product-recommendations__carousel--count-1 {
+    width: 25%;
+  }
+  .blog-recommendations .product-recommendations__carousel--count-2 {
+    width: 50%;
+  }
+  .blog-recommendations .product-recommendations__carousel--count-3 {
+    width: 75%;
+  }
+}
+@media (min-width: 1300px) {
+  .blog-recommendations .product-recommendations__carousel--count-1 {
+    width: 20%;
+  }
+  .blog-recommendations .product-recommendations__carousel--count-2 {
+    width: 40%;
+  }
+  .blog-recommendations .product-recommendations__carousel--count-3 {
+    width: 60%;
+  }
+  .blog-recommendations .product-recommendations__carousel--count-4 {
+    width: 80%;
+  }
+}
+
 @media (max-width: 575.98px) {
   .blog-page-header .container {
     padding-top: 1.25rem !important;

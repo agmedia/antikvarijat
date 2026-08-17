@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Back\Marketing;
 
 use App\Http\Controllers\Controller;
+use App\Models\Back\Catalog\Author;
+use App\Models\Back\Catalog\Product\Product;
 use App\Models\Back\Marketing\Blog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -40,7 +42,7 @@ class BlogController extends Controller
      */
     public function create()
     {
-        return view('back.marketing.blog.edit');
+        return view('back.marketing.blog.edit', $this->recommendationSelection());
     }
 
 
@@ -76,7 +78,10 @@ class BlogController extends Controller
      */
     public function edit(Blog $blog)
     {
-        return view('back.marketing.blog.edit', compact('blog'));
+        return view('back.marketing.blog.edit', array_merge(
+            compact('blog'),
+            $this->recommendationSelection($blog)
+        ));
     }
 
 
@@ -166,5 +171,94 @@ class BlogController extends Controller
         Storage::disk('blog')->putFileAs($path, $img, $name);
 
         return response()->json(['fileName' => $name, 'uploaded' => true, 'url' => url(config('filesystems.disks.blog.url') . $path . $name)]);
+    }
+
+    public function recommendationOptions(Request $request)
+    {
+        $validated = $request->validate([
+            'type' => 'required|in:author,product',
+            'q' => 'nullable|string|max:120',
+        ]);
+        $term = trim((string) ($validated['q'] ?? ''));
+
+        if ($validated['type'] === 'author') {
+            $authors = Author::query()
+                ->select(['id', 'title'])
+                ->whereHas('products', function ($products) {
+                    $products->where('status', 1)
+                        ->where('quantity', '>', 0)
+                        ->where('price', '!=', 0);
+                })
+                ->when($term !== '', fn ($query) => $query->where('title', 'like', '%' . $term . '%'))
+                ->orderBy('title')
+                ->limit(20)
+                ->get()
+                ->map(fn (Author $author) => [
+                    'id' => $author->id,
+                    'text' => $author->title,
+                ]);
+
+            return response()->json(['results' => $authors]);
+        }
+
+        $products = Product::query()
+            ->select(['id', 'name', 'sku', 'author_id'])
+            ->with('author:id,title')
+            ->where('status', 1)
+            ->where('quantity', '>', 0)
+            ->where('price', '!=', 0)
+            ->when($term !== '', function ($query) use ($term) {
+                $query->where(function ($search) use ($term) {
+                    $search->where('name', 'like', '%' . $term . '%')
+                        ->orWhere('sku', 'like', '%' . $term . '%')
+                        ->orWhereHas('author', fn ($author) => $author->where('title', 'like', '%' . $term . '%'));
+                });
+            })
+            ->orderBy('name')
+            ->limit(20)
+            ->get()
+            ->map(fn (Product $product) => [
+                'id' => $product->id,
+                'text' => $this->productOptionText($product),
+            ]);
+
+        return response()->json(['results' => $products]);
+    }
+
+    private function recommendationSelection(?Blog $blog = null): array
+    {
+        $authorId = old('recommendation_author_id', optional($blog)->recommendation_author_id);
+        $productIds = collect(old(
+            'recommendation_product_ids',
+            optional($blog)->recommendation_product_ids ?: []
+        ))
+            ->filter(fn ($id) => ctype_digit((string) $id) && (int) $id > 0)
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+
+        $selectedRecommendationAuthor = $authorId
+            ? Author::query()->select(['id', 'title'])->find($authorId)
+            : null;
+        $selectedRecommendationProducts = $productIds->isEmpty()
+            ? collect()
+            : Product::query()
+                ->select(['id', 'name', 'sku', 'author_id'])
+                ->with('author:id,title')
+                ->whereIn('id', $productIds)
+                ->get()
+                ->sortBy(fn (Product $product) => $productIds->search((int) $product->id))
+                ->values();
+
+        return compact('selectedRecommendationAuthor', 'selectedRecommendationProducts');
+    }
+
+    private function productOptionText(Product $product): string
+    {
+        return collect([
+            $product->name,
+            $product->sku ? 'Šifra: ' . $product->sku : null,
+            optional($product->author)->title,
+        ])->filter()->implode(' — ');
     }
 }

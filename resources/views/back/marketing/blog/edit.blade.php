@@ -17,6 +17,10 @@
     <div class="content content-full content-boxed">
         @include('back.layouts.partials.session')
 
+        @php
+            $recommendationType = old('recommendation_type', isset($blog) ? ($blog->recommendation_type ?: 'none') : 'none');
+        @endphp
+
         <form action="{{ isset($blog) ? route('blogs.update', ['blog' => $blog]) : route('blogs.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
             @if (isset($blog))
@@ -109,6 +113,68 @@
 
             <div class="block">
                 <div class="block-header block-header-default">
+                    <h3 class="block-title">Carousel knjiga uz članak</h3>
+                </div>
+                <div class="block-content">
+                    <p class="text-muted mb-3">
+                        Odaberite autora za automatski prikaz njegovih dostupnih knjiga ili ručno dodajte knjige u carousel.
+                    </p>
+
+                    <div class="form-group">
+                        <label class="d-block">Sadržaj carousela</label>
+                        <div class="custom-control custom-radio custom-control-inline">
+                            <input type="radio" class="custom-control-input" id="recommendation-none" name="recommendation_type" value="none" {{ $recommendationType === 'none' ? 'checked' : '' }}>
+                            <label class="custom-control-label" for="recommendation-none">Bez carousela</label>
+                        </div>
+                        <div class="custom-control custom-radio custom-control-inline">
+                            <input type="radio" class="custom-control-input" id="recommendation-author" name="recommendation_type" value="author" {{ $recommendationType === 'author' ? 'checked' : '' }}>
+                            <label class="custom-control-label" for="recommendation-author">Knjige autora</label>
+                        </div>
+                        <div class="custom-control custom-radio custom-control-inline">
+                            <input type="radio" class="custom-control-input" id="recommendation-products" name="recommendation_type" value="products" {{ $recommendationType === 'products' ? 'checked' : '' }}>
+                            <label class="custom-control-label" for="recommendation-products">Ručno odabrane knjige</label>
+                        </div>
+                        @error('recommendation_type')
+                            <div class="text-danger font-size-sm mt-2">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div id="recommendation-author-panel" class="form-group" style="{{ $recommendationType !== 'author' ? 'display: none;' : '' }}">
+                        <label for="recommendation-author-select">Autor</label>
+                        <select class="form-control" id="recommendation-author-select" name="recommendation_author_id" style="width: 100%;" {{ $recommendationType !== 'author' ? 'disabled' : '' }}>
+                            <option></option>
+                            @if ($selectedRecommendationAuthor)
+                                <option value="{{ $selectedRecommendationAuthor->id }}" selected>{{ $selectedRecommendationAuthor->title }}</option>
+                            @endif
+                        </select>
+                        <small class="form-text text-muted">Na stranici će se prikazati naslov “Knjige autora Ime autora”.</small>
+                        @error('recommendation_author_id')
+                            <div class="text-danger font-size-sm mt-1">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div id="recommendation-products-panel" class="form-group" style="{{ $recommendationType !== 'products' ? 'display: none;' : '' }}">
+                        <label for="recommendation-products-select">Knjige</label>
+                        <select class="form-control" id="recommendation-products-select" name="recommendation_product_ids[]" multiple style="width: 100%;" {{ $recommendationType !== 'products' ? 'disabled' : '' }}>
+                            @foreach ($selectedRecommendationProducts as $selectedProduct)
+                                <option value="{{ $selectedProduct->id }}" selected>
+                                    {{ collect([$selectedProduct->name, $selectedProduct->sku ? 'Šifra: ' . $selectedProduct->sku : null, optional($selectedProduct->author)->title])->filter()->implode(' — ') }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <small class="form-text text-muted">Možete odabrati do 20 knjiga. Naslov carousela bit će “Pogledajte ponudu”.</small>
+                        @error('recommendation_product_ids')
+                            <div class="text-danger font-size-sm mt-1">{{ $message }}</div>
+                        @enderror
+                        @error('recommendation_product_ids.*')
+                            <div class="text-danger font-size-sm mt-1">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+            </div>
+
+            <div class="block">
+                <div class="block-header block-header-default">
                     <h3 class="block-title">Meta Data - SEO</h3>
                 </div>
                 <div class="block-content">
@@ -189,12 +255,52 @@
 @push('js_after')
     <script src="{{ \App\Helpers\Asset::url('js/plugins/ckeditor5-classic/build/ckeditor.js') }}"></script>
     <script src="{{ \App\Helpers\Asset::url('js/plugins/flatpickr/flatpickr.min.js') }}"></script>
+    <script src="{{ \App\Helpers\Asset::url('js/plugins/select2/js/select2.full.min.js') }}"></script>
 
     <!-- Page JS Helpers (CKEditor 5 plugins) -->
     <script>jQuery(function(){Dashmix.helpers(['flatpickr']);});</script>
 
     <script>
         $(() => {
+            const recommendationEndpoint = @json(route('blogs.recommendations.search'));
+            const recommendationAjax = type => ({
+                url: recommendationEndpoint,
+                dataType: 'json',
+                delay: 250,
+                data: params => ({ type, q: params.term || '' }),
+                processResults: response => response,
+                cache: true,
+            });
+
+            $('#recommendation-author-select').select2({
+                ajax: recommendationAjax('author'),
+                allowClear: true,
+                minimumInputLength: 2,
+                placeholder: 'Pretražite autora...',
+            });
+
+            $('#recommendation-products-select').select2({
+                ajax: recommendationAjax('product'),
+                closeOnSelect: false,
+                maximumSelectionLength: 20,
+                minimumInputLength: 2,
+                placeholder: 'Pretražite po naslovu, šifri ili autoru...',
+            });
+
+            const updateRecommendationPanels = () => {
+                const type = $('input[name="recommendation_type"]:checked').val() || 'none';
+                const authorActive = type === 'author';
+                const productsActive = type === 'products';
+
+                $('#recommendation-author-panel').toggle(authorActive);
+                $('#recommendation-author-select').prop('disabled', !authorActive);
+                $('#recommendation-products-panel').toggle(productsActive);
+                $('#recommendation-products-select').prop('disabled', !productsActive);
+            };
+
+            $('input[name="recommendation_type"]').on('change', updateRecommendationPanels);
+            updateRecommendationPanels();
+
             ClassicEditor
             .create(document.querySelector('#description-editor'), {
                 ckfinder: {

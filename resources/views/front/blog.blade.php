@@ -174,6 +174,17 @@
                 </footer>
             </article>
 
+            @if ($recommendationProducts->isNotEmpty())
+                <div class="blog-recommendations widget-product-carousel">
+                    @include('front.catalog.product.partials.product-carousel', [
+                        'products' => $recommendationProducts,
+                        'title' => $recommendationTitle,
+                        'headingId' => 'blog-recommendations-title',
+                        'centerWhenShort' => true,
+                    ])
+                </div>
+            @endif
+
             @if ($newerBlog || $olderBlog)
                 <nav class="blog-article-navigation mx-auto" aria-label="{{ __('front.js.pagination.navigation') }}">
                     @if ($newerBlog)

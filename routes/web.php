@@ -179,6 +179,7 @@ Route::middleware(['auth:sanctum', 'verified', 'no.customers'])->prefix('admin')
 
         // BLOG
         Route::get('blogs', [BlogController::class, 'index'])->name('blogs');
+        Route::get('blog/recommendations/search', [BlogController::class, 'recommendationOptions'])->name('blogs.recommendations.search');
         Route::get('blog/create', [BlogController::class, 'create'])->name('blogs.create');
         Route::post('blog', [BlogController::class, 'store'])->name('blogs.store');
         Route::get('blog/{blog}/edit', [BlogController::class, 'edit'])->name('blogs.edit');

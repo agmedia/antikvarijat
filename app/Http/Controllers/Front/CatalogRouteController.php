@@ -636,13 +636,54 @@ class CatalogRouteController extends Controller
             ->reorder('created_at', 'desc')
             ->first($navigationColumns);
 
+        $recommendationProducts = collect();
+        $recommendationTitle = null;
+
+        if ($blog->recommendation_type === 'author' && $blog->recommendation_author_id) {
+            $recommendationAuthor = Author::query()->find($blog->recommendation_author_id);
+
+            if ($recommendationAuthor && Author::hasMeaningfulTitle($recommendationAuthor->title)) {
+                $recommendationProducts = $recommendationAuthor->products()
+                    ->withReviewSummary()
+                    ->with(['author', 'action'])
+                    ->latest('products.created_at')
+                    ->take(20)
+                    ->get();
+                $recommendationTitle = __('front.blog.books_by_author', [
+                    'author' => $recommendationAuthor->title,
+                ]);
+            }
+        } elseif ($blog->recommendation_type === 'products') {
+            $productIds = collect($blog->recommendation_product_ids)
+                ->filter(fn ($id) => is_numeric($id) && (int) $id > 0)
+                ->map(fn ($id) => (int) $id)
+                ->unique()
+                ->take(20)
+                ->values();
+
+            if ($productIds->isNotEmpty()) {
+                $recommendationProducts = Product::query()
+                    ->active()
+                    ->hasStock()
+                    ->withReviewSummary()
+                    ->with(['author', 'action'])
+                    ->whereIn('id', $productIds)
+                    ->get()
+                    ->sortBy(fn (Product $product) => $productIds->search((int) $product->id))
+                    ->values();
+                $recommendationTitle = __('front.blog.view_selection');
+            }
+        }
+
         return view('front.blog', compact(
             'blog',
             'blogSchema',
             'articleLead',
             'readingMinutes',
             'newerBlog',
-            'olderBlog'
+            'olderBlog',
+            'recommendationProducts',
+            'recommendationTitle'
         ));
     }
 

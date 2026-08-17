@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Intervention\Image\Facades\Image;
 
 class Blog extends Model
@@ -30,6 +31,7 @@ class Blog extends Model
      */
     protected $casts = [
         'hide_from_home_widget' => 'boolean',
+        'recommendation_product_ids' => 'array',
     ];
 
     /**
@@ -47,8 +49,30 @@ class Blog extends Model
      */
     public function validateRequest(Request $request)
     {
+        $request->merge([
+            'recommendation_type' => $request->input('recommendation_type', 'none'),
+        ]);
+
         $request->validate([
-            'title' => 'required'
+            'title' => 'required',
+            'recommendation_type' => ['required', Rule::in(['none', 'author', 'products'])],
+            'recommendation_author_id' => [
+                'nullable',
+                'integer',
+                'required_if:recommendation_type,author',
+                Rule::exists('authors', 'id'),
+            ],
+            'recommendation_product_ids' => [
+                'nullable',
+                'array',
+                'required_if:recommendation_type,products',
+                'max:20',
+            ],
+            'recommendation_product_ids.*' => [
+                'integer',
+                'distinct',
+                Rule::exists('products', 'id'),
+            ],
         ]);
 
         $this->request = $request;
@@ -64,6 +88,8 @@ class Blog extends Model
      */
     public function create()
     {
+        $recommendations = $this->recommendationData();
+
         $id = $this->insertGetId([
             'category_id'       => null,
             'group'             => 'blog',
@@ -84,6 +110,11 @@ class Blog extends Model
             'publish_date'      => $this->request->publish_date ? Carbon::make($this->request->publish_date) : null,
             'keywords'          => false,
             'hide_from_home_widget' => $this->request->input('hide_from_home_widget') === 'on',
+            'recommendation_type' => $recommendations['type'],
+            'recommendation_author_id' => $recommendations['author_id'],
+            'recommendation_product_ids' => $recommendations['product_ids']
+                ? json_encode($recommendations['product_ids'])
+                : null,
             'status'            => (isset($this->request->status) and $this->request->status == 'on') ? 1 : 0,
             'created_at'        => Carbon::now(),
             'updated_at'        => Carbon::now()
@@ -104,6 +135,8 @@ class Blog extends Model
      */
     public function edit()
     {
+        $recommendations = $this->recommendationData();
+
         $id = $this->update([
             'category_id'       => null,
             'group'             => 'blog',
@@ -124,6 +157,9 @@ class Blog extends Model
             'publish_date'      => $this->request->publish_date ? Carbon::make($this->request->publish_date) : null,
             'keywords'          => false,
             'hide_from_home_widget' => $this->request->input('hide_from_home_widget') === 'on',
+            'recommendation_type' => $recommendations['type'],
+            'recommendation_author_id' => $recommendations['author_id'],
+            'recommendation_product_ids' => $recommendations['product_ids'] ?: null,
             'status'            => (isset($this->request->status) and $this->request->status == 'on') ? 1 : 0,
             'updated_at'        => Carbon::now()
         ]);
@@ -189,5 +225,25 @@ class Blog extends Model
         }
 
         return $slug;
+    }
+
+    private function recommendationData(): array
+    {
+        $type = (string) $this->request->input('recommendation_type', 'none');
+        $productIds = collect($this->request->input('recommendation_product_ids', []))
+            ->filter(fn ($id) => ctype_digit((string) $id) && (int) $id > 0)
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->take(20)
+            ->values()
+            ->all();
+
+        return [
+            'type' => $type,
+            'author_id' => $type === 'author'
+                ? (int) $this->request->input('recommendation_author_id')
+                : null,
+            'product_ids' => $type === 'products' ? $productIds : [],
+        ];
     }
 }
