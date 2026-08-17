@@ -402,6 +402,8 @@
 
             const endpoint = @json(route('statistics.data'));
             const croatiaGeoJsonUrl = @json(asset('assets/croatia-counties.geojson'));
+            const latestStatisticsDate = localDate(@json($latestStatisticsDate->toDateString()));
+            const currentYear = {{ Carbon\Carbon::today()->year }};
             const fmtInteger = new Intl.NumberFormat('hr-HR', { maximumFractionDigits: 0 });
             const fmtDecimal = new Intl.NumberFormat('hr-HR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             const fmtCurrency = new Intl.NumberFormat('hr-HR', { style: 'currency', currency: 'EUR' });
@@ -431,6 +433,7 @@
                 weekStart: 1,
                 autoclose: true,
                 todayHighlight: true,
+                endDate: latestStatisticsDate,
                 orientation: 'bottom auto',
                 templates: {
                     leftArrow: '<i class="fa-solid fa-chevron-left" aria-hidden="true"></i>',
@@ -936,11 +939,16 @@
                 if (statistics) renderGeography(statistics.geography);
             }));
             document.querySelectorAll('.statistics-presets button').forEach(button => button.addEventListener('click', () => {
-                const to = localDate(toInput.value || isoDate(new Date()));
+                let to = localDate(toInput.value || isoDate(latestStatisticsDate));
                 let from = new Date(to);
-                if (button.dataset.days) from.setDate(to.getDate() - Number(button.dataset.days) + 1);
-                if (button.dataset.preset === 'year') { const now = new Date(); from = new Date(now.getFullYear(), 0, 1); updateDateField(toInput, toDisplay, now); }
-                if (button.dataset.preset === 'previous-year') { const year = new Date().getFullYear() - 1; from = new Date(year, 0, 1); updateDateField(toInput, toDisplay, new Date(year, 11, 31)); }
+                if (button.dataset.days) {
+                    to = new Date(latestStatisticsDate);
+                    from = new Date(to);
+                    from.setDate(to.getDate() - Number(button.dataset.days) + 1);
+                    updateDateField(toInput, toDisplay, to);
+                }
+                if (button.dataset.preset === 'year') { from = new Date(currentYear, 0, 1); updateDateField(toInput, toDisplay, latestStatisticsDate); }
+                if (button.dataset.preset === 'previous-year') { const year = currentYear - 1; from = new Date(year, 0, 1); updateDateField(toInput, toDisplay, new Date(year, 11, 31)); }
                 updateDateField(fromInput, fromDisplay, from);
                 document.querySelectorAll('.statistics-presets button').forEach(item => item.className = 'btn btn-sm btn-light'); button.className = 'btn btn-sm btn-primary';
                 loadStatistics();

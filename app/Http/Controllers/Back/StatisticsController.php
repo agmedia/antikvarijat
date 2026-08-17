@@ -18,19 +18,21 @@ class StatisticsController extends Controller
 {
     public function index()
     {
-        $latestOrderDate = Order::query()->max('created_at');
-        $defaultTo = $latestOrderDate ? Carbon::parse($latestOrderDate) : Carbon::today();
-        $defaultTo = $defaultTo->isFuture() ? Carbon::today() : $defaultTo;
+        $latestStatisticsDate = Carbon::yesterday();
+        $defaultTo = $latestStatisticsDate->copy();
         $defaultFrom = $defaultTo->copy()->subDays(29);
 
-        return view('back.statistics.index', compact('defaultFrom', 'defaultTo'));
+        return view('back.statistics.index', compact('defaultFrom', 'defaultTo', 'latestStatisticsDate'));
     }
 
     public function data(Request $request): JsonResponse
     {
+        $latestStatisticsDate = Carbon::yesterday()->toDateString();
         $validated = $request->validate([
             'from' => ['required', 'date_format:Y-m-d'],
-            'to' => ['required', 'date_format:Y-m-d', 'after_or_equal:from'],
+            'to' => ['required', 'date_format:Y-m-d', 'after_or_equal:from', 'before_or_equal:' . $latestStatisticsDate],
+        ], [
+            'to.before_or_equal' => 'Završni datum mora biti najkasnije jučerašnji datum jer današnji dan još nije završen.',
         ]);
 
         $from = Carbon::createFromFormat('Y-m-d', $validated['from'])->startOfDay();

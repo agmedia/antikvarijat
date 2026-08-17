@@ -157,7 +157,7 @@ class DashboardSalesStatsTest extends TestCase
 
     public function test_detailed_statistics_use_sales_statuses_and_render_the_new_page(): void
     {
-        Carbon::setTestNow('2026-04-30 12:00:00');
+        Carbon::setTestNow('2026-05-01 12:00:00');
 
         $previousOrder = $this->createOrder(3, 25.00, '2026-03-20 09:00:00');
         DB::table('orders')->where('id', $previousOrder)->update([
@@ -244,6 +244,35 @@ class DashboardSalesStatsTest extends TestCase
         $this->assertStringContainsString('const endpoint =', $html);
         $this->assertStringContainsString('statistike\\/podaci', $html);
         $this->assertStringNotContainsString('Zamatanje', $html);
+    }
+
+    public function test_detailed_statistics_only_allow_completed_days(): void
+    {
+        Carbon::setTestNow('2026-08-17 09:43:00');
+
+        $this->createOrder(1, 50.00, '2026-08-17 08:00:00');
+
+        $view = app(StatisticsController::class)->index();
+
+        $this->assertSame('2026-08-16', $view->getData()['defaultTo']->toDateString());
+        $this->assertSame('2026-07-18', $view->getData()['defaultFrom']->toDateString());
+        $this->assertSame('2026-08-16', $view->getData()['latestStatisticsDate']->toDateString());
+
+        $completedPeriod = app(StatisticsController::class)->data(Request::create(
+            '/admin/statistike/podaci',
+            'GET',
+            ['from' => '2026-08-10', 'to' => '2026-08-16']
+        ))->getData(true);
+
+        $this->assertSame('2026-08-16', $completedPeriod['period']['to']);
+        $this->assertSame(0, $completedPeriod['summary']['orders']);
+
+        $this->expectException(\Illuminate\Validation\ValidationException::class);
+        app(StatisticsController::class)->data(Request::create(
+            '/admin/statistike/podaci',
+            'GET',
+            ['from' => '2026-08-11', 'to' => '2026-08-17']
+        ));
     }
 
     public function test_dashboard_statistics_link_does_not_require_the_named_route_during_view_compilation(): void
