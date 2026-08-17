@@ -946,6 +946,18 @@ class Helper
 
 
     /**
+     * Build a thumbnail URL on the configured image host.
+     */
+    public static function imageThumbnailUrl(string $path, string $size): string
+    {
+        $imageDomain = rtrim((string) config('settings.images_domain', config('app.url')), '/');
+
+        return $imageDomain . '/cache/thumb?size=' . rawurlencode($size)
+            . '&src=' . rawurlencode(ltrim($path, '/'));
+    }
+
+
+    /**
      * @param string $html
      *
      * @return string
@@ -1078,7 +1090,7 @@ class Helper
             return $src;
         }
 
-        return url('cache/thumb?size=1200x1200&src=' . urlencode($optimizedPath));
+        return static::imageThumbnailUrl($optimizedPath, '1200x1200');
     }
 
 

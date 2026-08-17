@@ -98,7 +98,7 @@ class Blog extends Model
             return null;
         }
 
-        return url('cache/thumb?size=600&src=' . urlencode($path));
+        return Helper::imageThumbnailUrl($path, '600');
     }
 
 
@@ -113,7 +113,7 @@ class Blog extends Model
             return null;
         }
 
-        return url('cache/thumb?size=1200x1200&src=' . urlencode($path));
+        return Helper::imageThumbnailUrl($path, '1200x1200');
     }
 
 

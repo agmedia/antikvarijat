@@ -42,13 +42,17 @@
 }
 
 .blog-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1.75rem;
+  margin-right: -0.875rem;
+  margin-left: -0.875rem;
+}
+
+.blog-grid[data-columns] .masonry-grid-item {
+  padding-right: 0.875rem;
+  padding-left: 0.875rem;
+  padding-bottom: 1.75rem;
 }
 
 .blog-card {
-  height: 100%;
   overflow: hidden;
   border: 1px solid #e3e9ef;
   border-radius: 0.75rem;
@@ -65,31 +69,22 @@
 
 .blog-card-image {
   display: block;
-  aspect-ratio: 8/5;
   overflow: hidden;
   background: #eef1ec;
 }
 
-.blog-card-image img,
-.blog-card-image-placeholder {
+.blog-card-image img {
   display: block;
   width: 100%;
-  height: 100%;
-}
-
-.blog-card-image img {
-  object-fit: cover;
-  transition: transform 0.35s ease;
-}
-
-.blog-card:hover .blog-card-image img {
-  transform: scale(1.025);
+  height: auto;
 }
 
 .blog-card-image-placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
+  aspect-ratio: 8/5;
+  width: 100%;
   color: #849087;
   font-size: 2.25rem;
 }
@@ -291,15 +286,18 @@
   background: #eef1ec;
 }
 
-.blog-article-hero a,
-.blog-article-hero img {
-  display: block;
+.blog-article-hero a {
+  display: flex;
   width: 100%;
+  align-items: center;
+  justify-content: center;
 }
 
 .blog-article-hero img {
-  max-height: 38rem;
-  object-fit: cover;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
 }
 
 .blog-article-content {
@@ -440,12 +438,6 @@
   text-align: right;
 }
 
-@media (max-width: 991.98px) {
-  .blog-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1.25rem;
-  }
-}
 @media (max-width: 575.98px) {
   .blog-page-header .container {
     padding-top: 1.25rem !important;
@@ -457,9 +449,9 @@
   .blog-breadcrumb-current {
     display: none;
   }
-  .blog-grid {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 1rem;
+  .blog-grid[data-columns] .masonry-grid-item {
+    width: 100%;
+    padding-bottom: 1rem;
   }
   .blog-card-body {
     padding: 1.15rem 1.15rem 1.25rem;
@@ -497,13 +489,11 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .blog-card,
-  .blog-card-image img,
   .blog-card-link i,
   .blog-article-navigation-item {
     transition: none;
   }
   .blog-card:hover,
-  .blog-card:hover .blog-card-image img,
   .blog-card-link:hover i,
   .blog-article-navigation-item:hover {
     transform: none;

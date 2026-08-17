@@ -13,6 +13,10 @@
 @endif
 
 @push('meta_tags')
+    @if (isset($blogs))
+        <script src="{{ \App\Helpers\Asset::url('js/imagesloaded/imagesloaded.pkgd.min.js') }}"></script>
+        <script src="{{ \App\Helpers\Asset::url('js/shufflejs/dist/shuffle.min.js') }}"></script>
+    @endif
     @if (! isset($blogs))
         <meta property="article:published_time" content="{{ optional(\Illuminate\Support\Carbon::make($blog->publish_date ?: $blog->created_at))->toAtomString() }}">
         <meta property="article:modified_time" content="{{ optional(\Illuminate\Support\Carbon::make($blog->updated_at))->toAtomString() }}">
@@ -65,51 +69,52 @@
     @if(isset($blogs))
         <!-- Lista blogova -->
         <main class="blog-index container py-4 py-md-5">
-            <div class="blog-grid">
+            <div class="blog-grid masonry-grid" data-columns="3">
                 @foreach ($blogs as $blog)
                     @php
                         $blogUrl = \App\Helpers\LocaleHelper::route('catalog.route.blog', ['blog' => $blog]);
                         $publishedAt = \Illuminate\Support\Carbon::make($blog->publish_date ?: $blog->created_at);
                         $cardImage = $blog->thumb ?: $blog->image;
                     @endphp
-                    <article class="blog-card card">
-                        <a class="blog-card-image" href="{{ $blogUrl }}" aria-label="{{ __('front.blog.read_article') }}: {{ $blog->title }}">
-                            @if ($cardImage)
-                                <img
-                                    src="{{ $cardImage }}"
-                                    alt="{{ $blog->title }}"
-                                    loading="{{ $loop->index < 3 ? 'eager' : 'lazy' }}"
-                                    fetchpriority="{{ $loop->index < 2 ? 'high' : 'auto' }}"
-                                    decoding="async"
-                                    width="600"
-                                    height="375">
-                            @else
-                                <span class="blog-card-image-placeholder" aria-hidden="true">
-                                    <i class="fa-regular fa-book-open"></i>
-                                </span>
-                            @endif
-                        </a>
-
-                        <div class="blog-card-body card-body">
-                            @if ($publishedAt)
-                                <time class="blog-card-date" datetime="{{ $publishedAt->toDateString() }}">
-                                    <i class="fa-regular fa-calendar" aria-hidden="true"></i>
-                                    {{ $publishedAt->locale(app()->getLocale())->format('d.m.Y.') }}
-                                </time>
-                            @endif
-
-                            <h2 class="blog-card-title">
-                                <a href="{{ $blogUrl }}">{{ $blog->title }}</a>
-                            </h2>
-
-                            @if ($blog->short_description)
-                                <p class="blog-card-description">{{ $blog->short_description }}</p>
-                            @endif
-
-                            <a class="blog-card-link" href="{{ $blogUrl }}">
-                                {{ __('front.blog.read_article') }}
-                                <i class="fa-regular fa-arrow-right" aria-hidden="true"></i>
+                    <article class="masonry-grid-item">
+                        <div class="blog-card card">
+                            <a class="blog-card-image" href="{{ $blogUrl }}" aria-label="{{ __('front.blog.read_article') }}: {{ $blog->title }}">
+                                @if ($cardImage)
+                                    <img
+                                        src="{{ $cardImage }}"
+                                        alt="{{ $blog->title }}"
+                                        loading="{{ $loop->index < 3 ? 'eager' : 'lazy' }}"
+                                        fetchpriority="{{ $loop->index < 2 ? 'high' : 'auto' }}"
+                                        decoding="async"
+                                        width="600">
+                                @else
+                                    <span class="blog-card-image-placeholder" aria-hidden="true">
+                                        <i class="fa-regular fa-book-open"></i>
+                                    </span>
+                                @endif
                             </a>
+
+                            <div class="blog-card-body card-body">
+                                @if ($publishedAt)
+                                    <time class="blog-card-date" datetime="{{ $publishedAt->toDateString() }}">
+                                        <i class="fa-regular fa-calendar" aria-hidden="true"></i>
+                                        {{ $publishedAt->locale(app()->getLocale())->format('d.m.Y.') }}
+                                    </time>
+                                @endif
+
+                                <h2 class="blog-card-title">
+                                    <a href="{{ $blogUrl }}">{{ $blog->title }}</a>
+                                </h2>
+
+                                @if ($blog->short_description)
+                                    <p class="blog-card-description">{{ $blog->short_description }}</p>
+                                @endif
+
+                                <a class="blog-card-link" href="{{ $blogUrl }}">
+                                    {{ __('front.blog.read_article') }}
+                                    <i class="fa-regular fa-arrow-right" aria-hidden="true"></i>
+                                </a>
+                            </div>
                         </div>
                     </article>
                 @endforeach
