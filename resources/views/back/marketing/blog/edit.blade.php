@@ -3,6 +3,7 @@
 @push('css_before')
     <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('js/plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('js/plugins/flatpickr/flatpickr.min.css') }}">
+    <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('js/plugins/summernote/summernote-bs4.min.css') }}">
 @endpush
 
 @section('content')
@@ -64,6 +65,7 @@
                                         <div class="col-md-12">
                                             <label for="description-editor">Opis</label>
                                             <textarea id="description-editor" name="description">{!! isset($blog) ? $blog->description : old('description') !!}</textarea>
+                                            <small class="form-text text-muted">Za uređivanje HTML-a, klasa i stilova odaberite “Izvorni kôd” u alatnoj traci.</small>
                                         </div>
                                     </div>
                                 </div>
@@ -81,6 +83,7 @@
                                         <div class="col-md-12">
                                             <label for="description-en-editor">Opis EN</label>
                                             <textarea id="description-en-editor" name="description_en">{!! old('description_en', isset($blog) ? $blog->description_en : '') !!}</textarea>
+                                            <small class="form-text text-muted">Za uređivanje HTML-a, klasa i stilova odaberite “Izvorni kôd” u alatnoj traci.</small>
                                         </div>
                                     </div>
                                 </div>
@@ -253,16 +256,19 @@
 @endsection
 
 @push('js_after')
-    <script src="{{ \App\Helpers\Asset::url('js/plugins/ckeditor5-classic/build/ckeditor.js') }}"></script>
+    <script src="{{ \App\Helpers\Asset::url('js/plugins/summernote/summernote-bs4.min.js') }}"></script>
+    <script src="{{ \App\Helpers\Asset::url('js/plugins/summernote/lang/summernote-hr-HR.min.js') }}"></script>
     <script src="{{ \App\Helpers\Asset::url('js/plugins/flatpickr/flatpickr.min.js') }}"></script>
     <script src="{{ \App\Helpers\Asset::url('js/plugins/select2/js/select2.full.min.js') }}"></script>
 
-    <!-- Page JS Helpers (CKEditor 5 plugins) -->
     <script>jQuery(function(){Dashmix.helpers(['flatpickr']);});</script>
 
     <script>
         $(() => {
             const recommendationEndpoint = @json(route('blogs.recommendations.search'));
+            const editorUploadUrl = @json(route('blogs.upload.image'));
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            const blogId = {{ (isset($blog->id) && $blog->id) ? (int) $blog->id : 0 }};
             const recommendationAjax = type => ({
                 url: recommendationEndpoint,
                 dataType: 'json',
@@ -301,31 +307,66 @@
             $('input[name="recommendation_type"]').on('change', updateRecommendationPanels);
             updateRecommendationPanels();
 
-            ClassicEditor
-            .create(document.querySelector('#description-editor'), {
-                ckfinder: {
-                    uploadUrl: '{{ route('blogs.upload.image') }}?_token=' + document.querySelector('meta[name="csrf-token"]').getAttribute('content') + '&blog_id={{ (isset($blog->id) && $blog->id) ?: 0 }}',
-                }
-            })
-            .then( editor => {
-                console.log(editor);
-            } )
-            .catch( error => {
-                console.error(error);
-            } );
+            const showEditorUploadError = message => {
+                console.error(message);
+                window.alert(message);
+            };
 
-            ClassicEditor
-            .create(document.querySelector('#description-en-editor'), {
-                ckfinder: {
-                    uploadUrl: '{{ route('blogs.upload.image') }}?_token=' + document.querySelector('meta[name="csrf-token"]').getAttribute('content') + '&blog_id={{ (isset($blog->id) && $blog->id) ?: 0 }}',
-                }
-            })
-            .then( editor => {
-                console.log(editor);
-            } )
-            .catch( error => {
-                console.error(error);
-            } );
+            const uploadEditorImage = (file, $editor) => {
+                const data = new FormData();
+                data.append('upload', file);
+                data.append('blog_id', blogId);
+                data.append('_token', csrfToken);
+
+                return $.ajax({
+                    url: editorUploadUrl,
+                    method: 'POST',
+                    data: data,
+                    contentType: false,
+                    processData: false,
+                    headers: {
+                        Accept: 'application/json',
+                    },
+                }).done(response => {
+                    if (!response.uploaded || !response.url) {
+                        showEditorUploadError('Slika nije učitana. Pokušajte ponovno.');
+                        return;
+                    }
+
+                    $editor.summernote('insertImage', response.url, response.fileName || file.name);
+                }).fail(xhr => {
+                    const validationMessage = xhr.responseJSON && xhr.responseJSON.errors && xhr.responseJSON.errors.upload
+                        ? xhr.responseJSON.errors.upload[0]
+                        : null;
+
+                    showEditorUploadError(validationMessage || 'Slika nije učitana. Pokušajte ponovno.');
+                });
+            };
+
+            const editorOptions = {
+                height: 520,
+                minHeight: 300,
+                lang: 'hr-HR',
+                dialogsInBody: true,
+                toolbar: [
+                    ['style', ['style']],
+                    ['font', ['bold', 'italic', 'underline', 'clear']],
+                    ['color', ['color']],
+                    ['para', ['ul', 'ol', 'paragraph']],
+                    ['table', ['table']],
+                    ['insert', ['link', 'picture', 'video']],
+                    ['view', ['fullscreen', 'codeview', 'help']],
+                ],
+                callbacks: {
+                    onImageUpload: function (files) {
+                        const $editor = $(this);
+
+                        Array.from(files).forEach(file => uploadEditorImage(file, $editor));
+                    },
+                },
+            };
+
+            $('#description-editor, #description-en-editor').summernote(editorOptions);
         })
     </script>
 

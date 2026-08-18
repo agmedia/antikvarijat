@@ -154,9 +154,10 @@ class BlogController extends Controller
      */
     public function uploadBlogImage(Request $request)
     {
-        if ( ! $request->hasFile('upload')) {
-            return response()->json(['uploaded' => false]);
-        }
+        $request->validate([
+            'upload' => ['required', 'image', 'max:10240'],
+            'blog_id' => ['nullable', 'integer', 'min:0'],
+        ]);
 
         $blog_id = $request->input('blog_id');
         $img = $request->file('upload');
