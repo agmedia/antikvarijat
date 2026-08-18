@@ -20,18 +20,28 @@ class OrderTrackingService
     /** @var GlsTrackingService */
     private $gls;
 
-    public function __construct(GlsTrackingService $gls)
+    /** @var BoxNowService */
+    private $boxNow;
+
+    public function __construct(GlsTrackingService $gls, BoxNowService $boxNow)
     {
         $this->gls = $gls;
+        $this->boxNow = $boxNow;
     }
 
     public function refresh(Order $order): array
     {
-        if ($this->resolveCarrier($order) !== GlsTrackingService::CARRIER) {
-            throw new RuntimeException('Praćenje nije podržano za ovaj način dostave.');
+        $carrier = $this->resolveCarrier($order);
+
+        if ($carrier === GlsTrackingService::CARRIER) {
+            return $this->apply($order, $this->gls->trackOrder($order));
         }
 
-        return $this->apply($order, $this->gls->trackOrder($order));
+        if ($carrier === BoxNowService::CARRIER) {
+            return $this->apply($order, $this->boxNow->track($order));
+        }
+
+        throw new RuntimeException('Praćenje nije podržano za ovaj način dostave.');
     }
 
     public function apply(Order $order, array $tracking, bool $writeHistory = true): array
@@ -91,25 +101,40 @@ class OrderTrackingService
     public function resolveCarrier(Order $order): ?string
     {
         if (filled($order->shipping_carrier)) {
-            return strtolower((string) $order->shipping_carrier) === GlsTrackingService::CARRIER
-                ? GlsTrackingService::CARRIER
+            $carrier = strtolower((string) $order->shipping_carrier);
+
+            return in_array($carrier, [GlsTrackingService::CARRIER, BoxNowService::CARRIER], true)
+                ? $carrier
                 : null;
         }
 
         $shipping = Str::lower((string) $order->shipping_method . ' ' . (string) $order->shipping_code);
+
+        if (Str::contains($shipping, ['boxnow', 'box now'])) {
+            return BoxNowService::CARRIER;
+        }
 
         return Str::contains($shipping, 'gls') ? GlsTrackingService::CARRIER : null;
     }
 
     public function carrierLabel(?string $carrier): string
     {
-        return $carrier === GlsTrackingService::CARRIER ? 'GLS' : 'Dostava';
+        return [
+            GlsTrackingService::CARRIER => 'GLS',
+            BoxNowService::CARRIER => 'Box Now',
+        ][$carrier] ?? 'Dostava';
     }
 
     public function trackingUrlForOrder(Order $order): ?string
     {
         if (filled($order->shipping_tracking_url)) {
             return (string) $order->shipping_tracking_url;
+        }
+
+        if ($this->resolveCarrier($order) === BoxNowService::CARRIER) {
+            $parcelId = trim((string) ($order->tracking_code ?: $order->shipping_parcel_id));
+
+            return $parcelId !== '' ? $this->boxNow->trackingUrl($parcelId) : null;
         }
 
         if ($this->resolveCarrier($order) === GlsTrackingService::CARRIER && filled($order->tracking_code)) {

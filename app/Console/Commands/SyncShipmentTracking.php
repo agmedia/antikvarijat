@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Back\Orders\Order;
+use App\Services\Shipping\BoxNowService;
 use App\Services\Shipping\GlsTrackingService;
 use App\Services\Shipping\OrderTrackingService;
 use Illuminate\Console\Command;
@@ -16,7 +17,7 @@ class SyncShipmentTracking extends Command
         {--limit=50 : Maximum number of orders to refresh}
         {--stale-minutes=15 : Refresh orders older than this many minutes}';
 
-    protected $description = 'Osvježava statuse aktivnih GLS pošiljaka.';
+    protected $description = 'Osvježava statuse aktivnih GLS i Box Now pošiljaka.';
 
     public function handle(OrderTrackingService $trackingService): int
     {
@@ -30,9 +31,12 @@ class SyncShipmentTracking extends Command
         $staleMinutes = max(1, (int) $this->option('stale-minutes'));
         $orders = Order::query()
             ->where(function ($query) {
-                $query->where('shipping_carrier', GlsTrackingService::CARRIER)
+                $query->whereIn('shipping_carrier', [GlsTrackingService::CARRIER, BoxNowService::CARRIER])
                     ->orWhere('shipping_method', 'like', '%GLS%')
-                    ->orWhere('shipping_code', 'like', '%gls%');
+                    ->orWhere('shipping_method', 'like', '%BoxNow%')
+                    ->orWhere('shipping_method', 'like', '%Box Now%')
+                    ->orWhere('shipping_code', 'like', '%gls%')
+                    ->orWhere('shipping_code', 'like', '%boxnow%');
             })
             ->where(function ($query) {
                 $query->where(function ($trackingQuery) {
@@ -45,7 +49,10 @@ class SyncShipmentTracking extends Command
             })
             ->where(function ($query) {
                 $query->whereNull('shipping_tracking_status_code')
-                    ->orWhereNotIn('shipping_tracking_status_code', ['5', '23', '40', '92']);
+                    ->orWhereNotIn('shipping_tracking_status_code', array_merge(
+                        ['5', '23', '40', '92'],
+                        BoxNowService::terminalStatusCodes()
+                    ));
             })
             ->where(function ($query) use ($staleMinutes) {
                 $query->whereNull('shipping_tracking_updated_at')
@@ -71,7 +78,7 @@ class SyncShipmentTracking extends Command
             } catch (\Throwable $e) {
                 $failed++;
 
-                Log::warning('Scheduled GLS tracking refresh failed.', [
+                Log::warning('Scheduled shipment tracking refresh failed.', [
                     'order_id' => $order->id,
                     'error' => $e->getMessage(),
                 ]);
@@ -80,7 +87,7 @@ class SyncShipmentTracking extends Command
             }
         }
 
-        $this->info("GLS tracking osvježen. Ažurirano: {$updated}. Neuspjelo: {$failed}.");
+        $this->info("Tracking pošiljaka osvježen. Ažurirano: {$updated}. Neuspjelo: {$failed}.");
         $this->releaseDatabaseConnection();
 
         return self::SUCCESS;
@@ -91,7 +98,7 @@ class SyncShipmentTracking extends Command
         try {
             DB::disconnect();
         } catch (\Throwable $e) {
-            // Best-effort release while waiting on the GLS API or mail delivery.
+            // Best-effort release while waiting on carrier APIs or mail delivery.
         }
     }
 }

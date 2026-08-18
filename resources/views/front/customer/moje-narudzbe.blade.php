@@ -4,6 +4,8 @@
     @php($trackingService = app(\App\Services\Shipping\OrderTrackingService::class))
     @foreach ($orders as $order)
         @php($trackingUrl = $trackingService->trackingUrlForOrder($order))
+        @php($trackingCarrier = $trackingService->resolveCarrier($order))
+        @php($trackingCarrierLabel = $trackingService->carrierLabel($trackingCarrier))
         <div class="modal fade" id="order-details{{ $order->id }}" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg modal-dialog-scrollable">
                 <div class="modal-content">
@@ -36,14 +38,14 @@
 
                         @if($order->shipping_tracking_status || $order->tracking_code || $order->shipping_parcel_id)
                             <div class="alert alert-secondary mb-4">
-                                <div class="fw-semibold mb-1">GLS praćenje pošiljke</div>
+                                <div class="fw-semibold mb-1">{{ $trackingCarrierLabel }} praćenje pošiljke</div>
                                 @if($order->shipping_tracking_status)
                                     <div>{{ $order->shipping_tracking_status }}</div>
                                 @endif
                                 <div class="small text-muted mt-1">Broj pošiljke: {{ $order->tracking_code ?: $order->shipping_parcel_id }}</div>
                                 <div class="d-flex flex-wrap gap-2 mt-3">
                                     @if($trackingUrl)
-                                        <a class="btn btn-sm btn-outline-primary" href="{{ $trackingUrl }}" target="_blank" rel="noopener">Prati na GLS stranici</a>
+                                        <a class="btn btn-sm btn-outline-primary" href="{{ $trackingUrl }}" target="_blank" rel="noopener">Prati na {{ $trackingCarrierLabel }} stranici</a>
                                     @endif
                                     <form method="POST" action="{{ \App\Helpers\LocaleHelper::route('moje-narudzbe.tracking.refresh', ['order' => $order->id]) }}">
                                         @csrf

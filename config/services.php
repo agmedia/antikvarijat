@@ -73,6 +73,20 @@ return [
         'tracking_url' => env('GLS_TRACKING_URL', 'https://gls-group.com/HR/hr/pracenje-posiljke/'),
     ],
 
+    'boxnow' => [
+        'base_url' => env('BOXNOW_API_URL', 'https://api-production.boxnow.hr/api/v1'),
+        'client_id' => env('BOXNOW_CLIENT_ID'),
+        'client_secret' => env('BOXNOW_CLIENT_SECRET'),
+        'api_partner_id' => env('BOXNOW_API_PARTNER_ID'),
+        'widget_partner_id' => env('BOXNOW_WIDGET_PARTNER_ID', 123),
+        'warehouse_location_id' => env('BOXNOW_WAREHOUSE_LOCATION_ID'),
+        'origin_name' => env('BOXNOW_ORIGIN_NAME', env('MAIL_FROM_NAME', 'Antikvarijat Biblos')),
+        'origin_email' => env('BOXNOW_ORIGIN_EMAIL', env('MAIL_FROM_ADDRESS')),
+        'origin_phone' => env('BOXNOW_ORIGIN_PHONE'),
+        'tracking_url' => env('BOXNOW_TRACKING_URL', 'https://track.boxnow.hr/en?track={parcel}'),
+        'allow_return' => env('BOXNOW_ALLOW_RETURN', true),
+    ],
+
     /*******************************************************************************
      *                              END Copyright : AGmedia                         *
      *******************************************************************************/

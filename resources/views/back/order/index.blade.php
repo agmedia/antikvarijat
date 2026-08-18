@@ -238,7 +238,9 @@
                                                 {{ $order->shipping_tracking_status }}
                                             </small>
                                         @elseif($order->tracking_code)
-                                            <small class="text-muted">GLS #{{ $order->tracking_code }}</small>
+                                            <small class="text-muted">
+                                                {{ app(\App\Services\Shipping\OrderTrackingService::class)->carrierLabel($order->shipping_carrier) }} #{{ $order->tracking_code }}
+                                            </small>
                                         @endif
                                     </div>
                                 </td>
@@ -265,11 +267,15 @@
                                             <i class="fa-duotone fa-envelope-circle-check text-success"></i>
                                         </button>
                                     @endif
-                                    @if($order->printed)
-                                       <button type="button" class="btn btn-light btn-sm disabled" disabled title="Poslano u GLS"><i class="fa-duotone fa-check text-success"></i></button>
-                                    @else
-                                       <button type="button" class="btn btn-alt-warning btn-sm" onclick="sendGLS({{ $order->id }})" title="Pošalji u GLS" aria-label="Pošalji narudžbu {{ $order->id }} u GLS"><i class="fa-duotone fa-truck-fast"></i></button>
-                                   @endif
+                                    @php($shipmentCarrierHint = \Illuminate\Support\Str::lower($order->shipping_carrier . ' ' . $order->shipping_method . ' ' . $order->shipping_code))
+                                    @php($hasShipment = $order->printed || filled($order->shipping_parcel_id) || filled($order->tracking_code))
+                                    @if($hasShipment)
+                                        <button type="button" class="btn btn-light btn-sm disabled" disabled title="Pošiljka je kreirana"><i class="fa-duotone fa-check text-success"></i></button>
+                                    @elseif(\Illuminate\Support\Str::contains($shipmentCarrierHint, ['boxnow', 'box now']))
+                                        <button type="button" class="btn btn-alt-warning btn-sm" onclick="sendBoxNow({{ $order->id }})" title="Pošalji u Box Now" aria-label="Pošalji narudžbu {{ $order->id }} u Box Now"><i class="fa-duotone fa-box"></i></button>
+                                    @elseif(\Illuminate\Support\Str::contains($shipmentCarrierHint, 'gls'))
+                                        <button type="button" class="btn btn-alt-warning btn-sm" onclick="sendGLS({{ $order->id }})" title="Pošalji u GLS" aria-label="Pošalji narudžbu {{ $order->id }} u GLS"><i class="fa-duotone fa-truck-fast"></i></button>
+                                    @endif
                                     </span>
                                 </td>
                             </tr>
@@ -461,8 +467,8 @@
          *
          * @param order_id
          */
-        function sendGLS(order_id) {
-            axios.post("{{ route('api.order.send.gls') }}", {order_id: order_id})
+        function sendShipment(order_id, endpoint) {
+            axios.post(endpoint, {order_id: order_id})
             .then(response => {
                 if (response.data.message) {
                     successToast.fire({
@@ -475,7 +481,17 @@
                 } else {
                     return errorToast.fire(response.data.error);
                 }
+            }).catch(error => {
+                return errorToast.fire(error.response && error.response.data ? error.response.data.error : 'Slanje pošiljke nije uspjelo.');
             });
+        }
+
+        function sendGLS(order_id) {
+            sendShipment(order_id, "{{ route('api.order.send.gls') }}");
+        }
+
+        function sendBoxNow(order_id) {
+            sendShipment(order_id, "{{ route('api.order.send.boxnow') }}");
         }
     </script>
     <script>

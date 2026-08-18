@@ -11,6 +11,7 @@ use App\Models\Back\Orders\OrderProduct;
 use App\Models\ProductReview;
 use App\Models\User;
 use App\Services\ProductRecommendationService;
+use App\Services\Shipping\BoxNowService;
 use App\Services\Shipping\GlsTrackingService;
 use App\Services\Shipping\OrderTrackingService;
 use Illuminate\Http\Request;
@@ -67,7 +68,9 @@ class CustomerController extends Controller
             ->firstOrFail();
         $trackingService = app(OrderTrackingService::class);
 
-        if ($trackingService->resolveCarrier($order) !== GlsTrackingService::CARRIER
+        $carrier = $trackingService->resolveCarrier($order);
+
+        if (! in_array($carrier, [GlsTrackingService::CARRIER, BoxNowService::CARRIER], true)
             || (! filled($order->tracking_code) && ! filled($order->shipping_parcel_id))) {
             return redirect(LocaleHelper::route('moje-narudzbe'))
                 ->with('warning', 'Praćenje pošiljke još nije dostupno za ovu narudžbu.');
@@ -80,7 +83,7 @@ class CustomerController extends Controller
                 ->with($result['updated'] ? 'success' : 'warning', $result['message']);
         } catch (\Throwable $e) {
             return redirect(LocaleHelper::route('moje-narudzbe'))
-                ->with('error', 'GLS status trenutačno nije moguće osvježiti. Pokušajte ponovno kasnije.');
+                ->with('error', 'Status dostave trenutačno nije moguće osvježiti. Pokušajte ponovno kasnije.');
         }
     }
 

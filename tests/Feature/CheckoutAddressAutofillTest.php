@@ -108,4 +108,20 @@ class CheckoutAddressAutofillTest extends TestCase
         $this->assertSame('', CheckoutSession::getAddress()['company']);
         $this->assertSame('', CheckoutSession::getAddress()['oib']);
     }
+
+    public function test_selecting_boxnow_clears_previous_locker_and_opens_boxnow_picker(): void
+    {
+        CheckoutSession::setComment('Stari GLS paketomat_123');
+        $checkout = new Checkout();
+        $checkout->shipping = 'gls_eu';
+        $checkout->comment = 'Stari GLS paketomat_123';
+
+        $checkout->selectShipping('boxnow');
+
+        $this->assertSame('boxnow', $checkout->shipping);
+        $this->assertSame('', $checkout->comment);
+        $this->assertFalse(CheckoutSession::hasComment());
+        $this->assertTrue($checkout->view_boxnow);
+        $this->assertFalse($checkout->view_comment);
+    }
 }

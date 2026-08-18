@@ -28,6 +28,7 @@ use App\Http\Controllers\Back\Settings\App\TaxController;
 use App\Http\Controllers\Back\Settings\FaqController;
 use App\Http\Controllers\Back\Settings\GoogleApiController;
 use App\Http\Controllers\Back\Settings\GoogleLoginSettingsController;
+use App\Http\Controllers\Back\Settings\BoxNowSettingsController;
 use App\Http\Controllers\Back\Settings\HistoryController;
 use App\Http\Controllers\Back\Settings\PageController;
 use App\Http\Controllers\Back\Settings\QuickMenuController;
@@ -246,6 +247,7 @@ Route::middleware(['auth:sanctum', 'verified', 'no.customers'])->prefix('admin')
         Route::post('google-api/translate/{job}/cancel', [GoogleApiController::class, 'cancel'])->name('google.api.translate.cancel');
         Route::get('google-login', [GoogleLoginSettingsController::class, 'edit'])->name('google-login.edit');
         Route::patch('google-login', [GoogleLoginSettingsController::class, 'update'])->name('google-login.update');
+        Route::patch('boxnow', [BoxNowSettingsController::class, 'update'])->name('boxnow-settings.update');
         // INFO PAGES
         Route::get('pages', [PageController::class, 'index'])->name('pages');
         Route::get('page/create', [PageController::class, 'create'])->name('pages.create');
@@ -389,7 +391,12 @@ Route::prefix('api/v2')->group(function () {
                 Route::post('store', [OrderStatusController::class, 'store'])->name('api.order.status.store');
                 Route::post('destroy', [OrderStatusController::class, 'destroy'])->name('api.order.status.destroy');
                 Route::post('change', [OrderController::class, 'api_status_change'])->name('api.order.status.change');
-                Route::post('send/gls', [OrderController::class, 'api_send_gls'])->name('api.order.send.gls');
+                Route::post('send/boxnow', [OrderController::class, 'api_send_boxnow'])
+                    ->middleware(['auth:sanctum', 'verified', 'no.customers'])
+                    ->name('api.order.send.boxnow');
+                Route::post('send/gls', [OrderController::class, 'api_send_gls'])
+                    ->middleware(['auth:sanctum', 'verified', 'no.customers'])
+                    ->name('api.order.send.gls');
                 Route::post('send/tracking-email', [OrderController::class, 'api_send_tracking_email'])->name('api.order.send.tracking-email');
                 Route::post('tracking/refresh', [OrderController::class, 'api_refresh_tracking'])->name('api.order.tracking.refresh');
             });

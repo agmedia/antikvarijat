@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use App\Models\Back\Orders\Order;
+use App\Services\Shipping\OrderTrackingService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
@@ -20,7 +21,8 @@ class ShippingTrackingAvailable extends Mailable
     public function __construct(Order $order)
     {
         $this->order = $order;
-        $this->carrierLabel = 'GLS';
+        $trackingService = app(OrderTrackingService::class);
+        $this->carrierLabel = $trackingService->carrierLabel($trackingService->resolveCarrier($order));
     }
 
     public function build()

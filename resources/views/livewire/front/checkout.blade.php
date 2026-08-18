@@ -343,6 +343,19 @@
                 @error('comment') <small class="text-danger">{{ __('front.checkout.gls_required') }}</small>
                 @enderror
             @endif
+
+            @if ($s_method->code == 'boxnow' && $view_boxnow)
+                <div class="alert alert-info d-flex align-items-center mt-4 mb-3" role="status">
+                    <i class="fa-solid fa-box fa-lg me-3" aria-hidden="true"></i>
+                    <span>{{ __('front.checkout.boxnow_select_help') }}</span>
+                </div>
+                <button type="button" class="boxnow-map-widget-button btn btn-primary mb-3">
+                    <i class="fa-solid fa-map-location-dot me-2" aria-hidden="true"></i>{{ __('front.checkout.boxnow_select_button') }}
+                </button>
+                <div id="boxnowmap"></div>
+                <input class="form-control" type="text" id="comment" wire:model="comment" placeholder="Odabrani Box Now paketomat" readonly required>
+                @error('comment') <small class="text-danger">{{ __('front.checkout.boxnow_required') }}</small> @enderror
+            @endif
         @endforeach
         @error('shipping') <div class="alert alert-danger mt-3 mb-0"><i class="fa-solid fa-circle-exclamation me-2" aria-hidden="true"></i>{{ __('front.checkout.shipping_required') }}</div> @enderror
         <div class="checkout-actions d-flex gap-3 pt-4 mt-4 border-top">
@@ -414,6 +427,51 @@
         });
     }
 
+    function updateCheckoutPickupComment(value) {
+        const commentInput = document.getElementById('comment');
+
+        if (!commentInput) {
+            return;
+        }
+
+        commentInput.value = value;
+        commentInput.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    function initBoxNowMap() {
+        const boxNowContainer = document.getElementById('boxnowmap');
+
+        if (!boxNowContainer) {
+            return;
+        }
+
+        window._bn_map_widget_config = {
+            type: 'popup',
+            partnerId: @json((int) $boxnow_widget_partner_id),
+            parentElement: '#boxnowmap',
+            afterSelect: function (selected) {
+                if (!selected || !selected.boxnowLockerId) {
+                    return;
+                }
+
+                const postalCode = selected.boxnowLockerPostalCode || '';
+                const address = selected.boxnowLockerAddressLine1 || selected.boxnowLockerName || '';
+                updateCheckoutPickupComment(`${postalCode}, ${address}_${selected.boxnowLockerId}`);
+            }
+        };
+
+        if (document.querySelector('script[data-boxnow-widget="1"]')) {
+            return;
+        }
+
+        const script = document.createElement('script');
+        script.src = 'https://widget-cdn.boxnow.hr/map-widget/client/v5.js';
+        script.async = true;
+        script.defer = true;
+        script.dataset.boxnowWidget = '1';
+        document.head.appendChild(script);
+    }
+
     function focusFirstCheckoutError() {
         const checkout = document.getElementById('checkout-flow');
         const firstInvalidField = checkout ? checkout.querySelector('.is-invalid, [aria-invalid="true"], .alert-danger') : null;
@@ -441,16 +499,21 @@
         }, 0);
     }
 
-    document.addEventListener('DOMContentLoaded', initGlsParcelLockerMap);
+    document.addEventListener('DOMContentLoaded', () => {
+        initGlsParcelLockerMap();
+        initBoxNowMap();
+    });
     window.addEventListener('checkout-validation-failed', focusFirstCheckoutError);
     window.addEventListener('checkout-step-changed', scrollCheckoutToTop);
 
     document.addEventListener('livewire:load', () => {
         initGlsParcelLockerMap();
+        initBoxNowMap();
 
         if (window.Livewire && typeof window.Livewire.hook === 'function') {
             window.Livewire.hook('message.processed', () => {
                 initGlsParcelLockerMap();
+                initBoxNowMap();
             });
         }
     });

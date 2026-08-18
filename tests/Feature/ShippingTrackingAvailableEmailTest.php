@@ -43,7 +43,9 @@ class ShippingTrackingAvailableEmailTest extends TestCase
                 && (int) $mail->order->id === $orderId
                 && $mail->build()->subject === 'Vaša pošiljka je poslana - Antikvarijat Biblos'
                 && str_contains($rendered, '123456789')
-                && str_contains($rendered, 'Prati pošiljku');
+                && str_contains($rendered, 'Prati pošiljku')
+                && str_contains($rendered, 'class="mail-shell"')
+                && str_contains($rendered, 'Vaša pošiljka je na putu');
         });
 
         $this->assertNotNull(DB::table('orders')->where('id', $orderId)->value('shipping_tracking_email_sent_at'));

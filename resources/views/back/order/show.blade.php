@@ -155,7 +155,7 @@
         @if($trackingCarrier || $hasTrackingIdentifier || $order->shipping_tracking_status)
             <div class="block block-rounded">
                 <div class="block-header block-header-default">
-                    <h3 class="block-title">Praćenje GLS dostave</h3>
+                    <h3 class="block-title">Praćenje dostave</h3>
                     <div class="block-options">
                         @if($hasTrackingIdentifier)
                             <button type="button" class="btn btn-sm btn-alt-primary" data-tracking-btn="{{ $order->id }}" onclick="refreshTracking({{ $order->id }})">
@@ -168,7 +168,7 @@
                     <div class="row">
                         <div class="col-md-2 mb-3">
                             <div class="font-size-sm text-muted">Dostavna služba</div>
-                            <div class="font-w600">GLS</div>
+                            <div class="font-w600">{{ $trackingService->carrierLabel($trackingCarrier) }}</div>
                         </div>
                         <div class="col-md-3 mb-3">
                             <div class="font-size-sm text-muted">Broj pošiljke</div>

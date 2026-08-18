@@ -20,9 +20,11 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Models\Back\Orders\OrderTotal;
 use App\Models\AbandonedCartReminder;
 use App\Services\AbandonedCartReminderService;
+use App\Services\Shipping\BoxNowService;
 use App\Services\Shipping\GlsTrackingService;
 use App\Services\Shipping\OrderTrackingService;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 class OrderController extends Controller
 {
@@ -401,17 +403,39 @@ class OrderController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function api_send_gls(Request $request)
+    public function api_send_boxnow(Request $request)
     {
         $request->validate(['order_id' => 'required|integer']);
 
-        $order = Order::query()->find($request->input('order_id'));
+        $order = Order::query()->with('products')->find($request->input('order_id'));
 
         if (! $order) {
             return response()->json(['error' => 'Narudžba nije pronađena.'], 404);
         }
 
-        if ($this->hasExistingGlsShipment($order)) {
+        if (! $this->isBoxNowOrder($order)) {
+            return response()->json(['error' => 'Narudžba nema odabranu Box Now dostavu.'], 422);
+        }
+
+        return $this->sendBoxNowShipment($order);
+    }
+
+    public function api_send_gls(Request $request)
+    {
+        $request->validate(['order_id' => 'required|integer']);
+
+        $order = Order::query()->with('products')->find($request->input('order_id'));
+
+        if (! $order) {
+            return response()->json(['error' => 'Narudžba nije pronađena.'], 404);
+        }
+
+        // Zaštita za stari UI/bookmark: Box Now narudžba nikada ne smije završiti u GLS API-ju.
+        if ($this->isBoxNowOrder($order)) {
+            return $this->sendBoxNowShipment($order);
+        }
+
+        if ($this->hasExistingShipment($order)) {
             $shipmentId = $order->tracking_code ?: $order->shipping_parcel_id;
 
             return response()->json([
@@ -487,7 +511,7 @@ class OrderController extends Controller
                 'tracking' => $result['tracking'],
             ]);
         } catch (\Throwable $e) {
-            Log::warning('Manual GLS tracking refresh failed.', [
+            Log::warning('Manual shipment tracking refresh failed.', [
                 'order_id' => $order->id,
                 'error' => $e->getMessage(),
             ]);
@@ -508,7 +532,7 @@ class OrderController extends Controller
         try {
             $result = $trackingService->sendTrackingAvailableMailManually($order);
         } catch (\Throwable $e) {
-            Log::warning('Manual GLS tracking email failed.', [
+            Log::warning('Manual shipment tracking email failed.', [
                 'order_id' => $order->id,
                 'error' => $e->getMessage(),
             ]);
@@ -523,7 +547,47 @@ class OrderController extends Controller
         return response()->json(['message' => $result['message'] ?? 'Tracking email je obrađen.']);
     }
 
-    private function hasExistingGlsShipment(Order $order): bool
+    private function sendBoxNowShipment(Order $order)
+    {
+        if ($this->hasExistingShipment($order)) {
+            $shipmentId = $order->tracking_code ?: $order->shipping_parcel_id;
+
+            return response()->json([
+                'message' => $shipmentId
+                    ? 'Box Now pošiljka je već kreirana: ' . $shipmentId
+                    : 'Box Now pošiljka je već kreirana za ovu narudžbu.',
+            ]);
+        }
+
+        try {
+            $tracking = app(BoxNowService::class)->createDeliveryRequest($order);
+            app(OrderTrackingService::class)->apply($order, $tracking);
+
+            return response()->json([
+                'message' => 'Box Now pošiljka uspješno je kreirana s ID-em: ' . $tracking['parcel_id'],
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Box Now shipment failed.', [
+                'order_id' => $order->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json(['error' => 'Greška..! ' . $e->getMessage()], 422);
+        }
+    }
+
+    private function isBoxNowOrder(Order $order): bool
+    {
+        $shipping = Str::lower(
+            (string) $order->shipping_carrier . ' '
+            . (string) $order->shipping_method . ' '
+            . (string) $order->shipping_code
+        );
+
+        return Str::contains($shipping, ['boxnow', 'box now']);
+    }
+
+    private function hasExistingShipment(Order $order): bool
     {
         return filled($order->shipping_parcel_id)
             || filled($order->tracking_code)

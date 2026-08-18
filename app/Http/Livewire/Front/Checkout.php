@@ -15,6 +15,7 @@ use App\Models\Front\Checkout\ShippingMethod;
 use App\Models\TagManager;
 use App\Services\AddressDirectoryService;
 use App\Services\CheckoutAccountService;
+use App\Services\Shipping\BoxNowSettingsService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
@@ -89,6 +90,10 @@ class Checkout extends Component
     public $napomena = '';
 
     public $view_comment = false;
+
+    public $view_boxnow = false;
+
+    public $boxnow_widget_partner_id = 123;
 
     public $newsletter = false;
 
@@ -166,6 +171,8 @@ class Checkout extends Component
      */
     public function mount()
     {
+        $this->boxnow_widget_partner_id = app(BoxNowSettingsService::class)->get()['widget_partner_id'] ?: 123;
+
         $addressUserId = CheckoutSession::getAddressUserId();
         $addressBelongsToCurrentUser = Auth::check()
             ? (int) $addressUserId === (int) Auth::id()
@@ -323,7 +330,7 @@ class Checkout extends Component
                 $this->validate($this->shipping_rules);
             }
 
-            if ($step == 'placanje' and $this->shipping == 'gls_eu') {
+            if ($step == 'placanje' && in_array($this->shipping, ['gls_eu', 'boxnow'], true)) {
                 $this->validate($this->comment_rules);
             }
 
@@ -384,6 +391,7 @@ class Checkout extends Component
         CheckoutSession::forgetShipping();
         $this->shipping = '';
         $this->comment = '';
+        CheckoutSession::forgetComment();
         CheckoutSession::forgetPayment();
         $this->payment = '';
     }
@@ -394,6 +402,11 @@ class Checkout extends Component
      */
     public function selectShipping(string $shipping)
     {
+        if (CheckoutSession::getShipping() !== $shipping) {
+            $this->comment = '';
+            CheckoutSession::forgetComment();
+        }
+
         $this->shipping = $shipping;
 
         $this->checkShipping($shipping);
@@ -633,6 +646,8 @@ class Checkout extends Component
         } else {
             $this->view_comment = false;
         }
+
+        $this->view_boxnow = $shipping === 'boxnow';
     }
 
 
