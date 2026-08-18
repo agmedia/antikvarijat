@@ -11,7 +11,7 @@ class ProductWidgetImageTest extends TestCase
 {
     public function testAllProductWidgetQueriesExcludeProductsWithoutImages(): void
     {
-        foreach (['products', 'product_category'] as $methodName) {
+        foreach (['products', 'product_category', 'publisher'] as $methodName) {
             $method = new ReflectionMethod(Helper::class, $methodName);
             $method->setAccessible(true);
 

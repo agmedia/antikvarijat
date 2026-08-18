@@ -164,6 +164,10 @@
             subcat: String,
             author: String,
             publisher: String,
+            parentUrl: {
+                type: String,
+                default: ''
+            },
             locale: {
                 type: String,
                 default: 'hr'
@@ -533,6 +537,11 @@
             },
 
             goToParentCategory() {
+                if (this.parentUrl) {
+                    window.location.href = this.parentUrl;
+                    return;
+                }
+
                 const origin = (this.origin || (location.origin + '/'));
 
                 if (this.subcategory && this.category) {

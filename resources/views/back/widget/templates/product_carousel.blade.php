@@ -41,6 +41,7 @@
                                     <option></option>
                                     <option value="product" {{ (isset($widget->target) and $widget->target == 'product') ? 'selected="selected"' : '' }}>Artikli</option>
                                     <option value="product_category" {{ (isset($widget->target) and $widget->target == 'product_category') ? 'selected="selected"' : '' }}>Group</option>
+                                    <option value="publisher" {{ (isset($widget->target) and $widget->target == 'publisher') ? 'selected="selected"' : '' }}>Nakladnici</option>
                                 </select>
                             </div>
 
@@ -109,6 +110,12 @@
                                                     <label class="custom-control-label" for="popular-switch">Uključi popularne stavke</label>
                                                 </div>
                                             </div>
+                                            <div class="form-group mb-5">
+                                                <div class="custom-control custom-switch custom-control-success">
+                                                    <input type="checkbox" class="custom-control-input" id="best-selling-switch" name="best_selling" @if (isset($widget->data['best_selling']) and $widget->data['best_selling']) checked @endif>
+                                                    <label class="custom-control-label" for="best-selling-switch">Sortiraj prema najprodavanijima</label>
+                                                </div>
+                                            </div>
                                             <div class="form-group mb-3">
                                                 <div class="custom-control custom-switch custom-control-success">
                                                     <input type="checkbox" class="custom-control-input" id="status-switch" name="status" @if (isset($widget) and $widget->status) checked @endif>
@@ -170,6 +177,17 @@
             });
             $('#target-select').on('change', function (e) {
                 Livewire.emit('groupUpdated', e.currentTarget.value);
+            });
+
+            $('#best-selling-switch').on('change', function () {
+                if (this.checked) {
+                    $('#new-switch, #popular-switch').prop('checked', false);
+                }
+            });
+            $('#new-switch, #popular-switch').on('change', function () {
+                if (this.checked) {
+                    $('#best-selling-switch').prop('checked', false);
+                }
             });
 
             Livewire.on('list_full', () => {

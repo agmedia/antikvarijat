@@ -18,7 +18,7 @@
             @foreach ($data['items'] as $product)
                 <!-- Product-->
                 <div>
-                    @include('front.catalog.category.product')
+                    @include('front.catalog.category.product', ['publisher' => ($data['tablename'] ?? null) === 'publisher'])
                 </div>
             @endforeach
         </div>

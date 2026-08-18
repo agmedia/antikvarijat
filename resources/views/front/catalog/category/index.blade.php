@@ -6,6 +6,7 @@
     $subcat = $subcat ?? null;
     $author = $author ?? null;
     $publisher = $publisher ?? null;
+    $filterParentUrl = null;
     $categoryEntity = null;
     $categoryOgImage = null;
     $listingTitle = __('front.meta.default_title');
@@ -59,6 +60,25 @@
             'name' => $categoryEntity->title,
             'page' => $currentPage,
         ]);
+    }
+
+    if ($cat || $subcat) {
+        if ($author) {
+            $filterParentUrl = \App\Helpers\LocaleHelper::route('catalog.route.author', array_filter([
+                'author' => $author,
+                'cat' => $subcat ? $cat : null,
+            ]));
+        } elseif ($publisher) {
+            $filterParentUrl = \App\Helpers\LocaleHelper::route('catalog.route.publisher', array_filter([
+                'publisher' => $publisher,
+                'cat' => $subcat ? $cat : null,
+            ]));
+        } elseif ($group) {
+            $filterParentUrl = \App\Helpers\LocaleHelper::route('catalog.route', array_filter([
+                'group' => $group,
+                'cat' => $subcat ? $cat : null,
+            ]));
+        }
     }
 @endphp
 @section('title', $listingTitle)
@@ -217,6 +237,7 @@
                          author="{{ isset($author) ? $author['slug'] : null }}"
                          publisher="{{ isset($publisher) ? $publisher['slug'] : null }}"
                          locale="{{ app()->getLocale() }}"
+                         :parent-url='@json($filterParentUrl)'
                          :initial-categories='@json($initialCategories ?? [])'
                          :initial-attributes='@json($initialAttributes ?? [])'>
                 @include('front.catalog.category.partials.filter-fallback', [

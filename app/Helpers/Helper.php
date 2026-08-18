@@ -10,6 +10,7 @@ use App\Models\Front\Catalog\Author;
 use App\Models\Front\Catalog\Category;
 use App\Models\Front\Catalog\Product;
 use App\Models\Back\Marketing\Action;
+use App\Models\Back\Orders\Order;
 use App\Models\Front\Catalog\Publisher;
 use App\Models\Front\Loyalty;
 use App\Models\ProductReview;
@@ -18,6 +19,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -387,6 +389,11 @@ class Helper
                 $tablename = 'product_category';
             }
 
+            if (static::isDescriptionTarget($data, 'publisher')) {
+                $items     = static::publisher($data)->get();
+                $tablename = 'publisher';
+            }
+
 
             if (static::isDescriptionTarget($data, 'author')) {
                 $items     = static::author($data)->get();
@@ -501,16 +508,24 @@ class Helper
 
         $prods->active()->available()->hasImage();
 
-        if (isset($data['new']) && $data['new'] == 'on') {
-            $prods->orderBy('updated_at', 'desc')->limit(12);
-        }
+        $bestSelling = ! empty($data['best_selling']) && $data['best_selling'] === 'on';
 
-        if (isset($data['popular']) && $data['popular'] == 'on') {
-            $prods->popular();
+        if (! $bestSelling) {
+            if (isset($data['new']) && $data['new'] == 'on') {
+                $prods->orderBy('updated_at', 'desc')->limit(12);
+            }
+
+            if (isset($data['popular']) && $data['popular'] == 'on') {
+                $prods->popular();
+            }
         }
 
         if (isset($data['list']) && $data['list']) {
             $prods->whereIn('id', $data['list']);
+        }
+
+        if ($bestSelling) {
+            static::orderProductsBySales($prods, $data, 'product', 12);
         }
 
         return $prods->withReviewSummary()->with(['author', 'action', 'categories']);
@@ -612,6 +627,8 @@ class Helper
 
         $product->where('status', 1)->available()->hasImage();
 
+        $bestSelling = ! empty($data['best_selling']) && $data['best_selling'] === 'on';
+
         // Filtriraj po kategorijama
         if (!empty($data['list'])) {
             $product->whereHas('categories', function (Builder $query) use ($data) {
@@ -620,15 +637,159 @@ class Helper
         }
 
         // Novi proizvodi
-        if (!empty($data['new']) && $data['new'] === 'on') {
+        if (! $bestSelling && !empty($data['new']) && $data['new'] === 'on') {
             $product->orderBy('created_at', 'desc');
         }
 
         // Popularni proizvodi – ovo pretpostavlja da postoji kolona `views` ili slično
-        if (!empty($data['popular']) && $data['popular'] === 'on') {
+        if (! $bestSelling && !empty($data['popular']) && $data['popular'] === 'on') {
             $product->orderBy('viewed', 'desc'); // prilagodi prema tvojoj logici popularnosti
         }
+
+        if ($bestSelling) {
+            static::orderProductsBySales($product, $data, 'product_category', 15);
+        }
+
         return $product->withReviewSummary()->with(['author', 'action', 'categories'])->limit(15);
+    }
+
+
+    /**
+     * Products from the selected publishers.
+     *
+     * @param array $data
+     *
+     * @return Builder
+     */
+    private static function publisher(array $data): Builder
+    {
+        $products = (new Product())->newQuery();
+
+        $products->active()->available()->hasImage();
+
+        if (! empty($data['list'])) {
+            $products->whereIn('publisher_id', $data['list']);
+        }
+
+        $bestSelling = ! empty($data['best_selling']) && $data['best_selling'] === 'on';
+
+        if ($bestSelling) {
+            static::orderProductsBySales($products, $data, 'publisher', 15);
+        } elseif (! empty($data['new']) && $data['new'] === 'on') {
+            $products->orderBy('updated_at', 'desc');
+        } elseif (! empty($data['popular']) && $data['popular'] === 'on') {
+            $products->orderBy('viewed', 'desc');
+        } else {
+            $products->orderBy('updated_at', 'desc');
+        }
+
+        return $products
+            ->withReviewSummary()
+            ->with(['author', 'publisher', 'action', 'categories'])
+            ->limit(15);
+    }
+
+
+    /**
+     * Order products by a short-lived, cached sales ranking.
+     *
+     * @param Builder $products
+     * @param array   $data
+     * @param string  $target
+     * @param int     $limit
+     *
+     * @return Builder
+     */
+    private static function orderProductsBySales(Builder $products, array $data, string $target, int $limit): Builder
+    {
+        $ids = static::bestSellingProductIds($data, $target, $limit);
+
+        if (empty($ids)) {
+            return $products->whereRaw('1 = 0');
+        }
+
+        $orderCases = [];
+
+        foreach (array_keys($ids) as $position) {
+            $orderCases[] = 'WHEN ? THEN ' . $position;
+        }
+
+        $orderSql = 'CASE products.id ' . implode(' ', $orderCases) . ' ELSE ' . count($ids) . ' END';
+
+        return $products
+            ->whereIn('products.id', $ids)
+            ->orderByRaw($orderSql, $ids)
+            ->limit($limit);
+    }
+
+
+    /**
+     * Resolve the ranked product IDs once per widget configuration. The query
+     * starts with the filtered products and uses the existing product/order
+     * indexes, so sales are aggregated only for relevant candidates.
+     *
+     * @param array  $data
+     * @param string $target
+     * @param int    $limit
+     *
+     * @return array
+     */
+    private static function bestSellingProductIds(array $data, string $target, int $limit): array
+    {
+        $list = array_values(array_unique(array_map('intval', array_filter(
+            (array) ($data['list'] ?? []),
+            static fn ($id) => (int) $id > 0
+        ))));
+        sort($list);
+
+        $statuses = Order::dashboardCompletedStatusIds();
+        $cacheKey = 'widget.best-selling.v1.' . sha1(json_encode([
+            'target' => $target,
+            'list' => $list,
+            'limit' => $limit,
+            'statuses' => $statuses,
+        ]));
+
+        return Cache::remember($cacheKey, now()->addMinutes(10), function () use ($list, $statuses, $target, $limit) {
+            $ranking = DB::table('products')
+                ->leftJoin('order_products', 'order_products.product_id', '=', 'products.id')
+                ->leftJoin('orders', function ($join) use ($statuses) {
+                    $join->on('orders.id', '=', 'order_products.order_id')
+                        ->whereIn('orders.order_status_id', $statuses);
+                })
+                ->where('products.status', 1)
+                ->where('products.quantity', '>', 0)
+                ->whereNotNull('products.image')
+                ->where('products.image', '!=', '');
+
+            if ($target === 'product' && ! empty($list)) {
+                $ranking->whereIn('products.id', $list);
+            }
+
+            if ($target === 'publisher' && ! empty($list)) {
+                $ranking->whereIn('products.publisher_id', $list);
+            }
+
+            if ($target === 'product_category' && ! empty($list)) {
+                $ranking->whereExists(function ($query) use ($list) {
+                    $query->selectRaw('1')
+                        ->from('product_category')
+                        ->whereColumn('product_category.product_id', 'products.id')
+                        ->whereIn('product_category.category_id', $list);
+                });
+            }
+
+            return $ranking
+                ->select('products.id')
+                ->selectRaw('COALESCE(SUM(CASE WHEN orders.id IS NOT NULL THEN order_products.quantity ELSE 0 END), 0) AS sold_quantity')
+                ->groupBy('products.id')
+                ->orderByDesc('sold_quantity')
+                ->orderByDesc('products.id')
+                ->limit($limit)
+                ->pluck('products.id')
+                ->map(static fn ($id) => (int) $id)
+                ->all();
+        });
     }
 
 
