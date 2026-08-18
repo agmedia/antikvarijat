@@ -40,9 +40,14 @@ class Seo
      */
     public static function getAuthorData(Author $author, ?Category $cat = null, ?Category $subcat = null): array
     {
-        $authorName = static::naturalAuthorName((string) $author->title);
+        $storedAuthorName = trim((string) $author->title);
+        $authorName = static::naturalAuthorName($storedAuthorName);
         $metaTitle = trim((string) $author->meta_title);
         $metaDescription = trim((string) $author->meta_description);
+
+        if (static::isLegacyAuthorMetaTitle($metaTitle, $storedAuthorName)) {
+            $metaTitle = '';
+        }
 
         if (LocaleHelper::isEnglish()) {
             $title = $metaTitle !== '' ? $metaTitle : $authorName . ' – used and rare books | Biblos';
@@ -76,6 +81,24 @@ class Seo
         $parts[] = $surname;
 
         return implode(' ', $parts);
+    }
+
+
+    /**
+     * Older author records may contain an automatically copied author name in
+     * meta_title. These values are defaults, not manually written SEO titles.
+     */
+    private static function isLegacyAuthorMetaTitle(string $metaTitle, string $authorName): bool
+    {
+        if ($metaTitle === '') {
+            return false;
+        }
+
+        return in_array($metaTitle, [
+            $authorName,
+            $authorName . ' knjige - Antikvarijat Biblos',
+            $authorName . ' books - Antikvarijat Biblos',
+        ], true);
     }
 
 
