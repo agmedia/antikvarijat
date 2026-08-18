@@ -2,8 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Http\Controllers\Back\Marketing\WishlistController;
 use App\Mail\WishlistArrived;
+use App\Services\WishlistAttributionService;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
@@ -27,6 +30,7 @@ class CheckWishlistTest extends TestCase
             $table->string('url');
             $table->string('url_en')->nullable();
             $table->string('image')->nullable();
+            $table->string('sku')->default('0');
             $table->decimal('price', 10, 2)->default(0);
             $table->decimal('special', 10, 2)->default(0);
             $table->unsignedBigInteger('author_id')->default(0);
@@ -171,6 +175,34 @@ class CheckWishlistTest extends TestCase
         $response->assertSessionHas('success', 'Poslano obavijesti: 0; obrađeno wishlist zapisa: 0. Preskočeno: 1.');
         Mail::assertNothingSent();
         $this->assertSame(0, (int) DB::table('wishlist')->where('id', 3)->value('sent'));
+    }
+
+    public function test_top_products_include_prices_row_values_and_filtered_summary(): void
+    {
+        DB::table('products')->where('id', 1)->update(['price' => 12.50]);
+        DB::table('products')->where('id', 2)->update(['price' => 7]);
+
+        $view = app(WishlistController::class)->index(
+            Request::create('/admin/wishlists', 'GET', ['tab' => 'top-products']),
+            app(WishlistAttributionService::class)
+        );
+        $data = $view->getData();
+        $firstProduct = $data['topProducts']->first();
+
+        $this->assertSame(7, (int) $data['topProductsSummary']->requested_total);
+        $this->assertSame(79.5, (float) $data['topProductsSummary']->value_total);
+        $this->assertSame(5, (int) $firstProduct->total);
+        $this->assertSame(12.5, (float) $firstProduct->product->price);
+        $this->assertSame(62.5, (float) $firstProduct->product->price * (int) $firstProduct->total);
+
+        $filteredView = app(WishlistController::class)->index(
+            Request::create('/admin/wishlists', 'GET', ['tab' => 'top-products', 'search' => 'Artikl 2']),
+            app(WishlistAttributionService::class)
+        );
+        $filteredData = $filteredView->getData();
+
+        $this->assertSame(1, (int) $filteredData['topProductsSummary']->requested_total);
+        $this->assertSame(7.0, (float) $filteredData['topProductsSummary']->value_total);
     }
 
     private function product(int $id, int $quantity, int $status): array

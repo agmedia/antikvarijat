@@ -190,6 +190,22 @@
                     </form>
                     {{ $wishlists->appends(array_merge(request()->query(), ['tab' => 'wishlists']))->links() }}
                 @elseif ($activeTab === 'top-products')
+                    <div class="admin-wishlist-demand-summary d-flex flex-wrap align-items-center mt-3" aria-label="Sažetak traženih artikala">
+                        <div class="admin-wishlist-demand-metric">
+                            <span class="admin-section-icon mr-3"><i class="fa-duotone fa-books" aria-hidden="true"></i></span>
+                            <div>
+                                <div class="admin-wishlist-demand-label">Ukupno traženih artikala</div>
+                                <div class="admin-wishlist-demand-value">{{ number_format($topProductsSummary->requested_total ?? 0, 0, ',', '.') }}</div>
+                            </div>
+                        </div>
+                        <div class="admin-wishlist-demand-metric">
+                            <span class="admin-section-icon mr-3"><i class="fa-duotone fa-euro-sign" aria-hidden="true"></i></span>
+                            <div>
+                                <div class="admin-wishlist-demand-label">Ukupna vrijednost traženih artikala</div>
+                                <div class="admin-wishlist-demand-value">{{ number_format($topProductsSummary->value_total ?? 0, 2, ',', '.') }} €</div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="table-responsive mt-3">
                         <table class="table table-borderless table-striped table-vcenter admin-data-table">
                             <thead>
@@ -197,7 +213,9 @@
                                 <th>Artikl</th>
                                 <th>Šifra</th>
                                 <th>Stanje</th>
+                                <th class="text-right">Cijena</th>
                                 <th class="text-right">Ukupno prijava</th>
+                                <th class="text-right">Ukupna vrijednost</th>
                                 <th class="text-right">Nije poslano</th>
                                 <th class="text-right">Poslano</th>
                             </tr>
@@ -210,12 +228,18 @@
                                     </td>
                                     <td data-label="Šifra">{{ optional($item->product)->sku ?? '—' }}</td>
                                     <td data-label="Stanje">{{ optional($item->product)->quantity ?? '—' }}</td>
+                                    <td class="text-right text-nowrap" data-label="Cijena">
+                                        @if($item->product){{ number_format((float) $item->product->price, 2, ',', '.') }} €@else — @endif
+                                    </td>
                                     <td class="text-right" data-label="Ukupno"><strong>{{ number_format($item->total, 0, ',', '.') }}</strong></td>
+                                    <td class="text-right text-nowrap" data-label="Ukupna vrijednost">
+                                        @if($item->product)<strong>{{ number_format((float) $item->product->price * (int) $item->total, 2, ',', '.') }} €</strong>@else — @endif
+                                    </td>
                                     <td class="text-right" data-label="Nije poslano">{{ number_format($item->unsent_total, 0, ',', '.') }}</td>
                                     <td class="text-right" data-label="Poslano">{{ number_format($item->sent_total, 0, ',', '.') }}</td>
                                 </tr>
                             @empty
-                                <tr><td class="text-center text-muted py-5" colspan="6">Nema pronađenih artikala.</td></tr>
+                                <tr><td class="text-center text-muted py-5" colspan="8">Nema pronađenih artikala.</td></tr>
                             @endforelse
                             </tbody>
                         </table>
@@ -309,9 +333,16 @@
         .admin-wishlist-select-all { display: inline-flex; align-items: center; gap: .45rem; color: #314837; font-weight: 600; cursor: pointer; }
         .admin-wishlist-select-all input { width: 1rem; height: 1rem; margin: 0; }
         #wishlist-send-selected:disabled { opacity: .42; cursor: not-allowed; box-shadow: none; }
+        .admin-wishlist-demand-summary { overflow: hidden; border: 1px solid #d9d3c8; border-radius: .35rem; background: linear-gradient(135deg, #fbfaf7 0%, #f3f0e8 100%); }
+        .admin-wishlist-demand-metric { display: flex; flex: 1 1 20rem; align-items: center; min-width: 0; padding: 1rem 1.25rem; }
+        .admin-wishlist-demand-metric + .admin-wishlist-demand-metric { border-left: 1px solid #d9d3c8; }
+        .admin-wishlist-demand-label { color: #68766d; font-size: .8rem; font-weight: 700; letter-spacing: .035em; text-transform: uppercase; }
+        .admin-wishlist-demand-value { color: #263d2d; font-size: 1.5rem; font-weight: 700; line-height: 1.25; }
         .admin-wishlist-attribution-card { border: 1px solid #d9d3c8; background: linear-gradient(135deg, #fbfaf7 0%, #f3f0e8 100%); }
         @media (max-width: 767.98px) {
             .admin-wishlist-select-column { width: 100%; }
+            .admin-wishlist-demand-metric { flex-basis: 100%; }
+            .admin-wishlist-demand-metric + .admin-wishlist-demand-metric { border-top: 1px solid #d9d3c8; border-left: 0; }
             #main-container .admin-wishlist-table td.admin-wishlist-action {
                 width: 100%;
                 min-width: 0;

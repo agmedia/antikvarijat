@@ -55,9 +55,21 @@ class WishlistController extends Controller
             ->groupBy('product_id')
             ->orderByDesc('total')
             ->with(['product' => function ($q) {
-                $q->select('id', 'name', 'sku', 'image', 'quantity', 'status');
+                $q->select('id', 'name', 'sku', 'image', 'price', 'quantity', 'status');
             }])
             ->paginate(30, ['*'], 'top_page');
+
+        $topProductsSummary = Wishlist::query()
+            ->leftJoin('products', 'products.id', '=', 'wishlist.product_id')
+            ->when($search !== '', function ($summary) use ($search) {
+                $summary->where(function ($product) use ($search) {
+                    $product->where('products.name', 'like', "%{$search}%")
+                        ->orWhere('products.sku', 'like', "%{$search}%");
+                });
+            })
+            ->selectRaw('COUNT(wishlist.id) as requested_total')
+            ->selectRaw('COALESCE(SUM(COALESCE(products.price, 0)), 0) as value_total')
+            ->first();
 
         $readyQuery = Wishlist::query()
             ->active()
@@ -85,7 +97,8 @@ class WishlistController extends Controller
             'stats',
             'attribution',
             'wishlists',
-            'topProducts'
+            'topProducts',
+            'topProductsSummary'
         ));
     }
 
