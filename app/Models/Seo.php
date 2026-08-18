@@ -40,18 +40,42 @@ class Seo
      */
     public static function getAuthorData(Author $author, ?Category $cat = null, ?Category $subcat = null): array
     {
+        $authorName = static::naturalAuthorName((string) $author->title);
+        $metaTitle = trim((string) $author->meta_title);
+        $metaDescription = trim((string) $author->meta_description);
+
         if (LocaleHelper::isEnglish()) {
-            $title = $author->meta_title ?: $author->title . ' books - Antikvarijat Biblos';
-            $description = $author->meta_description ?: 'Browse books by ' . $author->title . ' in Antikvarijat Biblos with secure ordering and delivery.';
+            $title = $metaTitle !== '' ? $metaTitle : $authorName . ' – used and rare books | Biblos';
+            $description = $metaDescription !== '' ? $metaDescription : $authorName . ': browse available used and rare books at Antikvarijat Biblos and order securely online.';
         } else {
-            $title = $author->meta_title ?: $author->title . ' knjige - Antikvarijat Biblos';
-            $description = $author->meta_description ?: 'Pregledajte dostupne knjige autora ' . $author->title . ' u ponudi Antikvarijata Biblos. Sigurna kupnja i dostava.';
+            $title = $metaTitle !== '' ? $metaTitle : $authorName . ' – knjige i rabljena izdanja | Biblos';
+            $description = $metaDescription !== '' ? $metaDescription : $authorName . ': pronađite knjige u ponudi Antikvarijata Biblos. Pregledajte dostupna rabljena i rijetka izdanja te jednostavno naručite online.';
         }
 
         return [
             'title'       => $title,
             'description' => $description
         ];
+    }
+
+
+    /**
+     * Author records are stored as "Surname Given name(s)". SEO copy reads more
+     * naturally when the leading surname is moved behind the given name(s).
+     */
+    private static function naturalAuthorName(string $name): string
+    {
+        $name = trim((string) preg_replace('/\s+/u', ' ', $name));
+        $parts = preg_split('/\s+/u', $name, -1, PREG_SPLIT_NO_EMPTY);
+
+        if (! $parts || count($parts) < 2) {
+            return $name;
+        }
+
+        $surname = array_shift($parts);
+        $parts[] = $surname;
+
+        return implode(' ', $parts);
     }
 
 
