@@ -11,7 +11,6 @@
     <meta property="og:updated_time" content="{{ $prod->updated_at  }}" />
     <meta property="product:price:amount" content="{{ number_format((float) $prod->special(), 2, '.', '') }}" />
     <meta property="product:price:currency" content="EUR" />
-    <meta property="product:availability" content="{{ $prod->quantity > 0 ? 'in stock' : 'out of stock' }}" />
     <meta property="product:retailer_item_id" content="{{ $prod->sku }}" />
 @endpush
 

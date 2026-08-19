@@ -211,9 +211,6 @@ class Breadcrumb
                 'url' => $url,
                 'priceCurrency' => 'EUR',
                 'price' => number_format((float) $prod->special(), 2, '.', ''),
-                'availability' => $prod->quantity > 0
-                    ? 'https://schema.org/InStock'
-                    : 'https://schema.org/OutOfStock',
                 'itemCondition' => 'https://schema.org/UsedCondition',
                 'seller' => [
                     '@id' => rtrim((string) config('app.url'), '/') . '/#organization',
