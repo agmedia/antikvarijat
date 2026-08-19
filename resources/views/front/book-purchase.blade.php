@@ -1,32 +1,24 @@
 @extends('front.layouts.app')
 
 @php
-    $bookPurchaseMetaTitle = __('front.book_purchase.seo_title');
-    $bookPurchaseMetaDescription = __('front.book_purchase.meta_description');
-    $bookPurchaseFaqItems = collect(__('front.book_purchase.faq_items'))->map(fn (array $item) => [
-        'title' => $item['question'],
-        'description' => $item['answer'],
-    ]);
+    $bookPurchaseMetaTitle = \Illuminate\Support\Str::contains(
+        \Illuminate\Support\Str::lower($bookPurchaseContent['title']),
+        'antikvarijat biblos'
+    ) ? $bookPurchaseContent['title'] : $bookPurchaseContent['title'] . ' - Antikvarijat Biblos';
     $bookPurchaseSchema = \App\Helpers\LandingPageStructuredData::bookPurchaseService(
         \App\Helpers\LocaleHelper::route('otkup.knjiga'),
         $bookPurchaseContent['title'],
-        $bookPurchaseMetaDescription,
+        $bookPurchaseContent['meta_description'],
         __('front.book_purchase.service_type'),
-        app()->getLocale()
-    );
-    $bookPurchaseFaqSchema = \App\Helpers\StructuredData::faqPage(
-        \App\Helpers\LocaleHelper::route('otkup.knjiga'),
-        $bookPurchaseFaqItems,
         app()->getLocale()
     );
 @endphp
 
 @section('title', $bookPurchaseMetaTitle)
-@section('description', $bookPurchaseMetaDescription)
+@section('description', $bookPurchaseContent['meta_description'])
 
 @push('meta_tags')
     <script type="application/ld+json">{!! \App\Helpers\StructuredData::toJson($bookPurchaseSchema) !!}</script>
-    <script type="application/ld+json">{!! \App\Helpers\StructuredData::toJson($bookPurchaseFaqSchema) !!}</script>
 @endpush
 
 @push('css_after')
@@ -139,22 +131,6 @@
             </div>
         </div>
 
-        <section class="mb-5" aria-labelledby="book-purchase-process">
-            <h2 class="h3 text-center mb-4" id="book-purchase-process">{{ __('front.book_purchase.how_it_works_title') }}</h2>
-            <div class="row g-4">
-                @foreach (__('front.book_purchase.process_steps') as $step)
-                    <div class="col-md-4">
-                        <div class="card border-0 shadow-sm h-100">
-                            <div class="card-body">
-                                <h3 class="h5">{{ $step['title'] }}</h3>
-                                <p class="text-muted mb-0">{{ $step['text'] }}</p>
-                            </div>
-                        </div>
-                    </div>
-                @endforeach
-            </div>
-        </section>
-
         <div class="card border-0 shadow-sm">
             <div class="card-body p-4 p-lg-5">
                 <h2 class="h4 mb-3">{{ $bookPurchaseContent['form_title'] }}</h2>
@@ -212,47 +188,6 @@
             </div>
         </div>
 
-        <div class="row g-4 mt-4">
-            <section class="col-lg-6" aria-labelledby="book-purchase-items">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body p-4">
-                        <h2 class="h4" id="book-purchase-items">{{ __('front.book_purchase.what_we_buy_title') }}</h2>
-                        <p>{{ __('front.book_purchase.what_we_buy_intro') }}</p>
-                        <ul class="mb-0">
-                            @foreach (__('front.book_purchase.what_we_buy_items') as $item)
-                                <li class="mb-2">{{ $item }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                </div>
-            </section>
-            <section class="col-lg-6" aria-labelledby="book-purchase-valuation">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body p-4">
-                        <h2 class="h4" id="book-purchase-valuation">{{ __('front.book_purchase.valuation_title') }}</h2>
-                        <p class="mb-0">{{ __('front.book_purchase.valuation_text') }}</p>
-                    </div>
-                </div>
-            </section>
-        </div>
-
-        <section class="mt-5" aria-labelledby="book-purchase-faq">
-            <h2 class="h3 mb-4" id="book-purchase-faq">{{ __('front.book_purchase.faq_title') }}</h2>
-            <div class="accordion" id="book-purchase-faq-list">
-                @foreach (__('front.book_purchase.faq_items') as $index => $item)
-                    <div class="accordion-item">
-                        <h3 class="accordion-header" id="book-purchase-faq-heading-{{ $index }}">
-                            <button class="accordion-button {{ $index ? 'collapsed' : '' }}" type="button" data-bs-toggle="collapse" data-bs-target="#book-purchase-faq-answer-{{ $index }}" aria-expanded="{{ $index ? 'false' : 'true' }}" aria-controls="book-purchase-faq-answer-{{ $index }}">
-                                {{ $item['question'] }}
-                            </button>
-                        </h3>
-                        <div id="book-purchase-faq-answer-{{ $index }}" class="accordion-collapse collapse {{ $index ? '' : 'show' }}" aria-labelledby="book-purchase-faq-heading-{{ $index }}" data-bs-parent="#book-purchase-faq-list">
-                            <div class="accordion-body">{{ $item['answer'] }}</div>
-                        </div>
-                    </div>
-                @endforeach
-            </div>
-        </section>
     </section>
     </main>
 @endsection

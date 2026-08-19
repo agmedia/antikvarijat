@@ -561,9 +561,8 @@ return [
 
     'book_purchase' => [
         'title' => 'Book purchase',
-        'seo_title' => 'Sell books in Zagreb – appraisal and offer | Biblos',
         'service_type' => 'Purchase of books and magazines',
-        'meta_description' => 'Offer old, rare and used books to Antikvarijat Biblos in Zagreb. Send photographs and details for a free initial appraisal and purchase inquiry.',
+        'meta_description' => 'Send a book and magazine purchase request.',
         'section_title' => 'Donations and purchases',
         'intro_1' => 'Antikvarijat Biblos always accepts book donations, whether you are moving, reorganizing your home or simply running out of space.',
         'intro_2' => 'If you have titles you believe may be valuable, send us your details and photos of the books you are offering so we can contact you.',
@@ -588,29 +587,6 @@ return [
         'send_error' => 'An error occurred while sending the request. Please try again.',
         'sent' => 'Thank you! Your book purchase request has been sent successfully.',
         'sent_short' => 'Thank you! Your request has been sent successfully.',
-        'how_it_works_title' => 'How our book purchasing service works',
-        'process_steps' => [
-            ['title' => '1. Photograph the books', 'text' => 'Photograph rows of book spines and add covers and edition details for potentially valuable copies. Images should be clear and well lit.'],
-            ['title' => '2. Send your inquiry', 'text' => 'Enter your contact details and attach up to 20 photographs. For a larger library, include representative shelf photos and an approximate book count.'],
-            ['title' => '3. Receive our response', 'text' => 'After review, we will let you know whether we are interested and arrange the next step, further photographs or an in-person inspection.'],
-        ],
-        'what_we_buy_title' => 'What books do we buy?',
-        'what_we_buy_intro' => 'We are generally interested in well-preserved, sought-after editions that complement our collection.',
-        'what_we_buy_items' => [
-            'old and rare books, including first editions',
-            'books on history, art, philosophy and local history',
-            'specialist libraries, monographs and valuable sets',
-            'antique maps, atlases, views and prints',
-        ],
-        'valuation_title' => 'How is a book valued?',
-        'valuation_text' => 'Value depends on demand, scarcity, author and publisher, year of publication, completeness and the actual condition of the copy. Age alone does not make a book valuable. An initial appraisal from photographs is indicative, while a final offer may be made after inspecting the books.',
-        'faq_title' => 'Frequently asked questions about selling books',
-        'faq_items' => [
-            ['question' => 'Do you buy every book?', 'answer' => 'We cannot purchase every book offered. The decision depends on condition, demand, existing stock and whether the material fits our collection.'],
-            ['question' => 'Must I bring the books to the shop?', 'answer' => 'Send photographs and basic information first. If we are interested, we will arrange an inspection at the shop or another suitable option for a larger collection.'],
-            ['question' => 'How long does an appraisal take?', 'answer' => 'Response time depends on the number of inquiries and the size of the collection. Clear photographs and quantity information help us reply faster.'],
-            ['question' => 'Can I donate books?', 'answer' => 'Yes. You may donate books you no longer need to Antikvarijat Biblos by prior arrangement, especially for larger quantities.'],
-        ],
     ],
 
     'newsletter' => [
