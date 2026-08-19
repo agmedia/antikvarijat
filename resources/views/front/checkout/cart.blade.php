@@ -15,7 +15,6 @@
 
 @push('css_after')
     @include('front.checkout.partials.progress-styles')
-    @include('front.checkout.partials.cart-best-sellers-styles')
 @endpush
 
 @section('content')

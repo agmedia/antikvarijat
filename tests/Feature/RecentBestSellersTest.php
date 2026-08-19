@@ -138,4 +138,31 @@ class RecentBestSellersTest extends TestCase
         $this->assertCount(1, $products);
         $this->assertSame(2, $products->first()->id);
     }
+
+    public function testItExcludesSelectedProductsFromTheRanking(): void
+    {
+        $now = now();
+
+        DB::table('products')->insert([
+            ['id' => 1, 'image' => 'one.jpg', 'created_at' => $now, 'updated_at' => $now],
+            ['id' => 2, 'image' => 'two.jpg', 'created_at' => $now, 'updated_at' => $now],
+        ]);
+        DB::table('orders')->insert([
+            'id' => 1,
+            'order_status_id' => config('settings.order.status.paid'),
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+        DB::table('order_products')->insert([
+            ['order_id' => 1, 'product_id' => 1, 'quantity' => 10],
+            ['order_id' => 1, 'product_id' => 2, 'quantity' => 5],
+        ]);
+
+        $ids = app(ProductRecommendationService::class)
+            ->recentBestSellers(30, 10, [1])
+            ->pluck('id')
+            ->all();
+
+        $this->assertSame([2], $ids);
+    }
 }

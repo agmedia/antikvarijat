@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Mail;
 
 class CheckoutController extends Controller
 {
+    private const CART_BEST_SELLER_EXCLUDED_PRODUCT_IDS = [36754];
 
     /**
      * @param Request $request
@@ -29,7 +30,11 @@ class CheckoutController extends Controller
     public function cart(Request $request, ProductRecommendationService $recommendations)
     {
         $gdl = TagManager::getGoogleCartDataLayer($this->shoppingCart()->get());
-        $bestSellers = $recommendations->recentBestSellers(30, 10);
+        $bestSellers = $recommendations->recentBestSellers(
+            30,
+            10,
+            self::CART_BEST_SELLER_EXCLUDED_PRODUCT_IDS
+        );
 
         return view('front.checkout.cart', compact('gdl', 'bestSellers'));
     }

@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Schema;
 
 class ProductRecommendationService
 {
-    public function recentBestSellers(int $days = 30, int $limit = 10): Collection
+    public function recentBestSellers(int $days = 30, int $limit = 10, array $excludedProductIds = []): Collection
     {
         if (! Schema::hasTable('products') || ! Schema::hasTable('orders') || ! Schema::hasTable('order_products')) {
             return collect();
@@ -21,15 +21,21 @@ class ProductRecommendationService
 
         $days = max(1, min($days, 365));
         $limit = max(1, min($limit, 50));
+        $excludedProductIds = array_values(array_unique(array_map(
+            'intval',
+            array_filter($excludedProductIds, static fn ($id) => (int) $id > 0)
+        )));
+        sort($excludedProductIds);
         $statuses = Order::dashboardCompletedStatusIds();
         $cacheKey = 'recommendations.recent-best-sellers.v1.' . sha1(json_encode([
             'days' => $days,
             'limit' => $limit,
             'statuses' => $statuses,
+            'excluded_product_ids' => $excludedProductIds,
         ]));
 
-        $productIds = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($days, $limit, $statuses) {
-            return DB::table('order_products')
+        $productIds = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($days, $limit, $statuses, $excludedProductIds) {
+            $ranking = DB::table('order_products')
                 ->join('orders', 'orders.id', '=', 'order_products.order_id')
                 ->join('products', 'products.id', '=', 'order_products.product_id')
                 ->whereIn('orders.order_status_id', $statuses)
@@ -47,8 +53,13 @@ class ProductRecommendationService
                 ->groupBy('order_products.product_id')
                 ->orderByDesc('sold_quantity')
                 ->orderByDesc('last_sold_at')
-                ->orderByDesc('order_products.product_id')
-                ->limit($limit)
+                ->orderByDesc('order_products.product_id');
+
+            if (! empty($excludedProductIds)) {
+                $ranking->whereNotIn('order_products.product_id', $excludedProductIds);
+            }
+
+            return $ranking->limit($limit)
                 ->pluck('order_products.product_id')
                 ->map(fn ($id) => (int) $id);
         });
