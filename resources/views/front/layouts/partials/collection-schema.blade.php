@@ -1,4 +1,4 @@
-@if ($collectionPaginator && \Illuminate\Support\Str::startsWith(\App\Helpers\Metatags::robots(request()), 'index'))
+@if (($collectionIndexable ?? true) && $collectionPaginator && \Illuminate\Support\Str::startsWith(\App\Helpers\Metatags::robots(request()), 'index'))
     @php
         $collectionSchema = \App\Helpers\StructuredData::itemList(
             \App\Helpers\Metatags::canonical(request()),

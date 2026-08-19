@@ -32,6 +32,29 @@ class MetatagsTest extends TestCase
         );
     }
 
+    /**
+     * @dataProvider additionalCatalogFilterProvider
+     */
+    public function testAdditionalCatalogFiltersAreNoindex(string $parameter): void
+    {
+        $request = $this->request(
+            'https://www.antikvarijat-biblos.hr/knjige?' . $parameter . '=primjer',
+            'catalog.route'
+        );
+
+        $this->assertSame('noindex,follow', Metatags::robots($request));
+        $this->assertSame('https://www.antikvarijat-biblos.hr/knjige', Metatags::canonical($request));
+    }
+
+    public function additionalCatalogFilterProvider(): array
+    {
+        return [
+            'script' => ['pismo'],
+            'condition' => ['stanje'],
+            'binding' => ['uvez'],
+        ];
+    }
+
     public function testPaginatedContentKeepsItsPageInTheCanonicalUrl(): void
     {
         $request = $this->request(

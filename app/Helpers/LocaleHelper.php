@@ -353,6 +353,15 @@ class LocaleHelper
         $baseName = Str::startsWith((string) $name, 'en.') ? Str::after((string) $name, 'en.') : (string) $name;
         $params = $route->parameters();
 
+        $product = request()->attributes->get('seo.product');
+        if ($baseName === 'catalog.route' && $product instanceof Product) {
+            return collect(self::locales())
+                ->mapWithKeys(fn (string $locale) => [
+                    $locale => url(self::productPath($product, $product->getRawOriginal('url'), $locale)),
+                ])
+                ->all();
+        }
+
         if (! Route::has($baseName)) {
             return [];
         }

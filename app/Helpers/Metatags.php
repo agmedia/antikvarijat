@@ -40,6 +40,9 @@ class Metatags
         'nakladnik',
         'sort',
         'letter',
+        'pismo',
+        'stanje',
+        'uvez',
     ];
 
     private const FILTERABLE_ROUTES = [

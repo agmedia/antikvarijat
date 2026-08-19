@@ -360,22 +360,28 @@
                 publisherSearchTimer: null,
                 authorRequestId: 0,
                 publisherRequestId: 0,
+                syncingQuery: false,
+                originalRobotsContent: null,
                 origin: location.origin + '/'
             }
         },
         //
         watch: {
             start(currentValue) {
+                if (this.syncingQuery) return;
                 this.setQueryParam('start', currentValue);
             },
             end(currentValue) {
+                if (this.syncingQuery) return;
                 this.setQueryParam('end', currentValue);
             },
             selectedAuthors(value) {
+                if (this.syncingQuery) return;
                 this.autor = value.join('+');
                 this.setQueryParamOther('autor', this.autor);
             },
             selectedPublishers(value) {
+                if (this.syncingQuery) return;
                 this.nakladnik = value.join('+');
                 this.setQueryParamOther('nakladnik', this.nakladnik);
             },
@@ -393,6 +399,8 @@
         //
         mounted() {
             document.addEventListener('keydown', this.handleFilterKeydown);
+            const robotsMeta = document.querySelector('meta[name="robots"]');
+            this.originalRobotsContent = robotsMeta ? robotsMeta.getAttribute('content') : null;
             this.checkQuery(this.$route);
             this.checkCategory();
             if (!this.categories.length) {
@@ -407,7 +415,6 @@
                 this.show_publishers = true;
             }
 
-            this.preselect();
             this.openSectionsWithSelections();
             this.deferFilterCollectionsLoad();
         },
@@ -471,13 +478,25 @@
                 return values[value] || value;
             },
 
-            updateAttributeFilters() {
-                this.$router.push({ query: this.resolveQuery() }).catch(() => {});
+            updateQueryParams(changes) {
+                const query = { ...(this.$route.query || {}) };
+
+                Object.entries(changes).forEach(([key, value]) => {
+                    if (value === '' || value === null || typeof value === 'undefined') {
+                        delete query[key];
+                    } else {
+                        query[key] = value;
+                    }
+                });
+
+                delete query.page;
+                this.checkNoFollowQuery(query);
+                this.$router.push({ query }).catch(() => {});
             },
 
             selectAttribute(model, value) {
                 this[model] = value;
-                this.updateAttributeFilters();
+                this.updateQueryParams({ [model]: value });
             },
 
             deferFilterCollectionsLoad() {
@@ -612,12 +631,15 @@
              *
              **/
             setQueryParam(type, value) {
-                if (value.length > 3 && value.length < 5) {
-                    this.$router.push({query: this.resolveQuery()}).catch(()=>{});
+                const normalizedValue = String(value || '').replace(/\D/g, '').slice(0, 4);
+
+                if (normalizedValue !== value) {
+                    this[type] = normalizedValue;
+                    return;
                 }
 
-                if (value == '') {
-                    this.$router.push({query: this.resolveQuery()}).catch(()=>{});
+                if (normalizedValue.length === 4 || normalizedValue === '') {
+                    this.updateQueryParams({ [type]: normalizedValue });
                 }
             },
 
@@ -625,7 +647,7 @@
              *
              **/
             setQueryParamOther(type, value) {
-                this.$router.push({query: this.resolveQuery()}).catch(()=>{});
+                this.updateQueryParams({ [type]: value });
             },
 
             /**
@@ -657,14 +679,25 @@
              *
              */
             checkNoFollowQuery(param) {
-                if (param.nakladnik || param.autor || param.start || param.end || param.pismo || param.stanje || param.uvez) {
-                    if (!document.querySelectorAll('meta[name="robots"]').length > 0) {
-                        $('head').append('<meta name=robots content=noindex,nofollow>');
+                const hasFilters = Boolean(param.nakladnik || param.autor || param.start || param.end || param.pismo || param.stanje || param.uvez);
+                let robotsMeta = document.querySelector('meta[name="robots"]');
+
+                if (hasFilters) {
+                    if (!robotsMeta) {
+                        robotsMeta = document.createElement('meta');
+                        robotsMeta.setAttribute('name', 'robots');
+                        robotsMeta.dataset.catalogFilter = 'true';
+                        document.head.appendChild(robotsMeta);
                     }
-                } else {
-                    if (document.querySelectorAll('meta[name="robots"]').length > 0) {
-                        document.querySelector("[name='robots']").remove()
-                    }
+
+                    robotsMeta.setAttribute('content', 'noindex,follow');
+                    return;
+                }
+
+                if (robotsMeta && this.originalRobotsContent !== null) {
+                    robotsMeta.setAttribute('content', this.originalRobotsContent);
+                } else if (robotsMeta && robotsMeta.dataset.catalogFilter === 'true') {
+                    robotsMeta.remove();
                 }
             },
 
@@ -672,6 +705,7 @@
              *
              **/
             checkQuery(params) {
+                this.syncingQuery = true;
                 this.start = params.query.start ? params.query.start : '';
                 this.end = params.query.end ? params.query.end : '';
                 this.pismo = params.query.pismo ? params.query.pismo : '';
@@ -680,6 +714,12 @@
                 this.autor = params.query.autor ? params.query.autor : '';
                 this.nakladnik = params.query.nakladnik ? params.query.nakladnik : '';
                 this.search_query = params.query.pojam ? params.query.pojam : '';
+                this.selectedAuthors = this.autor ? this.autor.split('+').filter(Boolean) : [];
+                this.selectedPublishers = this.nakladnik ? this.nakladnik.split('+').filter(Boolean) : [];
+                this.checkNoFollowQuery(params.query || {});
+                this.$nextTick(() => {
+                    this.syncingQuery = false;
+                });
             },
 
             /**
@@ -741,15 +781,6 @@
                     pojam: this.search_query
                 };
 
-                this.selectedAuthors = [];
-                this.selectedPublishers = [];
-                this.start = '';
-                this.end = '';
-                this.pismo = '';
-                this.stanje = '';
-                this.uvez = '';
-                this.autor = '';
-                this.nakladnik = '';
                 this.searchAuthor = '';
                 this.searchPublisher = '';
                 this.$router.push({

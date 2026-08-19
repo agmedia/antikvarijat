@@ -75,6 +75,16 @@ class CatalogRouteController extends Controller
 
             $prod->loadMissing(['author', 'publisher', 'images', 'action', 'categories']);
 
+            $canonicalProductUrl = url(LocaleHelper::productPath(
+                $prod,
+                $prod->getRawOriginal('url'),
+                app()->getLocale()
+            ));
+            if ($redirect = $this->redirectToCanonicalPath($request, $canonicalProductUrl)) {
+                return $redirect;
+            }
+            $request->attributes->set('seo.product', $prod);
+
             $prod->timestamps = false;
             $prod->increment('viewed');
             $prod->timestamps = true;
@@ -216,6 +226,18 @@ class CatalogRouteController extends Controller
             }
         }
 
+        $canonicalGroup = $cat
+            ? (string) $cat->getRawOriginal('group')
+            : $group;
+        $canonicalCategoryUrl = LocaleHelper::route('catalog.route', array_filter([
+            'group' => $canonicalGroup,
+            'cat' => $cat,
+            'subcat' => $subcat,
+        ]));
+        if ($redirect = $this->redirectToCanonicalPath($request, $canonicalCategoryUrl)) {
+            return $redirect;
+        }
+
         // FILTRIRANI COUNT ZA CAT I SUBCAT
         if ($cat) {
             $cat->loadCount(['products as visible_products_count' => function ($q) {
@@ -294,6 +316,15 @@ class CatalogRouteController extends Controller
             abort(404);
         }
 
+        $canonicalAuthorUrl = LocaleHelper::route('catalog.route.author', array_filter([
+            'author' => $author,
+            'cat' => $cat,
+            'subcat' => $subcat,
+        ]));
+        if ($redirect = $this->redirectToCanonicalPath($request, $canonicalAuthorUrl)) {
+            return $redirect;
+        }
+
         // FILTRIRANI COUNT ZA CAT I SUBCAT
         if ($cat) {
             $cat->loadCount(['products as visible_products_count' => function ($q) {
@@ -311,9 +342,16 @@ class CatalogRouteController extends Controller
         $seo = Seo::getAuthorData($author, $cat, $subcat);
         $crumbs = (new Breadcrumb())->author($author, $cat, $subcat)->resolve();
 
+        $bootstrap = $this->categoryIndexBootstrap($request, null, $cat, $subcat, null, $author);
+        $entityIndexable = ! $cat && ! $subcat && Seo::shouldIndexCatalogEntity(
+            $author,
+            (int) $bootstrap['initialProductsPaginator']->total(),
+            app()->getLocale()
+        );
+
         return view('front.catalog.category.index', array_merge(
-            compact('author', 'letter', 'cat', 'subcat', 'seo', 'crumbs'),
-            $this->categoryIndexBootstrap($request, null, $cat, $subcat, null, $author)
+            compact('author', 'letter', 'cat', 'subcat', 'seo', 'crumbs', 'entityIndexable'),
+            $bootstrap
         ));
     }
 
@@ -350,6 +388,15 @@ class CatalogRouteController extends Controller
             abort(404);
         }
 
+        $canonicalPublisherUrl = LocaleHelper::route('catalog.route.publisher', array_filter([
+            'publisher' => $publisher,
+            'cat' => $cat,
+            'subcat' => $subcat,
+        ]));
+        if ($redirect = $this->redirectToCanonicalPath($request, $canonicalPublisherUrl)) {
+            return $redirect;
+        }
+
         // FILTRIRANI COUNT ZA CAT I SUBCAT
         if ($cat) {
             $cat->loadCount(['products as visible_products_count' => function ($q) {
@@ -367,9 +414,16 @@ class CatalogRouteController extends Controller
         $seo = Seo::getPublisherData($publisher, $cat, $subcat);
         $crumbs = (new Breadcrumb())->publisher($publisher, $cat, $subcat)->resolve();
 
+        $bootstrap = $this->categoryIndexBootstrap($request, null, $cat, $subcat, null, null, $publisher);
+        $entityIndexable = ! $cat && ! $subcat && Seo::shouldIndexCatalogEntity(
+            $publisher,
+            (int) $bootstrap['initialProductsPaginator']->total(),
+            app()->getLocale()
+        );
+
         return view('front.catalog.category.index', array_merge(
-            compact('publisher', 'letter', 'cat', 'subcat', 'seo', 'crumbs'),
-            $this->categoryIndexBootstrap($request, null, $cat, $subcat, null, null, $publisher)
+            compact('publisher', 'letter', 'cat', 'subcat', 'seo', 'crumbs', 'entityIndexable'),
+            $bootstrap
         ));
     }
 
@@ -690,7 +744,28 @@ class CatalogRouteController extends Controller
     public function faq()
     {
         $faq = Faq::where('status', 1)->get();
+
         return view('front.faq', compact('faq'));
+    }
+
+    private function redirectToCanonicalPath(Request $request, string $canonicalUrl)
+    {
+        if ($canonicalUrl === '') {
+            return null;
+        }
+
+        $currentPath = '/' . trim(rawurldecode($request->getPathInfo()), '/');
+        $canonicalPath = '/' . trim(rawurldecode((string) parse_url($canonicalUrl, PHP_URL_PATH)), '/');
+
+        if ($currentPath === $canonicalPath) {
+            return null;
+        }
+
+        if ($request->getQueryString()) {
+            $canonicalUrl .= '?' . $request->getQueryString();
+        }
+
+        return redirect()->to($canonicalUrl, 301);
     }
 
     private function checkLetter(Collection $letters): string
@@ -717,21 +792,63 @@ class CatalogRouteController extends Controller
 
         return [
             'initialCategories' => $initialCategories,
-            'initialAttributes' => $this->resolveInitialProductAttributes(),
+            'initialAttributes' => $this->resolveInitialProductAttributes(
+                $group,
+                $cat,
+                $subcat,
+                $ids,
+                $author,
+                $publisher
+            ),
             'initialProductsPaginator' => $initialProductsPaginator,
             'initialProductsData' => $this->mapProductsPaginator($initialProductsPaginator),
         ];
     }
 
-    private function resolveInitialProductAttributes(): array
-    {
-        return Cache::remember('catalog.filter.product-attributes.v2', now()->addHours(6), function () {
+    private function resolveInitialProductAttributes(
+        ?string $group = null,
+        ?Category $cat = null,
+        ?Category $subcat = null,
+        $ids = null,
+        ?Author $author = null,
+        ?Publisher $publisher = null
+    ): array {
+        $requestData = $this->buildProductRequestData(
+            new Request(),
+            $group,
+            $cat,
+            $subcat,
+            $ids,
+            $author,
+            $publisher
+        );
+
+        unset($requestData['page'], $requestData['sort'], $requestData['_default_sort_latest']);
+
+        $cacheContext = [
+            'group' => $group,
+            'cat' => optional($cat)->id,
+            'subcat' => optional($subcat)->id,
+            'ids' => $this->normalizeIdsParam($ids),
+            'author' => optional($author)->id,
+            'publisher' => optional($publisher)->id,
+        ];
+        $cacheKey = 'catalog.filter.product-attributes.v3.' . sha1(json_encode($cacheContext));
+
+        return Cache::remember($cacheKey, now()->addHours(6), function () use ($requestData) {
             $attributes = [];
 
-            foreach (['letter', 'condition', 'binding'] as $column) {
-                $attributes[$column] = Product::query()
-                    ->active()
-                    ->hasStock()
+            foreach ([
+                'letter' => 'pismo',
+                'condition' => 'stanje',
+                'binding' => 'uvez',
+            ] as $column => $parameter) {
+                $attributeRequestData = $requestData;
+                unset($attributeRequestData[$parameter]);
+
+                $attributes[$column] = (new Product())
+                    ->filter(new Request($attributeRequestData))
+                    ->reorder()
                     ->whereNotNull($column)
                     ->where($column, '<>', '')
                     ->select($column)

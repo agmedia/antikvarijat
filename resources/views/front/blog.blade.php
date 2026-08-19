@@ -4,8 +4,12 @@
     @section ( 'description', __('front.blog.meta_description') )
     @section('schema_page_type', 'CollectionPage')
 @else
-    @section('title', $blog->meta_title ?: $blog->title . ' - Antikvarijat Biblos')
-    @section('description', $blog->meta_description ?: $blog->short_description)
+    @php
+        $blogMetaTitle = trim((string) \App\Helpers\LocaleHelper::localizedField($blog, 'meta_title', false));
+        $blogMetaDescription = trim((string) \App\Helpers\LocaleHelper::localizedField($blog, 'meta_description', false));
+    @endphp
+    @section('title', $blogMetaTitle ?: $blog->title . ' - Antikvarijat Biblos')
+    @section('description', $blogMetaDescription ?: $blog->short_description)
     @section('og_type', 'article')
     @section('og_image', $blog->image)
     @section('og_image_alt', $blog->title)
@@ -16,6 +20,10 @@
     @if (isset($blogs))
         <script src="{{ \App\Helpers\Asset::url('js/imagesloaded/imagesloaded.pkgd.min.js') }}"></script>
         <script src="{{ \App\Helpers\Asset::url('js/shufflejs/dist/shuffle.min.js') }}"></script>
+        @include('front.layouts.partials.collection-schema', [
+            'collectionPaginator' => $blogs,
+            'collectionName' => __('front.blog.title'),
+        ])
     @endif
     @if (! isset($blogs))
         <meta property="article:published_time" content="{{ optional(\Illuminate\Support\Carbon::make($blog->publish_date ?: $blog->created_at))->toAtomString() }}">

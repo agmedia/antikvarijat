@@ -56,7 +56,13 @@ class HomeController extends Controller
             ]);
         }
 
-        $page->setAttribute('rendered_description', Helper::setDescription((string) $page->description));
+        $renderVersion = sha1((string) $page->description . '|' . (string) $page->updated_at);
+        $renderedDescription = Cache::remember(
+            'page.homepage.rendered.v2.' . app()->getLocale() . '.' . $renderVersion,
+            now()->addMinutes(5),
+            fn () => Helper::setDescription((string) $page->description)
+        );
+        $page->setAttribute('rendered_description', $renderedDescription);
 
         return view('front.page', compact('page'));
     }
@@ -574,7 +580,7 @@ class HomeController extends Controller
     private function cachedSitemapResponse(Request $request, string $key, callable $build)
     {
         $ttl = max(60, (int) config('settings.sitemap_cache_ttl', 3600));
-        $cacheKey = 'public.sitemap.v3.' . sha1(config('app.url') . '|' . $key);
+        $cacheKey = 'public.sitemap.v4.' . sha1(config('app.url') . '|' . $key);
         $payload = Cache::remember($cacheKey, $ttl, $build);
         $content = (string) ($payload['content'] ?? '');
         $lastModified = Carbon::parse($payload['last_modified'] ?? now());

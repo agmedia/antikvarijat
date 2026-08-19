@@ -31,7 +31,7 @@
             <div class="tns-carousel-inner tns-nav-enabled" data-carousel-options='@json($carouselOptions)'>
                 @foreach ($products as $carouselProduct)
                     <div>
-                        @include('front.catalog.category.product', ['product' => $carouselProduct])
+                        @include('front.catalog.category.product', ['product' => $carouselProduct, 'eagerImages' => false])
                     </div>
                 @endforeach
             </div>

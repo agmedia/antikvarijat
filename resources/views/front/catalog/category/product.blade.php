@@ -1,8 +1,13 @@
 @php
     $cardImageIndex = isset($loop) ? $loop->index : null;
-    $isProductDetailContext = request()->routeIs('catalog.route') && request()->route('prod');
-    $cardImageLoading = ($cardImageIndex !== null && $cardImageIndex < 8 && ! $isProductDetailContext) ? 'eager' : 'lazy';
-    $cardImageFetchPriority = ($cardImageIndex !== null && $cardImageIndex < 2 && ! $isProductDetailContext) ? 'high' : 'auto';
+    $eagerImages = $eagerImages ?? false;
+    $cardImageLoading = ($eagerImages && $cardImageIndex !== null && $cardImageIndex < 4) ? 'eager' : 'lazy';
+    $cardImageFetchPriority = ($eagerImages && $cardImageIndex === 0) ? 'high' : 'auto';
+    $productUrl = url(\App\Helpers\LocaleHelper::productPath(
+        $product,
+        $product->getRawOriginal('url'),
+        app()->getLocale()
+    ));
     $usesPublisherMeta = isset($publisher) && $publisher && $product->publisher;
     $productMeta = $usesPublisherMeta ? $product->publisher : $product->author;
     $showsProductMeta = $productMeta && (
@@ -16,9 +21,10 @@
     @endif
     <div class="product-thumb">
 
-        <a  href="{{ url($product->url) }}">
+        <a href="{{ $productUrl }}">
         <img
             src="{{ $product->thumb }}"
+            srcset="{{ $product->thumb }} 250w, {{ $product->image }} 600w"
             width="250"
             height="300"
             alt="{{ $product->name }}"
@@ -37,7 +43,7 @@
         </div>
         @endif
         @include('front.catalog.product.partials.rating-summary', ['product' => $product])
-        <h3 class="product-title fs-sm mb-0"><a href="{{ url($product->url) }}">{{ $product->name }}</a></h3>
+        <h3 class="product-title fs-sm mb-0"><a href="{{ $productUrl }}">{{ $product->name }}</a></h3>
         @if ($product->category_string)
             <div class="d-flex flex-wrap justify-content-between align-items-center">
                 <div class="fs-sm me-2 one-line"><i class="fa-duotone fa-books text-muted fs-xs"></i> {!! $product->category_string !!}</div>
@@ -67,7 +73,7 @@
 
             <div class="product-floating-btn">
                 <add-to-cart-btn-simple id="{{ $product->id }}">
-                    <a href="{{ url($product->url) }}" class="btn btn-primary btn-sm" aria-label="{{ __('front.product.open') }} {{ $product->name }}">+<i class="fa-regular fa-bag-shopping fs-base ms-1"></i></a>
+                    <a href="{{ $productUrl }}" class="btn btn-primary btn-sm" aria-label="{{ __('front.product.open') }} {{ $product->name }}">+<i class="fa-regular fa-bag-shopping fs-base ms-1"></i></a>
                 </add-to-cart-btn-simple>
             </div>
         </div>

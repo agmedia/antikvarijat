@@ -2,8 +2,8 @@
 
 return [
     'meta' => [
-        'default_title' => 'Antikvarijat Biblos - Books, maps and views',
-        'default_description' => 'Welcome to Antikvarijat Biblos, Palmoticeva 28, Zagreb. Opening hours Mon-Fri 09-20, Sat 09-14.',
+        'default_title' => 'Antiquarian bookshop Zagreb – rare books | Biblos',
+        'default_description' => 'Old and rare books, maps and views from Antikvarijat Biblos in Zagreb. Secure online ordering, delivery and book purchasing service.',
     ],
 
     'nav' => [
@@ -57,6 +57,31 @@ return [
         'category_description' => 'Explore available items in the :name category at Antikvarijat Biblos. Secure ordering and delivery.',
         'paginated_title' => ':name – Page :page | Biblos',
         'paginated_description' => ':name, page :page of the Antikvarijat Biblos selection. Browse available old and rare editions.',
+        'all_products' => 'All available items',
+        'products_heading' => 'Available titles: :name',
+        'browse_authors' => 'Browse authors',
+        'browse_publishers' => 'Browse publishers',
+        'sell_books' => 'Offer books for purchase',
+        'group_landings' => [
+            'knjige' => [
+                'title' => 'Old and rare books online | Antikvarijat Biblos',
+                'description' => 'Browse old, rare and used books from Antikvarijat Biblos. Search available titles by author, publisher, subject, year and binding.',
+                'heading' => 'Old, rare and used books in one collection',
+                'paragraphs' => [
+                    'The Antikvarijat Biblos collection includes old and rare editions, used books and more recent titles in literature, history, philosophy, art and many other fields. Every available copy can be viewed and ordered online.',
+                    'Narrow the selection by author, publisher, publication year, script, condition or binding. Use search, the author directory or publisher directory when looking for a particular book.',
+                ],
+            ],
+            'zemljovidi-i-vedute' => [
+                'title' => 'Antique maps and views | Antikvarijat Biblos',
+                'description' => 'Discover antique maps, charts, city plans and views from Antikvarijat Biblos. Browse available collectable pieces online.',
+                'heading' => 'Antique maps, charts and views for collectors',
+                'paragraphs' => [
+                    'Explore original antique maps, geographical charts, city plans and views that preserve the appearance of places in earlier times. Available pieces are selected for collectors, researchers and lovers of cartography.',
+                    'Each listing shows details and photographs of the actual item. Contact us before ordering if you need more information about condition, provenance or delivery.',
+                ],
+            ],
+        ],
     ],
 
     'product' => [
@@ -536,8 +561,9 @@ return [
 
     'book_purchase' => [
         'title' => 'Book purchase',
+        'seo_title' => 'Sell books in Zagreb – appraisal and offer | Biblos',
         'service_type' => 'Purchase of books and magazines',
-        'meta_description' => 'Send a book and magazine purchase request.',
+        'meta_description' => 'Offer old, rare and used books to Antikvarijat Biblos in Zagreb. Send photographs and details for a free initial appraisal and purchase inquiry.',
         'section_title' => 'Donations and purchases',
         'intro_1' => 'Antikvarijat Biblos always accepts book donations, whether you are moving, reorganizing your home or simply running out of space.',
         'intro_2' => 'If you have titles you believe may be valuable, send us your details and photos of the books you are offering so we can contact you.',
@@ -562,6 +588,29 @@ return [
         'send_error' => 'An error occurred while sending the request. Please try again.',
         'sent' => 'Thank you! Your book purchase request has been sent successfully.',
         'sent_short' => 'Thank you! Your request has been sent successfully.',
+        'how_it_works_title' => 'How our book purchasing service works',
+        'process_steps' => [
+            ['title' => '1. Photograph the books', 'text' => 'Photograph rows of book spines and add covers and edition details for potentially valuable copies. Images should be clear and well lit.'],
+            ['title' => '2. Send your inquiry', 'text' => 'Enter your contact details and attach up to 20 photographs. For a larger library, include representative shelf photos and an approximate book count.'],
+            ['title' => '3. Receive our response', 'text' => 'After review, we will let you know whether we are interested and arrange the next step, further photographs or an in-person inspection.'],
+        ],
+        'what_we_buy_title' => 'What books do we buy?',
+        'what_we_buy_intro' => 'We are generally interested in well-preserved, sought-after editions that complement our collection.',
+        'what_we_buy_items' => [
+            'old and rare books, including first editions',
+            'books on history, art, philosophy and local history',
+            'specialist libraries, monographs and valuable sets',
+            'antique maps, atlases, views and prints',
+        ],
+        'valuation_title' => 'How is a book valued?',
+        'valuation_text' => 'Value depends on demand, scarcity, author and publisher, year of publication, completeness and the actual condition of the copy. Age alone does not make a book valuable. An initial appraisal from photographs is indicative, while a final offer may be made after inspecting the books.',
+        'faq_title' => 'Frequently asked questions about selling books',
+        'faq_items' => [
+            ['question' => 'Do you buy every book?', 'answer' => 'We cannot purchase every book offered. The decision depends on condition, demand, existing stock and whether the material fits our collection.'],
+            ['question' => 'Must I bring the books to the shop?', 'answer' => 'Send photographs and basic information first. If we are interested, we will arrange an inspection at the shop or another suitable option for a larger collection.'],
+            ['question' => 'How long does an appraisal take?', 'answer' => 'Response time depends on the number of inquiries and the size of the collection. Clear photographs and quantity information help us reply faster.'],
+            ['question' => 'Can I donate books?', 'answer' => 'Yes. You may donate books you no longer need to Antikvarijat Biblos by prior arrangement, especially for larger quantities.'],
+        ],
     ],
 
     'newsletter' => [

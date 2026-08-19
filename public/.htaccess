@@ -250,12 +250,16 @@ AddType text/x-vcard                        vcf
 
 # Explicit Cache-Control rules complement Expires and make browser behaviour
 # more predictable for Laravel's dynamic HTML responses and static assets.
+<IfModule mod_setenvif.c>
+  SetEnvIf Request_URI "^/(sitemap|image-sitemap)" BIBLOS_PUBLIC_SITEMAP=1
+</IfModule>
+
 <IfModule mod_headers.c>
   # Do not cache app responses rendered through PHP / the front controller.
   <FilesMatch "\.(html?|php)$">
-    Header always set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
-    Header always set Pragma "no-cache"
-    Header always set Expires "0"
+    Header always set Cache-Control "no-store, no-cache, must-revalidate, max-age=0" env=!BIBLOS_PUBLIC_SITEMAP
+    Header always set Pragma "no-cache" env=!BIBLOS_PUBLIC_SITEMAP
+    Header always set Expires "0" env=!BIBLOS_PUBLIC_SITEMAP
   </FilesMatch>
 
   # Static assets can be reused by the browser between page loads and visits.
@@ -286,7 +290,7 @@ AddType text/x-vcard                        vcf
 
 # FileETag None is not enough for every server.
 <IfModule mod_headers.c>
-  Header unset ETag
+  Header unset ETag env=!BIBLOS_PUBLIC_SITEMAP
 </IfModule>
 
 # Since we're sending far-future expires, we don't need ETags for
@@ -360,11 +364,11 @@ FileETag None
 
     RewriteRule ^.?kategorija-proizvoda/?$ /$1-$2 [R=301,L]
 
-    Redirect /o-nama /info/o-nama
-    Redirect /uvjeti-kupnje /info/opci-uvjeti-kupnje
+    Redirect 301 /o-nama /info/o-nama
+    Redirect 301 /uvjeti-kupnje /info/opci-uvjeti-kupnje
 
 
-     Redirect /proizvod/zivot-mikenjana /knjige/povijest/zivot-mikenjana
+     Redirect 301 /proizvod/zivot-mikenjana /knjige/povijest/zivot-mikenjana
 
   # Redirect Trailing Slashes If Not A Folder...
   RewriteCond %{REQUEST_FILENAME} !-d
@@ -410,10 +414,10 @@ RewriteEngine on
 
 
 RewriteCond %{THE_REQUEST} /index\.php [NC]
-RewriteRule ^(.*?)index\.php[^/] /$1? [L,R=302,NC,NE]
+RewriteRule ^(.*?)index\.php[^/] /$1? [L,R=301,NC,NE]
 
 RewriteCond %{THE_REQUEST} /index\.php [NC]
-RewriteRule ^(.*?)index\.php(?:/(.*))?$ /$1$2? [L,R=302,NC,NE]
+RewriteRule ^(.*?)index\.php(?:/(.*))?$ /$1$2? [L,R=301,NC,NE]
 
 
 

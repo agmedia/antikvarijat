@@ -319,26 +319,28 @@ class Sitemap
         $categoryLastmod = static::lastModifiedFor('categories');
         $productLastmod = static::lastModifiedFor('products');
 
-        foreach (LocaleHelper::locales() as $locale) {
-            foreach (static::corePageUrls($locale) as $key => $url) {
+        $corePageUrls = collect(LocaleHelper::locales())
+            ->mapWithKeys(fn (string $locale) => [$locale => static::corePageUrls($locale)]);
+
+        foreach (static::corePageUrls(LocaleHelper::DEFAULT_LOCALE) as $key => $unused) {
+            $localizedUrls = $corePageUrls
+                ->map(fn (array $urls) => $urls[$key])
+                ->all();
+            foreach ($localizedUrls as $locale => $url) {
                 $lastmod = in_array($key, ['books', 'maps'], true)
                     ? $categoryLastmod
                     : ($key === 'sale' ? $productLastmod : Carbon::now()->startOfMonth());
 
-                $this->addUrl($url, $lastmod);
+                $this->addUrl($url, $lastmod, $localizedUrls);
             }
         }
 
         foreach ($pages as $page) {
-            foreach (LocaleHelper::locales() as $locale) {
-                $this->addUrl(LocaleHelper::route('catalog.route.page', ['page' => $page], true, $locale), $page->updated_at);
-            }
+            $this->addLocalizedRoute('catalog.route.page', ['page' => $page], $page->updated_at);
         }
 
         foreach ($blogs as $blog) {
-            foreach (LocaleHelper::locales() as $locale) {
-                $this->addUrl(LocaleHelper::route('catalog.route.blog', ['blog' => $blog], true, $locale), $blog->updated_at);
-            }
+            $this->addLocalizedRoute('catalog.route.blog', ['blog' => $blog], $blog->updated_at);
         }
 
         //dd($coll);
@@ -360,20 +362,18 @@ class Sitemap
             ->get();
 
         foreach ($categories as $category) {
-            foreach (LocaleHelper::locales() as $locale) {
-                $this->addUrl(
-                    LocaleHelper::route('catalog.route', ['group' => $category->getRawOriginal('group'), 'cat' => $category], true, $locale),
-                    $category->updated_at
-                );
-            }
+            $this->addLocalizedRoute(
+                'catalog.route',
+                ['group' => $category->getRawOriginal('group'), 'cat' => $category],
+                $category->updated_at
+            );
 
             foreach ($category->subcategories as $subcategory) {
-                foreach (LocaleHelper::locales() as $locale) {
-                    $this->addUrl(
-                        LocaleHelper::route('catalog.route', ['group' => $category->getRawOriginal('group'), 'cat' => $category, 'subcat' => $subcategory], true, $locale),
-                        $subcategory->updated_at
-                    );
-                }
+                $this->addLocalizedRoute(
+                    'catalog.route',
+                    ['group' => $category->getRawOriginal('group'), 'cat' => $category, 'subcat' => $subcategory],
+                    $subcategory->updated_at
+                );
             }
         }
 
@@ -403,8 +403,14 @@ class Sitemap
             ->get();
 
         foreach ($products as $product) {
-            foreach (LocaleHelper::locales() as $locale) {
-                $this->addUrl(url(LocaleHelper::productPath($product, $product->getRawOriginal('url'), $locale)), $product->updated_at);
+            $localizedUrls = collect(LocaleHelper::locales())
+                ->mapWithKeys(fn (string $locale) => [
+                    $locale => url(LocaleHelper::productPath($product, $product->getRawOriginal('url'), $locale)),
+                ])
+                ->all();
+
+            foreach ($localizedUrls as $url) {
+                $this->addUrl($url, $product->updated_at, $localizedUrls);
             }
         }
 
@@ -431,20 +437,25 @@ class Sitemap
                     ->where('slug', '!=', '')
                     ->groupBy('slug');
             })
+            ->whereHas('products')
             ->select('id', 'slug', 'slug_en', 'url', 'updated_at')
             ->orderBy('id')
             ->forPage($this->shard, $perPage)
             ->get();
 
         if ($this->shard === 1) {
-            foreach (LocaleHelper::locales() as $locale) {
-                $this->addUrl(LocaleHelper::route('catalog.route.author', [], true, $locale), Carbon::now()->startOfMonth());
-            }
+            $this->addLocalizedRoute('catalog.route.author', [], Carbon::now()->startOfMonth());
         }
 
         foreach ($authors as $author) {
-            foreach (LocaleHelper::locales() as $locale) {
-                $this->addUrl(LocaleHelper::route('catalog.route.author', ['author' => $author], true, $locale), $author->updated_at);
+            $localizedUrls = collect(LocaleHelper::locales())
+                ->mapWithKeys(fn (string $locale) => [
+                    $locale => LocaleHelper::route('catalog.route.author', ['author' => $author], true, $locale),
+                ])
+                ->all();
+
+            foreach ($localizedUrls as $url) {
+                $this->addUrl($url, $author->updated_at, $localizedUrls);
             }
 
             /*$cats = Category::query()->topList()->whereHas('products', function ($query) use ($author) {
@@ -491,32 +502,52 @@ class Sitemap
                     ->where('slug', '!=', '')
                     ->groupBy('slug');
             })
+            ->whereHas('products')
             ->select('id', 'slug', 'slug_en', 'url', 'updated_at')
             ->orderBy('id')
             ->forPage($this->shard, $perPage)
             ->get();
 
         if ($this->shard === 1) {
-            foreach (LocaleHelper::locales() as $locale) {
-                $this->addUrl(LocaleHelper::route('catalog.route.publisher', [], true, $locale), Carbon::now()->startOfMonth());
-            }
+            $this->addLocalizedRoute('catalog.route.publisher', [], Carbon::now()->startOfMonth());
         }
 
         foreach ($publishers as $publisher) {
-            foreach (LocaleHelper::locales() as $locale) {
-                $this->addUrl(LocaleHelper::route('catalog.route.publisher', ['publisher' => $publisher], true, $locale), $publisher->updated_at);
+            $localizedUrls = collect(LocaleHelper::locales())
+                ->mapWithKeys(fn (string $locale) => [
+                    $locale => LocaleHelper::route('catalog.route.publisher', ['publisher' => $publisher], true, $locale),
+                ])
+                ->all();
+
+            foreach ($localizedUrls as $url) {
+                $this->addUrl($url, $publisher->updated_at, $localizedUrls);
             }
         }
 
         return $this->response;
     }
 
-    private function addUrl(string $url, $lastmod): void
+    private function addUrl(string $url, $lastmod, array $alternates = []): void
     {
         $this->response[] = [
             'url' => $url,
             'lastmod' => Carbon::parse($lastmod)->tz('UTC')->toAtomString(),
+            'alternates' => $alternates,
         ];
+    }
+
+
+    private function addLocalizedRoute(string $route, array $parameters, $lastmod): void
+    {
+        $localizedUrls = collect(LocaleHelper::locales())
+            ->mapWithKeys(fn (string $locale) => [
+                $locale => LocaleHelper::route($route, $parameters, true, $locale),
+            ])
+            ->all();
+
+        foreach ($localizedUrls as $url) {
+            $this->addUrl($url, $lastmod, $localizedUrls);
+        }
     }
 
 
@@ -589,6 +620,7 @@ class Sitemap
                     ->active()
                     ->whereNotNull('slug')
                     ->where('slug', '!=', '')
+                    ->whereHas('products')
                     ->distinct()
                     ->count('slug') * $locales) + $locales;
         }
@@ -598,6 +630,7 @@ class Sitemap
                     ->active()
                     ->whereNotNull('slug')
                     ->where('slug', '!=', '')
+                    ->whereHas('products')
                     ->distinct()
                     ->count('slug') * $locales) + $locales;
         }

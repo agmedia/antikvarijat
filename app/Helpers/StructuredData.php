@@ -342,6 +342,7 @@ final class StructuredData
                 ];
             })
             ->filter()
+            ->unique(fn (array $question) => Str::lower($question['name']))
             ->values()
             ->all();
 

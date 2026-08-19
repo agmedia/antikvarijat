@@ -1,5 +1,6 @@
 <section class="col-lg-9 catalog-products-section">
     @if ($initialProductsPaginator)
+        <h2 class="visually-hidden">{{ $productsHeading ?? __('front.catalog.all_products') }}</h2>
         <div class="catalog-products-toolbar d-flex justify-content-center justify-content-sm-between align-items-center pt-2 pb-4 pb-sm-5">
             <div class="catalog-products-toolbar__controls d-flex flex-wrap">
                 @php
@@ -49,7 +50,7 @@
             <div class="row row-cols-2 row-cols-sm-3 row-cols-md-3 row-cols-lg-3 row-cols-xl-4 row-cols-xxl-4 mb-3 px-2 catalog-products-grid catalog-products-grid--mobile-2">
                 @foreach ($initialProductsPaginator as $product)
                     <div class="col px-2 mb-4">
-                        @include('front.catalog.category.product')
+                        @include('front.catalog.category.product', ['eagerImages' => true])
                     </div>
                 @endforeach
             </div>

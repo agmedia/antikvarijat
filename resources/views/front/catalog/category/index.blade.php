@@ -11,17 +11,28 @@
     $categoryOgImage = null;
     $listingTitle = __('front.meta.default_title');
     $listingDescription = __('front.meta.default_description');
+    $entityIndexable = $entityIndexable ?? true;
+    $groupLanding = null;
 
     if ($group) {
         $groupTitle = \App\Helpers\LocaleHelper::groupTitle($group);
         $listingTitle = $groupTitle . ' - Antikvarijat Biblos';
         $listingDescription = __('front.catalog.group_description', ['name' => $groupTitle]);
+        $groupLandingKey = \App\Helpers\LocaleHelper::groupSlug($group, \App\Helpers\LocaleHelper::DEFAULT_LOCALE);
+
+        if (! $cat && ! $subcat && \Illuminate\Support\Facades\Lang::has('front.catalog.group_landings.' . $groupLandingKey)) {
+            $groupLanding = __('front.catalog.group_landings.' . $groupLandingKey);
+            $listingTitle = $groupLanding['title'];
+            $listingDescription = $groupLanding['description'];
+        }
 
         $categoryEntity = $subcat ?: $cat;
         if ($categoryEntity) {
-            $listingTitle = trim((string) $categoryEntity->meta_title)
+            $localizedCategoryMetaTitle = trim((string) \App\Helpers\LocaleHelper::localizedField($categoryEntity, 'meta_title', false));
+            $localizedCategoryMetaDescription = trim((string) \App\Helpers\LocaleHelper::localizedField($categoryEntity, 'meta_description', false));
+            $listingTitle = $localizedCategoryMetaTitle
                 ?: $categoryEntity->title . ' - Antikvarijat Biblos';
-            $listingDescription = trim((string) $categoryEntity->meta_description)
+            $listingDescription = $localizedCategoryMetaDescription
                 ?: __('front.catalog.category_description', ['name' => $categoryEntity->title]);
         }
     }
@@ -80,10 +91,17 @@
             ]));
         }
     }
+
+    $productsHeadingName = $author->title ?? $publisher->title ?? optional($subcat ?: $cat)->title
+        ?? ($group ? \App\Helpers\LocaleHelper::groupTitle($group) : __('front.catalog.all_products'));
+    $productsHeading = __('front.catalog.products_heading', ['name' => $productsHeadingName]);
 @endphp
 @section('title', $listingTitle)
 @section('description', $listingDescription)
 @section('schema_page_type', 'CollectionPage')
+@if (($author || $publisher) && ! $entityIndexable)
+    @section('robots', 'noindex,follow')
+@endif
 @if ($categoryOgImage)
     @section('og_image', $categoryOgImage)
     @section('og_image_alt', $categoryEntity->title)
@@ -93,7 +111,7 @@
     @if (! empty($crumbs))
         <script type="application/ld+json">{!! \App\Helpers\StructuredData::toJson($crumbs) !!}</script>
     @endif
-    @if ($author && ! $cat && ! $subcat)
+    @if ($entityIndexable && $author && ! $cat && ! $subcat)
         <script type="application/ld+json">{!! \App\Helpers\StructuredData::toJson(
             \App\Helpers\CatalogEntityStructuredData::author(
                 $author,
@@ -102,7 +120,7 @@
                 $listingDescription
             )
         ) !!}</script>
-    @elseif ($publisher && ! $cat && ! $subcat)
+    @elseif ($entityIndexable && $publisher && ! $cat && ! $subcat)
         <script type="application/ld+json">{!! \App\Helpers\StructuredData::toJson(
             \App\Helpers\CatalogEntityStructuredData::publisher(
                 $publisher,
@@ -115,6 +133,7 @@
     @include('front.layouts.partials.collection-schema', [
         'collectionPaginator' => $initialProductsPaginator ?? null,
         'collectionName' => $listingTitle,
+        'collectionIndexable' => $entityIndexable,
     ])
 @endpush
 
@@ -257,9 +276,11 @@
                            author="{{ isset($author) ? $author['slug'] : null }}"
                            publisher="{{ isset($publisher) ? $publisher['slug'] : null }}"
                            locale="{{ app()->getLocale() }}"
+                           heading="{{ $productsHeading }}"
                            :initial-products='@json($initialProductsData ?? [])'>
                 @include('front.catalog.category.partials.products-fallback', [
                     'initialProductsPaginator' => $initialProductsPaginator ?? null,
+                    'productsHeading' => $productsHeading,
                 ])
             </products-view>
         </div>
@@ -267,14 +288,26 @@
 
     @if ($author || $publisher || $cat || $subcat || $group)
         <section class="container pb-4 mb-2 mb-md-4" aria-label="{{ $listingTitle }}">
-            @if ($author && ! empty($author->description))
-                {!! $author->description !!}
-            @elseif ($publisher && ! empty($publisher->description))
-                {!! $publisher->description !!}
-            @elseif ($subcat && ! empty($subcat->description))
-                {!! $subcat->description !!}
-            @elseif ($cat && ! empty($cat->description))
-                {!! $cat->description !!}
+            @php
+                $contentEntity = $author ?: $publisher ?: $subcat ?: $cat;
+                $localizedEntityDescription = $contentEntity
+                    ? \App\Helpers\LocaleHelper::localizedField($contentEntity, 'description', ! $isEnglish)
+                    : null;
+            @endphp
+            @if ($groupLanding && ! $contentEntity)
+                <h2 class="h4">{{ $groupLanding['heading'] }}</h2>
+                @foreach ($groupLanding['paragraphs'] as $paragraph)
+                    <p>{{ $paragraph }}</p>
+                @endforeach
+                @if ($groupLandingKey === 'knjige')
+                    <nav class="d-flex flex-wrap gap-2 mt-4" aria-label="{{ __('front.product.explore_more') }}">
+                        <a class="btn btn-outline-primary btn-sm" href="{{ \App\Helpers\LocaleHelper::route('catalog.route.author') }}">{{ __('front.catalog.browse_authors') }}</a>
+                        <a class="btn btn-outline-primary btn-sm" href="{{ \App\Helpers\LocaleHelper::route('catalog.route.publisher') }}">{{ __('front.catalog.browse_publishers') }}</a>
+                        <a class="btn btn-outline-primary btn-sm" href="{{ \App\Helpers\LocaleHelper::route('otkup.knjiga') }}">{{ __('front.catalog.sell_books') }}</a>
+                    </nav>
+                @endif
+            @elseif (! empty($localizedEntityDescription))
+                {!! $localizedEntityDescription !!}
             @else
                 <p>{{ $listingDescription }}</p>
             @endif

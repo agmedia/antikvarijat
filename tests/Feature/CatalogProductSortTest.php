@@ -39,6 +39,23 @@ class CatalogProductSortTest extends TestCase
         ], new Request(['sort' => 'novi']));
     }
 
+    public function testPublicationYearRangeExcludesProductsWithoutAYear(): void
+    {
+        $startWheres = (new Product())
+            ->filter(new Request(['start' => '2020']))
+            ->getQuery()
+            ->wheres;
+        $endWheres = (new Product())
+            ->filter(new Request(['end' => '2020']))
+            ->getQuery()
+            ->wheres;
+
+        $this->assertQueryHasWhere($startWheres, 'year', '>=', '2020');
+        $this->assertQueryHasWhere($endWheres, 'year', '<=', '2020');
+        $this->assertFalse($this->queryContainsNullYearFallback($startWheres));
+        $this->assertFalse($this->queryContainsNullYearFallback($endWheres));
+    }
+
     public function testWidgetNewProductsUseRecentlyUpdatedAvailableProducts(): void
     {
         $reflection = new ReflectionClass(Helper::class);
@@ -80,5 +97,20 @@ class CatalogProductSortTest extends TestCase
         });
 
         $this->assertNotEmpty($matches);
+    }
+
+    private function queryContainsNullYearFallback(array $wheres): bool
+    {
+        foreach ($wheres as $where) {
+            if (($where['column'] ?? null) === 'year' && ($where['type'] ?? null) === 'Null') {
+                return true;
+            }
+
+            if (isset($where['query']->wheres) && $this->queryContainsNullYearFallback($where['query']->wheres)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

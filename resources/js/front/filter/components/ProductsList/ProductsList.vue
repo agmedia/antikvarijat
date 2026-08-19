@@ -1,5 +1,6 @@
 <template>
     <section class="col-lg-9 catalog-products-section">
+        <h2 class="visually-hidden">{{ heading }}</h2>
         <!-- Toolbar-->
         <div class="catalog-products-toolbar d-flex justify-content-center justify-content-sm-between align-items-center pt-2 pb-4 pb-sm-5">
             <div class="catalog-products-toolbar__controls d-flex flex-wrap">
@@ -47,10 +48,11 @@
                     <div class="product-thumb">
                         <a :href="origin + product.url">
                         <img
-                            :loading="index < 8 ? 'eager' : 'lazy'"
-                            :fetchpriority="index < 2 ? 'high' : 'auto'"
+                            :loading="index < 4 ? 'eager' : 'lazy'"
+                            :fetchpriority="index < 1 ? 'high' : 'auto'"
                             decoding="async"
                             sizes="(max-width: 575px) 50vw, (max-width: 991px) 33vw, (max-width: 1399px) 25vw, 250px"
+                            :srcset="productSrcset(product)"
                             :src="productImage(product)"
                             width="250"
                             height="300"
@@ -162,6 +164,10 @@
             subcat: String,
             author: String,
             publisher: String,
+            heading: {
+                type: String,
+                default: ''
+            },
             locale: {
                 type: String,
                 default: 'hr'
@@ -338,6 +344,13 @@
                 }
 
                 return image.replace(/\.webp(?=([?#]|$))/i, '-thumb.webp');
+            },
+
+            productSrcset(product) {
+                const image = String(product.image || '');
+                const thumb = image.replace(/\.webp(?=([?#]|$))/i, '-thumb.webp');
+
+                return thumb === image ? image : `${thumb} 250w, ${image} 600w`;
             },
 
             restoreMobileColumns() {

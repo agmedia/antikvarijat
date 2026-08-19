@@ -690,15 +690,11 @@ class Product extends Model
         }
 
         if ($request->has('start')) {
-            $query->where(function ($query) use ($request) {
-                $query->where('year', '>=', $request->input('start'))->orWhereNull('year');
-            });
+            $query->where('year', '>=', $request->input('start'));
         }
 
         if ($request->has('end')) {
-            $query->where(function ($query) use ($request) {
-                $query->where('year', '<=', $request->input('end'))->orWhereNull('year');
-            });
+            $query->where('year', '<=', $request->input('end'));
         }
 
         foreach ([

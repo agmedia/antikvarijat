@@ -6,7 +6,7 @@
 @section('og_image', $prod->image)
 @section('og_image_type', 'image/webp')
 @section('og_image_alt', $prod->image_alt ?: $prod->name)
-@section('canonical', url($prod->url))
+@section('canonical', url(\App\Helpers\LocaleHelper::productPath($prod, $prod->getRawOriginal('url'), app()->getLocale())))
 @push('meta_tags')
     <meta property="og:updated_time" content="{{ $prod->updated_at  }}" />
     <meta property="product:price:amount" content="{{ number_format((float) $prod->special(), 2, '.', '') }}" />
@@ -67,7 +67,7 @@
 @endif
 
 @section('content')
-
+   <main id="main-content">
    <div class="container">
        <!-- Page title + breadcrumb-->
        <nav class="my-3" aria-label="breadcrumb">
@@ -665,6 +665,7 @@
            'headingId' => 'recent-products-title',
        ])
    </div>
+   </main>
 
 @endsection
 

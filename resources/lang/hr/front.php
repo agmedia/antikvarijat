@@ -2,8 +2,8 @@
 
 return [
     'meta' => [
-        'default_title' => 'Antikvarijat Biblos - Knjige, vedute i zemljovidi',
-        'default_description' => 'Dobrodošli na stranice Antikvarijata Biblos, Palmotićeva 28, Zagreb. Radno vrijeme pon-pet 09-20h, sub 09-14h.',
+        'default_title' => 'Antikvarijat Zagreb – stare i rijetke knjige | Biblos',
+        'default_description' => 'Stare i rijetke knjige, zemljovidi i vedute u Antikvarijatu Biblos u Zagrebu. Sigurna online kupnja, dostava i otkup knjiga.',
     ],
 
     'nav' => [
@@ -57,6 +57,31 @@ return [
         'category_description' => 'Istražite dostupne artikle u kategoriji :name u ponudi Antikvarijata Biblos. Sigurna kupnja i dostava.',
         'paginated_title' => ':name – :page. stranica | Biblos',
         'paginated_description' => ':name, :page. stranica ponude Antikvarijata Biblos. Pregledajte dostupna stara i rijetka izdanja.',
+        'all_products' => 'Svi dostupni artikli',
+        'products_heading' => 'Dostupni naslovi: :name',
+        'browse_authors' => 'Pregledajte autore',
+        'browse_publishers' => 'Pregledajte nakladnike',
+        'sell_books' => 'Ponudite knjige na otkup',
+        'group_landings' => [
+            'knjige' => [
+                'title' => 'Stare i rijetke knjige online | Antikvarijat Biblos',
+                'description' => 'Pregledajte stare, rijetke i rabljene knjige iz ponude Antikvarijata Biblos. Pretražite naslove po autoru, nakladniku, temi, godini i uvezu.',
+                'heading' => 'Stare, rijetke i rabljene knjige na jednom mjestu',
+                'paragraphs' => [
+                    'U ponudi Antikvarijata Biblos nalaze se stara i rijetka izdanja, rabljene knjige te noviji naslovi iz književnosti, povijesti, filozofije, umjetnosti i drugih područja. Svaki dostupni primjerak možete pregledati i naručiti online.',
+                    'Ponudu možete suziti prema autoru, nakladniku, godini izdanja, pismu, stanju i uvezu. Ako tražite određenu knjigu, upotrijebite pretraživanje, pregled autora ili popis nakladnika.',
+                ],
+            ],
+            'zemljovidi-i-vedute' => [
+                'title' => 'Stari zemljovidi i vedute | Antikvarijat Biblos',
+                'description' => 'Otkrijte stare zemljovide, karte, planove gradova i vedute u ponudi Antikvarijata Biblos. Pregledajte dostupne kolekcionarske primjerke online.',
+                'heading' => 'Stari zemljovidi, karte i vedute za kolekcionare',
+                'paragraphs' => [
+                    'Istražite izvorne stare zemljovide, geografske karte, planove gradova i vedute koje čuvaju izgled prostora iz prošlih vremena. Dostupni primjerci namijenjeni su kolekcionarima, istraživačima i ljubiteljima kartografije.',
+                    'Svaki artikl sadrži podatke i fotografije konkretnog primjerka. Za dodatne informacije o stanju, porijeklu ili dostavi javite nam se prije narudžbe.',
+                ],
+            ],
+        ],
     ],
 
     'product' => [
@@ -492,8 +517,9 @@ return [
 
     'book_purchase' => [
         'title' => 'Otkup knjiga',
+        'seo_title' => 'Otkup knjiga Zagreb – procjena i ponuda | Biblos',
         'service_type' => 'Otkup knjiga i časopisa',
-        'meta_description' => 'Pošaljite prijavu za otkup knjiga i časopisa.',
+        'meta_description' => 'Ponudite stare, rijetke i rabljene knjige na otkup Antikvarijatu Biblos u Zagrebu. Pošaljite fotografije i podatke za besplatnu početnu procjenu.',
         'section_title' => 'Donacije i otkupi',
         'intro_1' => 'Antikvarijat Biblos uvijek prima donacije knjiga - bilo da je riječ o selidbi, preuređenju životnog prostora ili jednostavno nedostatku prostora - uvijek možete svoje knjige donijeti u antikvarijat jer knjige se ne bacaju.',
         'intro_2' => 'Kada je riječ o naslovima za koje smatrate da bi mogli imati neku vrijednost, pošaljite nam svoje podatke kako bismo vas mogli povratno kontaktirati i fotografije knjiga koje nudite na otkup.',
@@ -518,6 +544,29 @@ return [
         'send_error' => 'Došlo je do greške prilikom slanja prijave. Pokušajte ponovno.',
         'sent' => 'Hvala! Vaša prijava za otkup knjiga je uspješno poslana.',
         'sent_short' => 'Hvala! Vaša prijava je uspješno poslana.',
+        'how_it_works_title' => 'Kako funkcionira otkup knjiga',
+        'process_steps' => [
+            ['title' => '1. Fotografirajte knjige', 'text' => 'Snimite hrbatove knjiga u nizu te posebno naslovnice i stranice s podacima o izdanju kod vrednijih primjeraka. Fotografije trebaju biti jasne i dobro osvijetljene.'],
+            ['title' => '2. Pošaljite prijavu', 'text' => 'Ispunite kontaktne podatke i priložite do 20 fotografija. Kod veće biblioteke pošaljite reprezentativan pregled polica i približan broj knjiga.'],
+            ['title' => '3. Pričekajte povratnu informaciju', 'text' => 'Nakon pregleda javljamo postoji li interes za otkup i dogovaramo sljedeći korak, dodatne fotografije ili pregled knjiga.'],
+        ],
+        'what_we_buy_title' => 'Koje knjige otkupljujemo?',
+        'what_we_buy_intro' => 'Najčešće nas zanimaju očuvana i tražena izdanja koja mogu nadopuniti našu ponudu.',
+        'what_we_buy_items' => [
+            'stare i rijetke knjige te prva izdanja',
+            'knjige iz povijesti, umjetnosti, filozofije i zavičajne građe',
+            'stručne biblioteke, monografije i vrijedne serije',
+            'stari zemljovidi, atlasi, vedute i grafike',
+        ],
+        'valuation_title' => 'Kako se određuje vrijednost knjige?',
+        'valuation_text' => 'Vrijednost ovisi o potražnji, rijetkosti izdanja, autoru i nakladniku, godini izdanja, potpunosti te stvarnom stanju primjerka. Starost sama po sebi ne znači da je knjiga vrijedna. Početna procjena prema fotografijama je informativna, a konačna ponuda može se dati nakon pregleda knjiga.',
+        'faq_title' => 'Česta pitanja o otkupu knjiga',
+        'faq_items' => [
+            ['question' => 'Otkupljujete li sve knjige?', 'answer' => 'Ne možemo otkupiti svaku ponuđenu knjigu. Odluka ovisi o stanju, potražnji, dostupnosti istih naslova i tome uklapa li se građa u našu ponudu.'],
+            ['question' => 'Moram li donijeti knjige u antikvarijat?', 'answer' => 'Najprije pošaljite fotografije i osnovne podatke. Ako postoji interes, dogovorit ćemo pregled u antikvarijatu ili drugi prikladan način za veću zbirku.'],
+            ['question' => 'Koliko traje procjena?', 'answer' => 'Vrijeme odgovora ovisi o broju prijava i opsegu građe. Jasne fotografije i podaci o količini pomažu nam da odgovorimo brže.'],
+            ['question' => 'Mogu li knjige donirati?', 'answer' => 'Da. Knjige koje više ne trebate možete donijeti Antikvarijatu Biblos uz prethodni dogovor, osobito kada je riječ o većoj količini.'],
+        ],
     ],
 
     'newsletter' => [

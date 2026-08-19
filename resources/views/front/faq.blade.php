@@ -1,7 +1,6 @@
 @extends('front.layouts.app')
 @section('title', __('front.faq.meta_title'))
 @section('description', __('front.faq.meta_description'))
-@section('schema_page_type', 'FAQPage')
 
 @php
     $faqSchema = \App\Helpers\StructuredData::faqPage(
@@ -18,6 +17,7 @@
 @endif
 
 @section('content')
+    <main id="main-content">
 
     <!-- Page Title-->
     <div class=" bg-dark pt-4 pb-3" style="background-image: url({{ asset('media/img/farmer.png')  }});background-repeat: repeat">
@@ -80,7 +80,5 @@
         </div>
     </div>
 
-
-
-
+    </main>
 @endsection
