@@ -15,6 +15,7 @@
 
 @push('css_after')
     @include('front.checkout.partials.progress-styles')
+    @include('front.checkout.partials.cart-best-sellers-styles')
 @endpush
 
 @section('content')
@@ -35,7 +36,7 @@
         </div>
     </div>
 </div>
-<div class="container checkout-page pb-5 mb-2 mb-md-4">
+<div class="container checkout-page pb-4 mb-2">
     <div class="row">
         <section class="col-lg-8">
             <nav class="checkout-progress-shell" aria-label="{{ __('front.checkout.checkout') }}">
@@ -76,6 +77,8 @@
         </aside>
     </div>
 </div>
+
+@include('front.checkout.partials.cart-best-sellers', ['products' => $bestSellers])
 
 @endsection
 

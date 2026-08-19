@@ -13,6 +13,7 @@ use App\Models\Back\Settings\Settings;
 use App\Models\Front\AgCart;
 use App\Models\Front\Checkout\Order;
 use App\Models\TagManager;
+use App\Services\ProductRecommendationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -25,11 +26,12 @@ class CheckoutController extends Controller
      *
      * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
      */
-    public function cart(Request $request)
+    public function cart(Request $request, ProductRecommendationService $recommendations)
     {
         $gdl = TagManager::getGoogleCartDataLayer($this->shoppingCart()->get());
+        $bestSellers = $recommendations->recentBestSellers(30, 10);
 
-        return view('front.checkout.cart', compact('gdl'));
+        return view('front.checkout.cart', compact('gdl', 'bestSellers'));
     }
 
 
