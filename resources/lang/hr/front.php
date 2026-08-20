@@ -289,6 +289,7 @@ return [
         'cod' => 'Gotovinom prilikom pouzeća',
         'pickup' => 'Plaćanje prilikom preuzimanja',
         'corvus' => 'Kartično plaćanje',
+        'corvus_wallets' => 'Apple Pay / Google Pay',
         'payway' => 'Kartično plaćanje',
         'keks' => 'KEKS Pay',
     ],

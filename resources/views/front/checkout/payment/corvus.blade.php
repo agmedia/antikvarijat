@@ -1,18 +1,7 @@
 <form id="payForm" name="pay" class="w-100 needs-validation" action="{{ $data['action'] }}" novalidate method="POST">
-    <input type="hidden" name="amount" value="{{ $data['total'] }}">
-    <input id="cart" name="cart" value="Web shop kupnja {{ $data['order_id'] }}" type="hidden"/>
-    <input id="currency" name="currency" value="{{ $data['currency'] }}" type="hidden"/>
-    <input id="language" name="language" value="{{ $data['lang'] }}" type="hidden"/>
-    <input type="hidden" name="order_number" value="{{ $data['order_id'] }}">
-    <input id="require_complete" name="require_complete" value="false" hidden="true"/>
-    <input type="hidden" name="store_id" value="{{ $data['merchant'] }}">
-    <input type="hidden" name="signature" value="{{ $data['md5'] }}">
-    <input type="hidden" name="cardholder_name" value="{{ $data['firstname'] }}">
-    <input type="hidden" name="cardholder_surname" value="{{ $data['lastname'] }}">
-    <input type="hidden" name="cardholder_phone" value="{{ $data['telephone'] }}">
-    <input type="hidden" name="cardholder_email" value="{{ $data['email'] }}">
-    <input type="hidden" name="payment_all" value="{{ $data['number_of_installments'] }}">
-    <input type="hidden" name="version" value="1.3">
+    @foreach ($data['fields'] as $name => $value)
+        <input type="hidden" name="{{ $name }}" value="{{ $value }}">
+    @endforeach
 
 
     <div class="form-check form-check-inline">
@@ -20,13 +9,13 @@
                                                 'terms_of_service' => '<a data-bs-toggle="modal" data-bs-target="#exampleModal" class="link-fx">'.__('front.checkout.terms_link').'</a>',
                                                 'privacy_policy' => '<a target="_blank" href="'.route('policy.show').'" class="link-fx">'.__('Privacy Policy').'</a>',
                                         ]) !!}</label>
-        <input class="form-check-input" type="checkbox" name="terms" id="terms" required>
+        <input class="form-check-input" type="checkbox" id="terms" required>
         <div class="invalid-feedback" id="terms">{{ __('front.checkout.terms_required') }}</div>
     </div>
 
     <div class="form-check form-check-inline">
         <label class="form-check-label" for="ex-check-4">{{ __('front.checkout.marketing_consent') }}</label>
-        <input class="form-check-input" type="checkbox" name="obavijesti" id="obavijesti" checked>
+        <input class="form-check-input" type="checkbox" id="obavijesti" checked>
 
     </div>
 

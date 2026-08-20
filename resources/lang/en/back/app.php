@@ -17,6 +17,7 @@ return [
         'wspay' => 'WSPay',
         'payway' => 'T-Com Payway',
         'corvus' => 'Corvus Pay',
+        'corvus_wallets' => 'Apple Pay / Google Pay (CorvusPay)',
         'min_order_amount' => 'Minimum order amount',
         'fee_amount' => 'Fee amount',
         'geo_zone' => 'Geo zone',

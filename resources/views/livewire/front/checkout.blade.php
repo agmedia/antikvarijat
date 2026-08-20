@@ -379,7 +379,7 @@
                 @foreach ($paymentMethods as $p_method)
                     @php($paymentTitle = \App\Helpers\LocaleHelper::localizedSettingField($p_method, 'title'))
                     @php($paymentDescription = \App\Helpers\LocaleHelper::localizedSettingDataField($p_method, 'short_description'))
-                    @php($paymentIcon = in_array($p_method->code, ['bank'], true) ? 'fa-building-columns' : (in_array($p_method->code, ['cod', 'pickup'], true) ? 'fa-money-bill-wave' : (strpos($p_method->code, 'keks') !== false ? 'fa-mobile-screen-button' : 'fa-credit-card')))
+                    @php($paymentIcon = in_array($p_method->code, ['bank'], true) ? 'fa-building-columns' : (in_array($p_method->code, ['cod', 'pickup'], true) ? 'fa-money-bill-wave' : ($p_method->code === 'corvus_wallets' ? 'fa-wallet' : (strpos($p_method->code, 'keks') !== false ? 'fa-mobile-screen-button' : 'fa-credit-card'))))
                     <tr class="checkout-option-row {{ $payment === $p_method->code ? 'is-selected' : '' }}" wire:click="selectPayment('{{ $p_method->code }}')" style="cursor: pointer;">
                         <td class="checkout-option-icon-cell">
                             <input class="checkout-option-radio" id="payment-{{ $p_method->code }}" type="radio" value="{{ $p_method->code }}" wire:model="payment" aria-label="{{ $paymentTitle }}">

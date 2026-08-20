@@ -64,12 +64,22 @@
                                     <div class="row justify-content-center">
                                         <div class="col-md-11">
                                             <div class="form-group">
-                                                <label for="corvus-shop-id">ShopID:</label>
+                                                <label for="corvus-shop-id">Live ShopID:</label>
                                                 <input type="text" class="form-control" id="corvus-shop-id" name="data['shop_id']">
                                             </div>
                                             <div class="form-group">
-                                                <label for="corvus-secret-key">SecretKey:</label>
+                                                <label for="corvus-secret-key">Live SecretKey:</label>
                                                 <input type="text" class="form-control" id="corvus-secret-key" name="data['secret_key']">
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label for="corvus-test-shop-id">Test ShopID:</label>
+                                                <input type="text" class="form-control" id="corvus-test-shop-id" name="data['test_shop_id']">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="corvus-test-secret-key">Test SecretKey:</label>
+                                                <input type="text" class="form-control" id="corvus-test-secret-key" name="data['test_secret_key']">
+                                                <small class="form-text text-muted">Testne vjerodajnice izdaje CorvusPay i razlikuju se od live vjerodajnica.</small>
                                             </div>
 
                                             <div class="form-group">
@@ -161,6 +171,8 @@
                     description: $('#corvus-description').val(),
                     shop_id: $('#corvus-shop-id').val(),
                     secret_key: $('#corvus-secret-key').val(),
+                    test_shop_id: $('#corvus-test-shop-id').val(),
+                    test_secret_key: $('#corvus-test-secret-key').val(),
                     type: $('#corvus-type').val(),
                     callback: $('#corvus-callback').val(),
                     test: $("input[name='test']:checked").val(),
@@ -193,6 +205,8 @@
 
             $('#corvus-shop-id').val(item.data.shop_id);
             $('#corvus-secret-key').val(item.data.secret_key);
+            $('#corvus-test-shop-id').val(item.data.test_shop_id || '');
+            $('#corvus-test-secret-key').val(item.data.test_secret_key || '');
             $('#corvus-callback').val(item.data.callback);
 
             $("input[name=test][value='" + item.data.test + "']").prop("checked",true);

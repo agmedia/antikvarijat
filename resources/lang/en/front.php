@@ -333,6 +333,7 @@ return [
         'cod' => 'Cash on delivery',
         'pickup' => 'Payment on pickup',
         'corvus' => 'Card payment',
+        'corvus_wallets' => 'Apple Pay / Google Pay',
         'payway' => 'Card payment',
         'keks' => 'KEKS Pay',
     ],

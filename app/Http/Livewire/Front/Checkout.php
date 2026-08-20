@@ -665,6 +665,8 @@ class Checkout extends Component
             $this->gdl_payment = 'uplatnica';
         } elseif ($payment == 'cod') {
             $this->gdl_payment = 'pouzeće';
+        } elseif ($payment === 'corvus_wallets') {
+            $this->gdl_payment = 'apple pay / google pay';
         } else {
             $this->gdl_payment = 'kartica';
         }

@@ -133,41 +133,48 @@ class PaymentMethod
      */
     public function checkShipping(string $shipping)
     {
-        foreach ($this->methods as $method) {
-            if ($method->code == 'pickup') {
-                if ($shipping == 'pickup' ) {
-                    $this->response_methods = collect();
+        $corvusCodes = ['corvus', 'corvus_wallets'];
+        $restrictedCodes = array_merge(['pickup', 'bank'], $corvusCodes);
+
+        if ($shipping === 'pickup') {
+            $this->response_methods = collect();
+            $allowedCodes = array_merge(['pickup'], $corvusCodes);
+
+            foreach ($this->methods as $method) {
+                if (in_array($method->code, $allowedCodes, true)) {
                     $this->response_methods->put($method->code, $method);
-                } else {
-                    $this->response_methods->forget($method->code);
                 }
             }
 
-            if ($method->code == 'corvus' || $method->code == 'bank') {
-                if ($shipping == 'gls_eu' ) {
-                    $this->response_methods = collect();
+            return $this;
+        }
+
+        if ($shipping === 'gls_eu') {
+            $this->response_methods = collect();
+            $allowedCodes = array_merge(['bank'], $corvusCodes);
+
+            foreach ($this->methods as $method) {
+                if (in_array($method->code, $allowedCodes, true)) {
                     $this->response_methods->put($method->code, $method);
-                } else {
-                    $this->response_methods->forget($method->code);
                 }
             }
 
+            return $this;
         }
 
-        foreach ($this->methods as $method) {
-            if ($method->code == 'corvus' && $shipping == 'pickup' || $method->code == 'corvus' && $shipping == 'gls_eu' || $method->code == 'bank' && $shipping == 'gls' || $method->code == 'corvus' && $shipping == 'gls' ||  $method->code == 'corvus' && $shipping == 'gls_world' ||  $method->code == 'bank' && $shipping == 'gls_world') {
-                $this->response_methods->put($method->code, $method);
+        foreach ($restrictedCodes as $code) {
+            $this->response_methods->forget($code);
+        }
+
+        if (in_array($shipping, ['gls', 'gls_world'], true)) {
+            $allowedCodes = array_merge(['bank'], $corvusCodes);
+
+            foreach ($this->methods as $method) {
+                if (in_array($method->code, $allowedCodes, true)) {
+                    $this->response_methods->put($method->code, $method);
+                }
             }
-
-
         }
-
-
-        /*   */
-
-
-
-
 
         return $this;
     }
