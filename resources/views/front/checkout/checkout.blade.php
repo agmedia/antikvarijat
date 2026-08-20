@@ -331,9 +331,9 @@
 
         .checkout-save-toast {
             position: fixed;
-            top: 1rem;
+            bottom: 1.5rem;
             left: 50%;
-            z-index: 1085;
+            z-index: 2000;
             display: flex;
             align-items: center;
             gap: .55rem;
@@ -348,7 +348,7 @@
             font-weight: 600;
             opacity: 0;
             pointer-events: none;
-            transform: translate(-50%, -.75rem);
+            transform: translate(-50%, .75rem);
             transition: opacity .18s ease, transform .18s ease;
         }
 
@@ -571,7 +571,7 @@
                     window.clearTimeout(hideToastTimer);
                     hideToastTimer = window.setTimeout(function () {
                         toast.classList.remove('is-visible');
-                    }, 1800);
+                    }, event.detail && event.detail.duration ? event.detail.duration : 1800);
                 });
             }
 

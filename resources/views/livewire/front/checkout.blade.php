@@ -423,8 +423,18 @@
             const contact = detail.contact || {};
 
             commentInput.value = `${contact.address || ''}, ${contact.city || ''}_${detail.id || ''}`;
-            commentInput.dispatchEvent(new Event('input'));
+            commentInput.dispatchEvent(new Event('input', { bubbles: true }));
+            notifyCheckoutPickupSelected(@json(__('front.checkout.gls_selected')));
         });
+    }
+
+    function notifyCheckoutPickupSelected(message) {
+        window.dispatchEvent(new CustomEvent('checkout-option-saved', {
+            detail: {
+                message: message,
+                duration: 3500,
+            },
+        }));
     }
 
     function updateCheckoutPickupComment(value) {
@@ -457,6 +467,7 @@
                 const postalCode = selected.boxnowLockerPostalCode || '';
                 const address = selected.boxnowLockerAddressLine1 || selected.boxnowLockerName || '';
                 updateCheckoutPickupComment(`${postalCode}, ${address}_${selected.boxnowLockerId}`);
+                notifyCheckoutPickupSelected(@json(__('front.checkout.boxnow_selected')));
             }
         };
 
