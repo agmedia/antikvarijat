@@ -70,6 +70,22 @@ class AbandonedCartReminderService
             ->whereRaw('COALESCE(unfinished_at, created_at) <= ?', [now()->subMinutes($delay)])
             ->whereNotNull('payment_email')
             ->whereRaw("TRIM(payment_email) <> ''")
+            ->whereNotExists(function ($newerOrders) {
+                $newerOrders
+                    ->selectRaw('1')
+                    ->from('orders as newer_orders')
+                    ->whereIn('newer_orders.order_status_id', Order::dashboardCompletedStatusIds())
+                    ->whereRaw('LOWER(TRIM(newer_orders.payment_email)) = LOWER(TRIM(orders.payment_email))')
+                    ->where(function ($newerThanAbandoned) {
+                        $newerThanAbandoned
+                            ->whereColumn('newer_orders.created_at', '>', 'orders.created_at')
+                            ->orWhere(function ($sameCreatedAt) {
+                                $sameCreatedAt
+                                    ->whereColumn('newer_orders.created_at', '=', 'orders.created_at')
+                                    ->whereColumn('newer_orders.id', '>', 'orders.id');
+                            });
+                    });
+            })
             ->whereHas('orderProducts')
             ->whereDoesntHave('abandonedCartReminders', function (Builder $reminders) use ($sequence) {
                 $reminders->where('sequence', $sequence)->whereNotNull('sent_at');
@@ -303,11 +319,38 @@ class AbandonedCartReminderService
             return 'Narudžba nema valjanu e-mail adresu kupca.';
         }
 
+        if ($this->hasNewerCompletedOrder($order)) {
+            return 'Kupac je u međuvremenu dovršio noviju narudžbu.';
+        }
+
         $productsCount = $order->relationLoaded('products')
             ? $order->products->count()
             : (int) ($order->order_products_count ?? $order->orderProducts()->count());
 
         return $productsCount > 0 ? null : 'Narudžba nema artikala za podsjetnik.';
+    }
+
+    private function hasNewerCompletedOrder(Order $order): bool
+    {
+        $email = mb_strtolower(trim((string) $order->payment_email));
+
+        if ($email === '' || ! $order->created_at) {
+            return false;
+        }
+
+        return Order::query()
+            ->whereIn('order_status_id', Order::dashboardCompletedStatusIds())
+            ->whereRaw('LOWER(TRIM(payment_email)) = ?', [$email])
+            ->where(function (Builder $newerOrder) use ($order) {
+                $newerOrder
+                    ->where('created_at', '>', $order->created_at)
+                    ->orWhere(function (Builder $sameCreatedAt) use ($order) {
+                        $sameCreatedAt
+                            ->where('created_at', '=', $order->created_at)
+                            ->where('id', '>', $order->id);
+                    });
+            })
+            ->exists();
     }
 
     private function sentReminders(Order $order): Collection

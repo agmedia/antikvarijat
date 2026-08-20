@@ -93,7 +93,12 @@ SET `value` = JSON_SET(
         '$[0].data.credential_source', 'corvus',
         '$[0].geo_zone', COALESCE(JSON_EXTRACT(`value`, '$[0].geo_zone'), @wallet_geo_zone),
         '$[0].status', @wallet_enabled,
-        '$[0].sort_order', COALESCE(JSON_EXTRACT(`value`, '$[0].sort_order'), @wallet_sort_order)
+        '$[0].sort_order', IF(
+            COALESCE(JSON_UNQUOTE(JSON_EXTRACT(`value`, '$[0].title')), '') IN ('', 'corvus_wallets')
+                AND COALESCE(CAST(JSON_UNQUOTE(JSON_EXTRACT(`value`, '$[0].sort_order')) AS UNSIGNED), 0) = 0,
+            @wallet_sort_order,
+            COALESCE(JSON_EXTRACT(`value`, '$[0].sort_order'), @wallet_sort_order)
+        )
     ),
     `json` = 1,
     `updated_at` = NOW()

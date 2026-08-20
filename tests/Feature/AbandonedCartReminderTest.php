@@ -11,6 +11,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
+use RuntimeException;
 use Tests\TestCase;
 
 class AbandonedCartReminderTest extends TestCase
@@ -170,6 +171,87 @@ class AbandonedCartReminderTest extends TestCase
         Mail::assertSent(AbandonedCartReminderMail::class, fn (AbandonedCartReminderMail $mail) => $mail->sequence === 2);
     }
 
+    public function test_reminder_is_not_sent_when_same_customer_completed_a_newer_order(): void
+    {
+        Carbon::setTestNow('2026-08-09 14:00:00');
+        Mail::fake();
+
+        $this->insertOrder(11, 8, '2026-08-09 12:00:00', 'hr', 'kupac@example.test');
+        $this->insertOrder(12, 3, '2026-08-09 13:00:00', 'hr', ' KUPAC@example.test ');
+
+        $service = app(AbandonedCartReminderService::class);
+
+        $this->assertTrue($service->candidatesForSequence(1, 10)->isEmpty());
+
+        $state = $service->adminState(Order::query()->findOrFail(11));
+        $this->assertFalse($state['available']);
+        $this->assertSame('Kupac je u međuvremenu dovršio noviju narudžbu.', $state['error']);
+
+        try {
+            $service->send(
+                Order::query()->findOrFail(11),
+                1,
+                AbandonedCartReminder::SOURCE_MANUAL
+            );
+            $this->fail('Ručno slanje moralo je biti blokirano.');
+        } catch (RuntimeException $exception) {
+            $this->assertSame('Kupac je u međuvremenu dovršio noviju narudžbu.', $exception->getMessage());
+        }
+
+        $this->artisan('orders:send-abandoned-cart-reminders')->assertExitCode(0);
+
+        $this->assertDatabaseMissing('abandoned_cart_reminders', ['order_id' => 11]);
+        Mail::assertNothingSent();
+    }
+
+    public function test_second_reminder_is_not_sent_after_customer_completes_a_newer_order(): void
+    {
+        Carbon::setTestNow('2026-08-10 13:00:00');
+        Mail::fake();
+
+        $this->insertOrder(13, 8, '2026-08-09 13:00:00', 'hr', 'kupac@example.test');
+        DB::table('abandoned_cart_reminders')->insert([
+            'order_id' => 13,
+            'sequence' => 1,
+            'scheduled_for' => '2026-08-09 14:00:00',
+            'sent_at' => '2026-08-09 14:00:00',
+            'source' => 'automatic',
+            'recipient_email' => 'kupac@example.test',
+            'locale' => 'hr',
+            'created_at' => '2026-08-09 14:00:00',
+            'updated_at' => '2026-08-09 14:00:00',
+        ]);
+        $this->insertOrder(14, 1, '2026-08-09 15:00:00', 'hr', 'kupac@example.test');
+
+        $service = app(AbandonedCartReminderService::class);
+
+        $this->assertTrue($service->candidatesForSequence(2, 10)->isEmpty());
+
+        $this->artisan('orders:send-abandoned-cart-reminders')->assertExitCode(0);
+
+        $this->assertDatabaseMissing('abandoned_cart_reminders', [
+            'order_id' => 13,
+            'sequence' => 2,
+        ]);
+        Mail::assertNothingSent();
+    }
+
+    public function test_newer_unfinished_or_canceled_order_does_not_suppress_reminder(): void
+    {
+        Carbon::setTestNow('2026-08-09 14:00:00');
+
+        $this->insertOrder(15, 8, '2026-08-09 12:00:00', 'hr', 'kupac@example.test');
+        $this->insertOrder(16, 8, '2026-08-09 13:00:00', 'hr', 'kupac@example.test');
+        $this->insertOrder(17, 5, '2026-08-09 13:30:00', 'hr', 'kupac@example.test');
+
+        $service = app(AbandonedCartReminderService::class);
+
+        $this->assertSame(
+            [15, 16],
+            $service->candidatesForSequence(1, 10)->pluck('id')->map(fn ($id) => (int) $id)->all()
+        );
+    }
+
     public function test_admin_can_send_next_reminder_early_and_test_send_changes_no_records(): void
     {
         Carbon::setTestNow('2026-08-09 13:15:00');
@@ -220,7 +302,13 @@ class AbandonedCartReminderTest extends TestCase
         $this->assertStringContainsString('Restore books to my cart', $english);
     }
 
-    private function insertOrder(int $id, int $status, string $createdAt, string $locale): void
+    private function insertOrder(
+        int $id,
+        int $status,
+        string $createdAt,
+        string $locale,
+        ?string $email = null
+    ): void
     {
         DB::table('orders')->insert([
             'id' => $id,
@@ -229,7 +317,7 @@ class AbandonedCartReminderTest extends TestCase
             'locale' => $locale,
             'payment_fname' => 'Kupac',
             'payment_lname' => (string) $id,
-            'payment_email' => "kupac{$id}@example.test",
+            'payment_email' => $email ?? "kupac{$id}@example.test",
             'shipping_state' => 'Croatia',
             'unfinished_at' => $createdAt,
             'created_at' => $createdAt,
