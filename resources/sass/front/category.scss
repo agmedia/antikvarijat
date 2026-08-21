@@ -888,7 +888,8 @@ body.catalog-filter-open {
 }
 
 .catalog-product-card .product-thumb img {
-    object-fit: contain;
+    object-fit: cover;
+    object-position: center;
 }
 
 .catalog-product-purchase,
