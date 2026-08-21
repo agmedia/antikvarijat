@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Helpers\Helper;
+use Carbon\Carbon;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -24,10 +25,12 @@ class PublisherProductWidgetTest extends TestCase
         DB::purge('sqlite');
         DB::setDefaultConnection('sqlite');
         Cache::flush();
+        Carbon::setTestNow('2026-08-21 12:00:00');
 
         Schema::create('products', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('publisher_id');
+            $table->unsignedBigInteger('author_id')->default(0);
             $table->boolean('status')->default(true);
             $table->unsignedInteger('quantity')->default(1);
             $table->string('image')->nullable();
@@ -58,6 +61,7 @@ class PublisherProductWidgetTest extends TestCase
 
     protected function tearDown(): void
     {
+        Carbon::setTestNow();
         DB::disconnect('sqlite');
 
         parent::tearDown();
@@ -69,7 +73,7 @@ class PublisherProductWidgetTest extends TestCase
 
         $this->assertStringContainsString('<option value="publisher"', $source);
         $this->assertStringContainsString('name="best_selling"', $source);
-        $this->assertStringContainsString('Sortiraj prema najprodavanijima', $source);
+        $this->assertStringContainsString('Prikaži 10 najprodavanijih u posljednjih 30 dana', $source);
     }
 
     public function testSelectedPublishersAreSortedByCompletedSaleQuantity(): void
@@ -105,8 +109,48 @@ class PublisherProductWidgetTest extends TestCase
 
         $ids = $query->setEagerLoads([])->get()->pluck('id')->all();
 
-        $this->assertSame([2, 1, 4], $ids);
+        $this->assertSame([2, 1], $ids);
         $this->assertSame(15, $query->getQuery()->limit);
+    }
+
+    public function testProductWidgetShowsAtMostTenRecentBestSellersAndExcludesConfiguredAuthors(): void
+    {
+        $products = [];
+        $orderProducts = [];
+
+        for ($id = 1; $id <= 12; $id++) {
+            $products[] = [
+                'id' => $id,
+                'publisher_id' => 10,
+                'author_id' => 0,
+                'image' => $id . '.webp',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+            $orderProducts[] = ['order_id' => 1, 'product_id' => $id, 'quantity' => $id];
+        }
+
+        $products[] = ['id' => 13, 'publisher_id' => 10, 'author_id' => 0, 'image' => 'old.webp', 'created_at' => now(), 'updated_at' => now()];
+        $products[] = ['id' => 14, 'publisher_id' => 10, 'author_id' => 1196, 'image' => 'excluded.webp', 'created_at' => now(), 'updated_at' => now()];
+
+        DB::table('products')->insert($products);
+        DB::table('orders')->insert([
+            ['id' => 1, 'order_status_id' => config('settings.order.status.paid'), 'created_at' => now()->subDay(), 'updated_at' => now()],
+            ['id' => 2, 'order_status_id' => config('settings.order.status.paid'), 'created_at' => now()->subDays(31), 'updated_at' => now()],
+        ]);
+        DB::table('order_products')->insert(array_merge($orderProducts, [
+            ['order_id' => 2, 'product_id' => 13, 'quantity' => 999],
+            ['order_id' => 1, 'product_id' => 14, 'quantity' => 1000],
+        ]));
+
+        $query = $this->productWidgetQuery([
+            'target' => 'product',
+            'best_selling' => 'on',
+        ]);
+        $ids = $query->setEagerLoads([])->get()->pluck('id')->all();
+
+        $this->assertSame([12, 11, 10, 9, 8, 7, 6, 5, 4, 3], $ids);
+        $this->assertSame(10, $query->getQuery()->limit);
     }
 
     public function testSalesRankingIsReusedFromCacheForTheSameSelection(): void
@@ -131,6 +175,14 @@ class PublisherProductWidgetTest extends TestCase
     private function publisherWidgetQuery(array $data)
     {
         $method = new ReflectionMethod(Helper::class, 'publisher');
+        $method->setAccessible(true);
+
+        return $method->invoke(null, $data);
+    }
+
+    private function productWidgetQuery(array $data)
+    {
+        $method = new ReflectionMethod(Helper::class, 'products');
         $method->setAccessible(true);
 
         return $method->invoke(null, $data);

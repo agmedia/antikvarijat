@@ -287,4 +287,30 @@ class RecentBestSellersTest extends TestCase
         $this->assertSame('bestseller', $badges->get(1));
         $this->assertSame('popular', $badges->get(2));
     }
+
+    public function testConfiguredAuthorsAreExcludedFromSalesRecommendationsAndBadges(): void
+    {
+        $now = now();
+
+        DB::table('products')->insert([
+            ['id' => 1, 'author_id' => 1196, 'image' => 'excluded.jpg', 'created_at' => $now, 'updated_at' => $now],
+            ['id' => 2, 'author_id' => 0, 'image' => 'included.jpg', 'created_at' => $now, 'updated_at' => $now],
+        ]);
+        DB::table('orders')->insert([
+            'id' => 1,
+            'order_status_id' => config('settings.order.status.paid'),
+            'created_at' => $now->copy()->subDay(),
+            'updated_at' => $now,
+        ]);
+        DB::table('order_products')->insert([
+            ['order_id' => 1, 'product_id' => 1, 'quantity' => 100],
+            ['order_id' => 1, 'product_id' => 2, 'quantity' => 6],
+        ]);
+
+        $recommendations = app(ProductRecommendationService::class);
+
+        $this->assertSame([2], $recommendations->recentBestSellerIds()->all());
+        $this->assertSame([2], $recommendations->popularProductIds()->all());
+        $this->assertNull($recommendations->salesBadgeType(1));
+    }
 }

@@ -113,7 +113,7 @@
                                             <div class="form-group mb-5">
                                                 <div class="custom-control custom-switch custom-control-success">
                                                     <input type="checkbox" class="custom-control-input" id="best-selling-switch" name="best_selling" @if (isset($widget->data['best_selling']) and $widget->data['best_selling']) checked @endif>
-                                                    <label class="custom-control-label" for="best-selling-switch">Sortiraj prema najprodavanijima</label>
+                                                    <label class="custom-control-label" for="best-selling-switch">Prikaži 10 najprodavanijih u posljednjih 30 dana</label>
                                                 </div>
                                             </div>
                                             <div class="form-group mb-3">

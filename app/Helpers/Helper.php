@@ -27,6 +27,9 @@ use phpDocumentor\Reflection\Types\False_;
 
 class Helper
 {
+    private const BEST_SELLING_WIDGET_DAYS = 30;
+
+    private const BEST_SELLING_WIDGET_LIMIT = 10;
 
     /**
      * @param float $price
@@ -525,7 +528,7 @@ class Helper
         }
 
         if ($bestSelling) {
-            static::orderProductsBySales($prods, $data, 'product', 12);
+            static::orderProductsBySales($prods, $data, 'product', self::BEST_SELLING_WIDGET_LIMIT);
         }
 
         return $prods->withReviewSummary()->with(['author', 'action', 'categories']);
@@ -743,24 +746,37 @@ class Helper
         sort($list);
 
         $statuses = Order::dashboardCompletedStatusIds();
-        $cacheKey = 'widget.best-selling.v1.' . sha1(json_encode([
+        $excludedAuthorIds = array_values(array_filter(array_map(
+            'intval',
+            (array) config('settings.product_recommendations.excluded_author_ids', [])
+        )));
+        sort($excludedAuthorIds);
+        $periodEnd = now();
+        $periodStart = $periodEnd->copy()->subDays(self::BEST_SELLING_WIDGET_DAYS);
+        $cacheKey = 'widget.best-selling.v2.' . sha1(json_encode([
             'target' => $target,
             'list' => $list,
             'limit' => $limit,
+            'days' => self::BEST_SELLING_WIDGET_DAYS,
             'statuses' => $statuses,
+            'excluded_author_ids' => $excludedAuthorIds,
         ]));
 
-        return Cache::remember($cacheKey, now()->addMinutes(10), function () use ($list, $statuses, $target, $limit) {
+        return Cache::remember($cacheKey, now()->addMinutes(10), function () use ($list, $statuses, $excludedAuthorIds, $periodStart, $periodEnd, $target, $limit) {
             $ranking = DB::table('products')
-                ->leftJoin('order_products', 'order_products.product_id', '=', 'products.id')
-                ->leftJoin('orders', function ($join) use ($statuses) {
-                    $join->on('orders.id', '=', 'order_products.order_id')
-                        ->whereIn('orders.order_status_id', $statuses);
-                })
+                ->join('order_products', 'order_products.product_id', '=', 'products.id')
+                ->join('orders', 'orders.id', '=', 'order_products.order_id')
+                ->whereIn('orders.order_status_id', $statuses)
+                ->whereBetween('orders.created_at', [$periodStart, $periodEnd])
+                ->where('order_products.quantity', '>', 0)
                 ->where('products.status', 1)
                 ->where('products.quantity', '>', 0)
                 ->whereNotNull('products.image')
                 ->where('products.image', '!=', '');
+
+            if (! empty($excludedAuthorIds)) {
+                $ranking->whereNotIn('products.author_id', $excludedAuthorIds);
+            }
 
             if ($target === 'product' && ! empty($list)) {
                 $ranking->whereIn('products.id', $list);
@@ -781,9 +797,11 @@ class Helper
 
             return $ranking
                 ->select('products.id')
-                ->selectRaw('COALESCE(SUM(CASE WHEN orders.id IS NOT NULL THEN order_products.quantity ELSE 0 END), 0) AS sold_quantity')
+                ->selectRaw('SUM(order_products.quantity) AS sold_quantity')
+                ->selectRaw('MAX(orders.created_at) AS last_sold_at')
                 ->groupBy('products.id')
                 ->orderByDesc('sold_quantity')
+                ->orderByDesc('last_sold_at')
                 ->orderByDesc('products.id')
                 ->limit($limit)
                 ->pluck('products.id')
