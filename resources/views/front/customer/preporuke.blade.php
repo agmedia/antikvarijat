@@ -25,7 +25,7 @@
                     </div>
 
                     @if($products->isNotEmpty())
-                        <div class="tns-carousel tns-controls-static tns-controls-outside tns-nav-enabled pt-2 account-recommendations-carousel">
+                        <div class="tns-carousel catalog-product-carousel tns-controls-static tns-controls-outside tns-nav-enabled pt-2 account-recommendations-carousel">
                             <div class="tns-carousel-inner" data-carousel-options='{"items":2,"controls":false,"nav":true,"responsive":{"0":{"items":2,"gutter":8},"768":{"items":3,"gutter":14},"1200":{"items":4,"controls":true,"gutter":16}}}'>
                                 @foreach($products as $product)
                                     <div>

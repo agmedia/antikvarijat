@@ -24,7 +24,7 @@
     <section class="product-recommendations pb-5 mb-2 mb-xl-4" aria-labelledby="{{ $headingId }}">
         <h2 class="product-recommendations__title h3 font-title" id="{{ $headingId }}">{{ $title }}</h2>
         <div @class([
-            'tns-carousel tns-controls-static tns-controls-outside tns-nav-enabled pt-2',
+            'tns-carousel catalog-product-carousel tns-controls-static tns-controls-outside tns-nav-enabled pt-2',
             'product-recommendations__carousel--short' => $shouldCenterShortCarousel,
             'product-recommendations__carousel--count-' . $productCount => $shouldCenterShortCarousel,
         ])>

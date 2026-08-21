@@ -10,7 +10,7 @@
                 </div>
             </div>
 
-            <div class="tns-carousel pt-2 pb-3">
+            <div class="tns-carousel catalog-product-carousel pt-2 pb-3">
                 <div class="tns-carousel-inner tns-nav-enabled" data-carousel-options='{"items":2,"controls":false,"nav":true,"responsive":{"0":{"items":2,"gutter":5},"500":{"items":2,"gutter":10},"768":{"items":3,"gutter":10},"1100":{"items":4,"controls":true,"gutter":10},"1400":{"items":5,"controls":true,"gutter":10},"1600":{"items":5,"controls":true,"gutter":10}}}'>
                     @foreach ($products as $product)
                         <div>
