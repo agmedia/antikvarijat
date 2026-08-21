@@ -11,6 +11,20 @@
     min-width: 0;
 }
 
+.product-gallery-frame .product-sales-badge {
+    top: 1rem;
+    right: 1rem;
+    bottom: auto;
+    left: auto;
+}
+
+.product-gallery-frame .product-sales-badge::before {
+    top: calc(100% + .45rem);
+    right: 0;
+    bottom: auto;
+    left: auto;
+}
+
 .product-gallery-main {
     position: relative;
     margin-bottom: .5rem;

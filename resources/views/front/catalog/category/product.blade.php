@@ -33,6 +33,7 @@
             decoding="async"
             sizes="(max-width: 575px) 50vw, (max-width: 991px) 33vw, (max-width: 1399px) 25vw, 250px">
         </a>
+        @include('front.catalog.product.partials.sales-badge', ['product' => $product])
     </div>
     <div class="card-body pt-2">
         @if ($showsProductMeta)

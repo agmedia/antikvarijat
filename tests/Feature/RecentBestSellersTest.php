@@ -139,6 +139,41 @@ class RecentBestSellersTest extends TestCase
         $this->assertSame(2, $products->first()->id);
     }
 
+    public function testMonthlyCollectionCanReturnSixtyProducts(): void
+    {
+        $now = now();
+        $products = [];
+        $orderProducts = [];
+
+        for ($id = 1; $id <= 60; $id++) {
+            $products[] = [
+                'id' => $id,
+                'image' => $id . '.jpg',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+            $orderProducts[] = [
+                'order_id' => 1,
+                'product_id' => $id,
+                'quantity' => 1,
+            ];
+        }
+
+        DB::table('products')->insert($products);
+        DB::table('orders')->insert([
+            'id' => 1,
+            'order_status_id' => config('settings.order.status.paid'),
+            'created_at' => $now->copy()->subDay(),
+            'updated_at' => $now,
+        ]);
+        DB::table('order_products')->insert($orderProducts);
+
+        $rankedProducts = app(ProductRecommendationService::class)
+            ->recentBestSellers(30, 60);
+
+        $this->assertCount(60, $rankedProducts);
+    }
+
     public function testItExcludesSelectedProductsFromTheRanking(): void
     {
         $now = now();
@@ -164,5 +199,92 @@ class RecentBestSellersTest extends TestCase
             ->all();
 
         $this->assertSame([2], $ids);
+    }
+
+    public function testPopularProductsUseAllTimeCompletedSalesWithAThresholdOfFive(): void
+    {
+        $now = now();
+
+        DB::table('products')->insert([
+            ['id' => 1, 'image' => 'one.jpg', 'created_at' => $now, 'updated_at' => $now],
+            ['id' => 2, 'image' => 'two.jpg', 'created_at' => $now, 'updated_at' => $now],
+        ]);
+        DB::table('orders')->insert([
+            ['id' => 1, 'order_status_id' => config('settings.order.status.send'), 'created_at' => $now->copy()->subDays(400), 'updated_at' => $now],
+            ['id' => 2, 'order_status_id' => config('settings.order.status.canceled'), 'created_at' => $now, 'updated_at' => $now],
+        ]);
+        DB::table('order_products')->insert([
+            ['order_id' => 1, 'product_id' => 1, 'quantity' => 5],
+            ['order_id' => 1, 'product_id' => 2, 'quantity' => 4],
+            ['order_id' => 2, 'product_id' => 2, 'quantity' => 100],
+        ]);
+
+        $ids = app(ProductRecommendationService::class)
+            ->popularProductIds()
+            ->all();
+
+        $this->assertSame([1], $ids);
+    }
+
+    public function testOnlyTheTopTenRecentSellersReceiveTheBestsellerBadge(): void
+    {
+        $now = now();
+        $products = [];
+        $orderProducts = [];
+
+        for ($id = 1; $id <= 11; $id++) {
+            $products[] = [
+                'id' => $id,
+                'image' => $id . '.jpg',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+            $orderProducts[] = [
+                'order_id' => 1,
+                'product_id' => $id,
+                'quantity' => $id,
+            ];
+        }
+
+        DB::table('products')->insert($products);
+        DB::table('orders')->insert([
+            'id' => 1,
+            'order_status_id' => config('settings.order.status.paid'),
+            'created_at' => $now->copy()->subDay(),
+            'updated_at' => $now,
+        ]);
+        DB::table('order_products')->insert($orderProducts);
+
+        $badges = app(ProductRecommendationService::class)
+            ->salesBadgeTypes(range(1, 11));
+
+        $this->assertNull($badges->get(1));
+        $this->assertSame('bestseller', $badges->get(2));
+        $this->assertSame('bestseller', $badges->get(11));
+        $this->assertCount(10, $badges->filter(fn ($type) => $type === 'bestseller'));
+    }
+
+    public function testBestsellerBadgeTakesPriorityOverPopularBadge(): void
+    {
+        $now = now();
+
+        DB::table('products')->insert([
+            ['id' => 1, 'image' => 'one.jpg', 'created_at' => $now, 'updated_at' => $now],
+            ['id' => 2, 'image' => 'two.jpg', 'created_at' => $now, 'updated_at' => $now],
+        ]);
+        DB::table('orders')->insert([
+            ['id' => 1, 'order_status_id' => config('settings.order.status.paid'), 'created_at' => $now->copy()->subDay(), 'updated_at' => $now],
+            ['id' => 2, 'order_status_id' => config('settings.order.status.send'), 'created_at' => $now->copy()->subDays(90), 'updated_at' => $now],
+        ]);
+        DB::table('order_products')->insert([
+            ['order_id' => 1, 'product_id' => 1, 'quantity' => 6],
+            ['order_id' => 2, 'product_id' => 2, 'quantity' => 7],
+        ]);
+
+        $badges = app(ProductRecommendationService::class)
+            ->salesBadgeTypes([1, 2]);
+
+        $this->assertSame('bestseller', $badges->get(1));
+        $this->assertSame('popular', $badges->get(2));
     }
 }

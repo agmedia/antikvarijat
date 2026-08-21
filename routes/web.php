@@ -43,6 +43,7 @@ use App\Http\Controllers\Front\CheckoutController;
 use App\Http\Controllers\Front\ContractWithdrawalController;
 use App\Http\Controllers\Front\CustomerController;
 use App\Http\Controllers\Front\HomeController;
+use App\Http\Controllers\Front\MonthlyBestSellersController;
 use App\Http\Controllers\Front\GoogleLoginController;
 use App\Http\Controllers\Front\ProductReviewController;
 use App\Http\Controllers\Front\VialibriFeedController;
@@ -457,6 +458,8 @@ Route::get('/wishlist-obavijest/{wishlist}', WishlistTrackingController::class)
     ->middleware(['signed', 'throttle:60,1'])
     ->name('wishlist.track');
 Route::get('/recenzije', [ProductReviewController::class, 'index'])->name('reviews.index');
+Route::get('/izdvojeno/najtrazenije-ovaj-mjesec', MonthlyBestSellersController::class)
+    ->name('featured.monthly-best-sellers');
 Route::post('/recenzije', [ProductReviewController::class, 'store'])
     ->middleware('throttle:5,10')
     ->name('product-reviews.store');
@@ -509,6 +512,8 @@ Route::prefix('en')->as('en.')->group(function () {
     Route::get('/faq', [CatalogRouteController::class, 'faq'])->name('faq');
     Route::post('/wishlist/add', [HomeController::class, 'wishlist'])->name('wishlist');
     Route::get('/reviews', [ProductReviewController::class, 'index'])->name('reviews.index');
+    Route::get('/featured/most-wanted-this-month', MonthlyBestSellersController::class)
+        ->name('featured.monthly-best-sellers');
     Route::post('/reviews', [ProductReviewController::class, 'store'])
         ->middleware('throttle:5,10')
         ->name('product-reviews.store');

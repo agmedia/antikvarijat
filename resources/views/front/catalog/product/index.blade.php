@@ -109,6 +109,7 @@
                <div class="h-100 bg-light shadow rounded-3 p-4">
                    <div class="product-gallery-frame" id="gallery" data-product-gallery>
                        <div class="main-image product-thumb">
+                           @include('front.catalog.product.partials.sales-badge', ['product' => $prod])
                            <div class="product-gallery-main" data-product-gallery-main>
                                @foreach ($galleryItems as $galleryItem)
                                    <div class="product-gallery-slide">

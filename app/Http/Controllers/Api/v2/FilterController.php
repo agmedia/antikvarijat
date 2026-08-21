@@ -10,6 +10,7 @@ use App\Models\Front\Catalog\Category;
 use App\Models\Front\Catalog\Product;
 use App\Models\Front\Catalog\Publisher;
 use App\Http\Controllers\Controller;
+use App\Services\ProductRecommendationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -210,7 +211,7 @@ class FilterController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function products(Request $request)
+    public function products(Request $request, ProductRecommendationService $recommendations)
     {
         $this->applyRequestedLocale($request);
 
@@ -339,8 +340,9 @@ class FilterController extends Controller
 
         $mainCurrency = Currency::main();
         $secondaryCurrency = Currency::secondary();
+        $salesBadgeTypes = $recommendations->salesBadgeTypes($products->getCollection()->pluck('id'));
 
-        $products->getCollection()->transform(function (Product $product) use ($mainCurrency, $secondaryCurrency) {
+        $products->getCollection()->transform(function (Product $product) use ($mainCurrency, $secondaryCurrency, $salesBadgeTypes) {
             $effectiveSpecial = $product->special();
             $hasSpecialPrice = $effectiveSpecial < (float) $product->price;
             $category = $product->category();
@@ -365,6 +367,7 @@ class FilterController extends Controller
                 'secondary_special_text' => $this->resolveCurrencyPrice($secondaryCurrency, $effectiveSpecial, true),
                 'approved_reviews_count' => (int) ($product->approved_reviews_count ?? 0),
                 'approved_reviews_average' => round((float) ($product->approved_reviews_average ?? 0), 2),
+                'sales_badge_type' => $salesBadgeTypes->get((int) $product->id),
                 'card_category' => $category && $cardCategory ? [
                     'title' => $cardCategory->title,
                     'url' => LocaleHelper::categoryUrl($category, $subcategory),

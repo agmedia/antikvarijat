@@ -58,6 +58,16 @@
                             height="300"
                             :alt="product.name">
                         </a>
+                        <span
+                            v-if="product.sales_badge_type"
+                            class="product-sales-badge"
+                            :class="'product-sales-badge--' + product.sales_badge_type"
+                            role="img"
+                            :aria-label="salesBadgeLabel(product)"
+                            :data-tooltip="salesBadgeLabel(product)"
+                            tabindex="0">
+                            <i class="fa-duotone" :class="salesBadgeIcon(product)" aria-hidden="true"></i>
+                        </span>
                     </div>
                     <div class="card-body pt-2">
                         <div class="d-flex flex-wrap justify-content-between align-items-start pb-2" v-if="productMeta(product)">
@@ -351,6 +361,24 @@
                 const thumb = image.replace(/\.webp(?=([?#]|$))/i, '-thumb.webp');
 
                 return thumb === image ? image : `${thumb} 250w, ${image} 600w`;
+            },
+
+            salesBadgeLabel(product) {
+                const labels = (window.FrontTranslations && window.FrontTranslations.sales_badges)
+                    ? window.FrontTranslations.sales_badges
+                    : {};
+
+                if (product.sales_badge_type === 'bestseller') {
+                    return labels.bestseller || 'Bestseller';
+                }
+
+                return labels.popular || 'Popular';
+            },
+
+            salesBadgeIcon(product) {
+                if (product.sales_badge_type === 'bestseller') return 'fa-tag';
+
+                return 'fa-fire-flame-curved';
             },
 
             restoreMobileColumns() {

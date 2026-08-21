@@ -9,6 +9,7 @@ use App\Models\ProductReview;
 use App\Models\Back\Marketing\Wishlist;
 use App\Services\CustomerMetricsService;
 use App\Services\GoogleLoginSettingsService;
+use App\Services\ProductRecommendationService;
 use Illuminate\Auth\Notifications\ResetPassword as ResetPasswordNotification;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Pagination\Paginator;
@@ -27,6 +28,7 @@ class AppServiceProvider extends ServiceProvider
     public function register()
     {
         Schema::defaultStringLength(191);
+        $this->app->singleton(ProductRecommendationService::class);
     }
 
     /**

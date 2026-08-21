@@ -1,3 +1,98 @@
+.catalog-product-card .product-thumb,
+.product-gallery-frame .main-image {
+  position: relative;
+}
+
+.product-sales-badge {
+  position: absolute;
+  z-index: 4;
+  top: 0.5rem;
+  right: 0.5rem;
+  display: inline-flex;
+  width: 1.8rem;
+  height: 1.8rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  box-shadow: 0 0.25rem 0.65rem rgba(30, 43, 34, 0.2);
+  isolation: isolate;
+}
+
+.product-sales-badge::before {
+  position: absolute;
+  z-index: 6;
+  top: calc(100% + 0.45rem);
+  right: 0;
+  width: max-content;
+  max-width: 12rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 0.25rem;
+  background: #263b2d;
+  box-shadow: 0 0.3rem 0.75rem rgba(30, 43, 34, 0.2);
+  color: #fff;
+  content: attr(data-tooltip);
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.2;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(0.2rem);
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+  visibility: hidden;
+  white-space: normal;
+}
+
+.product-sales-badge:hover::before,
+.product-sales-badge:focus-visible::before {
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
+}
+
+.product-sales-badge:focus-visible {
+  outline: 2px solid #bfa76a;
+  outline-offset: 2px;
+}
+
+.product-sales-badge > i {
+  position: relative;
+  z-index: 1;
+  font-size: 0.78rem;
+}
+
+.product-sales-badge--bestseller {
+  border-color: #d8bd78;
+  background: linear-gradient(145deg, #3c5743 0%, #24392a 100%);
+  color: #f3d68f;
+  --fa-primary-color: #f3d68f;
+  --fa-secondary-color: #fff8df;
+  --fa-secondary-opacity: .72;
+}
+
+.product-sales-badge--popular {
+  border-color: #314837;
+  background: linear-gradient(145deg, #fffdf6 0%, #eee5cc 100%);
+  color: #8b6c24;
+  --fa-primary-color: #8b6c24;
+  --fa-secondary-color: #314837;
+  --fa-secondary-opacity: .78;
+}
+
+@media (max-width: 575.98px) {
+  .product-sales-badge {
+    top: 0.4rem;
+    right: 0.4rem;
+    width: 1.65rem;
+    height: 1.65rem;
+  }
+  .product-sales-badge > i {
+    font-size: 0.7rem;
+  }
+  .product-sales-badge::before {
+    max-width: 9.5rem;
+  }
+}
 .widget-product-carousel .catalog-product-card {
   display: flex;
   height: 100%;
@@ -203,7 +298,6 @@
     justify-content: flex-start;
   }
 }
-
 @media (max-width: 799.98px) {
   .reviews-widget {
     padding-top: 2.5rem !important;

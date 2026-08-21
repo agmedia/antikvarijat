@@ -13,14 +13,33 @@ use Illuminate\Support\Facades\Schema;
 
 class ProductRecommendationService
 {
+    public const BESTSELLER_DAYS = 30;
+
+    public const BESTSELLER_LIMIT = 10;
+
+    public const POPULAR_MIN_SOLD_QUANTITY = 5;
+
+    public const MONTHLY_COLLECTION_LIMIT = 180;
+
+    /** @var \Illuminate\Support\Collection<int, string|null>|null */
+    private $salesBadgeLookup;
+
     public function recentBestSellers(int $days = 30, int $limit = 10, array $excludedProductIds = []): Collection
+    {
+        return $this->productsInOrder(
+            $this->recentBestSellerIds($days, $limit, $excludedProductIds),
+            $limit
+        );
+    }
+
+    public function recentBestSellerIds(int $days = 30, int $limit = 10, array $excludedProductIds = []): Collection
     {
         if (! Schema::hasTable('products') || ! Schema::hasTable('orders') || ! Schema::hasTable('order_products')) {
             return collect();
         }
 
         $days = max(1, min($days, 365));
-        $limit = max(1, min($limit, 50));
+        $limit = max(1, min($limit, self::MONTHLY_COLLECTION_LIMIT));
         $excludedProductIds = array_values(array_unique(array_map(
             'intval',
             array_filter($excludedProductIds, static fn ($id) => (int) $id > 0)
@@ -64,7 +83,70 @@ class ProductRecommendationService
                 ->map(fn ($id) => (int) $id);
         });
 
-        return $this->productsInOrder(collect($productIds), $limit);
+        return collect($productIds)
+            ->map(fn ($id) => (int) $id)
+            ->values();
+    }
+
+    public function popularProductIds(int $minSoldQuantity = self::POPULAR_MIN_SOLD_QUANTITY): Collection
+    {
+        if (! Schema::hasTable('orders') || ! Schema::hasTable('order_products')) {
+            return collect();
+        }
+
+        $minSoldQuantity = max(1, $minSoldQuantity);
+        $statuses = Order::dashboardCompletedStatusIds();
+        $cacheKey = 'recommendations.popular-products.v1.' . sha1(json_encode([
+            'min_sold_quantity' => $minSoldQuantity,
+            'statuses' => $statuses,
+        ]));
+
+        $productIds = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($minSoldQuantity, $statuses) {
+            return DB::table('order_products')
+                ->join('orders', 'orders.id', '=', 'order_products.order_id')
+                ->whereIn('orders.order_status_id', $statuses)
+                ->where('order_products.product_id', '>', 0)
+                ->where('order_products.quantity', '>', 0)
+                ->select('order_products.product_id')
+                ->groupBy('order_products.product_id')
+                ->havingRaw('SUM(order_products.quantity) >= ?', [$minSoldQuantity])
+                ->pluck('order_products.product_id');
+        });
+
+        return collect($productIds)
+            ->map(fn ($id) => (int) $id)
+            ->values();
+    }
+
+    public function salesBadgeTypes($productIds): Collection
+    {
+        $productIds = collect($productIds)
+            ->map(fn ($id) => (int) $id)
+            ->filter(fn ($id) => $id > 0)
+            ->unique()
+            ->values();
+
+        if ($productIds->isEmpty()) {
+            return collect();
+        }
+
+        if ($this->salesBadgeLookup === null) {
+            $this->salesBadgeLookup = $this->popularProductIds()
+                ->mapWithKeys(fn (int $productId) => [$productId => 'popular']);
+
+            foreach ($this->recentBestSellerIds(self::BESTSELLER_DAYS, self::BESTSELLER_LIMIT) as $productId) {
+                $this->salesBadgeLookup->put((int) $productId, 'bestseller');
+            }
+        }
+
+        return $productIds->mapWithKeys(function (int $productId) {
+            return [$productId => $this->salesBadgeLookup->get($productId)];
+        });
+    }
+
+    public function salesBadgeType(int $productId): ?string
+    {
+        return $this->salesBadgeTypes([$productId])->get($productId);
     }
 
     public function forUser(User $user, int $limit = 12): Collection

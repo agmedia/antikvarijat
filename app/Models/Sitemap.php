@@ -140,6 +140,7 @@ class Sitemap
             'book_purchase' => LocaleHelper::route('otkup.knjiga', [], true, $locale),
             'blog' => LocaleHelper::route('catalog.route.blog', [], true, $locale),
             'reviews' => LocaleHelper::route('reviews.index', [], true, $locale),
+            'monthly_best_sellers' => LocaleHelper::route('featured.monthly-best-sellers', [], true, $locale),
             'books' => LocaleHelper::route('catalog.route', ['group' => 'knjige'], true, $locale),
             'maps' => LocaleHelper::route('catalog.route', ['group' => 'zemljovidi-i-vedute'], true, $locale),
             'sale' => LocaleHelper::route('catalog.route.actions', [], true, $locale),

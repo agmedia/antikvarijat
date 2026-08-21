@@ -19,6 +19,7 @@ use App\Models\Front\Catalog\Publisher;
 use App\Models\Seo;
 use App\Models\TagManager;
 use App\Models\ProductReview;
+use App\Services\ProductRecommendationService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -1004,7 +1005,10 @@ class CatalogRouteController extends Controller
 
     private function mapProductsPaginator(LengthAwarePaginator $paginator): array
     {
-        $data = $paginator->getCollection()->map(function (Product $product) {
+        $salesBadgeTypes = app(ProductRecommendationService::class)
+            ->salesBadgeTypes($paginator->getCollection()->pluck('id'));
+
+        $data = $paginator->getCollection()->map(function (Product $product) use ($salesBadgeTypes) {
             $effectiveSpecial = $product->special();
             $hasSpecialPrice = $effectiveSpecial < (float) $product->price;
             $category = $product->category();
@@ -1029,6 +1033,7 @@ class CatalogRouteController extends Controller
                 'secondary_special_text' => $product->secondary_special_text,
                 'approved_reviews_count' => (int) ($product->approved_reviews_count ?? 0),
                 'approved_reviews_average' => round((float) ($product->approved_reviews_average ?? 0), 2),
+                'sales_badge_type' => $salesBadgeTypes->get((int) $product->id),
                 'card_category' => $category && $cardCategory ? [
                     'title' => $cardCategory->title,
                     'url' => LocaleHelper::categoryUrl($category, $subcategory),

@@ -6,6 +6,21 @@ return [
         'default_description' => 'Stare i rijetke knjige, zemljovidi i vedute u Antikvarijatu Biblos u Zagrebu. Sigurna online kupnja, dostava i otkup knjiga.',
     ],
 
+    'sales_badges' => [
+        'bestseller' => 'Bestseller u posljednjih 30 dana',
+        'popular' => 'Popularan naslov',
+    ],
+
+    'monthly_best_sellers' => [
+        'title' => 'Najtraženije ovog mjeseca',
+        'meta_title' => 'Najtraženije knjige ovog mjeseca | Antikvarijat Biblos',
+        'meta_description' => 'Otkrijte najtraženije knjige u Antikvarijatu Biblos, rangirane prema prodaji u posljednjih 30 dana.',
+        'best_selling' => 'Najprodavanije',
+        'apply_sort' => 'Primijeni sortiranje',
+        'empty_title' => 'Uskoro stižu novi favoriti',
+        'empty_text' => 'Čim se prikupi dovoljno aktualnih prodajnih podataka, ovdje će se pojaviti najtraženiji naslovi.',
+    ],
+
     'nav' => [
         'home' => 'Naslovnica',
         'menu' => 'Izbornik',

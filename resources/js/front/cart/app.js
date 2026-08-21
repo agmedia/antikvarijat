@@ -83,3 +83,16 @@ window.ToastWarningLong = app.$swal.mixin({
 })
 
 window.CartAddSuccess = (payload = {}) => showCartAddSuccessModal(app.$swal, payload);
+
+document.addEventListener('change', (event) => {
+    const select = event.target.closest('[data-submit-on-change]');
+
+    if (! select || ! select.form) return;
+
+    if (typeof select.form.requestSubmit === 'function') {
+        select.form.requestSubmit();
+        return;
+    }
+
+    select.form.submit();
+});

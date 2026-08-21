@@ -6,6 +6,21 @@ return [
         'default_description' => 'Old and rare books, maps and views from Antikvarijat Biblos in Zagreb. Secure online ordering, delivery and book purchasing service.',
     ],
 
+    'sales_badges' => [
+        'bestseller' => 'Bestseller in the last 30 days',
+        'popular' => 'Popular title',
+    ],
+
+    'monthly_best_sellers' => [
+        'title' => 'Most wanted this month',
+        'meta_title' => 'Most wanted books this month | Biblos Antiquarian Bookshop',
+        'meta_description' => 'Discover the most wanted books at Biblos Antiquarian Bookshop, ranked by sales during the last 30 days.',
+        'best_selling' => 'Best selling',
+        'apply_sort' => 'Apply sorting',
+        'empty_title' => 'New favourites are coming soon',
+        'empty_text' => 'The most wanted titles will appear here as soon as enough current sales data is available.',
+    ],
+
     'nav' => [
         'home' => 'Home',
         'menu' => 'Menu',
