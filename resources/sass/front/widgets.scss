@@ -20,6 +20,27 @@
     object-position: center;
 }
 
+.catalog-product-card .product-meta {
+    font-size: 1rem;
+    line-height: 1.4;
+}
+
+.catalog-product-card .product-title {
+    min-height: 2.6rem;
+    font-size: 1.05rem !important;
+    line-height: 1.2;
+}
+
+.catalog-product-card .one-line,
+.catalog-product-card .product-category-link {
+    font-size: .9rem !important;
+    line-height: 1.4;
+}
+
+.catalog-product-card .price-box > div {
+    font-size: 1rem !important;
+}
+
 .product-sales-badge {
     position: absolute;
     z-index: 4;
@@ -115,6 +136,7 @@
 
 .catalog-product-carousel .catalog-product-card {
     display: flex;
+    width: 100%;
     height: 100%;
     flex-direction: column;
 }
