@@ -12,8 +12,8 @@ return [
     ],
 
     'monthly_best_sellers' => [
-        'title' => 'Most wanted this month',
-        'meta_title' => 'Most wanted books this month | Biblos Antiquarian Bookshop',
+        'title' => 'Popular with Readers',
+        'meta_title' => 'Popular with Readers | Biblos Antiquarian Bookshop',
         'meta_description' => 'Discover the most wanted books at Biblos Antiquarian Bookshop, ranked by sales during the last 30 days.',
         'best_selling' => 'Best selling',
         'apply_sort' => 'Apply sorting',

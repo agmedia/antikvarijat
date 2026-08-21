@@ -12,8 +12,8 @@ return [
     ],
 
     'monthly_best_sellers' => [
-        'title' => 'Najtraženije ovog mjeseca',
-        'meta_title' => 'Najtraženije knjige ovog mjeseca | Antikvarijat Biblos',
+        'title' => 'Popularno među čitateljima',
+        'meta_title' => 'Popularno među čitateljima | Antikvarijat Biblos',
         'meta_description' => 'Otkrijte najtraženije knjige u Antikvarijatu Biblos, rangirane prema prodaji u posljednjih 30 dana.',
         'best_selling' => 'Najprodavanije',
         'apply_sort' => 'Primijeni sortiranje',
