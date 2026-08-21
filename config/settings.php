@@ -32,9 +32,6 @@ return [
 
     'eur_divide_amount' => 0.13272280,
     'default_tax_id'       => 1,
-    'product_recommendations' => [
-        'excluded_author_ids' => [1196],
-    ],
     'sorting_list' => [
         0 => [
             'title' => 'Najnovije',

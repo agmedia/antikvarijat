@@ -31,6 +31,7 @@ class PublisherProductWidgetTest extends TestCase
             $table->bigIncrements('id');
             $table->unsignedBigInteger('publisher_id');
             $table->unsignedBigInteger('author_id')->default(0);
+            $table->string('name')->nullable();
             $table->boolean('status')->default(true);
             $table->unsignedInteger('quantity')->default(1);
             $table->string('image')->nullable();
@@ -113,7 +114,7 @@ class PublisherProductWidgetTest extends TestCase
         $this->assertSame(15, $query->getQuery()->limit);
     }
 
-    public function testProductWidgetShowsAtMostTenRecentBestSellersAndExcludesConfiguredAuthors(): void
+    public function testProductWidgetShowsAtMostTenRecentBestSellersAndExcludesRestrictedProducts(): void
     {
         $products = [];
         $orderProducts = [];
@@ -123,6 +124,7 @@ class PublisherProductWidgetTest extends TestCase
                 'id' => $id,
                 'publisher_id' => 10,
                 'author_id' => 0,
+                'name' => 'Product ' . $id,
                 'image' => $id . '.webp',
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -130,8 +132,9 @@ class PublisherProductWidgetTest extends TestCase
             $orderProducts[] = ['order_id' => 1, 'product_id' => $id, 'quantity' => $id];
         }
 
-        $products[] = ['id' => 13, 'publisher_id' => 10, 'author_id' => 0, 'image' => 'old.webp', 'created_at' => now(), 'updated_at' => now()];
-        $products[] = ['id' => 14, 'publisher_id' => 10, 'author_id' => 1196, 'image' => 'excluded.webp', 'created_at' => now(), 'updated_at' => now()];
+        $products[] = ['id' => 13, 'publisher_id' => 10, 'author_id' => 0, 'name' => 'Old product', 'image' => 'old.webp', 'created_at' => now(), 'updated_at' => now()];
+        $products[] = ['id' => 14, 'publisher_id' => 10, 'author_id' => 1196, 'name' => 'Excluded author', 'image' => 'excluded.webp', 'created_at' => now(), 'updated_at' => now()];
+        $products[] = ['id' => 15, 'publisher_id' => 10, 'author_id' => 0, 'name' => 'Mein Kampf - Moja borba', 'image' => 'excluded-title.webp', 'created_at' => now(), 'updated_at' => now()];
 
         DB::table('products')->insert($products);
         DB::table('orders')->insert([
@@ -141,6 +144,7 @@ class PublisherProductWidgetTest extends TestCase
         DB::table('order_products')->insert(array_merge($orderProducts, [
             ['order_id' => 2, 'product_id' => 13, 'quantity' => 999],
             ['order_id' => 1, 'product_id' => 14, 'quantity' => 1000],
+            ['order_id' => 1, 'product_id' => 15, 'quantity' => 1001],
         ]));
 
         $query = $this->productWidgetQuery([

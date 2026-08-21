@@ -14,6 +14,7 @@ use App\Models\Back\Orders\Order;
 use App\Models\Front\Catalog\Publisher;
 use App\Models\Front\Loyalty;
 use App\Models\ProductReview;
+use App\Services\ProductRecommendationService;
 use Darryldecode\Cart\CartCondition;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
@@ -746,23 +747,19 @@ class Helper
         sort($list);
 
         $statuses = Order::dashboardCompletedStatusIds();
-        $excludedAuthorIds = array_values(array_filter(array_map(
-            'intval',
-            (array) config('settings.product_recommendations.excluded_author_ids', [])
-        )));
-        sort($excludedAuthorIds);
         $periodEnd = now();
         $periodStart = $periodEnd->copy()->subDays(self::BEST_SELLING_WIDGET_DAYS);
-        $cacheKey = 'widget.best-selling.v2.' . sha1(json_encode([
+        $cacheKey = 'widget.best-selling.v3.' . sha1(json_encode([
             'target' => $target,
             'list' => $list,
             'limit' => $limit,
             'days' => self::BEST_SELLING_WIDGET_DAYS,
             'statuses' => $statuses,
-            'excluded_author_ids' => $excludedAuthorIds,
+            'excluded_author_ids' => ProductRecommendationService::EXCLUDED_SALES_AUTHOR_IDS,
+            'excluded_name_keywords' => ProductRecommendationService::EXCLUDED_SALES_NAME_KEYWORDS,
         ]));
 
-        return Cache::remember($cacheKey, now()->addMinutes(10), function () use ($list, $statuses, $excludedAuthorIds, $periodStart, $periodEnd, $target, $limit) {
+        return Cache::remember($cacheKey, now()->addMinutes(10), function () use ($list, $statuses, $periodStart, $periodEnd, $target, $limit) {
             $ranking = DB::table('products')
                 ->join('order_products', 'order_products.product_id', '=', 'products.id')
                 ->join('orders', 'orders.id', '=', 'order_products.order_id')
@@ -774,9 +771,7 @@ class Helper
                 ->whereNotNull('products.image')
                 ->where('products.image', '!=', '');
 
-            if (! empty($excludedAuthorIds)) {
-                $ranking->whereNotIn('products.author_id', $excludedAuthorIds);
-            }
+            ProductRecommendationService::applySalesRecommendationExclusions($ranking);
 
             if ($target === 'product' && ! empty($list)) {
                 $ranking->whereIn('products.id', $list);

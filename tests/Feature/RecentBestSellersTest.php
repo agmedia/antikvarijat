@@ -30,6 +30,7 @@ class RecentBestSellersTest extends TestCase
             $table->bigIncrements('id');
             $table->unsignedBigInteger('author_id')->default(0);
             $table->unsignedBigInteger('action_id')->default(0);
+            $table->string('name')->nullable();
             $table->boolean('status')->default(true);
             $table->decimal('price', 15, 4)->default(10);
             $table->unsignedInteger('quantity')->default(1);
@@ -288,13 +289,14 @@ class RecentBestSellersTest extends TestCase
         $this->assertSame('popular', $badges->get(2));
     }
 
-    public function testConfiguredAuthorsAreExcludedFromSalesRecommendationsAndBadges(): void
+    public function testRestrictedProductsAreExcludedFromSalesRecommendationsAndBadges(): void
     {
         $now = now();
 
         DB::table('products')->insert([
-            ['id' => 1, 'author_id' => 1196, 'image' => 'excluded.jpg', 'created_at' => $now, 'updated_at' => $now],
-            ['id' => 2, 'author_id' => 0, 'image' => 'included.jpg', 'created_at' => $now, 'updated_at' => $now],
+            ['id' => 1, 'author_id' => 1196, 'name' => 'Excluded author', 'image' => 'excluded.jpg', 'created_at' => $now, 'updated_at' => $now],
+            ['id' => 2, 'author_id' => 0, 'name' => 'Included product', 'image' => 'included.jpg', 'created_at' => $now, 'updated_at' => $now],
+            ['id' => 3, 'author_id' => 0, 'name' => 'Mein Kampf - Moja borba', 'image' => 'excluded-title.jpg', 'created_at' => $now, 'updated_at' => $now],
         ]);
         DB::table('orders')->insert([
             'id' => 1,
@@ -305,6 +307,7 @@ class RecentBestSellersTest extends TestCase
         DB::table('order_products')->insert([
             ['order_id' => 1, 'product_id' => 1, 'quantity' => 100],
             ['order_id' => 1, 'product_id' => 2, 'quantity' => 6],
+            ['order_id' => 1, 'product_id' => 3, 'quantity' => 200],
         ]);
 
         $recommendations = app(ProductRecommendationService::class);
@@ -312,5 +315,6 @@ class RecentBestSellersTest extends TestCase
         $this->assertSame([2], $recommendations->recentBestSellerIds()->all());
         $this->assertSame([2], $recommendations->popularProductIds()->all());
         $this->assertNull($recommendations->salesBadgeType(1));
+        $this->assertNull($recommendations->salesBadgeType(3));
     }
 }

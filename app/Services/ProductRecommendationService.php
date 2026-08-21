@@ -21,6 +21,10 @@ class ProductRecommendationService
 
     public const MONTHLY_COLLECTION_LIMIT = 180;
 
+    public const EXCLUDED_SALES_AUTHOR_IDS = [1196];
+
+    public const EXCLUDED_SALES_NAME_KEYWORDS = ['mein kampf'];
+
     /** @var \Illuminate\Support\Collection<int, string|null>|null */
     private $salesBadgeLookup;
 
@@ -45,17 +49,17 @@ class ProductRecommendationService
             array_filter($excludedProductIds, static fn ($id) => (int) $id > 0)
         )));
         sort($excludedProductIds);
-        $excludedAuthorIds = $this->excludedAuthorIds();
         $statuses = Order::dashboardCompletedStatusIds();
-        $cacheKey = 'recommendations.recent-best-sellers.v1.' . sha1(json_encode([
+        $cacheKey = 'recommendations.recent-best-sellers.v2.' . sha1(json_encode([
             'days' => $days,
             'limit' => $limit,
             'statuses' => $statuses,
             'excluded_product_ids' => $excludedProductIds,
-            'excluded_author_ids' => $excludedAuthorIds,
+            'excluded_author_ids' => self::EXCLUDED_SALES_AUTHOR_IDS,
+            'excluded_name_keywords' => self::EXCLUDED_SALES_NAME_KEYWORDS,
         ]));
 
-        $productIds = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($days, $limit, $statuses, $excludedProductIds, $excludedAuthorIds) {
+        $productIds = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($days, $limit, $statuses, $excludedProductIds) {
             $ranking = DB::table('order_products')
                 ->join('orders', 'orders.id', '=', 'order_products.order_id')
                 ->join('products', 'products.id', '=', 'order_products.product_id')
@@ -76,12 +80,10 @@ class ProductRecommendationService
                 ->orderByDesc('last_sold_at')
                 ->orderByDesc('order_products.product_id');
 
+            self::applySalesRecommendationExclusions($ranking);
+
             if (! empty($excludedProductIds)) {
                 $ranking->whereNotIn('order_products.product_id', $excludedProductIds);
-            }
-
-            if (! empty($excludedAuthorIds)) {
-                $ranking->whereNotIn('products.author_id', $excludedAuthorIds);
             }
 
             return $ranking->limit($limit)
@@ -101,24 +103,25 @@ class ProductRecommendationService
         }
 
         $minSoldQuantity = max(1, $minSoldQuantity);
-        $excludedAuthorIds = $this->excludedAuthorIds();
         $statuses = Order::dashboardCompletedStatusIds();
-        $cacheKey = 'recommendations.popular-products.v1.' . sha1(json_encode([
+        $cacheKey = 'recommendations.popular-products.v2.' . sha1(json_encode([
             'min_sold_quantity' => $minSoldQuantity,
             'statuses' => $statuses,
-            'excluded_author_ids' => $excludedAuthorIds,
+            'excluded_author_ids' => self::EXCLUDED_SALES_AUTHOR_IDS,
+            'excluded_name_keywords' => self::EXCLUDED_SALES_NAME_KEYWORDS,
         ]));
 
-        $productIds = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($minSoldQuantity, $statuses, $excludedAuthorIds) {
-            return DB::table('order_products')
+        $productIds = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($minSoldQuantity, $statuses) {
+            $ranking = DB::table('order_products')
                 ->join('orders', 'orders.id', '=', 'order_products.order_id')
                 ->join('products', 'products.id', '=', 'order_products.product_id')
                 ->whereIn('orders.order_status_id', $statuses)
                 ->where('order_products.product_id', '>', 0)
-                ->where('order_products.quantity', '>', 0)
-                ->when(! empty($excludedAuthorIds), function ($query) use ($excludedAuthorIds) {
-                    $query->whereNotIn('products.author_id', $excludedAuthorIds);
-                })
+                ->where('order_products.quantity', '>', 0);
+
+            self::applySalesRecommendationExclusions($ranking);
+
+            return $ranking
                 ->select('order_products.product_id')
                 ->groupBy('order_products.product_id')
                 ->havingRaw('SUM(order_products.quantity) >= ?', [$minSoldQuantity])
@@ -258,15 +261,16 @@ class ProductRecommendationService
             ->values();
     }
 
-    private function excludedAuthorIds(): array
+    public static function applySalesRecommendationExclusions($query): void
     {
-        $ids = array_values(array_unique(array_filter(array_map(
-            'intval',
-            (array) config('settings.product_recommendations.excluded_author_ids', [])
-        ))));
-        sort($ids);
+        $query->whereNotIn('products.author_id', self::EXCLUDED_SALES_AUTHOR_IDS);
 
-        return $ids;
+        foreach (self::EXCLUDED_SALES_NAME_KEYWORDS as $keyword) {
+            $query->where(function ($nameQuery) use ($keyword) {
+                $nameQuery->whereNull('products.name')
+                    ->orWhereRaw('LOWER(products.name) NOT LIKE ?', ['%' . $keyword . '%']);
+            });
+        }
     }
 
     private function baseProductQuery()
