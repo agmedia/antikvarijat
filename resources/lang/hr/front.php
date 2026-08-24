@@ -64,6 +64,12 @@ return [
         'cart_sender' => 'Šalje',
         'cart_notice' => 'Poklon bon kupuje se zasebno i šalje e-mailom nakon potvrđenog kartičnog plaćanja.',
         'checkout_fully_covered' => 'Poklon bon pokriva cijeli iznos narudžbe. Dodatno plaćanje nije potrebno.',
+        'validation' => [
+            'recipient_name_required' => 'Upišite ime primatelja.',
+            'recipient_email_required' => 'Upišite ispravnu e-mail adresu primatelja.',
+            'sender_name_required' => 'Upišite od koga je poklon.',
+            'captcha_failed' => 'Sigurnosna provjera nije uspjela. Osvježite stranicu i pokušajte ponovno.',
+        ],
         'errors' => [
             'amount_step' => 'Vrijednost poklon bona mora biti u koracima od :step €.',
             'separate_purchase' => 'Poklon bon kupuje se zasebno. Dovršite postojeću kupnju ili ispraznite košaricu.',

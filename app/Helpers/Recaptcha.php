@@ -71,10 +71,30 @@ class Recaptcha
     /**
      * @return bool
      */
-    public function ok()
+    public function ok(?string $expectedAction = null, ?string $expectedHostname = null)
     {
-        if ($this->result->success != true || $this->result->score < 0.3) {
+        if (! isset($this->result)
+            || ($this->result->success ?? false) !== true
+            || (float) ($this->result->score ?? 0) < 0.3) {
             return false;
+        }
+
+        if (! empty($this->result->bypassed)) {
+            return true;
+        }
+
+        if ($expectedAction !== null
+            && (! isset($this->result->action) || ! hash_equals($expectedAction, (string) $this->result->action))) {
+            return false;
+        }
+
+        if ($expectedHostname !== null) {
+            $actualHostname = strtolower(rtrim((string) ($this->result->hostname ?? ''), '.'));
+            $expectedHostname = strtolower(rtrim($expectedHostname, '.'));
+
+            if ($actualHostname === '' || ! hash_equals($expectedHostname, $actualHostname)) {
+                return false;
+            }
         }
 
         return true;

@@ -70,16 +70,6 @@
                 <div class="alert alert-danger" role="alert">{{ session('error') }}</div>
             @endif
 
-            @if ($errors->any())
-                <div class="alert alert-danger" role="alert">
-                    <ul class="mb-0 ps-3">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-
             <div class="row g-4 g-xl-5 align-items-start">
                 <div class="col-lg-7">
                     <div class="gift-voucher-form-card">
@@ -91,8 +81,9 @@
                             </div>
                         </div>
 
-                        <form action="{{ \App\Helpers\LocaleHelper::route('poklon-bon.store') }}" method="POST">
+                        <form class="needs-validation" action="{{ \App\Helpers\LocaleHelper::route('poklon-bon.store') }}" method="POST" data-gift-voucher-form novalidate>
                             @csrf
+                            <input type="hidden" name="recaptcha" value="" data-gift-voucher-recaptcha>
 
                             <fieldset class="gift-voucher-amount-fieldset">
                                 <legend>{{ __('front.gift_voucher.amount') }}</legend>
@@ -110,23 +101,24 @@
                                 <input id="gift-voucher-amount-input" type="hidden" name="amount" value="{{ $selectedAmount }}">
 
                                 <div class="gift-voucher-range-labels"><span>{{ $minAmount }} €</span><span>{{ $maxAmount }} €</span></div>
+                                @error('amount')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                             </fieldset>
 
                             <div class="row g-3">
                                 <div class="col-sm-6">
                                     <label class="form-label" for="recipient-name">{{ __('front.gift_voucher.recipient_name') }} @include('back.layouts.partials.required-star')</label>
                                     <input class="form-control @error('recipient_name') is-invalid @enderror" id="recipient-name" type="text" name="recipient_name" value="{{ old('recipient_name') }}" maxlength="191" placeholder="{{ __('front.gift_voucher.recipient_name_placeholder') }}" autocomplete="name" required>
-                                    @error('recipient_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                    <div class="invalid-feedback">{{ $errors->first('recipient_name') ?: __('front.gift_voucher.validation.recipient_name_required') }}</div>
                                 </div>
                                 <div class="col-sm-6">
                                     <label class="form-label" for="recipient-email">{{ __('front.gift_voucher.recipient_email') }} @include('back.layouts.partials.required-star')</label>
                                     <input class="form-control @error('recipient_email') is-invalid @enderror" id="recipient-email" type="email" name="recipient_email" value="{{ old('recipient_email') }}" maxlength="191" placeholder="{{ __('front.gift_voucher.recipient_email_placeholder') }}" autocomplete="email" required>
-                                    @error('recipient_email')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                    <div class="invalid-feedback">{{ $errors->first('recipient_email') ?: __('front.gift_voucher.validation.recipient_email_required') }}</div>
                                 </div>
                                 <div class="col-12">
                                     <label class="form-label" for="sender-name">{{ __('front.gift_voucher.sender_name') }} @include('back.layouts.partials.required-star')</label>
                                     <input class="form-control @error('sender_name') is-invalid @enderror" id="sender-name" type="text" name="sender_name" value="{{ old('sender_name', $defaults['sender_name']) }}" maxlength="191" placeholder="{{ __('front.gift_voucher.sender_name_placeholder') }}" required>
-                                    @error('sender_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                    <div class="invalid-feedback">{{ $errors->first('sender_name') ?: __('front.gift_voucher.validation.sender_name_required') }}</div>
                                 </div>
                                 <div class="col-12">
                                     <label class="form-label" for="gift-message">{{ __('front.gift_voucher.message') }}</label>
@@ -136,7 +128,11 @@
                                 </div>
                             </div>
 
-                            <button class="btn btn-primary btn-shadow gift-voucher-submit" type="submit">
+                            <div class="invalid-feedback {{ $errors->has('recaptcha') ? 'd-block' : 'd-none' }} mb-3" role="alert" data-gift-voucher-captcha-error>
+                                {{ $errors->first('recaptcha') ?: __('front.gift_voucher.validation.captcha_failed') }}
+                            </div>
+
+                            <button class="btn btn-primary btn-shadow gift-voucher-submit" type="submit" data-gift-voucher-submit>
                                 <i class="fa-solid fa-bag-shopping me-2" aria-hidden="true"></i>{{ __('front.gift_voucher.submit') }}
                             </button>
                         </form>
@@ -187,6 +183,14 @@
             const recipient = document.getElementById('recipient-name');
             const previewRecipient = document.getElementById('gift-voucher-preview-recipient');
             const recipientFallback = @json(__('front.gift_voucher.recipient_name'));
+            const form = document.querySelector('[data-gift-voucher-form]');
+            const captchaInput = form.querySelector('[data-gift-voucher-recaptcha]');
+            const captchaError = form.querySelector('[data-gift-voucher-captcha-error]');
+            const submitButton = form.querySelector('[data-gift-voucher-submit]');
+            const recaptchaSiteKey = @json(config('services.recaptcha.sitekey'));
+            const recaptchaBypassed = @json(app()->environment(['local', 'testing']) && config('services.recaptcha.bypass_local', true));
+            let recaptchaLoader = null;
+            let captchaPending = false;
 
             function setAmount(value) {
                 const amount = String(value);
@@ -199,6 +203,124 @@
             range.addEventListener('input', event => setAmount(event.target.value));
             recipient.addEventListener('input', event => {
                 previewRecipient.textContent = event.target.value.trim() || recipientFallback;
+            });
+
+            function loadRecaptcha() {
+                if (window.grecaptcha && typeof window.grecaptcha.ready === 'function') {
+                    return Promise.resolve(window.grecaptcha);
+                }
+
+                if (recaptchaLoader) {
+                    return recaptchaLoader;
+                }
+
+                recaptchaLoader = new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = 'https://www.google.com/recaptcha/api.js?render=' + encodeURIComponent(recaptchaSiteKey);
+                    script.async = true;
+                    script.defer = true;
+                    script.onload = () => resolve(window.grecaptcha);
+                    script.onerror = error => {
+                        recaptchaLoader = null;
+                        reject(error);
+                    };
+                    document.head.appendChild(script);
+                });
+
+                return recaptchaLoader;
+            }
+
+            function showCaptchaError() {
+                captchaError.classList.remove('d-none');
+                captchaError.classList.add('d-block');
+            }
+
+            function clearCaptchaError() {
+                captchaError.classList.remove('d-block');
+                captchaError.classList.add('d-none');
+            }
+
+            function finishCaptchaAttempt() {
+                captchaPending = false;
+                submitButton.disabled = false;
+            }
+
+            function withCaptchaTimeout(promise, timeout = 12000) {
+                return new Promise((resolve, reject) => {
+                    const timer = window.setTimeout(() => reject(new Error('reCAPTCHA timed out.')), timeout);
+
+                    promise
+                        .then(value => {
+                            window.clearTimeout(timer);
+                            resolve(value);
+                        })
+                        .catch(error => {
+                            window.clearTimeout(timer);
+                            reject(error);
+                        });
+                });
+            }
+
+            form.addEventListener('submit', event => {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                form.classList.add('was-validated');
+
+                if (! form.checkValidity()) {
+                    const firstInvalidField = form.querySelector(':invalid');
+
+                    if (firstInvalidField) {
+                        firstInvalidField.focus();
+                    }
+
+                    return;
+                }
+
+                clearCaptchaError();
+
+                if (captchaPending) {
+                    return;
+                }
+
+                captchaPending = true;
+                submitButton.disabled = true;
+
+                if (recaptchaBypassed) {
+                    form.submit();
+                    return;
+                }
+
+                if (! recaptchaSiteKey) {
+                    showCaptchaError();
+                    finishCaptchaAttempt();
+                    return;
+                }
+
+                withCaptchaTimeout(loadRecaptcha()
+                    .then(grecaptcha => new Promise((resolve, reject) => {
+                        grecaptcha.ready(() => {
+                            grecaptcha.execute(recaptchaSiteKey, { action: 'gift_voucher' }).then(resolve).catch(reject);
+                        });
+                    })))
+                    .then(token => {
+                        if (! token) {
+                            throw new Error('Missing reCAPTCHA token.');
+                        }
+
+                        if (! form.checkValidity()) {
+                            finishCaptchaAttempt();
+                            return;
+                        }
+
+                        captchaInput.value = token;
+                        form.submit();
+                    })
+                    .catch(() => {
+                        recaptchaLoader = null;
+                        captchaInput.value = '';
+                        showCaptchaError();
+                        finishCaptchaAttempt();
+                    });
             });
         })();
     </script>

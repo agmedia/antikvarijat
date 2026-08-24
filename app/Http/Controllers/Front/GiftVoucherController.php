@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Front;
 
 use App\Helpers\LocaleHelper;
+use App\Helpers\Recaptcha;
 use App\Helpers\Session\CheckoutSession;
 use App\Http\Controllers\Controller;
 use App\Models\Front\AgCart;
@@ -23,7 +24,7 @@ class GiftVoucherController extends Controller
         return view('front.gift-vouchers.create', compact('amounts', 'defaults'));
     }
 
-    public function store(Request $request, GiftVoucherService $giftVouchers): RedirectResponse
+    public function store(Request $request, GiftVoucherService $giftVouchers, Recaptcha $recaptcha): RedirectResponse
     {
         $min = (int) config('gift_vouchers.min_amount', 10);
         $max = (int) config('gift_vouchers.max_amount', 300);
@@ -45,14 +46,30 @@ class GiftVoucherController extends Controller
             'recipient_email' => ['required', 'email:rfc', 'max:191'],
             'sender_name' => ['required', 'string', 'max:191'],
             'message' => ['nullable', 'string', 'max:1000'],
+            'recaptcha' => ['nullable', 'string', 'max:4096'],
+        ], [
+            'recipient_name.required' => __('front.gift_voucher.validation.recipient_name_required'),
+            'recipient_email.required' => __('front.gift_voucher.validation.recipient_email_required'),
+            'recipient_email.email' => __('front.gift_voucher.validation.recipient_email_required'),
+            'sender_name.required' => __('front.gift_voucher.validation.sender_name_required'),
         ]);
+
+        $expectedHostname = parse_url((string) config('app.url'), PHP_URL_HOST) ?: null;
+
+        if (! $recaptcha->check($request->toArray())->ok('gift_voucher', $expectedHostname)) {
+            return back()
+                ->withErrors(['recaptcha' => __('front.gift_voucher.validation.captcha_failed')])
+                ->withInput($request->except('recaptcha'));
+        }
+
+        unset($validated['recaptcha']);
 
         $cart = $this->shoppingCart();
         $cartData = $cart->get();
 
         if ($giftVouchers->cartHasRegularItems($cartData)) {
             return back()
-                ->withInput()
+                ->withInput($request->except('recaptcha'))
                 ->with('error', __('front.gift_voucher.errors.separate_purchase'));
         }
 
@@ -69,7 +86,9 @@ class GiftVoucherController extends Controller
         $response = $cart->add($giftVouchers->buildCartItemRequest($validated));
 
         if (isset($response['error'])) {
-            return back()->withInput()->with('error', $response['error']);
+            return back()
+                ->withInput($request->except('recaptcha'))
+                ->with('error', $response['error']);
         }
 
         $cart->resolveDB();

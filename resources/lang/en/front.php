@@ -64,6 +64,12 @@ return [
         'cart_sender' => 'From',
         'cart_notice' => 'A gift voucher is purchased separately and emailed after confirmed card payment.',
         'checkout_fully_covered' => 'Your gift voucher covers the full order amount. No additional payment is required.',
+        'validation' => [
+            'recipient_name_required' => 'Enter the recipient name.',
+            'recipient_email_required' => 'Enter a valid recipient email address.',
+            'sender_name_required' => 'Enter who the gift is from.',
+            'captcha_failed' => 'The security check failed. Refresh the page and try again.',
+        ],
         'errors' => [
             'amount_step' => 'The gift voucher value must be in increments of €:step.',
             'separate_purchase' => 'A gift voucher is purchased separately. Complete your current purchase or empty the cart first.',

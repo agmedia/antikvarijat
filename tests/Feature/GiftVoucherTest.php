@@ -119,6 +119,146 @@ class GiftVoucherTest extends TestCase
         $this->assertTrue(Cart::session('regular-product-test-cart')->has(992));
     }
 
+    public function test_failed_captcha_stops_before_cart_mutation_and_never_flashes_the_token(): void
+    {
+        $appUrl = 'https://gift-shop.example.test';
+        config([
+            'app.url' => $appUrl,
+            'services.recaptcha.bypass_local' => false,
+            'services.recaptcha.sitekey' => 'gift-voucher-test-site-key',
+            'services.recaptcha.secret' => 'gift-voucher-test-secret',
+            'services.recaptcha.verify_url' => $this->recaptchaResponseUrl([
+                'success' => true,
+                'score' => 0.9,
+                'action' => 'product_review',
+                'hostname' => parse_url($appUrl, PHP_URL_HOST),
+            ]),
+        ]);
+
+        $service = app(GiftVoucherService::class);
+        $cartId = 'gift-voucher-captcha-cart';
+        $cartSessionKey = config('session.cart');
+        $this->withSession([$cartSessionKey => $cartId]);
+
+        $cart = new AgCart($cartId);
+        $cart->add($service->buildCartItemRequest([
+            'amount' => 50,
+            'recipient_name' => 'Postojeći primatelj',
+            'recipient_email' => 'postojeci@example.test',
+            'sender_name' => 'Postojeći pošiljatelj',
+            'message' => 'Postojeća poruka',
+            'locale' => 'hr',
+        ]));
+
+        $rejectedToken = 'rejected-token-must-never-be-flashed';
+        $response = $this
+            ->from(route('poklon-bon.create'))
+            ->post(route('poklon-bon.store'), [
+                'amount' => 100,
+                'recipient_name' => 'Novi primatelj',
+                'recipient_email' => 'novi@example.test',
+                'sender_name' => 'Novi pošiljatelj',
+                'message' => 'Nova poruka',
+                'recaptcha' => $rejectedToken,
+            ]);
+
+        $response->assertRedirect(route('poklon-bon.create'));
+        $response->assertSessionHasErrors([
+            'recaptcha' => __('front.gift_voucher.validation.captcha_failed'),
+        ]);
+        $response->assertSessionHasInput('amount', 100);
+        $response->assertSessionHasInput('recipient_name', 'Novi primatelj');
+        $response->assertSessionMissing('_old_input.recaptcha');
+
+        $items = Cart::session($cartId)->getContent();
+        $this->assertCount(1, $items);
+        $this->assertTrue($items->has(GiftVoucherService::CART_ITEM_ID));
+
+        $unchangedVoucher = $service->extractVoucherData(
+            $items->get(GiftVoucherService::CART_ITEM_ID)
+        );
+        $this->assertSame(50, (int) $unchangedVoucher['amount']);
+        $this->assertSame('Postojeći primatelj', $unchangedVoucher['recipient_name']);
+        $this->assertSame('postojeci@example.test', $unchangedVoucher['recipient_email']);
+        $this->assertSame('Postojeća poruka', $unchangedVoucher['message']);
+
+        $formSource = file_get_contents(
+            resource_path('views/front/gift-vouchers/create.blade.php')
+        );
+        $this->assertStringContainsString("\$errors->first('recaptcha')", $formSource);
+        $this->assertStringContainsString('data-gift-voucher-captcha-error', $formSource);
+        $this->assertStringNotContainsString($rejectedToken, $formSource);
+    }
+
+    public function test_production_style_captcha_success_accepts_expected_action_and_app_url_hostname(): void
+    {
+        $appUrl = 'https://gift-shop.example.test';
+        $expectedHostname = parse_url($appUrl, PHP_URL_HOST);
+        config([
+            'app.url' => $appUrl,
+            'services.recaptcha.bypass_local' => false,
+            'services.recaptcha.sitekey' => 'gift-voucher-test-site-key',
+            'services.recaptcha.secret' => 'gift-voucher-test-secret',
+            'services.recaptcha.verify_url' => $this->recaptchaResponseUrl([
+                'success' => true,
+                'score' => 0.9,
+                'action' => 'gift_voucher',
+                'hostname' => $expectedHostname,
+            ]),
+        ]);
+
+        $cartId = 'gift-voucher-production-captcha-cart';
+        $this->withSession([config('session.cart') => $cartId]);
+
+        $response = $this->post(route('poklon-bon.store'), [
+            'amount' => 90,
+            'recipient_name' => 'Produkcijski primatelj',
+            'recipient_email' => 'produkcija@example.test',
+            'sender_name' => 'Produkcijski pošiljatelj',
+            'message' => 'Sigurna poruka',
+            'recaptcha' => 'valid-production-style-token',
+        ]);
+
+        $response->assertRedirect(route('kosarica'));
+        $response->assertSessionHasNoErrors();
+
+        $item = Cart::session($cartId)->get(GiftVoucherService::CART_ITEM_ID);
+        $this->assertNotNull($item);
+        $voucherData = app(GiftVoucherService::class)->extractVoucherData($item);
+        $this->assertSame(90, (int) $voucherData['amount']);
+        $this->assertSame('Produkcijski primatelj', $voucherData['recipient_name']);
+        $this->assertSame('produkcija@example.test', $voucherData['recipient_email']);
+    }
+
+    public function test_testing_captcha_bypass_still_allows_post_without_a_token(): void
+    {
+        config([
+            'services.recaptcha.bypass_local' => true,
+            'services.recaptcha.verify_url' => 'data://text/plain,%7B%22success%22%3Afalse%2C%22score%22%3A0.0%7D',
+        ]);
+
+        $cartId = 'gift-voucher-captcha-bypass-cart';
+        $this->withSession([config('session.cart') => $cartId]);
+
+        $response = $this->post(route('poklon-bon.store'), [
+            'amount' => 70,
+            'recipient_name' => 'Primatelj',
+            'recipient_email' => 'primatelj@example.test',
+            'sender_name' => 'Pošiljatelj',
+            'message' => 'Poruka',
+        ]);
+
+        $response->assertRedirect(route('kosarica'));
+        $response->assertSessionHasNoErrors();
+
+        $item = Cart::session($cartId)->get(GiftVoucherService::CART_ITEM_ID);
+        $this->assertNotNull($item);
+        $this->assertSame(
+            70,
+            (int) app(GiftVoucherService::class)->extractVoucherData($item)['amount']
+        );
+    }
+
     public function test_unpaid_purchase_cannot_issue_or_email_a_voucher(): void
     {
         Mail::fake();
@@ -348,6 +488,11 @@ class GiftVoucherTest extends TestCase
         $voucher->save();
 
         return $voucher;
+    }
+
+    private function recaptchaResponseUrl(array $response): string
+    {
+        return 'data://text/plain,' . rawurlencode(json_encode($response));
     }
 
     private function createSchema(): void
