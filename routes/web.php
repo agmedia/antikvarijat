@@ -36,6 +36,7 @@ use App\Http\Controllers\Back\Settings\QuickMenuController;
 use App\Http\Controllers\Back\Settings\SettingsController;
 use App\Http\Controllers\Back\Settings\ContractWithdrawalSettingsController;
 use App\Http\Controllers\Back\UserController;
+use App\Http\Controllers\Back\UserImpersonationController;
 use App\Http\Controllers\Back\Widget\WidgetController;
 use App\Http\Controllers\Back\Widget\WidgetGroupController;
 use App\Http\Controllers\Front\CatalogRouteController;
@@ -222,6 +223,9 @@ Route::middleware(['auth:sanctum', 'verified', 'no.customers'])->prefix('admin')
     Route::post('user', [UserController::class, 'store'])->name('users.store');
     Route::get('user/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
     Route::patch('user/{user}', [UserController::class, 'update'])->name('users.update');
+    Route::post('user/{user}/impersonate', [UserImpersonationController::class, 'start'])
+        ->middleware(['auth:web', 'not.editor', 'throttle:10,1'])
+        ->name('users.impersonate');
 
 
     Route::get('wishlists', [WishlistController::class, 'index'])->name('wishlists');
@@ -306,6 +310,10 @@ Route::middleware(['auth:sanctum', 'verified', 'no.customers'])->prefix('admin')
     Route::get('maintenance/on', [QuickMenuController::class, 'maintenanceModeON'])->name('maintenance.on');
     Route::get('maintenance/off', [QuickMenuController::class, 'maintenanceModeOFF'])->name('maintenance.off');
 });
+
+Route::post('/impersonacija/prekini', [UserImpersonationController::class, 'stop'])
+    ->middleware(['auth:web', 'throttle:10,1'])
+    ->name('impersonation.stop');
 
 /**
  * CUSTOMER BACK ROUTES

@@ -57,7 +57,7 @@ class UserController extends Controller
         }
 
         $users = $query
-            ->with('details')
+            ->with(['details', 'roles'])
             ->paginate(config('settings.pagination.back'))
             ->appends($request->query());
 

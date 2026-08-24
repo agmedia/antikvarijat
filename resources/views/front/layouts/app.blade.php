@@ -219,18 +219,26 @@
         <!-- End Google Tag Manager -->
     @endif
 
+    @if (session()->has(\App\Services\UserImpersonationService::SESSION_KEY))
+        @include('front.layouts.partials.impersonation-styles')
+    @endif
+
     @stack('css_after')
 
 
 
 </head>
 <!-- Body-->
-<body class="paper-white-bck">
+<body class="paper-white-bck{{ session()->has(\App\Services\UserImpersonationService::SESSION_KEY) ? ' is-impersonating' : '' }}">
 @if (config('app.env') == 'production')
     <!-- Google Tag Manager (noscript) -->
     <noscript><iframe class="gtm-noscript-frame" src="https://www.googletagmanager.com/ns.html?id=GTM-TV7RKFH"
                       height="0" width="0"></iframe></noscript>
     <!-- End Google Tag Manager (noscript) -->
+@endif
+
+@if (session()->has(\App\Services\UserImpersonationService::SESSION_KEY) && auth()->check())
+    @include('front.layouts.partials.impersonation-banner')
 @endif
 
 <!-- Topbar-->

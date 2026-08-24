@@ -89,9 +89,19 @@
                                     {{ $roleLabels[$userRole] ?? ($userRole ? ucfirst($userRole) : 'Nije dodijeljena') }}
                                 </td>
                                 <td class="text-right" data-label="Radnje">
-                                    <a class="btn btn-sm btn-alt-secondary" href="{{ route('users.edit', ['user' => $user]) }}" title="Uredi korisnika" aria-label="Uredi korisnika">
-                                        <i class="fa-duotone fa-pen-to-square" aria-hidden="true"></i>
-                                    </a>
+                                    <div class="admin-user-actions">
+                                        @if(app(\App\Services\UserImpersonationService::class)->canImpersonate(auth()->user(), $user))
+                                            <form action="{{ route('users.impersonate', ['user' => $user]) }}" method="POST" data-impersonation-form data-customer-name="{{ $user->name }}">
+                                                @csrf
+                                                <button class="btn btn-sm btn-alt-primary" type="submit" title="Prijavi se kao korisnik" aria-label="Prijavi se kao {{ $user->name }}">
+                                                    <i class="fa-duotone fa-user-shield" aria-hidden="true"></i>
+                                                </button>
+                                            </form>
+                                        @endif
+                                        <a class="btn btn-sm btn-alt-secondary" href="{{ route('users.edit', ['user' => $user]) }}" title="Uredi korisnika" aria-label="Uredi korisnika">
+                                            <i class="fa-duotone fa-pen-to-square" aria-hidden="true"></i>
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                         @endforeach
@@ -114,6 +124,8 @@
         .admin-user-filters .admin-search { min-width: 16rem; flex: 1 1 21rem; }
         .admin-user-role-select { width: 11.5rem; flex: 0 0 11.5rem; }
         .admin-user-filter-clear { width: 2.5rem; flex: 0 0 2.5rem; padding: 0 !important; }
+        .admin-user-actions { display: inline-flex; align-items: center; justify-content: flex-end; gap: .35rem; }
+        .admin-user-actions form { margin: 0; }
         @media (max-width: 991.98px) {
             .admin-user-filters { display: grid; width: 100%; grid-template-columns: minmax(0, 1fr) 11rem auto; }
         }
@@ -124,4 +136,18 @@
             .admin-user-filters .btn { width: 100%; }
         }
     </style>
+@endpush
+
+@push('js_after')
+    <script>
+        document.querySelectorAll('[data-impersonation-form]').forEach(form => {
+            form.addEventListener('submit', event => {
+                const customerName = form.dataset.customerName || 'ovog korisnika';
+
+                if (! window.confirm(`Prijaviti se kao ${customerName}?`)) {
+                    event.preventDefault();
+                }
+            });
+        });
+    </script>
 @endpush

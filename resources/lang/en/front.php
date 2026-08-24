@@ -543,6 +543,16 @@ return [
         'recaptcha_admin' => 'ReCaptcha error! Please contact the administrator!',
     ],
 
+    'impersonation' => [
+        'banner_title' => 'Administrator customer-account view',
+        'banner_text' => 'You are signed in as :name (:email) for customer support.',
+        'stop' => 'Return to administration',
+        'started' => 'You are signed in to the customer account for support.',
+        'restored' => 'You have returned to the administrator account.',
+        'expired' => 'The administrator support session expired or is no longer valid. Sign in again.',
+        'restore_failed' => 'The administrator account no longer has permission to return. Sign in again.',
+    ],
+
     'account' => [
         'title' => 'My account',
         'breadcrumb' => 'My account',

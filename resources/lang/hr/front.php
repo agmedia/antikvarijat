@@ -499,6 +499,16 @@ return [
         'recaptcha_admin' => 'ReCaptcha Error! Kontaktirajte administratora!',
     ],
 
+    'impersonation' => [
+        'banner_title' => 'Administratorski pregled korisničkog računa',
+        'banner_text' => 'Prijavljeni ste kao :name (:email) radi korisničke podrške.',
+        'stop' => 'Vrati se u administraciju',
+        'started' => 'Prijavljeni ste u korisnički račun radi podrške.',
+        'restored' => 'Vraćeni ste u administratorski račun.',
+        'expired' => 'Administratorska sesija podrške istekla je ili više nije valjana. Prijavite se ponovno.',
+        'restore_failed' => 'Administratorski račun više nema dopuštenje za povratak. Prijavite se ponovno.',
+    ],
+
     'account' => [
         'title' => 'Moj račun',
         'breadcrumb' => 'Moj račun',
