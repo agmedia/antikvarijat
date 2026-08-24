@@ -28,6 +28,8 @@ use Illuminate\Support\Str;
 
 class OrderController extends Controller
 {
+    private const BOXNOW_SHIPMENT_LOCK_SECONDS = 180;
+
     /**
      * Display a listing of the resource.
      *
@@ -549,30 +551,51 @@ class OrderController extends Controller
 
     private function sendBoxNowShipment(Order $order)
     {
-        if ($this->hasExistingShipment($order)) {
-            $shipmentId = $order->tracking_code ?: $order->shipping_parcel_id;
+        $lock = Cache::lock(
+            'boxnow-shipment-create:' . $order->id,
+            self::BOXNOW_SHIPMENT_LOCK_SECONDS
+        );
 
+        if (! $lock->get()) {
             return response()->json([
-                'message' => $shipmentId
-                    ? 'Box Now pošiljka je već kreirana: ' . $shipmentId
-                    : 'Box Now pošiljka je već kreirana za ovu narudžbu.',
-            ]);
+                'error' => 'Kreiranje Box Now pošiljke za ovu narudžbu već je u tijeku.',
+            ], 409);
         }
 
         try {
-            $tracking = app(BoxNowService::class)->createDeliveryRequest($order);
-            app(OrderTrackingService::class)->apply($order, $tracking);
+            // Narudžba je učitana prije stjecanja locka; osvježi je kako bi
+            // drugi, upravo završeni zahtjev bio prepoznat bez novog API poziva.
+            $order->refresh();
+            $order->load('products');
 
-            return response()->json([
-                'message' => 'Box Now pošiljka uspješno je kreirana s ID-em: ' . $tracking['parcel_id'],
-            ]);
-        } catch (\Throwable $e) {
-            Log::error('Box Now shipment failed.', [
-                'order_id' => $order->id,
-                'error' => $e->getMessage(),
-            ]);
+            if ($this->hasExistingShipment($order)) {
+                $shipmentId = $order->tracking_code ?: $order->shipping_parcel_id;
 
-            return response()->json(['error' => 'Greška..! ' . $e->getMessage()], 422);
+                return response()->json([
+                    'message' => $shipmentId
+                        ? 'Box Now pošiljka je već kreirana: ' . $shipmentId
+                        : 'Box Now pošiljka je već kreirana za ovu narudžbu.',
+                ]);
+            }
+
+            try {
+                $tracking = app(BoxNowService::class)->createDeliveryRequest($order);
+                app(OrderTrackingService::class)->apply($order, $tracking);
+                $message = ! empty($tracking['recovered'])
+                    ? 'Postojeća Box Now pošiljka pronađena je i spremljena s ID-em: ' . $tracking['parcel_id']
+                    : 'Box Now pošiljka uspješno je kreirana s ID-em: ' . $tracking['parcel_id'];
+
+                return response()->json(['message' => $message]);
+            } catch (\Throwable $e) {
+                Log::error('Box Now shipment failed.', [
+                    'order_id' => $order->id,
+                    'error' => $e->getMessage(),
+                ]);
+
+                return response()->json(['error' => 'Greška..! ' . $e->getMessage()], 422);
+            }
+        } finally {
+            $lock->release();
         }
     }
 

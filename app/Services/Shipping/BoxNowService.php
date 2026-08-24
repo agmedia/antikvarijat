@@ -4,7 +4,9 @@ namespace App\Services\Shipping;
 
 use App\Models\Back\Orders\Order;
 use Carbon\Carbon;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use RuntimeException;
@@ -26,12 +28,28 @@ class BoxNowService
 
     public function createDeliveryRequest(Order $order): array
     {
-        $response = $this->authorizedRequest()
-            ->asJson()
-            ->post($this->url('/delivery-requests'), $this->deliveryPayload($order));
+        try {
+            $response = $this->authorizedRequest()
+                ->asJson()
+                ->post($this->url('/delivery-requests'), $this->deliveryPayload($order));
+        } catch (ConnectionException $exception) {
+            return $this->recoverDeliveryRequest($order, $exception, false);
+        }
 
         if (! $response->successful()) {
-            throw new RuntimeException($this->errorMessage($response->json(), 'Box Now pošiljka nije kreirana.'));
+            $exception = new RuntimeException(
+                $this->errorMessage($response->json(), 'Box Now pošiljka nije kreirana.')
+            );
+
+            if ($this->isOrderNumberConflict($response)) {
+                return $this->recoverDeliveryRequest($order, $exception, true);
+            }
+
+            if ($this->isAmbiguousCreateFailure($response)) {
+                return $this->recoverDeliveryRequest($order, $exception, false);
+            }
+
+            throw $exception;
         }
 
         $payload = $response->json() ?: [];
@@ -51,6 +69,61 @@ class BoxNowService
             'tracked_at' => now(),
             'payload' => $payload,
         ];
+    }
+
+    private function recoverDeliveryRequest(Order $order, \Throwable $cause, bool $conflict): array
+    {
+        // POST se namjerno ne ponavlja. Nakon nejasnog ishoda provjerava se
+        // jedinstveni orderNumber, čime se izbjegava kreiranje duple pošiljke.
+        foreach ([0, 100000, 250000] as $delayMicroseconds) {
+            if ($delayMicroseconds > 0) {
+                usleep($delayMicroseconds);
+            }
+
+            try {
+                $tracking = $this->track($order);
+                $tracking['recovered'] = true;
+
+                return $tracking;
+            } catch (\Throwable $recoveryException) {
+                // Box Now može kratko kasniti s prikazom upravo kreirane pošiljke.
+            }
+        }
+
+        if ($conflict) {
+            throw new RuntimeException(
+                'Box Now javlja da pošiljka za ovu narudžbu već postoji, ali njezin ID nije moguće dohvatiti. Pokušajte ponovno.',
+                0,
+                $cause
+            );
+        }
+
+        throw new RuntimeException(
+            'Box Now nije potvrdio je li pošiljka kreirana. Pokušajte ponovno; postojeća pošiljka prepoznat će se po broju narudžbe.',
+            0,
+            $cause
+        );
+    }
+
+    private function isOrderNumberConflict(Response $response): bool
+    {
+        if ($response->status() === 409) {
+            return true;
+        }
+
+        $payload = $response->json();
+        $serialized = is_string($payload)
+            ? $payload
+            : (json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '');
+        $serialized = Str::upper($serialized);
+
+        return Str::contains($serialized, ['P410', 'ORDER NUMBER CONFLICT']);
+    }
+
+    private function isAmbiguousCreateFailure(Response $response): bool
+    {
+        return in_array($response->status(), [408, 429], true)
+            || $response->serverError();
     }
 
     public function track(Order $order): array

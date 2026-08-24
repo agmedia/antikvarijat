@@ -8,7 +8,9 @@ use App\Models\User;
 use App\Services\Shipping\BoxNowService;
 use App\Services\Shipping\OrderTrackingService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request as HttpRequest;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
@@ -109,6 +111,203 @@ class BoxNowShippingTest extends TestCase
 
             return ($query['parcelId'] ?? null) === 'BOX-123456';
         });
+    }
+
+    public function test_boxnow_order_conflict_recovers_existing_remote_parcel_without_a_second_create_request(): void
+    {
+        $this->configureBoxNow();
+        Mail::fake();
+        Http::fake(function (HttpRequest $request) {
+            if ($request->url() === 'https://boxnow.example.test/api/v1/auth-sessions') {
+                return Http::response(['access_token' => 'boxnow-token'], 200);
+            }
+
+            if ($request->url() === 'https://boxnow.example.test/api/v1/delivery-requests') {
+                return Http::response([
+                    'error' => [
+                        'code' => 'P410',
+                        'message' => 'Order number conflict.',
+                    ],
+                ], 400);
+            }
+
+            if (Str::startsWith($request->url(), 'https://boxnow.example.test/api/v1/parcels')) {
+                return Http::response([
+                    'data' => [[
+                        'id' => 'BOX-RECOVERED-410',
+                        'state' => 'new',
+                    ]],
+                ], 200);
+            }
+
+            return Http::response(['message' => 'Unexpected request'], 500);
+        });
+
+        $orderId = $this->createOrder();
+
+        $this->actingAs(User::factory()->create())
+            ->postJson(route('api.order.send.boxnow'), ['order_id' => $orderId])
+            ->assertOk()
+            ->assertJsonFragment([
+                'message' => 'Postojeća Box Now pošiljka pronađena je i spremljena s ID-em: BOX-RECOVERED-410',
+            ]);
+
+        $order = Order::findOrFail($orderId);
+        $this->assertSame(BoxNowService::CARRIER, $order->shipping_carrier);
+        $this->assertSame('BOX-RECOVERED-410', $order->shipping_parcel_id);
+        $this->assertSame('BOX-RECOVERED-410', $order->tracking_code);
+
+        Http::assertSentCount(3);
+        Http::assertSent(function (HttpRequest $request) use ($orderId) {
+            if (! Str::startsWith($request->url(), 'https://boxnow.example.test/api/v1/parcels')) {
+                return false;
+            }
+
+            parse_str((string) parse_url($request->url(), PHP_URL_QUERY), $query);
+
+            return ($query['orderNumber'] ?? null) === (string) $orderId;
+        });
+        Mail::assertSent(ShippingTrackingAvailable::class, 1);
+    }
+
+    public function test_boxnow_timeout_recovers_parcel_by_order_number_without_reposting(): void
+    {
+        $this->configureBoxNow();
+        Mail::fake();
+        $deliveryRequestAttempts = 0;
+        Http::fake(function (HttpRequest $request) use (&$deliveryRequestAttempts) {
+            if ($request->url() === 'https://boxnow.example.test/api/v1/auth-sessions') {
+                return Http::response(['access_token' => 'boxnow-token'], 200);
+            }
+
+            if ($request->url() === 'https://boxnow.example.test/api/v1/delivery-requests') {
+                $deliveryRequestAttempts++;
+                throw new ConnectionException('cURL error 28: Operation timed out.');
+            }
+
+            if (Str::startsWith($request->url(), 'https://boxnow.example.test/api/v1/parcels')) {
+                return Http::response([
+                    'data' => [[
+                        'id' => 'BOX-RECOVERED-TIMEOUT',
+                        'state' => 'new',
+                    ]],
+                ], 200);
+            }
+
+            return Http::response(['message' => 'Unexpected request'], 500);
+        });
+
+        $orderId = $this->createOrder();
+
+        $this->actingAs(User::factory()->create())
+            ->postJson(route('api.order.send.boxnow'), ['order_id' => $orderId])
+            ->assertOk()
+            ->assertJsonFragment([
+                'message' => 'Postojeća Box Now pošiljka pronađena je i spremljena s ID-em: BOX-RECOVERED-TIMEOUT',
+            ]);
+
+        $this->assertSame(
+            'BOX-RECOVERED-TIMEOUT',
+            Order::findOrFail($orderId)->shipping_parcel_id
+        );
+        $this->assertSame(1, $deliveryRequestAttempts);
+        Mail::assertSent(ShippingTrackingAvailable::class, 1);
+    }
+
+    public function test_boxnow_gateway_timeout_response_recovers_parcel_by_order_number(): void
+    {
+        $this->configureBoxNow();
+        Mail::fake();
+        Http::fake(function (HttpRequest $request) {
+            if ($request->url() === 'https://boxnow.example.test/api/v1/auth-sessions') {
+                return Http::response(['access_token' => 'boxnow-token'], 200);
+            }
+
+            if ($request->url() === 'https://boxnow.example.test/api/v1/delivery-requests') {
+                return Http::response(['message' => 'Gateway Timeout'], 504);
+            }
+
+            if (Str::startsWith($request->url(), 'https://boxnow.example.test/api/v1/parcels')) {
+                return Http::response([
+                    'data' => [[
+                        'id' => 'BOX-RECOVERED-504',
+                        'state' => 'new',
+                    ]],
+                ], 200);
+            }
+
+            return Http::response(['message' => 'Unexpected request'], 500);
+        });
+
+        $orderId = $this->createOrder();
+
+        $this->actingAs(User::factory()->create())
+            ->postJson(route('api.order.send.boxnow'), ['order_id' => $orderId])
+            ->assertOk()
+            ->assertJsonFragment([
+                'message' => 'Postojeća Box Now pošiljka pronađena je i spremljena s ID-em: BOX-RECOVERED-504',
+            ]);
+
+        $this->assertSame(
+            'BOX-RECOVERED-504',
+            Order::findOrFail($orderId)->shipping_parcel_id
+        );
+        Http::assertSentCount(3);
+        Mail::assertSent(ShippingTrackingAvailable::class, 1);
+    }
+
+    public function test_boxnow_timeout_never_automatically_reposts_when_remote_result_cannot_be_confirmed(): void
+    {
+        $this->configureBoxNow();
+        $deliveryRequestAttempts = 0;
+        Http::fake(function (HttpRequest $request) use (&$deliveryRequestAttempts) {
+            if ($request->url() === 'https://boxnow.example.test/api/v1/auth-sessions') {
+                return Http::response(['access_token' => 'boxnow-token'], 200);
+            }
+
+            if ($request->url() === 'https://boxnow.example.test/api/v1/delivery-requests') {
+                $deliveryRequestAttempts++;
+                throw new ConnectionException('cURL error 28: Operation timed out.');
+            }
+
+            if (Str::startsWith($request->url(), 'https://boxnow.example.test/api/v1/parcels')) {
+                return Http::response(['data' => []], 200);
+            }
+
+            return Http::response(['message' => 'Unexpected request'], 500);
+        });
+
+        $orderId = $this->createOrder();
+
+        $this->actingAs(User::factory()->create())
+            ->postJson(route('api.order.send.boxnow'), ['order_id' => $orderId])
+            ->assertStatus(422)
+            ->assertJsonFragment([
+                'error' => 'Greška..! Box Now nije potvrdio je li pošiljka kreirana. Pokušajte ponovno; postojeća pošiljka prepoznat će se po broju narudžbe.',
+            ]);
+
+        $this->assertSame(1, $deliveryRequestAttempts);
+        $this->assertNull(Order::findOrFail($orderId)->shipping_parcel_id);
+    }
+
+    public function test_parallel_boxnow_creation_is_rejected_before_calling_remote_api(): void
+    {
+        $orderId = $this->createOrder();
+        $lock = Cache::lock('boxnow-shipment-create:' . $orderId, 120);
+        $this->assertTrue($lock->get());
+
+        try {
+            $this->actingAs(User::factory()->create())
+                ->postJson(route('api.order.send.boxnow'), ['order_id' => $orderId])
+                ->assertStatus(409)
+                ->assertJsonFragment([
+                    'error' => 'Kreiranje Box Now pošiljke za ovu narudžbu već je u tijeku.',
+                ]);
+
+            Http::assertNothingSent();
+        } finally {
+            $lock->release();
+        }
     }
 
     public function test_boxnow_action_rejects_non_boxnow_order(): void
