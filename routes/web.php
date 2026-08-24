@@ -16,6 +16,7 @@ use App\Http\Controllers\Back\StatisticsController;
 use App\Http\Controllers\Back\Marketing\ActionController;
 use App\Http\Controllers\Back\Marketing\BlogController;
 use App\Http\Controllers\Back\Marketing\BookPurchaseController;
+use App\Http\Controllers\Back\Marketing\GiftVoucherController as AdminGiftVoucherController;
 use App\Http\Controllers\Back\Marketing\NewsletterSubscriberController;
 use App\Http\Controllers\Back\Marketing\VialibriController;
 use App\Http\Controllers\Back\Settings\ApiController;
@@ -45,6 +46,7 @@ use App\Http\Controllers\Front\CustomerController;
 use App\Http\Controllers\Front\HomeController;
 use App\Http\Controllers\Front\MonthlyBestSellersController;
 use App\Http\Controllers\Front\GoogleLoginController;
+use App\Http\Controllers\Front\GiftVoucherController;
 use App\Http\Controllers\Front\ProductReviewController;
 use App\Http\Controllers\Front\VialibriFeedController;
 use App\Http\Controllers\Front\WishlistTrackingController;
@@ -171,6 +173,12 @@ Route::middleware(['auth:sanctum', 'verified', 'no.customers'])->prefix('admin')
 
     // MARKETING
     Route::prefix('marketing')->group(function () {
+        Route::middleware('not.editor')->group(function () {
+            Route::get('poklon-bonovi', [AdminGiftVoucherController::class, 'index'])->name('gift-vouchers.index');
+            Route::post('poklon-bonovi/{giftVoucher}/posalji-ponovno', [AdminGiftVoucherController::class, 'resend'])->name('gift-vouchers.resend');
+            Route::patch('poklon-bonovi/{giftVoucher}/status', [AdminGiftVoucherController::class, 'toggle'])->name('gift-vouchers.toggle');
+        });
+
         // AKCIJE
         Route::get('actions', [ActionController::class, 'index'])->name('actions');
         Route::get('action/create', [ActionController::class, 'create'])->name('actions.create');
@@ -336,7 +344,7 @@ Route::prefix('api/v2')->group(function () {
         Route::post('/add', [CartController::class, 'add']);
         Route::post('/update/{id}', [CartController::class, 'update']);
         Route::get('/remove/{id}', [CartController::class, 'remove']);
-        Route::get('/coupon/{coupon}', [CartController::class, 'coupon']);
+        Route::post('/coupon', [CartController::class, 'coupon']);
         //
         Route::post('/provjeri-stanje-artikala', [CartController::class, 'provjeriStanje']);
     });
@@ -452,6 +460,10 @@ Route::get('/otkup-knjiga', [HomeController::class, 'bookPurchase'])->name('otku
 Route::post('/otkup-knjiga/posalji', [HomeController::class, 'sendBookPurchaseMessage'])->name('otkup.knjiga.posalji');
 Route::post('/newsletter/prijava', [HomeController::class, 'newsletter'])->name('newsletter.subscribe');
 Route::get('/faq', [CatalogRouteController::class, 'faq'])->name('faq');
+Route::get('/poklon-bon', [GiftVoucherController::class, 'create'])->name('poklon-bon.create');
+Route::post('/poklon-bon', [GiftVoucherController::class, 'store'])
+    ->middleware('throttle:10,10')
+    ->name('poklon-bon.store');
 //
 Route::post('/dodaj-u-listu-zelja', [HomeController::class, 'wishlist'])->name('wishlist');
 Route::get('/wishlist-obavijest/{wishlist}', WishlistTrackingController::class)
@@ -510,6 +522,10 @@ Route::prefix('en')->as('en.')->group(function () {
     Route::post('/book-purchase/send', [HomeController::class, 'sendBookPurchaseMessage'])->name('otkup.knjiga.posalji');
     Route::post('/newsletter/subscribe', [HomeController::class, 'newsletter'])->name('newsletter.subscribe');
     Route::get('/faq', [CatalogRouteController::class, 'faq'])->name('faq');
+    Route::get('/gift-voucher', [GiftVoucherController::class, 'create'])->name('poklon-bon.create');
+    Route::post('/gift-voucher', [GiftVoucherController::class, 'store'])
+        ->middleware('throttle:10,10')
+        ->name('poklon-bon.store');
     Route::post('/wishlist/add', [HomeController::class, 'wishlist'])->name('wishlist');
     Route::get('/reviews', [ProductReviewController::class, 'index'])->name('reviews.index');
     Route::get('/featured/most-wanted-this-month', MonthlyBestSellersController::class)

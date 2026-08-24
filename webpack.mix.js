@@ -28,6 +28,7 @@ mix
 .sass('resources/sass/front/directory.scss', 'public/css/directory.css')
 .sass('resources/sass/front/blog.scss', 'public/css/blog.css')
 .sass('resources/sass/front/reviews.scss', 'public/css/reviews.css')
+.sass('resources/sass/front/gift-vouchers.scss', 'public/css/gift-vouchers.css')
 .sass('resources/sass/front/widgets.scss', 'public/css/widgets.css')
 /*.sass('resources/sass/main.scss', 'public/css/dashmix.css')
 .sass('resources/sass/dashmix/themes/xeco.scss', 'public/css/themes/')

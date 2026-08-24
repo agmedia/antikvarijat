@@ -149,12 +149,12 @@ class AgService {
         if ( ! coupon) {
             coupon = null;
         }
-        return axios.get('cart/coupon/' + coupon)
+        return axios.post('cart/coupon', {coupon: coupon})
         .then(response => {
             //this.returnSuccess(messages.couponSuccess);
             return response.data
         })
-        .catch(error => { return 1/*this.returnError(messages.error)*/ })
+        .catch(error => { return 0/*this.returnError(messages.error)*/ })
     }
 
     /**

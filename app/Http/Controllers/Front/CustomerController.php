@@ -15,6 +15,7 @@ use App\Services\Shipping\BoxNowService;
 use App\Services\Shipping\GlsTrackingService;
 use App\Services\Shipping\OrderTrackingService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 
 class CustomerController extends Controller
 {
@@ -53,12 +54,19 @@ class CustomerController extends Controller
     public function orders(Request $request)
     {
         $user = auth()->user();
+        $giftVouchersAvailable = Schema::hasTable('gift_vouchers');
+        $relations = ['products.real', 'products.product', 'totals'];
+
+        if ($giftVouchersAvailable) {
+            $relations[] = 'giftVouchers';
+        }
+
         $orders = $this->ordersForUserQuery($user)
-            ->with(['products.real', 'products.product', 'totals'])
+            ->with($relations)
             ->latest('created_at')
             ->paginate(config('settings.pagination.front'));
 
-        return view('front.customer.moje-narudzbe', compact('user', 'orders'));
+        return view('front.customer.moje-narudzbe', compact('user', 'orders', 'giftVouchersAvailable'));
     }
 
     public function refreshOrderTracking(Request $request, $order)

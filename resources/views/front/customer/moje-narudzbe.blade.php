@@ -36,6 +36,25 @@
                             </div>
                         @endforeach
 
+                        @if($giftVouchersAvailable)
+                            @foreach ($order->giftVouchers as $voucher)
+                                <div class="d-sm-flex justify-content-between mb-4 pb-3 border-bottom">
+                                    <div class="d-sm-flex text-center text-sm-start">
+                                        <div class="d-inline-flex flex-shrink-0 mx-auto align-items-center justify-content-center rounded bg-secondary" style="width:7rem;min-height:7rem;">
+                                            <i class="fa-solid fa-gift fs-2 text-accent" aria-hidden="true"></i>
+                                        </div>
+                                        <div class="ps-sm-4 pt-2">
+                                            <h3 class="product-title fs-base mb-2">{{ __('front.gift_voucher.title') }}</h3>
+                                            <div class="small text-muted">{{ __('front.gift_voucher.cart_recipient') }}: {{ $voucher->recipient_name }} · {{ $voucher->recipient_email }}</div>
+                                            <div class="fs-lg text-accent pt-2">{{ number_format($voucher->initial_amount, 2, ',', '.') }} €</div>
+                                        </div>
+                                    </div>
+                                    <div class="pt-2 ps-sm-3 text-center"><span class="text-muted d-block mb-2">{{ __('front.general.quantity') }}:</span>1</div>
+                                    <div class="pt-2 ps-sm-3 text-center"><span class="text-muted d-block mb-2">{{ __('front.general.total') }}</span>{{ number_format($voucher->initial_amount, 2, ',', '.') }} €</div>
+                                </div>
+                            @endforeach
+                        @endif
+
                         @if($order->shipping_tracking_status || $order->tracking_code || $order->shipping_parcel_id)
                             <div class="alert alert-secondary mb-4">
                                 <div class="fw-semibold mb-1">{{ $trackingCarrierLabel }} praćenje pošiljke</div>

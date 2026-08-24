@@ -46,6 +46,18 @@
             <td align="right" style="padding:11px 10px;border-bottom:1px solid #e8e3da;color:#25342b;font-weight:bold;white-space:nowrap;">€ {{ number_format($product->total, 2, ',', '.') }}</td>
         </tr>
     @endforeach
+    @php($emailGiftVouchers = \Illuminate\Support\Facades\Schema::hasTable('gift_vouchers') ? $order->giftVouchers : collect())
+    @foreach ($emailGiftVouchers as $voucher)
+        <tr>
+            <td style="padding:11px 10px;border-bottom:1px solid #e8e3da;color:#25342b;">
+                <strong>{{ $voucher->locale === 'en' ? 'Gift voucher' : 'Poklon bon' }}</strong>
+                <br><span style="font-size:10px;color:#7a817b;">{{ $voucher->recipient_name }} · {{ $voucher->recipient_email }}</span>
+            </td>
+            <td align="center" style="padding:11px 7px;border-bottom:1px solid #e8e3da;color:#4f5e54;">1</td>
+            <td align="right" style="padding:11px 7px;border-bottom:1px solid #e8e3da;color:#4f5e54;white-space:nowrap;">€ {{ number_format($voucher->initial_amount, 2, ',', '.') }}</td>
+            <td align="right" style="padding:11px 10px;border-bottom:1px solid #e8e3da;color:#25342b;font-weight:bold;white-space:nowrap;">€ {{ number_format($voucher->initial_amount, 2, ',', '.') }}</td>
+        </tr>
+    @endforeach
 </table>
 
 <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:18px;">

@@ -12,6 +12,7 @@ use App\Models\Front\Catalog\ProductAction;
 use App\Models\Front\Checkout\PaymentMethod;
 use App\Models\Front\Checkout\ShippingMethod;
 use App\Models\TagManager;
+use App\Services\GiftVoucherService;
 use Darryldecode\Cart\CartCondition;
 use Darryldecode\Cart\Facades\CartFacade as Cart;
 use Illuminate\Database\Eloquent\Model;
@@ -53,18 +54,23 @@ class AgCart extends Model
     {
         $detail_conditions = $this->setCartConditions();
         $eur = $this->getEur();
+        $giftVouchers = app(GiftVoucherService::class);
+        $items = $this->cart->getContent();
 
         $response = [
             'id'         => $this->cart_id,
-            'coupon'     => session()->has('sl_cart_coupon') ? session('sl_cart_coupon') : '',
-            'items'      => $this->cart->getContent(),
+            'coupon'     => session()->has($this->couponSessionKey()) ? session($this->couponSessionKey()) : '',
+            'items'      => $items,
             'count'      => $this->cart->getTotalQuantity(),
             'subtotal'   => $this->cart->getSubTotal(),
             'conditions' => $this->cart->getConditions(),
             'detail_con' => $detail_conditions,
             'total'      => $this->cart->getTotal(),
             'eur'        => $eur,
-            'secondary_price' => $eur
+            'secondary_price' => $eur,
+            'has_gift_voucher' => $items->contains(fn ($item) => $giftVouchers->isGiftVoucherItem($item)),
+            'gift_voucher_only' => $items->isNotEmpty()
+                && $items->every(fn ($item) => $giftVouchers->isGiftVoucherItem($item)),
         ];
 
         return $response;
@@ -118,7 +124,11 @@ class AgCart extends Model
      */
     public function check($request)
     {
-        $products = Product::whereIn('id', $request['ids'])->pluck('quantity', 'id');
+        $ids = collect($request['ids'] ?? [])
+            ->filter(fn ($id) => is_numeric($id))
+            ->map(fn ($id) => (int) $id)
+            ->all();
+        $products = Product::whereIn('id', $ids)->pluck('quantity', 'id');
         $message = null;
 
         foreach ($products as $id => $quantity) {
@@ -146,11 +156,36 @@ class AgCart extends Model
      */
     public function add($request, $id = null)
     {
+        $requestItem = $this->extractRequestItem($request);
+        $giftVouchers = app(GiftVoucherService::class);
+        $isGiftVoucher = ($requestItem['type'] ?? null) === GiftVoucherService::CART_ITEM_TYPE
+            || ($requestItem['id'] ?? null) === GiftVoucherService::CART_ITEM_ID;
+
+        if ($isGiftVoucher) {
+            if ($this->cart->getContent()->contains(fn ($item) => ! $giftVouchers->isGiftVoucherItem($item))) {
+                return ['error' => __('front.gift_voucher.errors.mixed_cart')];
+            }
+
+            if ($this->cart->has(GiftVoucherService::CART_ITEM_ID)) {
+                $this->cart->remove(GiftVoucherService::CART_ITEM_ID);
+            }
+
+            return $this->addToCart(['item' => $requestItem]);
+        }
+
+        if ($this->cart->getContent()->contains(fn ($item) => $giftVouchers->isGiftVoucherItem($item))) {
+            return ['error' => __('front.gift_voucher.errors.mixed_cart')];
+        }
+
         // Updejtaj artikl sa apsolutnom količinom.
         foreach ($this->cart->getContent() as $item) {
-            if ($item->id == $request['item']['id']) {
-                $quantity = $request['item']['quantity'];
-                $product  = Product::where('id', $request['item']['id'])->first();
+            if ($item->id == ($requestItem['id'] ?? null)) {
+                $quantity = (int) ($requestItem['quantity'] ?? 1);
+                $product  = Product::where('id', $requestItem['id'])->first();
+
+                if (! $product) {
+                    return ['error' => __('front.gift_voucher.errors.unavailable')];
+                }
 
                 if (($quantity + $item->quantity) > $product->quantity) {
                     return ['error' => 'Nažalost nema dovoljnih količina artikla..!'];
@@ -164,7 +199,7 @@ class AgCart extends Model
 
                 $relative = false;
 
-                if (isset($request['item']['relative']) && $request['item']['relative']) {
+                if (! empty($requestItem['relative'])) {
                     $relative = true;
                 }
 
@@ -172,7 +207,7 @@ class AgCart extends Model
             }
         }
 
-        return $this->addToCart($request);
+        return $this->addToCart(['item' => $requestItem]);
     }
 
 
@@ -196,20 +231,35 @@ class AgCart extends Model
      */
     public function coupon($coupon)
     {
+        $giftVouchers = app(GiftVoucherService::class);
+        $coupon = $giftVouchers->normalizeCode($coupon);
+
+        if ($this->cart->getContent()->contains(fn ($item) => $giftVouchers->isGiftVoucherItem($item))) {
+            session()->forget($this->couponSessionKey());
+
+            return 0;
+        }
+
         // refresh košarice…
         foreach ($this->cart->getContent() as $item) {
             $this->remove($item->id);
             $this->addToCart($this->resolveItemRequest($item));
         }
 
-        $has_coupon = ProductAction::active()->where('coupon', $coupon)->exists();
+        if ($giftVouchers->isValidCodeForCurrentCart($coupon)) {
+            session([$this->couponSessionKey() => $coupon]);
 
-        if ($has_coupon) {
-            session(['sl_cart_coupon' => (string)$coupon]); // <-- spremi kao string
             return 1;
         }
 
-        session()->forget('sl_cart_coupon');
+        $has_coupon = ProductAction::active()->where('coupon', $coupon)->exists();
+
+        if ($has_coupon) {
+            session([$this->couponSessionKey() => $coupon]);
+            return 1;
+        }
+
+        session()->forget($this->couponSessionKey());
         return 0;
     }
 
@@ -221,6 +271,7 @@ class AgCart extends Model
     public function flush()
     {
         $this->cart->clear();
+        session()->forget($this->couponSessionKey());
 
         Helper::flushCache('cart', $this->cart_id);
 
@@ -235,6 +286,12 @@ class AgCart extends Model
      */
     public function resolveItemRequest($item)
     {
+        $giftVouchers = app(GiftVoucherService::class);
+
+        if ($giftVouchers->isGiftVoucherItem($item)) {
+            return $giftVouchers->buildCartItemRequest($giftVouchers->extractVoucherData($item));
+        }
+
         return [
             'item' => [
                 'id'       => $item['id'],
@@ -273,6 +330,9 @@ class AgCart extends Model
     public function setCartConditions()
     {
         $this->cart->clearCartConditions();
+        $giftVouchers = app(GiftVoucherService::class);
+        $isGiftVoucherPurchase = $this->cart->getContent()
+            ->contains(fn ($item) => $giftVouchers->isGiftVoucherItem($item));
 
         $shipping_method    = ShippingMethod::condition($this->cart);
         $payment_method     = PaymentMethod::condition($this->cart);
@@ -280,7 +340,10 @@ class AgCart extends Model
         $loyalty_conditions = Helper::hasLoyaltyCartConditions($this->cart, intval($this->loyalty));
 
         // UZMI kupon iz sessiona i osiguraj string
-        $coupon_code = (string) (session('sl_cart_coupon') ?? '');
+        $coupon_code = (string) (session($this->couponSessionKey()) ?? '');
+        $hasGiftVoucherCode = ! $isGiftVoucherPurchase
+            && $coupon_code !== ''
+            && $giftVouchers->isValidCodeForCurrentCart($coupon_code);
 
         // --- apply conditions ---
         if ($payment_method) {
@@ -294,18 +357,22 @@ class AgCart extends Model
             $this->cart->condition($shipping_method);
         }
 
-        if ($special_condition) {
+        if ($special_condition && ! $isGiftVoucherPurchase) {
             $this->cart->condition($special_condition);
         }
 
-        if ($coupon_code !== '') {
+        if ($coupon_code !== '' && ! $hasGiftVoucherCode && ! $isGiftVoucherPurchase) {
             if ($coupon_conditions = Helper::hasCouponCartConditions($this->cart, $coupon_code)) {
                 $this->cart->condition($coupon_conditions);
             }
         }
 
-        if ($loyalty_conditions) {
+        if ($loyalty_conditions && ! $isGiftVoucherPurchase) {
             $this->cart->condition($loyalty_conditions);
+        }
+
+        if ($hasGiftVoucherCode && ($giftVoucherCondition = $giftVouchers->cartCondition($this->cart, $coupon_code))) {
+            $this->cart->condition($giftVoucherCondition);
         }
 
         // Style response array …
@@ -332,7 +399,13 @@ class AgCart extends Model
      */
     private function addToCart($request): array
     {
-        $this->cart->add($this->structureCartItem($request));
+        $item = $this->structureCartItem($request);
+
+        if (isset($item['error'])) {
+            return $item;
+        }
+
+        $this->cart->add($item);
 
         return $this->get();
     }
@@ -365,11 +438,22 @@ class AgCart extends Model
      */
     private function structureCartItem($request)
     {
-        $product = Product::where('id', $request['item']['id'])->first();
+        $requestItem = $this->extractRequestItem($request);
+
+        if (($requestItem['type'] ?? null) === GiftVoucherService::CART_ITEM_TYPE
+            || ($requestItem['id'] ?? null) === GiftVoucherService::CART_ITEM_ID) {
+            return app(GiftVoucherService::class)->buildCartItem($requestItem);
+        }
+
+        $product = Product::where('id', $requestItem['id'] ?? 0)->first();
+
+        if (! $product) {
+            return ['error' => 'Artikl više nije dostupan.'];
+        }
 
         $product->dataLayer = TagManager::getGoogleProductDataLayer($product);
 
-        if ($request['item']['quantity'] > $product->quantity) {
+        if (($requestItem['quantity'] ?? 1) > $product->quantity) {
             return ['error' => 'Nažalost nema dovoljnih količina artikla..!'];
         }
 
@@ -378,7 +462,7 @@ class AgCart extends Model
             'name'            => $product->name,
             'price'           => $product->price,
             'sec_price'       => $product->secondary_price,
-            'quantity'        => $request['item']['quantity'],
+            'quantity'        => (int) ($requestItem['quantity'] ?? 1),
             'associatedModel' => $product,
             'attributes'      => $this->structureCartItemAttributes($product)
         ];
@@ -427,6 +511,20 @@ class AgCart extends Model
         // Ako nema akcije na artiklu.
         // Ako nije ispravan kupon.
         return false;
+    }
+
+    private function extractRequestItem($request): array
+    {
+        if ($request instanceof \Illuminate\Http\Request) {
+            return (array) $request->input('item', []);
+        }
+
+        return (array) data_get($request, 'item', []);
+    }
+
+    private function couponSessionKey(): string
+    {
+        return config('session.cart') . '_coupon';
     }
 
 }

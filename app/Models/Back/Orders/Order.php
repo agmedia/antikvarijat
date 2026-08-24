@@ -7,6 +7,8 @@ use App\Helpers\Session\CheckoutSession;
 use App\Models\AbandonedCartReminder;
 use App\Models\Back\Settings\Settings;
 use App\Models\Back\Users\Client;
+use App\Models\GiftVoucher;
+use App\Models\GiftVoucherRedemption;
 use App\User;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
@@ -119,6 +121,16 @@ class Order extends Model
     public function transactions()
     {
         return $this->hasMany(Transaction::class, 'order_id')->latest('id');
+    }
+
+    public function giftVouchers()
+    {
+        return $this->hasMany(GiftVoucher::class, 'purchase_order_id')->latest('id');
+    }
+
+    public function giftVoucherRedemptions()
+    {
+        return $this->hasMany(GiftVoucherRedemption::class, 'order_id')->latest('id');
     }
 
     public function resolvedLocale(): string

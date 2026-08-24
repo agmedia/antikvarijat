@@ -8,6 +8,7 @@ use App\Models\Front\Blog;
 use App\Models\Front\Catalog\Product;
 use Darryldecode\Cart\CartCollection;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Schema;
 use function Livewire\str;
 
 /**
@@ -29,7 +30,24 @@ class TagManager
         $tax      = 0;
 
         foreach ($order->products as $product) {
-            $products[] = static::getGoogleProductDataLayer($product->real);
+            if ($product->real) {
+                $products[] = static::getGoogleProductDataLayer($product->real);
+            }
+        }
+
+        if (Schema::hasTable('gift_vouchers')) {
+            foreach ($order->giftVouchers as $voucher) {
+                $products[] = [
+                    'item_id' => 'POKLON-BON-' . number_format((float) $voucher->initial_amount, 2, '.', ''),
+                    'item_name' => $voucher->locale === 'en' ? 'Gift voucher' : 'Poklon bon',
+                    'price' => (float) $voucher->initial_amount,
+                    'currency' => 'EUR',
+                    'discount' => 0.0,
+                    'item_category' => $voucher->locale === 'en' ? 'Gift voucher' : 'Poklon bon',
+                    'item_category2' => $voucher->locale === 'en' ? 'Digital gift' : 'Digitalni poklon',
+                    'quantity' => 1,
+                ];
+            }
         }
 
         foreach ($order->totals()->get() as $total) {

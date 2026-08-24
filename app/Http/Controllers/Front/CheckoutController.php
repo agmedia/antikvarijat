@@ -4,16 +4,19 @@ namespace App\Http\Controllers\Front;
 
 use App\Helpers\LocaleHelper;
 use App\Helpers\Session\CheckoutSession;
+use App\Exceptions\GiftVoucherUnavailableException;
 use App\Http\Controllers\Controller;
 use App\Mail\OrderReceived;
 use App\Mail\OrderSent;
 use App\Models\Back\Marketing\NewsletterSubscriber;
 use App\Models\Back\Orders\Order as BackOrder;
-use App\Models\Back\Settings\Settings;
 use App\Models\Front\AgCart;
 use App\Models\Front\Checkout\Order;
 use App\Models\TagManager;
 use App\Services\ProductRecommendationService;
+use App\Services\GiftVoucherService;
+use App\Models\Front\Checkout\PaymentMethod;
+use App\Models\Front\Checkout\ShippingMethod;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -77,18 +80,27 @@ class CheckoutController extends Controller
             return redirect(LocaleHelper::route('naplata', ['step' => 'podaci']));
         }
 
-        $data = $this->collectData($data, config('settings.order.status.unfinished'));
+        try {
+            $data = $this->collectData($data, config('settings.order.status.unfinished'));
+            $this->validateGiftVoucherCheckout($data);
+        } catch (GiftVoucherUnavailableException $exception) {
+            return redirect(LocaleHelper::route('kosarica'))->with('error', $exception->getMessage());
+        }
 
         $order = new Order();
 
-        if (CheckoutSession::hasOrder()) {
-            $data['id'] = CheckoutSession::getOrder()['id'];
+        try {
+            if (CheckoutSession::hasOrder()) {
+                $data['id'] = CheckoutSession::getOrder()['id'];
 
-            $order->updateData($data);
-            $order->setData($data['id']);
+                $order->updateData($data);
+                $order->setData($data['id']);
 
-        } else {
-            $order->createFrom($data);
+            } else {
+                $order->createFrom($data);
+            }
+        } catch (GiftVoucherUnavailableException $exception) {
+            return redirect(LocaleHelper::route('kosarica'))->with('error', $exception->getMessage());
         }
 
         if ($order->isCreated()) {
@@ -182,6 +194,31 @@ class CheckoutController extends Controller
         $order = \App\Models\Back\Orders\Order::where('id', $data['order']['id'])->first();
 
         if ($order) {
+            if (! in_array((int) $order->order_status_id, [
+                (int) config('settings.order.status.new'),
+                (int) config('settings.order.status.paid'),
+                (int) config('settings.order.status.send'),
+            ], true)) {
+                Log::warning('Checkout success rejected for an unconfirmed order.', [
+                    'order_id' => $order->id,
+                    'order_status_id' => $order->order_status_id,
+                ]);
+
+                return redirect(LocaleHelper::route('checkout.error', ['order_number' => $order->id]));
+            }
+
+            try {
+                app(GiftVoucherService::class)->completeCheckout($order);
+            } catch (GiftVoucherUnavailableException $exception) {
+                Log::warning('Gift voucher checkout completion failed.', [
+                    'order_id' => $order->id,
+                    'error' => $exception->getMessage(),
+                ]);
+
+                return redirect(LocaleHelper::route('checkout.error', ['order_number' => $order->id]))
+                    ->with('error', $exception->getMessage());
+            }
+
             $processedNow = \App\Models\Back\Orders\Order::query()
                 ->where('id', $order->id)
                 ->whereNull('checkout_processed_at')
@@ -222,8 +259,21 @@ class CheckoutController extends Controller
     /**
      * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
      */
-    public function error()
+    public function error(Request $request)
     {
+        $orderId = (int) ($request->input('order_number') ?: data_get(CheckoutSession::getOrder(), 'id'));
+
+        if ($orderId > 0) {
+            $order = BackOrder::query()->find($orderId);
+
+            if ($order && in_array((int) $order->order_status_id, [
+                (int) config('settings.order.status.declined'),
+                (int) config('settings.order.status.canceled'),
+            ], true)) {
+                app(GiftVoucherService::class)->handleStatusChange($order, (int) $order->order_status_id);
+            }
+        }
+
         return view('front.checkout.error');
     }
 
@@ -261,8 +311,16 @@ class CheckoutController extends Controller
      */
     private function collectData(array $data, int $order_status_id): array
     {
-        $shipping = Settings::getList('shipping')->where('code', $data['shipping'])->first();
-        $payment  = Settings::getList('payment')->where('code', $data['payment'])->first();
+        $shipping = (new ShippingMethod())->find((string) $data['shipping']);
+        $payment  = (new PaymentMethod())->find((string) $data['payment']);
+
+        if (! $shipping) {
+            throw new GiftVoucherUnavailableException(__('front.gift_voucher.errors.shipping'));
+        }
+
+        if (! $payment) {
+            throw new GiftVoucherUnavailableException(__('front.gift_voucher.errors.payment'));
+        }
 
         $response                    = [];
         $response['address']         = $data['address'];
@@ -274,6 +332,41 @@ class CheckoutController extends Controller
         $response['order_status_id'] = $order_status_id;
 
         return $response;
+    }
+
+    private function validateGiftVoucherCheckout(array $data): void
+    {
+        $giftVouchers = app(GiftVoucherService::class);
+        $cart = $data['cart'];
+        $containsGiftVoucher = $giftVouchers->cartContainsGiftVoucher($cart);
+        $giftVoucherOnly = $giftVouchers->cartContainsOnlyGiftVoucher($cart);
+
+        if ($containsGiftVoucher && ! $giftVoucherOnly) {
+            throw new GiftVoucherUnavailableException(__('front.gift_voucher.errors.mixed_cart'));
+        }
+
+        if ($giftVoucherOnly) {
+            if (! $giftVouchers->isGiftVoucherShipping(data_get($data, 'shipping.code'))) {
+                throw new GiftVoucherUnavailableException(__('front.gift_voucher.errors.shipping'));
+            }
+
+            if (! $giftVouchers->isAllowedPurchasePaymentCode(data_get($data, 'payment.code'))) {
+                throw new GiftVoucherUnavailableException(__('front.gift_voucher.errors.payment'));
+            }
+
+            return;
+        }
+
+        $fullyCovered = $giftVouchers->currentCartIsFullyCovered();
+        $paymentCode = (string) data_get($data, 'payment.code');
+
+        if ($fullyCovered && $paymentCode !== GiftVoucherService::PAYMENT_CODE) {
+            throw new GiftVoucherUnavailableException(__('front.gift_voucher.errors.payment'));
+        }
+
+        if (! $fullyCovered && $paymentCode === GiftVoucherService::PAYMENT_CODE) {
+            throw new GiftVoucherUnavailableException(__('front.gift_voucher.errors.payment'));
+        }
     }
 
 

@@ -76,6 +76,7 @@ return [
             'pickup' => \App\Models\Front\Checkout\Payment\Pickup::class,
             'corvus' => \App\Models\Front\Checkout\Payment\Corvus::class,
             'corvus_wallets' => \App\Models\Front\Checkout\Payment\Corvus::class,
+            'gift_voucher' => \App\Models\Front\Checkout\Payment\GiftVoucher::class,
             'keks' => \App\Models\Front\Checkout\Payment\Keks::class
         ]
     ],

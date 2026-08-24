@@ -101,6 +101,135 @@
         </div>
         <!-- END Products -->
 
+        @if($canViewGiftVouchers && ($order->giftVouchers->isNotEmpty() || $order->giftVoucherRedemptions->isNotEmpty()))
+            @php
+                $redemptionStatusLabels = [
+                    \App\Models\GiftVoucherRedemption::STATUS_RESERVED => ['Rezervirano', 'warning'],
+                    \App\Models\GiftVoucherRedemption::STATUS_REDEEMED => ['Iskorišteno', 'success'],
+                    \App\Models\GiftVoucherRedemption::STATUS_RELEASED => ['Vraćeno', 'secondary'],
+                ];
+            @endphp
+            <div class="block block-rounded admin-order-gift-vouchers">
+                <div class="block-header block-header-default">
+                    <div class="d-flex align-items-center min-width-0">
+                        <span class="admin-section-icon mr-3"><i class="fa-duotone fa-gift" aria-hidden="true"></i></span>
+                        <div>
+                            <h3 class="block-title mb-1">Poklon bonovi</h3>
+                            <span class="admin-count">Kupnja i iskorištenje uz ovu narudžbu</span>
+                        </div>
+                    </div>
+                    <div class="block-options">
+                        <a class="btn btn-sm btn-alt-primary" href="{{ route('gift-vouchers.index', ['search' => '#' . $order->id]) }}">
+                            <i class="fa-duotone fa-arrow-up-right-from-square mr-1" aria-hidden="true"></i> Otvori pregled
+                        </a>
+                    </div>
+                </div>
+                <div class="block-content">
+                    @if($order->giftVouchers->isNotEmpty())
+                        <h4 class="font-size-sm font-w800 text-uppercase text-muted mb-3">Kupljeni bonovi</h4>
+                        <div class="table-responsive mb-4">
+                            <table class="table table-borderless table-striped table-vcenter admin-order-gift-voucher-table">
+                                <thead>
+                                <tr>
+                                    <th>Kod i status</th>
+                                    <th>Primatelj</th>
+                                    <th class="text-right">Vrijednost</th>
+                                    <th class="text-right">Saldo</th>
+                                    <th>Dostava e-mailom</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                @foreach($order->giftVouchers as $voucher)
+                                    <tr>
+                                        <td data-label="Kod i status">
+                                            @if($voucher->code)
+                                                <code class="admin-order-gift-voucher-code">{{ $voucher->code }}</code>
+                                            @else
+                                                <span class="text-muted font-w600">Kod nakon plaćanja</span>
+                                            @endif
+                                            <div class="mt-1"><span class="badge badge-{{ $voucher->status_color }}">{{ $voucher->display_status }}</span></div>
+                                        </td>
+                                        <td data-label="Primatelj">
+                                            <div class="font-w600">{{ $voucher->recipient_name ?: '—' }}</div>
+                                            <a class="font-size-sm" href="mailto:{{ $voucher->recipient_email }}">{{ $voucher->recipient_email }}</a>
+                                            @if($voucher->sender_name)<div class="font-size-sm text-muted mt-1">Šalje: {{ $voucher->sender_name }}</div>@endif
+                                            @if($voucher->message)<div class="admin-order-gift-voucher-message mt-1">„{{ \Illuminate\Support\Str::limit($voucher->message, 120) }}”</div>@endif
+                                        </td>
+                                        <td class="text-right text-nowrap" data-label="Vrijednost"><strong>{{ number_format($voucher->initial_amount, 2, ',', '.') }} €</strong></td>
+                                        <td class="text-right text-nowrap" data-label="Saldo"><strong>{{ number_format($voucher->balance, 2, ',', '.') }} €</strong></td>
+                                        <td data-label="Dostava e-mailom">
+                                            @if($voucher->email_error)
+                                                <span class="badge badge-danger">Greška</span>
+                                                <div class="font-size-sm text-danger mt-1" title="{{ $voucher->email_error }}">{{ \Illuminate\Support\Str::limit($voucher->email_error, 80) }}</div>
+                                            @elseif($voucher->last_email_sent_at)
+                                                <span class="badge badge-success">Poslano</span>
+                                                <div class="font-size-sm text-muted mt-1">{{ $voucher->last_email_sent_at->format('d.m.Y. H:i') }}</div>
+                                            @elseif($voucher->issued_at)
+                                                <span class="badge badge-warning">Nije poslano</span>
+                                            @else
+                                                <span class="badge badge-secondary">Čeka plaćanje</span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+
+                    @if($order->giftVoucherRedemptions->isNotEmpty())
+                        <h4 class="font-size-sm font-w800 text-uppercase text-muted mb-3">Bonovi iskorišteni na ovoj narudžbi</h4>
+                        <div class="table-responsive">
+                            <table class="table table-borderless table-striped table-vcenter admin-order-gift-redemption-table">
+                                <thead>
+                                <tr>
+                                    <th>Kod bona</th>
+                                    <th class="text-right">Iznos</th>
+                                    <th>Status</th>
+                                    <th>Vrijeme</th>
+                                    <th>Izvorna narudžba</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                @foreach($order->giftVoucherRedemptions as $redemption)
+                                    @php
+                                        $voucher = $redemption->voucher;
+                                        $redemptionState = $redemptionStatusLabels[$redemption->status] ?? [ucfirst($redemption->status), 'secondary'];
+                                        $redemptionAt = $redemption->redeemed_at ?: $redemption->released_at ?: $redemption->created_at;
+                                    @endphp
+                                    <tr>
+                                        <td data-label="Kod bona">
+                                            @if(optional($voucher)->code)
+                                                <code class="admin-order-gift-voucher-code">{{ $voucher->code }}</code>
+                                            @else
+                                                <span class="text-muted">—{{ optional($voucher)->code_suffix }}</span>
+                                            @endif
+                                        </td>
+                                        <td class="text-right text-nowrap" data-label="Iznos"><strong>-{{ number_format($redemption->amount, 2, ',', '.') }} €</strong></td>
+                                        <td data-label="Status">
+                                            <span class="badge badge-{{ $redemptionState[1] }}">{{ $redemptionState[0] }}</span>
+                                            @if($redemption->release_reason)<div class="font-size-sm text-muted mt-1">{{ $redemption->release_reason }}</div>@endif
+                                        </td>
+                                        <td class="text-nowrap" data-label="Vrijeme">{{ optional($redemptionAt)->format('d.m.Y. H:i') ?: '—' }}</td>
+                                        <td data-label="Izvorna narudžba">
+                                            @if(optional($voucher)->purchaseOrder)
+                                                <a class="font-w600" href="{{ route('orders.show', ['order' => $voucher->purchaseOrder]) }}">#{{ $voucher->purchase_order_id }}</a>
+                                            @elseif($voucher)
+                                                <span>#{{ $voucher->purchase_order_id ?: '—' }}</span>
+                                            @else
+                                                <span class="text-muted">—</span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        @endif
+
         <!-- Customer -->
         <div class="row">
             <div class="col-sm-6 d-flex">
@@ -260,6 +389,8 @@
         .admin-order-address strong { margin-bottom: .2rem; color: var(--admin-ink); font-size: 1.05rem; }
         .admin-order-address .admin-order-company { margin-top: .45rem; }
         .admin-order-address .admin-order-contact { display: inline-flex; gap: .45rem; align-items: center; margin-top: .38rem; }
+        .admin-order-gift-voucher-code { color: var(--admin-ink); font-size: .9rem; font-weight: 800; letter-spacing: .05em; white-space: nowrap; }
+        .admin-order-gift-voucher-message { max-width: 28rem; color: #69756d; font-size: .82rem; font-style: italic; line-height: 1.45; }
         .admin-order-meta-label { color: var(--admin-ink); font-weight: 700; }
         .admin-order-history-actions { display: flex; gap: .5rem; align-items: center; margin-left: auto; }
         .admin-order-history-table { table-layout: fixed; }
@@ -280,6 +411,8 @@
             .admin-order-products .admin-order-total-row td { padding: 0 !important; border: 0 !important; background: transparent !important; }
             .admin-order-products .admin-order-total-row td:first-child { text-align: left !important; }
             .admin-order-products .admin-order-total-row td:last-child { text-align: right !important; }
+            .admin-order-gift-vouchers .block-header { align-items: flex-start; flex-direction: column; gap: .75rem; }
+            .admin-order-gift-vouchers .block-options { margin-left: 0; }
             .admin-order-history-header { align-items: stretch !important; flex-direction: column; gap: .75rem; }
             .admin-order-history-actions { display: grid; width: 100%; margin-left: 0; grid-template-columns: repeat(2, minmax(0, 1fr)); }
             .admin-order-history-actions .btn, .admin-order-history-actions .dropdown { width: 100%; }

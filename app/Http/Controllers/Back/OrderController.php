@@ -23,6 +23,8 @@ use App\Services\AbandonedCartReminderService;
 use App\Services\Shipping\BoxNowService;
 use App\Services\Shipping\GlsTrackingService;
 use App\Services\Shipping\OrderTrackingService;
+use App\Services\GiftVoucherService;
+use Bouncer;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
@@ -162,10 +164,21 @@ class OrderController extends Controller
             'history.user',
         ]);
 
+        $canViewGiftVouchers = ! (auth()->check() && Bouncer::is(auth()->user())->an('editor'))
+            && Schema::hasTable('gift_vouchers')
+            && Schema::hasTable('gift_voucher_redemptions');
+
+        if ($canViewGiftVouchers) {
+            $order->loadMissing([
+                'giftVouchers.redemptions.order',
+                'giftVoucherRedemptions.voucher.purchaseOrder',
+            ]);
+        }
+
         $statuses = Settings::get('order', 'statuses');
         $trackingEmailSentAt = app(OrderTrackingService::class)->trackingEmailSentAt($order);
 
-        return view('back.order.show', compact('order', 'statuses', 'trackingEmailSentAt'));
+        return view('back.order.show', compact('order', 'statuses', 'trackingEmailSentAt', 'canViewGiftVouchers'));
     }
 
 
@@ -248,7 +261,7 @@ class OrderController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function api_status_change(Request $request)
+    public function api_status_change(Request $request, GiftVoucherService $giftVouchers)
     {
         if ($request->has('orders')) {
             $orders = explode(',', substr($request->input('orders'), 1, -1));
@@ -266,7 +279,8 @@ class OrderController extends Controller
                 Order::query()
                     ->whereIn('id', $orders)
                     ->get()
-                    ->each(function (Order $order) use ($statusId) {
+                    ->each(function (Order $order) use ($statusId, $giftVouchers) {
+                        $giftVouchers->handleStatusChange($order, $statusId);
                         $this->sendStatusNotification($order, $statusId);
                     });
             }
@@ -289,6 +303,10 @@ class OrderController extends Controller
             }
 
             $order = Order::query()->find($orderId);
+
+            if ($order && $statusId) {
+                $giftVouchers->handleStatusChange($order, $statusId);
+            }
 
             $this->sendStatusNotification($order, $statusId);
 

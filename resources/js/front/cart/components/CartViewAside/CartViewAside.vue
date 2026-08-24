@@ -16,12 +16,18 @@
                 <div class="widget mb-3">
                     <h2 class="widget-title text-center mb-2">{{ labels.orderSummary }}</h2>
 
-                    <div class="d-flex align-items-center pb-2 border-bottom" v-for="item in $store.state.cart.items">
+                    <div class="d-flex align-items-center pb-2 border-bottom" :class="{'cart-aside-gift-voucher': isGiftVoucher(item)}" v-for="item in $store.state.cart.items" :key="item.id">
                         <a class="d-block flex-shrink-0" :href="base_path + item.attributes.path"><img :src="itemImage(item)" :alt="item.name" width="64"></a>
                         <div class="ps-2">
                             <h6 class="widget-product-title"><a :href="base_path + item.attributes.path">{{ item.name }}</a></h6>
-                            <div class="widget-product-meta"><span class="text-primary me-2">{{ Object.keys(item.conditions).length ? item.associatedModel.main_special_text : item.associatedModel.main_price_text }}</span><span class="text-muted">x {{ item.quantity }}</span></div>
-                            <div class="widget-product-meta"><span class="text-muted me-2" v-if="item.associatedModel.secondary_price_text">{{ Object.keys(item.conditions).length ? item.associatedModel.secondary_special_text : item.associatedModel.secondary_price_text }}</span><span class="text-muted">x {{ item.quantity }}</span></div>
+                            <div class="widget-product-meta"><span class="text-primary me-2">{{ Object.keys(item.conditions).length ? item.associatedModel.main_special_text : item.associatedModel.main_price_text }}</span><span class="text-muted" v-if="!isGiftVoucher(item)">x {{ item.quantity }}</span></div>
+                            <div class="widget-product-meta" v-if="item.associatedModel.secondary_price_text || !isGiftVoucher(item)"><span class="text-muted me-2" v-if="item.associatedModel.secondary_price_text">{{ Object.keys(item.conditions).length ? item.associatedModel.secondary_special_text : item.associatedModel.secondary_price_text }}</span><span class="text-muted" v-if="!isGiftVoucher(item)">x {{ item.quantity }}</span></div>
+                            <div class="cart-aside-gift-voucher-details" v-if="isGiftVoucher(item)">
+                                <div><span>{{ labels.giftRecipient }}</span><strong>{{ giftVoucherData(item).recipient_name }}</strong></div>
+                                <small>{{ giftVoucherData(item).recipient_email }}</small>
+                                <div><span>{{ labels.giftSender }}</span><strong>{{ giftVoucherData(item).sender_name }}</strong></div>
+                                <p v-if="giftVoucherData(item).message">“{{ giftVoucherData(item).message }}”</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -62,7 +68,7 @@
             </div>
         </div>
 
-        <div class="rounded-3 p-4 mt-3" v-if="route == 'kosarica' || route == 'naplata'" style="border: 1px dashed #e3e9ef;background-color: #fff !important;">
+        <div class="rounded-3 p-4 mt-3" v-if="(route == 'kosarica' || route == 'naplata') && !hasGiftVoucherPurchase" style="border: 1px dashed #e3e9ef;background-color: #fff !important;">
             <div class="py-2 px-xl-2" v-cloak>
                 <div class="form-group">
 
@@ -101,11 +107,21 @@ export default {
             coupon: '',
             tax: 0,
         }
-        },
+    },
     computed: {
+        hasGiftVoucherPurchase() {
+            if (this.$store.state.cart.has_gift_voucher || this.$store.state.cart.gift_voucher_only) {
+                return true;
+            }
+
+            return Object.values(this.$store.state.cart.items || {}).some((item) => this.isGiftVoucher(item));
+        },
         labels() {
             const t = (window.FrontTranslations && window.FrontTranslations.js && window.FrontTranslations.js.cart)
                 ? window.FrontTranslations.js.cart
+                : {};
+            const gift = (window.FrontTranslations && window.FrontTranslations.gift_voucher)
+                ? window.FrontTranslations.gift_voucher
                 : {};
             return (document.documentElement.lang || 'hr') === 'en' ? {
                 total: t.total || 'Total',
@@ -114,7 +130,9 @@ export default {
                 taxIncluded: t.tax_included || 'VAT included in the price',
                 couponQuestion: t.coupon_question || 'Do you have a discount code?',
                 couponPlaceholder: t.coupon_placeholder || 'Enter code here...',
-                add: t.add || 'Add'
+                add: t.add || 'Add',
+                giftRecipient: gift.cart_recipient || 'Recipient',
+                giftSender: gift.cart_sender || 'From'
             } : {
                 total: t.total || 'Total',
                 continueToCheckout: t.continue_to_checkout || 'Nastavi na naplatu',
@@ -122,7 +140,9 @@ export default {
                 taxIncluded: t.tax_included || 'VAT included in the price',
                 couponQuestion: t.coupon_question || 'Do you have a discount code?',
                 couponPlaceholder: t.coupon_placeholder || 'Enter code here...',
-                add: t.add || 'Add'
+                add: t.add || 'Add',
+                giftRecipient: gift.cart_recipient || 'Primatelj',
+                giftSender: gift.cart_sender || 'Šalje'
             };
         }
     },
@@ -141,6 +161,20 @@ export default {
     methods: {
         itemImage(item) {
             return resolveCartItemImage(item);
+        },
+
+        isGiftVoucher(item) {
+            const attributes = item && item.attributes ? item.attributes : {};
+
+            return attributes.item_type === 'gift_voucher'
+                || attributes.type === 'gift_voucher'
+                || item.id === 'gift-voucher';
+        },
+
+        giftVoucherData(item) {
+            return item && item.attributes && item.attributes.gift_voucher
+                ? item.attributes.gift_voucher
+                : {};
         },
 
         /**
@@ -233,5 +267,35 @@ export default {
     padding: 1rem !important;
     vertical-align: top;
     border-top: 1px solid #dee2e6;
+}
+.cart-aside-gift-voucher {
+    align-items: flex-start !important;
+    gap: .25rem;
+    margin-bottom: .65rem;
+    padding: .7rem;
+    border: 1px solid #dbe8df !important;
+    border-radius: .35rem;
+    background: linear-gradient(135deg, #fbfdfb 0%, #f7f2e5 100%);
+}
+.cart-aside-gift-voucher-details {
+    margin-top: .45rem;
+    color: #4d5852;
+    font-size: .75rem;
+}
+.cart-aside-gift-voucher-details div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .3rem;
+}
+.cart-aside-gift-voucher-details div span {
+    color: #68726c;
+}
+.cart-aside-gift-voucher-details small {
+    display: block;
+    overflow-wrap: anywhere;
+}
+.cart-aside-gift-voucher-details p {
+    margin: .35rem 0 0;
+    line-height: 1.4;
 }
 </style>

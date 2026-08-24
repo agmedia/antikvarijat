@@ -136,14 +136,12 @@ class CartController extends Controller
     }
 
 
-    /**
-     * @param $coupon
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function coupon($coupon)
+    public function coupon(Request $request)
     {
-        session([$this->key . '_coupon' => $coupon]);
+        $validated = $request->validate([
+            'coupon' => ['nullable', 'string', 'max:100'],
+        ]);
+        $coupon = trim((string) ($validated['coupon'] ?? ''));
 
         return response()->json($this->cart->coupon($coupon));
     }

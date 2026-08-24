@@ -5,6 +5,7 @@ namespace App\Models;
 
 use App\Models\Front\AgCart;
 use App\Models\Front\Catalog\Product;
+use App\Services\GiftVoucherService;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
@@ -175,6 +176,13 @@ class Cart extends Model
                             $cart_item = $cart->resolveItemRequest($item);
 
                             if (isset($cart_item['item']['id']) && isset($cart_item['item']['quantity'])) {
+                                if (($cart_item['item']['type'] ?? null) === GiftVoucherService::CART_ITEM_TYPE
+                                    || $cart_item['item']['id'] === GiftVoucherService::CART_ITEM_ID) {
+                                    $cart->add($cart_item);
+
+                                    continue;
+                                }
+
                                 $product = Product::where('id', $cart_item['item']['id'])->first();
 
                                 if ($product && $cart_item['item']['quantity'] < $product->quantity) {

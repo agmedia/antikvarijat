@@ -15,6 +15,7 @@ use App\Models\Front\Checkout\ShippingMethod;
 use App\Models\TagManager;
 use App\Services\AddressDirectoryService;
 use App\Services\CheckoutAccountService;
+use App\Services\GiftVoucherService;
 use App\Services\Shipping\BoxNowSettingsService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -92,6 +93,8 @@ class Checkout extends Component
     public $view_comment = false;
 
     public $view_boxnow = false;
+
+    public $gift_voucher_only = false;
 
     public $boxnow_widget_partner_id = 123;
 
@@ -214,6 +217,8 @@ class Checkout extends Component
             $this->cart = new AgCart(session(config('session.cart')));
         }
 
+        $this->syncGiftVoucherOptions();
+
         $this->changeStep($this->step);
     }
 
@@ -288,6 +293,7 @@ class Checkout extends Component
             }*/
 
             $this->checkCart();
+            $this->syncGiftVoucherOptions();
 
             if (in_array($step, ['', 'podaci']) && $this->cart) {
                 $this->gdl = TagManager::getGoogleCartDataLayer($this->cart->get());
@@ -394,6 +400,7 @@ class Checkout extends Component
         CheckoutSession::forgetComment();
         CheckoutSession::forgetPayment();
         $this->payment = '';
+        $this->syncGiftVoucherOptions();
     }
 
 
@@ -402,6 +409,10 @@ class Checkout extends Component
      */
     public function selectShipping(string $shipping)
     {
+        if ($this->gift_voucher_only) {
+            $shipping = GiftVoucherService::SHIPPING_CODE;
+        }
+
         if (CheckoutSession::getShipping() !== $shipping) {
             $this->comment = '';
             CheckoutSession::forgetComment();
@@ -415,6 +426,7 @@ class Checkout extends Component
 
         CheckoutSession::forgetPayment();
         $this->payment = '';
+        $this->syncGiftVoucherOptions();
 
         $this->dispatchBrowserEvent('checkout-option-saved', [
             'message' => __('front.checkout.shipping_saved'),
@@ -427,6 +439,16 @@ class Checkout extends Component
      */
     public function selectPayment(string $payment)
     {
+        $giftVouchers = app(GiftVoucherService::class);
+
+        if ($giftVouchers->currentCartIsFullyCovered()) {
+            $payment = GiftVoucherService::PAYMENT_CODE;
+        } elseif ($this->gift_voucher_only && ! $giftVouchers->isAllowedPurchasePaymentCode($payment)) {
+            $payment = (string) $giftVouchers->firstAllowedPurchasePaymentCode();
+        } elseif ($payment === GiftVoucherService::PAYMENT_CODE) {
+            $payment = '';
+        }
+
         $this->payment = $payment;
 
         $this->checkPayment($payment);
@@ -462,6 +484,10 @@ class Checkout extends Component
         if (session()->has(config('session.cart'))) {
             $this->cart = new AgCart(session(config('session.cart')));
         }
+
+        $this->gift_voucher_only = $this->cart
+            ? app(GiftVoucherService::class)->cartContainsOnlyGiftVoucher($this->cart->get())
+            : false;
     }
 
 
@@ -635,7 +661,9 @@ class Checkout extends Component
      */
     private function checkShipping(string $shipping): void
     {
-        if ($shipping == 'pickup') {
+        if ($shipping === GiftVoucherService::SHIPPING_CODE) {
+            $this->gdl_shipping = 'e-mail';
+        } elseif ($shipping == 'pickup') {
             $this->gdl_shipping = 'osobno preuzimanje';
         } else {
             $this->gdl_shipping = 'dostava';
@@ -648,6 +676,47 @@ class Checkout extends Component
         }
 
         $this->view_boxnow = $shipping === 'boxnow';
+    }
+
+    private function syncGiftVoucherOptions(): void
+    {
+        if (! $this->cart) {
+            $this->gift_voucher_only = false;
+
+            return;
+        }
+
+        $giftVouchers = app(GiftVoucherService::class);
+        $this->gift_voucher_only = $giftVouchers->cartContainsOnlyGiftVoucher($this->cart->get());
+
+        if ($this->gift_voucher_only) {
+            $this->shipping = GiftVoucherService::SHIPPING_CODE;
+            CheckoutSession::setShipping($this->shipping);
+
+            if (! $giftVouchers->isAllowedPurchasePaymentCode($this->payment)) {
+                $this->payment = (string) $giftVouchers->firstAllowedPurchasePaymentCode();
+            }
+
+            if ($this->payment !== '') {
+                CheckoutSession::setPayment($this->payment);
+            } else {
+                CheckoutSession::forgetPayment();
+            }
+
+            return;
+        }
+
+        if ($giftVouchers->currentCartIsFullyCovered()) {
+            $this->payment = GiftVoucherService::PAYMENT_CODE;
+            CheckoutSession::setPayment($this->payment);
+
+            return;
+        }
+
+        if ($this->payment === GiftVoucherService::PAYMENT_CODE) {
+            $this->payment = '';
+            CheckoutSession::forgetPayment();
+        }
     }
 
 

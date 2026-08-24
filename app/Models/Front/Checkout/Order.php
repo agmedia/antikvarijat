@@ -9,10 +9,12 @@ use App\Models\Back\Orders\OrderProduct;
 use App\Models\Back\Orders\OrderTotal;
 use App\Models\Back\Settings\Settings;
 use App\Models\Front\Catalog\Product;
+use App\Services\GiftVoucherService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 class Order extends Model
@@ -170,23 +172,25 @@ class Order extends Model
                 $orderData['unfinished_at'] = Carbon::now();
             }
 
-            $order_id = \App\Models\Back\Orders\Order::insertGetId($orderData);
+            $order_id = DB::transaction(function () use ($orderData, $user_id) {
+                $orderId = \App\Models\Back\Orders\Order::insertGetId($orderData);
 
-            if ($order_id) {
-                // HISTORY
                 OrderHistory::insert([
-                    'order_id'   => $order_id,
+                    'order_id'   => $orderId,
                     'user_id'    => $user_id,
                     'comment'    => config('settings.order.made_text'),
                     'created_at' => Carbon::now(),
                     'updated_at' => Carbon::now()
                 ]);
 
-                $this->updateProducts($order_id);
-                $this->updateTotal($order_id);
+                $this->updateProducts($orderId);
+                $this->updateTotal($orderId);
+                app(GiftVoucherService::class)->syncOrder($orderId, $this->order);
 
-                $this->oc_data = \App\Models\Back\Orders\Order::where('id', $order_id)->first();
-            }
+                return $orderId;
+            }, 3);
+
+            $this->oc_data = \App\Models\Back\Orders\Order::where('id', $order_id)->first();
         }
 
         return $this;
@@ -243,9 +247,12 @@ class Order extends Model
             $orderData['locale'] = LocaleHelper::current();
         }
 
-        $updated = \App\Models\Back\Orders\Order::where('id', $data['id'])->update($orderData);
+        $orderExists = \App\Models\Back\Orders\Order::where('id', $data['id'])->exists();
 
-        if ($updated) {
+        if ($orderExists) {
+            DB::transaction(function () use ($data, $orderData) {
+                \App\Models\Back\Orders\Order::where('id', $data['id'])->update($orderData);
+
             if (auth()->check()) {
                 OrderHistory::where('order_id', $data['id'])->update([
                     'user_id' => auth()->id(),
@@ -254,6 +261,8 @@ class Order extends Model
 
             $this->updateProducts($data['id']);
             $this->updateTotal($data['id']);
+                app(GiftVoucherService::class)->syncOrder((int) $data['id'], $this->order);
+            }, 3);
 
             return $this->setData($data['id']);
         }
@@ -273,6 +282,10 @@ class Order extends Model
 
         // PRODUCTS
         foreach ($this->order['cart']['items'] as $item) {
+            if (app(GiftVoucherService::class)->isGiftVoucherItem($item)) {
+                continue;
+            }
+
             $discount = 0;
             $price    = $item->price;
 
@@ -338,6 +351,18 @@ class Order extends Model
                     'title'      => $name,
                     'value'      => $condition->parsedRawValue,
                     'sort_order' => $condition->getOrder(),
+                    'created_at' => Carbon::now(),
+                    'updated_at' => Carbon::now()
+                ]);
+            }
+
+            if ($condition->getType() === 'gift_voucher') {
+                OrderTotal::insert([
+                    'order_id'   => $order_id,
+                    'code'       => 'gift_voucher',
+                    'title'      => $condition->getName(),
+                    'value'      => (float) $condition->getValue(),
+                    'sort_order' => 4,
                     'created_at' => Carbon::now(),
                     'updated_at' => Carbon::now()
                 ]);
@@ -438,7 +463,7 @@ class Order extends Model
      */
     public function paymentNotRequired(): bool
     {
-        if (in_array($this->oc_data->payment_code, ['cod', 'bank'])) {
+        if (in_array($this->oc_data->payment_code, ['cod', 'bank', GiftVoucherService::PAYMENT_CODE])) {
             return true;
         }
 

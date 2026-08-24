@@ -5,6 +5,7 @@ namespace App\Models\Front\Checkout;
 use App\Helpers\LocaleHelper;
 use App\Helpers\Session\CheckoutSession;
 use App\Models\Back\Settings\Settings;
+use App\Services\GiftVoucherService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -44,7 +45,9 @@ class PaymentMethod
         $this->response_methods = collect();
 
         if ($code) {
-            $this->method = $this->methods->where('code', $code);
+            $this->method = $code === GiftVoucherService::PAYMENT_CODE
+                ? collect([app(GiftVoucherService::class)->giftVoucherPaymentMethod()])
+                : $this->methods->where('code', $code);
         }
     }
 
@@ -96,6 +99,10 @@ class PaymentMethod
      */
     public function find(string $code)
     {
+        if ($code === GiftVoucherService::PAYMENT_CODE) {
+            return app(GiftVoucherService::class)->giftVoucherPaymentMethod();
+        }
+
         //Log::info($this->methods->where('code', $code)->first()->code);
         return $this->methods->where('code', $code)->first();
     }
@@ -108,6 +115,24 @@ class PaymentMethod
      */
     public function findGeo(int $zone)
     {
+        $giftVouchers = app(GiftVoucherService::class);
+
+        if ($giftVouchers->currentCartIsFullyCovered()) {
+            $method = $giftVouchers->giftVoucherPaymentMethod();
+            $this->response_methods = collect([$method->code => $method]);
+
+            return $this;
+        }
+
+        if ($giftVouchers->currentCartContainsOnlyGiftVoucher()) {
+            $allowed = $giftVouchers->allowedPurchasePaymentCodes();
+            $this->response_methods = $this->methods
+                ->filter(fn ($method) => in_array($method->code, $allowed, true))
+                ->keyBy('code');
+
+            return $this;
+        }
+
         $geo = (new GeoZone())->findApplicableToAll();
 
         foreach ($this->methods as $method) {
@@ -133,6 +158,25 @@ class PaymentMethod
      */
     public function checkShipping(string $shipping)
     {
+        $giftVouchers = app(GiftVoucherService::class);
+
+        if ($giftVouchers->currentCartIsFullyCovered()) {
+            $method = $giftVouchers->giftVoucherPaymentMethod();
+            $this->response_methods = collect([$method->code => $method]);
+
+            return $this;
+        }
+
+        if ($giftVouchers->isGiftVoucherShipping($shipping)
+            || $giftVouchers->currentCartContainsOnlyGiftVoucher()) {
+            $allowed = $giftVouchers->allowedPurchasePaymentCodes();
+            $this->response_methods = $this->methods
+                ->filter(fn ($method) => in_array($method->code, $allowed, true))
+                ->keyBy('code');
+
+            return $this;
+        }
+
         $corvusCodes = ['corvus', 'corvus_wallets'];
         $restrictedCodes = array_merge(['pickup', 'bank'], $corvusCodes);
 
@@ -269,7 +313,8 @@ class PaymentMethod
         if ($payment) {
             $value = $payment->data->price;
 
-            if ($cart->getTotal() > config('settings.free_shipping')) {
+            if ($payment->code !== GiftVoucherService::PAYMENT_CODE
+                && $cart->getTotal() > config('settings.free_shipping')) {
                 $value = 0;
             }
 
