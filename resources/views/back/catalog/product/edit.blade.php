@@ -208,6 +208,18 @@
                                     </div>
                                 </div>
 
+                                <div class="form-group mb-4">
+                                    <input type="hidden" name="delivery_in_7_days" value="0">
+                                    <div class="custom-control custom-checkbox custom-control-success">
+                                        <input type="checkbox" class="custom-control-input" id="delivery-in-7-days" name="delivery_in_7_days" value="1" {{ old('delivery_in_7_days', isset($product) ? $product->delivery_in_7_days : false) ? 'checked' : '' }}>
+                                        <label class="custom-control-label" for="delivery-in-7-days">Isporuka za 7 dana</label>
+                                    </div>
+                                    <small class="form-text text-muted">Na stranici artikla prikazuje se obavijest da je rok isporuke 7 dana.</small>
+                                    @error('delivery_in_7_days')
+                                    <span class="text-danger small font-italic">Vrijednost roka isporuke nije ispravna.</span>
+                                    @enderror
+                                </div>
+
                                 {{--                            @if( ! isset($product) && $active_actions->count())--}}
                                 {{--                                <div class="alert alert-secondary d-flex align-items-center justify-content-between" role="alert">--}}
                                 {{--                                    <div class="flex-fill mr-3">--}}

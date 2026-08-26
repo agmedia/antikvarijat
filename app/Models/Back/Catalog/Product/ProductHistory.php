@@ -259,6 +259,12 @@ class ProductHistory extends Model
             $this->changed .= '<li>Promjenjen Skl: <b>' . $old . '</b> u <b>' . $new . '</b></li>';
         }
 
+        if (($this->old['delivery_in_7_days'] ?? false) != ($this->new['delivery_in_7_days'] ?? false)) {
+            $status = ($this->new['delivery_in_7_days'] ?? false) ? 'uključena' : 'isključena';
+
+            $this->changed .= '<li>Obavijest o isporuci za 7 dana je <b>' . $status . '</b>.</li>';
+        }
+
         // Tax changed
         if ($this->old['tax_id'] != $this->new['tax_id']) {
             $old = Settings::get('tax', 'list')->where('id', $this->old['tax_id'])->first();

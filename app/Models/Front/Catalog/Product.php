@@ -30,6 +30,7 @@ class Product extends Model
 
     protected $casts = [
         'tags' => 'array',   // onda $prod->tags vraća array
+        'delivery_in_7_days' => 'boolean',
     ];
 
     /**

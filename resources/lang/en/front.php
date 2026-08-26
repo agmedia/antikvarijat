@@ -175,6 +175,7 @@ return [
         'available' => 'Available',
         'availability' => 'Availability',
         'free_delivery_notice' => 'Free delivery in Croatia for orders over EUR :amount',
+        'delivery_in_7_days_notice' => 'The delivery time for this item is 7 days.',
         'basic_information' => 'Basic information',
         'author' => 'Author',
         'publisher' => 'Publisher',

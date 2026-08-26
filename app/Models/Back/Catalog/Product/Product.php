@@ -41,7 +41,8 @@ class Product extends Model
     protected $request;
 
     protected $casts = [
-        'tags' => 'array',
+        'tags'               => 'array',
+        'delivery_in_7_days' => 'boolean',
     ];
 
     /**
@@ -195,6 +196,7 @@ class Product extends Model
             'price'    => ['required'],
             'category' => ['required'],
             'skl'      => ['nullable', 'integer', 'min:0'],
+            'delivery_in_7_days' => ['boolean'],
             'isbn'     => [
                 'nullable',
                 function ($attribute, $value, $fail) {
@@ -239,6 +241,7 @@ class Product extends Model
         $product->price            = $this->request->price;
         $product->quantity         = $this->request->quantity ?: 0;
         $product->skl              = $this->resolveSkl();
+        $product->delivery_in_7_days = $this->request->boolean('delivery_in_7_days');
         $product->tax_id           = $this->request->tax_id ?: 1;
         $product->special          = $this->request->special;
         $product->special_from     = $this->request->special_from ? Carbon::make($this->request->special_from) : null;
@@ -300,6 +303,7 @@ class Product extends Model
             'price'            => isset($this->request->price) ? $this->request->price : 0,
             'quantity'         => $this->request->quantity ?: 0,
             'skl'              => $this->resolveSkl(),
+            'delivery_in_7_days' => $this->request->boolean('delivery_in_7_days'),
             'tax_id'           => $this->request->tax_id ?: 1,
             'special'          => $this->request->special,
             'special_from'     => $this->request->special_from ? Carbon::make($this->request->special_from) : null,

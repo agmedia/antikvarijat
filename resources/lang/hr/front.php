@@ -175,6 +175,7 @@ return [
         'available' => 'Dostupno',
         'availability' => 'Dostupnost',
         'free_delivery_notice' => 'Besplatna dostava u RH za narudžbe veće od :amount €',
+        'delivery_in_7_days_notice' => 'Rok isporuke za ovaj artikl je 7 dana.',
         'basic_information' => 'Osnovne informacije',
         'author' => 'Autor',
         'publisher' => 'Nakladnik',
