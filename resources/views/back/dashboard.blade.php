@@ -327,13 +327,19 @@
                                 <thead class="sr-only">
                                     <tr>
                                         <th>Broj</th>
-                                        <th>Kupac</th>
+                                        <th>Kupac, datum i broj artikala</th>
                                         <th>Iznos i status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                 @foreach($orders as $order)
                                     @php($status = $order->status)
+                                    @php($itemCount = (int) $order->order_products_count)
+                                    @php($itemCountLastTwoDigits = $itemCount % 100)
+                                    @php($itemCountLastDigit = $itemCount % 10)
+                                    @php($usesSingularItemLabel = $itemCountLastDigit === 1 && $itemCountLastTwoDigits !== 11)
+                                    @php($usesFewItemsLabel = $itemCountLastDigit >= 2 && $itemCountLastDigit <= 4 && ($itemCountLastTwoDigits < 12 || $itemCountLastTwoDigits > 14))
+                                    @php($itemLabel = $usesSingularItemLabel ? 'artikl' : ($usesFewItemsLabel ? 'artikla' : 'artikala'))
                                     <tr>
                                         <td class="dashboard-list-id">
                                             <a href="{{ route('orders.show', ['order' => $order]) }}">#{{ $order->id }}</a>
@@ -343,7 +349,11 @@
                                             <a href="{{ route('orders.show', ['order' => $order]) }}" title="{{ $customerName }}">
                                                 {{ $customerName }}
                                             </a>
-                                            <small>{{ optional($order->created_at)->format('d.m.Y. H:i') }}</small>
+                                            <small>
+                                                {{ optional($order->created_at)->format('d.m.Y. H:i') }}
+                                                <span aria-hidden="true">·</span>
+                                                {{ $itemCount }} {{ $itemLabel }}
+                                            </small>
                                         </td>
                                         <td class="dashboard-list-price dashboard-order-summary">
                                             <strong>{{ \App\Helpers\Currency::main($order->total, true) }}</strong>
@@ -379,19 +389,30 @@
                                 <thead class="sr-only">
                                     <tr>
                                         <th>ID</th>
-                                        <th>Artikl</th>
+                                        <th>Artikl, autor i datum</th>
                                         <th>Cijena</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                 @foreach($products as $product)
+                                    @php($authorTitle = trim((string) optional(optional($product->product)->author)->title))
+                                    @php($hasAuthor = $authorTitle !== '' && $authorTitle !== '/')
                                     <tr>
                                         <td class="dashboard-list-id">
                                             <a href="{{ route('products.edit', ['product' => $product->product_id]) }}">#{{ $product->product_id }}</a>
                                         </td>
                                         <td class="dashboard-list-main">
                                             <a href="{{ route('products.edit', ['product' => $product->product_id]) }}" title="{{ $product->name }}">{{ $product->name }}</a>
-                                            <small>{{ optional($product->created_at)->format('d.m.Y. H:i') }}</small>
+                                            <small title="{{ $hasAuthor ? 'Autor: ' . $authorTitle : 'Autor nije naveden' }}">
+                                                Autor:
+                                                @if($hasAuthor)
+                                                    {{ $authorTitle }}
+                                                @else
+                                                    <span aria-hidden="true">—</span><span class="sr-only">nije naveden</span>
+                                                @endif
+                                                <span aria-hidden="true">·</span>
+                                                {{ optional($product->created_at)->format('d.m.Y. H:i') }}
+                                            </small>
                                         </td>
                                         <td class="dashboard-list-price">
                                             <strong>{{ \App\Helpers\Currency::main($product->price, true) }}</strong>

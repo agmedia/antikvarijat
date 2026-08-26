@@ -112,6 +112,72 @@ class DashboardSalesStatsTest extends TestCase
         $this->assertCount(10, $viewData['products']);
     }
 
+    public function test_dashboard_latest_lists_show_order_item_counts_and_product_authors(): void
+    {
+        Carbon::setTestNow('2026-04-15 12:00:00');
+
+        $orderId = $this->createOrder(1, 110.00, '2026-04-15 11:00:00');
+        $this->createOrderProduct($orderId, 3);
+        DB::table('order_products')->where('order_id', $orderId)->update(['name' => 'Knjiga s autorom']);
+        $this->seedCatalogForProduct(100 + $orderId, 'Knjiga s autorom');
+
+        DB::table('order_products')->insert([
+            'order_id' => $orderId,
+            'product_id' => 999,
+            'name' => 'Knjiga bez autora',
+            'quantity' => 4,
+            'price' => 20,
+            'org_price' => 20,
+            'total' => 80,
+            'created_at' => '2026-04-15 11:59:00',
+            'updated_at' => '2026-04-15 11:59:00',
+        ]);
+
+        $largeOrderId = $this->createOrder(1, 210.00, '2026-04-15 10:00:00');
+        $largeOrderProducts = [];
+
+        foreach (range(1, 21) as $index) {
+            $largeOrderProducts[] = [
+                'order_id' => $largeOrderId,
+                'product_id' => 2000 + $index,
+                'name' => 'Artikl ' . $index,
+                'quantity' => 1,
+                'price' => 10,
+                'org_price' => 10,
+                'total' => 10,
+                'created_at' => '2026-04-15 10:00:00',
+                'updated_at' => '2026-04-15 10:00:00',
+            ];
+        }
+
+        DB::table('order_products')->insert($largeOrderProducts);
+
+        $view = app(DashboardController::class)->index();
+        $viewData = $view->getData();
+        $latestOrder = $viewData['orders']->firstWhere('id', $orderId);
+        $largeOrder = $viewData['orders']->firstWhere('id', $largeOrderId);
+        $soldProductWithAuthor = $viewData['products']->firstWhere('product_id', 100 + $orderId);
+
+        $this->assertSame(2, $latestOrder->order_products_count);
+        $this->assertSame(21, $largeOrder->order_products_count);
+        $this->assertTrue($soldProductWithAuthor->relationLoaded('product'));
+        $this->assertTrue($soldProductWithAuthor->product->relationLoaded('author'));
+        $this->assertSame('Test autor', $soldProductWithAuthor->product->author->title);
+
+        View::share('errors', new ViewErrorBag());
+        $user = \Mockery::mock(User::class)->makePartial();
+        $user->shouldReceive('can')->andReturn(false);
+        $this->actingAs($user);
+
+        $html = $view->render();
+        $normalizedHtml = preg_replace('/\s+/', ' ', $html);
+
+        $this->assertMatchesRegularExpression('/#' . $orderId . '.*?2 artikla.*?<\/tr>/s', $normalizedHtml);
+        $this->assertMatchesRegularExpression('/#' . $largeOrderId . '.*?21 artikl.*?<\/tr>/s', $normalizedHtml);
+        $this->assertMatchesRegularExpression('/#' . (100 + $orderId) . '.*?Knjiga s autorom.*?Autor: Test autor.*?<\/tr>/s', $normalizedHtml);
+        $this->assertMatchesRegularExpression('/#999.*?Knjiga bez autora.*?Autor: <span aria-hidden="true">—<\/span>.*?<\/tr>/s', $normalizedHtml);
+    }
+
     public function test_monthly_statistics_include_items_payment_shipping_and_status_breakdowns(): void
     {
         $newOrder = $this->createOrder(1, 40.00, '2026-04-10 09:00:00', 'Kartica', 'GLS');

@@ -83,11 +83,16 @@ class DashboardController extends Controller
 
         $orders = Order::query()
             ->select(['id', 'payment_fname', 'payment_lname', 'total', 'order_status_id', 'created_at'])
+            ->withCount('orderProducts')
             ->last(10)
             ->get();
 
         $products = OrderProduct::query()
             ->select(['id', 'product_id', 'name', 'price', 'created_at'])
+            ->with([
+                'product:id,author_id',
+                'product.author:id,title',
+            ])
             ->where('product_id', '>', 0)
             ->orderByDesc('created_at')
             ->limit(10)
