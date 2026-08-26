@@ -105,6 +105,7 @@ return [
         'all_books' => 'All books',
         'maps_and_vedute' => 'Maps and views',
         'all_maps_and_vedute' => 'All maps and views',
+        'gift_voucher' => 'Gift voucher',
         'authors' => 'Authors',
         'publishers' => 'Publishers',
         'blog' => 'Blog',

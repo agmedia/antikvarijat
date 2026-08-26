@@ -38,6 +38,53 @@
     margin-left: 0 !important;
 }
 
+.front-gift-voucher-link {
+    flex: 0 0 auto;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    padding: 0 .9rem;
+    border: 1px solid rgba(191, 167, 106, .78);
+    border-radius: 999px;
+    background: rgba(191, 167, 106, .12);
+    color: #314837;
+    font-size: .8rem;
+    font-weight: 750;
+    line-height: 1;
+    text-decoration: none;
+    transition: border-color .2s ease, background-color .2s ease, color .2s ease, transform .2s ease;
+}
+
+.front-gift-voucher-link i {
+    color: #9f8339;
+    font-size: 1rem;
+}
+
+.front-gift-voucher-link:hover,
+.front-gift-voucher-link:focus-visible,
+.front-gift-voucher-link.is-active {
+    border-color: #bfa76a;
+    background: #314837;
+    color: #fff;
+    text-decoration: none;
+}
+
+.front-gift-voucher-link:hover i,
+.front-gift-voucher-link:focus-visible i,
+.front-gift-voucher-link.is-active i {
+    color: #d6c58f;
+}
+
+.front-gift-voucher-link:hover {
+    transform: translateY(-1px);
+}
+
+.front-gift-voucher-link:focus-visible {
+    outline: 2px solid #bfa76a;
+    outline-offset: 2px;
+}
+
 .front-header-account,
 .front-header-cart,
 .front-header-cart .navbar-tool {
@@ -135,7 +182,21 @@
     }
 }
 
+@media (min-width: 992px) and (max-width: 1279.98px) {
+    .front-search-form {
+        margin-right: 1.5rem !important;
+        margin-left: 1.5rem !important;
+    }
+
+    .front-gift-voucher-link {
+        padding-right: .75rem;
+        padding-left: .75rem;
+        font-size: .76rem;
+    }
+}
+
 .front-search-form {
+    min-width: 0;
     position: relative;
     z-index: 1041;
 }

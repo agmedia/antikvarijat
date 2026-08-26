@@ -41,7 +41,7 @@ class GiftVoucherTest extends TestCase
         ]);
     }
 
-    public function test_front_routes_exist_but_are_not_linked_from_navigation_yet(): void
+    public function test_front_routes_exist_and_are_linked_from_header_navigation(): void
     {
         $this->assertSame(30, app(GiftVoucherService::class)->normalizeAmount(null));
 
@@ -59,22 +59,38 @@ class GiftVoucherTest extends TestCase
         $this->assertContains('POST', $croatianStore->methods());
         $this->assertContains('POST', $englishStore->methods());
 
-        foreach ([
-            resource_path('views/front/layouts/partials/header.blade.php'),
-            resource_path('views/front/layouts/partials/footer.blade.php'),
-            resource_path('views/back/layouts/partials/sidebar.blade.php'),
-        ] as $navigationFile) {
-            $source = file_get_contents($navigationFile);
+        $headerSource = file_get_contents(
+            resource_path('views/front/layouts/partials/header.blade.php')
+        );
 
-            $this->assertStringNotContainsString('poklon-bon', $source);
-            $this->assertStringNotContainsString('gift-voucher', $source);
-        }
+        $this->assertSame(2, substr_count($headerSource, "LocaleHelper::route('poklon-bon.create')"));
+        $this->assertStringContainsString("__('front.nav.gift_voucher')", $headerSource);
+        $this->assertStringContainsString('front-gift-voucher-link', $headerSource);
+        $this->assertSame('Poklon bon', trans('front.nav.gift_voucher', [], 'hr'));
+        $this->assertSame('Gift voucher', trans('front.nav.gift_voucher', [], 'en'));
 
         $admin = Route::getRoutes()->getByName('gift-vouchers.index');
 
         $this->assertNotNull($admin);
         $this->assertContains('auth:sanctum', $admin->gatherMiddleware());
         $this->assertContains('not.editor', $admin->gatherMiddleware());
+
+        $adminSidebarSource = file_get_contents(
+            resource_path('views/back/layouts/partials/sidebar.blade.php')
+        );
+
+        $this->assertStringContainsString("route('gift-vouchers.index')", $adminSidebarSource);
+        $this->assertStringContainsString("request()->routeIs(['gift-vouchers.*'])", $adminSidebarSource);
+        $this->assertStringContainsString('Poklon bonovi', $adminSidebarSource);
+        $this->assertStringContainsString("! auth()->user()->isAn('editor')", $adminSidebarSource);
+        $this->assertLessThan(
+            strpos($adminSidebarSource, 'Raskidi ugovora'),
+            strpos($adminSidebarSource, 'Poklon bonovi')
+        );
+        $this->assertLessThan(
+            strpos($adminSidebarSource, 'Poklon bonovi'),
+            strpos($adminSidebarSource, 'Narudžbe')
+        );
     }
 
     public function test_gift_voucher_purchase_must_remain_in_a_separate_cart(): void

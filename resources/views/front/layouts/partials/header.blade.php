@@ -42,6 +42,15 @@
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
+                <a
+                    class="front-gift-voucher-link d-none d-lg-inline-flex{{ request()->routeIs('poklon-bon.create', 'en.poklon-bon.create') ? ' is-active' : '' }}"
+                    href="{{ \App\Helpers\LocaleHelper::route('poklon-bon.create') }}"
+                    @if(request()->routeIs('poklon-bon.create', 'en.poklon-bon.create')) aria-current="page" @endif
+                >
+                    <i class="fa-solid fa-gift" aria-hidden="true"></i>
+                    <span>{{ __('front.nav.gift_voucher') }}</span>
+                </a>
+
                 @auth
                     <a class="navbar-tool ms-3 front-header-account" href="{{ \App\Helpers\LocaleHelper::route('moj-racun') }}" aria-label="{{ __('front.nav.account') }}">
                         <span class="navbar-tool-tooltip">{{ __('front.nav.account') }}</span>
@@ -150,6 +159,7 @@
                         <ul class="mobile-menu-list">
                             <li><button class="{{ $isBooksActive ? 'is-active' : '' }}" type="button" data-mobile-nav-open="books" aria-controls="mobileNavigationBooks"><span class="mobile-menu-icon"><i class="fa-regular fa-books" aria-hidden="true"></i></span><span>{{ __('front.nav.books') }}</span><i class="fa-regular fa-chevron-right" aria-hidden="true"></i></button></li>
                             <li><button class="{{ $isMapsActive ? 'is-active' : '' }}" type="button" data-mobile-nav-open="maps" aria-controls="mobileNavigationMaps"><span class="mobile-menu-icon"><i class="fa-regular fa-map" aria-hidden="true"></i></span><span>{{ __('front.nav.maps_and_vedute') }}</span><i class="fa-regular fa-chevron-right" aria-hidden="true"></i></button></li>
+                            <li><a class="{{ request()->routeIs('poklon-bon.create', 'en.poklon-bon.create') ? 'is-active' : '' }}" href="{{ \App\Helpers\LocaleHelper::route('poklon-bon.create') }}" @if(request()->routeIs('poklon-bon.create', 'en.poklon-bon.create')) aria-current="page" @endif><span class="mobile-menu-icon"><i class="fa-solid fa-gift" aria-hidden="true"></i></span><span>{{ __('front.nav.gift_voucher') }}</span><i class="fa-regular fa-chevron-right" aria-hidden="true"></i></a></li>
                             <li class="mobile-menu-separator" role="separator"></li>
                             <li><a class="{{ request()->routeIs('catalog.route.author', 'en.catalog.route.author') ? 'is-active' : '' }}" href="{{ \App\Helpers\LocaleHelper::route('catalog.route.author') }}"><span class="mobile-menu-icon"><i class="fa-regular fa-user-pen" aria-hidden="true"></i></span><span>{{ __('front.nav.authors') }}</span><i class="fa-regular fa-chevron-right" aria-hidden="true"></i></a></li>
                             <li><a class="{{ request()->routeIs('catalog.route.publisher', 'en.catalog.route.publisher') ? 'is-active' : '' }}" href="{{ \App\Helpers\LocaleHelper::route('catalog.route.publisher') }}"><span class="mobile-menu-icon"><i class="fa-regular fa-building" aria-hidden="true"></i></span><span>{{ __('front.nav.publishers') }}</span><i class="fa-regular fa-chevron-right" aria-hidden="true"></i></a></li>

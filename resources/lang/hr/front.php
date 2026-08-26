@@ -105,6 +105,7 @@ return [
         'all_books' => 'Sve knjige',
         'maps_and_vedute' => 'Zemljovidi i vedute',
         'all_maps_and_vedute' => 'Svi zemljovidi i vedute',
+        'gift_voucher' => 'Poklon bon',
         'authors' => 'Autori',
         'publishers' => 'Nakladnici',
         'blog' => 'Blog',

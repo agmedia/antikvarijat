@@ -93,6 +93,15 @@
                     </a>
                 </li>
 
+                @if(auth()->check() && ! auth()->user()->isAn('editor'))
+                    <li class="nav-main-item">
+                        <a class="nav-main-link{{ request()->routeIs(['gift-vouchers.*']) ? ' active' : '' }}" href="{{ route('gift-vouchers.index') }}">
+                            <i class="nav-main-link-icon fa-duotone fa-gift-card"></i>
+                            <span class="nav-main-link-name">Poklon bonovi</span>
+                        </a>
+                    </li>
+                @endif
+
                 <li class="nav-main-item">
                     <a class="nav-main-link{{ request()->routeIs(['contract-withdrawals.*']) ? ' active' : '' }}" href="{{ route('contract-withdrawals.index') }}">
                         <i class="nav-main-link-icon fa-duotone fa-file-signature"></i>
