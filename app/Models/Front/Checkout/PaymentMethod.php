@@ -206,6 +206,14 @@ class PaymentMethod
             return $this;
         }
 
+        if ($shipping === 'boxnow') {
+            $this->response_methods = $this->response_methods
+                ->filter(fn ($method) => in_array($method->code, $corvusCodes, true))
+                ->keyBy('code');
+
+            return $this;
+        }
+
         foreach ($restrictedCodes as $code) {
             $this->response_methods->forget($code);
         }

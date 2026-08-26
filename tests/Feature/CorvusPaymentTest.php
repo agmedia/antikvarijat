@@ -237,7 +237,7 @@ class CorvusPaymentTest extends TestCase
             ['bank', 'cod', 'corvus', 'corvus_wallets'],
             $this->paymentCodesFor('gls')
         );
-        $this->assertSame(['cod'], $this->paymentCodesFor('boxnow'));
+        $this->assertSame(['corvus', 'corvus_wallets'], $this->paymentCodesFor('boxnow'));
     }
 
     private function paymentSetting(string $code, string $title, int $sortOrder, array $data = []): array
