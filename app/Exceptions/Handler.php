@@ -24,6 +24,9 @@ class Handler extends ExceptionHandler
         'password',
         'password_confirmation',
         'recaptcha',
+        'api_key',
+        'webhook_secret',
+        'client_secret',
     ];
 
     /**

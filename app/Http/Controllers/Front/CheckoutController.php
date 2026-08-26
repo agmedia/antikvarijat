@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Front;
 use App\Helpers\LocaleHelper;
 use App\Helpers\Session\CheckoutSession;
 use App\Exceptions\GiftVoucherUnavailableException;
+use App\Exceptions\ShippingUnavailableException;
 use App\Http\Controllers\Controller;
 use App\Mail\OrderReceived;
 use App\Mail\OrderSent;
@@ -15,6 +16,9 @@ use App\Models\Front\Checkout\Order;
 use App\Models\TagManager;
 use App\Services\ProductRecommendationService;
 use App\Services\GiftVoucherService;
+use App\Services\Shipping\WoltDriveService;
+use App\Services\Shipping\WoltDriveSettingsService;
+use App\Models\Front\Checkout\GeoZone;
 use App\Models\Front\Checkout\PaymentMethod;
 use App\Models\Front\Checkout\ShippingMethod;
 use Illuminate\Http\Request;
@@ -81,8 +85,12 @@ class CheckoutController extends Controller
         }
 
         try {
+            $this->validateShippingCheckout($data);
             $data = $this->collectData($data, config('settings.order.status.unfinished'));
             $this->validateGiftVoucherCheckout($data);
+        } catch (ShippingUnavailableException $exception) {
+            return redirect(LocaleHelper::route('naplata', ['step' => 'dostava']))
+                ->with('error', $exception->getMessage());
         } catch (GiftVoucherUnavailableException $exception) {
             return redirect(LocaleHelper::route('kosarica'))->with('error', $exception->getMessage());
         }
@@ -332,6 +340,60 @@ class CheckoutController extends Controller
         $response['order_status_id'] = $order_status_id;
 
         return $response;
+    }
+
+    private function validateShippingCheckout(array $data): void
+    {
+        $shippingCode = (string) ($data['shipping'] ?? '');
+        $cart = $this->shoppingCart()->get();
+
+        if ($shippingCode === GiftVoucherService::SHIPPING_CODE) {
+            if (app(GiftVoucherService::class)->cartContainsOnlyGiftVoucher($cart)) {
+                return;
+            }
+
+            throw new ShippingUnavailableException(__('front.checkout.shipping_unavailable'));
+        }
+
+        $address = (array) ($data['address'] ?? []);
+        $geo = (new GeoZone())->findState((string) ($address['state'] ?? 'Croatia'));
+        $method = (new ShippingMethod())
+            ->findGeo((int) $geo->id, $address, $cart)
+            ->first(fn ($candidate) => (string) $candidate->code === $shippingCode);
+
+        if (! $method) {
+            throw new ShippingUnavailableException(__('front.checkout.shipping_unavailable'));
+        }
+
+        if ($shippingCode !== WoltDriveService::CARRIER) {
+            return;
+        }
+
+        $paymentCode = (string) ($data['payment'] ?? '');
+        $allowedPayments = (new PaymentMethod())
+            ->findGeo((int) $geo->id)
+            ->checkShipping($shippingCode)
+            ->resolve();
+
+        if (! $allowedPayments->contains(fn ($payment) => (string) $payment->code === $paymentCode)) {
+            throw new ShippingUnavailableException(__('front.checkout.payment_unavailable'));
+        }
+
+        if ($paymentCode === 'cod' && ! app(WoltDriveSettingsService::class)->get()['cod_enabled']) {
+            throw new ShippingUnavailableException(__('front.checkout.wolt_cod_unavailable'));
+        }
+
+        // Wolt uses cash details when calculating applicable fees. Keeping the
+        // payment in the quote fingerprint also prevents reuse of a pre-COD
+        // quote during final server-side validation.
+        $cart['payment_code'] = $paymentCode;
+        $quote = app(WoltDriveService::class)->quote($address, $cart);
+
+        if (! ($quote['available'] ?? false)) {
+            throw new ShippingUnavailableException(
+                (string) ($quote['message'] ?? __('front.checkout.wolt_unavailable'))
+            );
+        }
     }
 
     private function validateGiftVoucherCheckout(array $data): void

@@ -23,6 +23,10 @@ use App\Services\AbandonedCartReminderService;
 use App\Services\Shipping\BoxNowService;
 use App\Services\Shipping\GlsTrackingService;
 use App\Services\Shipping\OrderTrackingService;
+use App\Services\Shipping\WoltDriveAmbiguousCreateException;
+use App\Services\Shipping\WoltDriveException;
+use App\Services\Shipping\WoltDriveService;
+use App\Services\Shipping\WoltDriveSettingsService;
 use App\Services\GiftVoucherService;
 use Bouncer;
 use Illuminate\Support\Facades\Schema;
@@ -31,6 +35,7 @@ use Illuminate\Support\Str;
 class OrderController extends Controller
 {
     private const BOXNOW_SHIPMENT_LOCK_SECONDS = 180;
+    private const WOLT_DELIVERY_LOCK_SECONDS = 180;
 
     /**
      * Display a listing of the resource.
@@ -54,6 +59,7 @@ class OrderController extends Controller
             'shipping_carrier',
             'shipping_parcel_id',
             'tracking_code',
+            'shipping_tracking_status_code',
             'shipping_tracking_status',
         ];
 
@@ -455,6 +461,21 @@ class OrderController extends Controller
             return $this->sendBoxNowShipment($order);
         }
 
+        // Stari admin bookmark/generički gumb ne smije Wolt narudžbu poslati
+        // GLS-u. Preusmjeri je kroz isti zaštićeni Wolt tok.
+        if ($this->isWoltOrder($order)) {
+            return $this->api_send_wolt(
+                $request,
+                app(WoltDriveService::class),
+                app(WoltDriveSettingsService::class),
+                app(OrderTrackingService::class)
+            );
+        }
+
+        if (! $this->isGlsOrder($order)) {
+            return response()->json(['error' => 'Narudžba nema odabranu GLS dostavu.'], 422);
+        }
+
         if ($this->hasExistingShipment($order)) {
             $shipmentId = $order->tracking_code ?: $order->shipping_parcel_id;
 
@@ -512,6 +533,169 @@ class OrderController extends Controller
         ]);
 
         return response()->json(['error' => 'Greška..! Molimo pokušajte ponovo ili kontaktirajte administratora..']);
+    }
+
+    public function api_send_wolt(
+        Request $request,
+        WoltDriveService $wolt,
+        WoltDriveSettingsService $settings,
+        OrderTrackingService $trackingService
+    ) {
+        $this->authorizeWoltAdministrator($request);
+        $request->validate(['order_id' => ['required', 'integer']]);
+        $order = Order::query()->with(['products', 'totals'])->find($request->input('order_id'));
+
+        if (! $order) {
+            return response()->json(['error' => 'Narudžba nije pronađena.'], 404);
+        }
+
+        if (! $this->isWoltOrder($order)) {
+            return response()->json(['error' => 'Narudžba nema odabranu Wolt Drive dostavu.'], 422);
+        }
+
+        if (! $settings->isEnabled() || ! $settings->isReady()) {
+            return response()->json(['error' => 'Wolt Drive modul nije uključen ili konfiguracija nije potpuna.'], 422);
+        }
+
+        if (! $this->woltOrderCanBeDispatched($order, $settings)) {
+            return response()->json([
+                'error' => 'Narudžba još nije spremna za Wolt Drive. Prepaid narudžba mora biti plaćena, a otkazane i nedovršene narudžbe nije moguće poslati.',
+            ], 422);
+        }
+
+        $lock = Cache::lock(
+            'wolt-delivery-create:' . $order->id,
+            self::WOLT_DELIVERY_LOCK_SECONDS
+        );
+
+        if (! $lock->get()) {
+            return response()->json([
+                'error' => 'Kreiranje Wolt Drive dostave za ovu narudžbu već je u tijeku.',
+            ], 409);
+        }
+
+        try {
+            $order->refresh();
+            $order->load(['products', 'totals']);
+
+            if ($this->hasExistingWoltDelivery($order)) {
+                $identifier = $order->tracking_code ?: $order->shipping_parcel_id;
+
+                return response()->json([
+                    'message' => $identifier
+                        ? 'Wolt Drive dostava već je kreirana: ' . $identifier
+                        : 'Wolt Drive dostava već je kreirana za ovu narudžbu.',
+                ]);
+            }
+
+            if (! $this->woltOrderCanBeDispatched($order, $settings)) {
+                return response()->json(['error' => 'Narudžba više nije spremna za Wolt Drive.'], 422);
+            }
+
+            try {
+                $tracking = $wolt->createDelivery($order);
+                $trackingService->apply($order, $tracking);
+                OrderHistory::store($order->id, new Request([
+                    'status' => 0,
+                    'comment' => 'Wolt Drive dostava kreirana. ID: '
+                        . ($tracking['parcel_id'] ?? 'nije dostupan') . '.',
+                ]));
+
+                try {
+                    $trackingService->sendTrackingAvailableMailManually($order->fresh());
+                } catch (\Throwable $mailException) {
+                    Log::warning('Wolt Drive tracking email could not be sent.', [
+                        'order_id' => $order->id,
+                        'message' => $mailException->getMessage(),
+                    ]);
+                }
+
+                return response()->json([
+                    'message' => 'Wolt Drive dostava uspješno je kreirana: '
+                        . ($tracking['tracking_code'] ?? $tracking['parcel_id'] ?? $order->id),
+                ]);
+            } catch (WoltDriveAmbiguousCreateException $exception) {
+                Log::critical('Wolt Drive delivery create has an ambiguous result.', [
+                    'order_id' => $order->id,
+                    'message' => $exception->getMessage(),
+                ]);
+
+                return response()->json([
+                    'error' => 'Wolt nije potvrdio ishod zahtjeva. Novi zahtjev nije poslan kako se dostava ne bi duplicirala. Provjerite narudžbu u Wolt sustavu prije ponovnog pokušaja.',
+                ], 409);
+            } catch (WoltDriveException $exception) {
+                Log::warning('Wolt Drive delivery create failed.', [
+                    'order_id' => $order->id,
+                    'message' => $exception->getMessage(),
+                ]);
+
+                return response()->json(['error' => 'Wolt Drive dostavu nije moguće kreirati. Provjerite postavke i podatke narudžbe.'], 422);
+            } catch (\Throwable $exception) {
+                Log::error('Unexpected Wolt Drive delivery create failure.', [
+                    'order_id' => $order->id,
+                    'exception' => get_class($exception),
+                    'message' => $exception->getMessage(),
+                ]);
+
+                return response()->json(['error' => 'Došlo je do neočekivane greške pri slanju u Wolt Drive.'], 500);
+            }
+        } finally {
+            $lock->release();
+        }
+    }
+
+    public function api_cancel_wolt(Request $request, WoltDriveService $wolt, OrderTrackingService $trackingService)
+    {
+        $this->authorizeWoltAdministrator($request);
+        $validated = $request->validate([
+            'order_id' => ['required', 'integer'],
+            'reason' => ['required', 'string', 'min:3', 'max:500'],
+        ]);
+        $order = Order::query()->find($validated['order_id']);
+
+        if (! $order) {
+            return response()->json(['error' => 'Narudžba nije pronađena.'], 404);
+        }
+
+        if (! $this->isWoltOrder($order) || ! $this->hasExistingWoltDelivery($order)) {
+            return response()->json(['error' => 'Narudžba nema kreiranu Wolt Drive dostavu.'], 422);
+        }
+
+        if (in_array(Str::lower((string) $order->shipping_tracking_status_code), [
+            'rejected',
+            'order.rejected',
+            'cancelled',
+            'canceled',
+        ], true)) {
+            return response()->json(['message' => 'Wolt Drive dostava već je otkazana.']);
+        }
+
+        if (in_array(Str::lower((string) $order->shipping_tracking_status_code), [
+            'delivered',
+            'order.delivered',
+        ], true)) {
+            return response()->json(['error' => 'Dostavljena Wolt Drive pošiljka više se ne može otkazati.'], 422);
+        }
+
+        try {
+            $tracking = $wolt->cancel($order, $validated['reason']);
+            $trackingService->apply($order, $tracking);
+            OrderHistory::store($order->id, new Request([
+                'status' => 0,
+                'comment' => 'Wolt Drive dostava otkazana. Razlog: ' . $validated['reason'],
+            ]));
+
+            return response()->json(['message' => 'Wolt Drive dostava je otkazana.']);
+        } catch (WoltDriveException $exception) {
+            Log::warning('Wolt Drive cancellation failed.', [
+                'order_id' => $order->id,
+                'message' => $exception->getMessage(),
+            ]);
+
+            return response()->json([
+                'error' => 'Wolt Drive dostavu nije moguće otkazati automatski. Ako je preuzimanje već počelo, kontaktirajte Wolt podršku.',
+            ], 422);
+        }
     }
 
     public function api_refresh_tracking(Request $request, OrderTrackingService $trackingService)
@@ -626,6 +810,78 @@ class OrderController extends Controller
         );
 
         return Str::contains($shipping, ['boxnow', 'box now']);
+    }
+
+    private function authorizeWoltAdministrator(Request $request): void
+    {
+        // Dispatch is a privileged browser action. Do not let a Sanctum bearer
+        // token entering through a legacy shipping endpoint become equivalent
+        // to an interactive administrator session.
+        $user = auth('web')->user();
+
+        abort_unless(
+            $user
+                && $request->user()
+                && (int) $request->user()->getAuthIdentifier() === (int) $user->getAuthIdentifier()
+                && $user->isAdministrator()
+                && (bool) optional($user->details)->status,
+            403
+        );
+    }
+
+    private function isWoltOrder(Order $order): bool
+    {
+        $shipping = Str::lower(
+            (string) $order->shipping_carrier . ' '
+            . (string) $order->shipping_method . ' '
+            . (string) $order->shipping_code
+        );
+
+        return Str::contains($shipping, ['wolt_drive', 'wolt drive', 'wolt']);
+    }
+
+    private function isGlsOrder(Order $order): bool
+    {
+        $shipping = Str::lower(
+            (string) $order->shipping_carrier . ' '
+            . (string) $order->shipping_method . ' '
+            . (string) $order->shipping_code
+        );
+
+        return Str::contains($shipping, 'gls');
+    }
+
+    private function hasExistingWoltDelivery(Order $order): bool
+    {
+        return strtolower((string) $order->shipping_carrier) === WoltDriveService::CARRIER
+            && (filled($order->shipping_parcel_id) || filled($order->tracking_code));
+    }
+
+    private function woltOrderCanBeDispatched(Order $order, WoltDriveSettingsService $settings): bool
+    {
+        $status = (int) $order->order_status_id;
+        $blocked = [
+            (int) config('settings.order.status.unfinished'),
+            (int) config('settings.order.status.declined'),
+            (int) config('settings.order.status.canceled'),
+        ];
+
+        if (in_array($status, $blocked, true)) {
+            return false;
+        }
+
+        if (strtolower((string) $order->payment_code) === 'cod') {
+            return (bool) $settings->get()['cod_enabled'] && in_array($status, [
+                (int) config('settings.order.status.new'),
+                (int) config('settings.order.status.paid'),
+                (int) config('settings.order.status.send'),
+            ], true);
+        }
+
+        return in_array($status, [
+            (int) config('settings.order.status.paid'),
+            (int) config('settings.order.status.send'),
+        ], true);
     }
 
     private function hasExistingShipment(Order $order): bool

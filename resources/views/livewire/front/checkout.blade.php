@@ -304,24 +304,37 @@
                     @php($shippingTitle = \App\Helpers\LocaleHelper::localizedSettingField($s_method, 'title'))
                     @php($shippingDescription = \App\Helpers\LocaleHelper::localizedSettingDataField($s_method, 'short_description'))
                     @php($shippingTime = \App\Helpers\LocaleHelper::localizedSettingDataField($s_method, 'time'))
-                    @php($shippingIcon = $s_method->code === 'pickup' ? 'fa-store' : (strpos($s_method->code, 'paketomat') !== false || strpos($s_method->code, 'box') !== false ? 'fa-box' : 'fa-truck-fast'))
-                    <tr class="checkout-option-row {{ $shipping === $s_method->code ? 'is-selected' : '' }}" wire:click="selectShipping('{{ $s_method->code }}')" style="cursor: pointer;">
+                    @php($isWolt = $s_method->code === \App\Services\Shipping\WoltDriveService::CARRIER)
+                    @php($woltUnavailable = $isWolt && $woltAvailable === false)
+                    @php($shippingPrice = app(\App\Services\Shipping\ShippingRuleService::class)->priceFor($s_method, (float) $cartSubtotal, $isWolt ? $woltQuotePrice : null))
+                    @php($shippingIcon = $s_method->code === 'pickup' ? 'fa-store' : ($isWolt ? 'fa-motorcycle' : (strpos($s_method->code, 'paketomat') !== false || strpos($s_method->code, 'box') !== false ? 'fa-box' : 'fa-truck-fast')))
+                    <tr class="checkout-option-row {{ $shipping === $s_method->code ? 'is-selected' : '' }} {{ $woltUnavailable ? 'text-muted' : '' }}"
+                        @unless($woltUnavailable) wire:click="selectShipping('{{ $s_method->code }}')" @endunless
+                        style="cursor: {{ $woltUnavailable ? 'not-allowed' : 'pointer' }}; {{ $woltUnavailable ? 'opacity: .72;' : '' }}"
+                        @if($woltUnavailable) aria-disabled="true" @endif>
                         <td class="checkout-option-icon-cell">
-                            <input class="checkout-option-radio" id="shipping-{{ $s_method->code }}" type="radio" value="{{ $s_method->code }}" wire:model="shipping" aria-label="{{ $shippingTitle }}">
+                            <input class="checkout-option-radio" id="shipping-{{ $s_method->code }}" type="radio" value="{{ $s_method->code }}" wire:model="shipping" aria-label="{{ $shippingTitle }}" @if($woltUnavailable) disabled @endif>
                             <span class="checkout-method-icon"><i class="fa-solid {{ $shippingIcon }}" aria-hidden="true"></i></span>
                         </td>
-                        <td class="align-middle"><label class="text-dark fw-semibold mb-1" for="shipping-{{ $s_method->code }}">{{ $shippingTitle }}</label><br><span class="text-muted checkout-option-description">{!! $shippingDescription !!}</span>@if (trim(strip_tags((string) $shippingTime)) !== '')<span class="checkout-option-mobile-time">{{ $shippingTime }}</span>@endif</td>
+                        <td class="align-middle">
+                            <label class="text-dark fw-semibold mb-1" for="shipping-{{ $s_method->code }}">{{ $shippingTitle }}</label>
+                            @if($woltUnavailable)<span class="badge badge-secondary ml-1">{{ __('front.checkout.not_available') }}</span>@endif
+                            <br><span class="text-muted checkout-option-description">{!! $shippingDescription !!}</span>
+                            @if($woltUnavailable && $woltUnavailableReason)<br><span class="text-danger">{{ $woltUnavailableReason }}</span>@endif
+                            @if($isWolt && $woltAvailable === true && $woltEtaMinutes)<br><span class="text-success">{{ __('front.checkout.wolt_eta', ['minutes' => $woltEtaMinutes]) }}</span>@endif
+                            @if (trim(strip_tags((string) $shippingTime)) !== '')<span class="checkout-option-mobile-time">{{ $shippingTime }}</span>@endif
+                        </td>
                         <td class="align-middle">{{ $shippingTime }}</td>
                         <td class="align-middle fw-semibold text-nowrap">
-                            @if ($is_free_shipping)
+                            @if ($shippingPrice <= 0)
                                 € 0
                                 @if ($secondary_price)
                                     <br>0 kn
                                 @endif
                             @else
-                                € {{ $s_method->data->price }}
+                                € {{ number_format($shippingPrice, 2, ',', '.') }}
                                 @if ($secondary_price)
-                                    <br>{{ $s_method->data->price ? number_format($s_method->data->price * $secondary_price, 2) : '0' }} kn
+                                    <br>{{ number_format($shippingPrice * $secondary_price, 2, ',', '.') }} kn
                                 @endif
                             @endif
                         </td>

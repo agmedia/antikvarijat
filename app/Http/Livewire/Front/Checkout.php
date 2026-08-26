@@ -17,6 +17,7 @@ use App\Services\AddressDirectoryService;
 use App\Services\CheckoutAccountService;
 use App\Services\GiftVoucherService;
 use App\Services\Shipping\BoxNowSettingsService;
+use App\Services\Shipping\WoltDriveService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
@@ -93,6 +94,14 @@ class Checkout extends Component
     public $view_comment = false;
 
     public $view_boxnow = false;
+
+    public $woltAvailable = null;
+
+    public $woltUnavailableReason = '';
+
+    public $woltQuotePrice = null;
+
+    public $woltEtaMinutes = null;
 
     public $gift_voucher_only = false;
 
@@ -246,6 +255,10 @@ class Checkout extends Component
 
     public function updatedAddress($value, $key)
     {
+        if (in_array($key, ['address', 'city', 'zip', 'state', 'phone'], true)) {
+            $this->invalidateWoltSelection();
+        }
+
         if (! in_array($key, ['zip', 'city'], true)) {
             CheckoutSession::setAddress($this->address);
 
@@ -318,6 +331,10 @@ class Checkout extends Component
                 $this->registerCheckoutAccount();
                 $this->syncNewsletterSubscription();
 
+                if ($step === 'dostava' || $this->shipping === WoltDriveService::CARRIER) {
+                    $this->refreshWoltAvailability();
+                }
+
                 if ($step == 'dostava' && $this->shipping != '') {
                     $this->checkShipping($this->shipping);
                     $this->gdl = TagManager::getGoogleCartDataLayer($this->cart->get());
@@ -384,6 +401,7 @@ class Checkout extends Component
      */
     public function stateSelected($state)
     {
+        $this->invalidateWoltSelection();
         $this->setAddress(['state' => $state], true);
 
         if ($this->isCroatia((string) $this->address['state'])) {
@@ -411,6 +429,40 @@ class Checkout extends Component
     {
         if ($this->gift_voucher_only) {
             $shipping = GiftVoucherService::SHIPPING_CODE;
+        }
+
+        $this->checkCart();
+        $geo = (new GeoZone())->findState($this->address['state'] ?: 'Croatia');
+        $cartData = $this->cart ? $this->cart->get() : [];
+        if ($this->cart && isset($geo->id)) {
+            $availableMethods = (new ShippingMethod())->findGeo((int) $geo->id, $this->address, $cartData);
+
+            if (! $availableMethods->contains(fn ($method) => (string) $method->code === $shipping)) {
+                $this->addError('shipping', __('front.checkout.shipping_unavailable'));
+
+                return;
+            }
+        } elseif ($shipping === WoltDriveService::CARRIER) {
+            // A Wolt quote is meaningful only for a real cart and resolved
+            // delivery zone. Final checkout validation remains fail-closed.
+            $this->addError('shipping', __('front.checkout.shipping_unavailable'));
+
+            return;
+        }
+
+        if ($shipping === WoltDriveService::CARRIER) {
+            // Shipping is selected before payment, so do not carry a payment
+            // from a previously selected shipping method into this quote.
+            $this->refreshWoltAvailability('');
+
+            if ($this->woltAvailable !== true) {
+                $this->addError(
+                    'shipping',
+                    $this->woltUnavailableReason ?: __('front.checkout.wolt_unavailable')
+                );
+
+                return;
+            }
         }
 
         if (CheckoutSession::getShipping() !== $shipping) {
@@ -455,6 +507,21 @@ class Checkout extends Component
 
         CheckoutSession::setPayment($payment);
 
+        if ($this->shipping === WoltDriveService::CARRIER) {
+            // Cash usage can change Wolt's provider fee. Re-quote with the
+            // selected payment before the checkout total is finalized.
+            $this->refreshWoltAvailability($payment);
+
+            if ($this->woltAvailable !== true) {
+                $this->addError(
+                    'payment',
+                    $this->woltUnavailableReason ?: __('front.checkout.wolt_unavailable')
+                );
+
+                return;
+            }
+        }
+
         $this->dispatchBrowserEvent('checkout-option-saved', [
             'message' => __('front.checkout.payment_saved'),
         ]);
@@ -467,11 +534,13 @@ class Checkout extends Component
     public function render()
     {
         $geo = (new GeoZone())->findState($this->address['state'] ?: 'Croatia');
+        $cartData = $this->cart ? $this->cart->get() : [];
 
         return view('livewire.front.checkout', [
-            'shippingMethods' => (new ShippingMethod())->findGeo($geo->id),
+            'shippingMethods' => (new ShippingMethod())->findGeo($geo->id, $this->address, $cartData),
             'paymentMethods' => (new PaymentMethod())->findGeo($geo->id)->checkShipping($this->shipping)->resolve(),
-            'countries' => Country::list()
+            'countries' => Country::list(),
+            'cartSubtotal' => (float) ($cartData['subtotal'] ?? 0),
         ]);
     }
 
@@ -646,6 +715,66 @@ class Checkout extends Component
         }
 
         CheckoutSession::setAddress($this->address);
+    }
+
+    private function refreshWoltAvailability(?string $paymentCode = null): void
+    {
+        $this->checkCart();
+        $geo = (new GeoZone())->findState($this->address['state'] ?: 'Croatia');
+        $cartData = $this->cart ? $this->cart->get() : [];
+        $paymentCode = $paymentCode === null ? (string) $this->payment : $paymentCode;
+
+        if ($paymentCode !== '') {
+            $cartData['payment_code'] = $paymentCode;
+        }
+
+        $hasWolt = (new ShippingMethod())
+            ->findGeo($geo->id, $this->address, $cartData)
+            ->contains(fn ($method) => (string) $method->code === WoltDriveService::CARRIER);
+
+        if (! $hasWolt) {
+            $this->woltAvailable = null;
+            $this->woltUnavailableReason = '';
+            $this->woltQuotePrice = null;
+            $this->woltEtaMinutes = null;
+
+            return;
+        }
+
+        $availability = app(WoltDriveService::class)->quote($this->address, $cartData);
+        $this->woltAvailable = (bool) ($availability['available'] ?? false);
+        $this->woltUnavailableReason = (string) ($availability['message'] ?? '');
+        $this->woltQuotePrice = isset($availability['price']) ? (float) $availability['price'] : null;
+        $this->woltEtaMinutes = isset($availability['eta_minutes'])
+            ? (int) $availability['eta_minutes']
+            : null;
+
+        if ($this->woltAvailable || $this->shipping !== WoltDriveService::CARRIER) {
+            return;
+        }
+
+        $this->shipping = '';
+        $this->payment = '';
+        CheckoutSession::forgetShipping();
+        CheckoutSession::forgetPayment();
+    }
+
+    private function invalidateWoltSelection(): void
+    {
+        app(WoltDriveService::class)->forgetCheckoutQuote();
+        $this->woltAvailable = null;
+        $this->woltUnavailableReason = '';
+        $this->woltQuotePrice = null;
+        $this->woltEtaMinutes = null;
+
+        if ($this->shipping !== WoltDriveService::CARRIER) {
+            return;
+        }
+
+        $this->shipping = '';
+        $this->payment = '';
+        CheckoutSession::forgetShipping();
+        CheckoutSession::forgetPayment();
     }
 
     private function isCroatia(string $country): bool

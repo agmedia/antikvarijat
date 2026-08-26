@@ -6,6 +6,8 @@ use App\Helpers\LocaleHelper;
 use App\Helpers\Session\CheckoutSession;
 use App\Models\Back\Settings\Settings;
 use App\Services\GiftVoucherService;
+use App\Services\Shipping\WoltDriveService;
+use App\Services\Shipping\WoltDriveSettingsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -209,6 +211,20 @@ class PaymentMethod
         if ($shipping === 'boxnow') {
             $this->response_methods = $this->response_methods
                 ->filter(fn ($method) => in_array($method->code, $corvusCodes, true))
+                ->keyBy('code');
+
+            return $this;
+        }
+
+        if ($shipping === WoltDriveService::CARRIER) {
+            $allowedCodes = array_merge(['bank'], $corvusCodes);
+
+            if (app(WoltDriveSettingsService::class)->get()['cod_enabled']) {
+                $allowedCodes[] = 'cod';
+            }
+
+            $this->response_methods = $this->response_methods
+                ->filter(fn ($method) => in_array($method->code, $allowedCodes, true))
                 ->keyBy('code');
 
             return $this;

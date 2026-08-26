@@ -41,6 +41,22 @@ class OrderTrackingService
             return $this->apply($order, $this->boxNow->track($order));
         }
 
+        if ($carrier === WoltDriveService::CARRIER) {
+            return [
+                'updated' => false,
+                'message' => 'Wolt Drive status prima se automatski putem webhooka.',
+                'tracking' => [
+                    'carrier' => WoltDriveService::CARRIER,
+                    'parcel_id' => $order->shipping_parcel_id,
+                    'tracking_code' => $order->tracking_code,
+                    'tracking_url' => $order->shipping_tracking_url,
+                    'status_code' => $order->shipping_tracking_status_code,
+                    'status' => $order->shipping_tracking_status,
+                    'tracked_at' => $order->shipping_tracking_updated_at,
+                ],
+            ];
+        }
+
         throw new RuntimeException('Praćenje nije podržano za ovaj način dostave.');
     }
 
@@ -103,7 +119,7 @@ class OrderTrackingService
         if (filled($order->shipping_carrier)) {
             $carrier = strtolower((string) $order->shipping_carrier);
 
-            return in_array($carrier, [GlsTrackingService::CARRIER, BoxNowService::CARRIER], true)
+            return in_array($carrier, [GlsTrackingService::CARRIER, BoxNowService::CARRIER, WoltDriveService::CARRIER], true)
                 ? $carrier
                 : null;
         }
@@ -114,6 +130,10 @@ class OrderTrackingService
             return BoxNowService::CARRIER;
         }
 
+        if (Str::contains($shipping, ['wolt_drive', 'wolt drive', 'wolt'])) {
+            return WoltDriveService::CARRIER;
+        }
+
         return Str::contains($shipping, 'gls') ? GlsTrackingService::CARRIER : null;
     }
 
@@ -122,6 +142,7 @@ class OrderTrackingService
         return [
             GlsTrackingService::CARRIER => 'GLS',
             BoxNowService::CARRIER => 'Box Now',
+            WoltDriveService::CARRIER => 'Wolt Drive',
         ][$carrier] ?? 'Dostava';
     }
 

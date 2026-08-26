@@ -269,7 +269,17 @@
                                     @endif
                                     @php($shipmentCarrierHint = \Illuminate\Support\Str::lower($order->shipping_carrier . ' ' . $order->shipping_method . ' ' . $order->shipping_code))
                                     @php($hasShipment = $order->printed || filled($order->shipping_parcel_id) || filled($order->tracking_code))
-                                    @if($hasShipment)
+                                    @php($isWoltShipment = \Illuminate\Support\Str::contains($shipmentCarrierHint, ['wolt_drive', 'wolt drive', 'wolt']))
+                                    @php($hasWoltDelivery = filled($order->shipping_parcel_id) || filled($order->tracking_code))
+                                    @php($woltTerminal = in_array(\Illuminate\Support\Str::lower((string) $order->shipping_tracking_status_code), ['delivered', 'order.delivered', 'rejected', 'order.rejected', 'cancelled', 'canceled'], true))
+                                    @if($isWoltShipment && $hasWoltDelivery)
+                                        <button type="button" class="btn btn-light btn-sm disabled" disabled title="Pošiljka je kreirana"><i class="fa-duotone fa-check text-success"></i></button>
+                                        @unless($woltTerminal)
+                                            <button type="button" class="btn btn-alt-danger btn-sm" onclick="cancelWolt({{ $order->id }})" title="Otkaži Wolt Drive dostavu" aria-label="Otkaži Wolt Drive dostavu za narudžbu {{ $order->id }}"><i class="fa-duotone fa-ban"></i></button>
+                                        @endunless
+                                    @elseif($isWoltShipment)
+                                        <button type="button" class="btn btn-alt-primary btn-sm" onclick="sendWolt({{ $order->id }})" title="Pošalji u Wolt Drive" aria-label="Pošalji narudžbu {{ $order->id }} u Wolt Drive"><i class="fa-duotone fa-motorcycle"></i></button>
+                                    @elseif($hasShipment)
                                         <button type="button" class="btn btn-light btn-sm disabled" disabled title="Pošiljka je kreirana"><i class="fa-duotone fa-check text-success"></i></button>
                                     @elseif(\Illuminate\Support\Str::contains($shipmentCarrierHint, ['boxnow', 'box now']))
                                         <button type="button" class="btn btn-alt-warning btn-sm" onclick="sendBoxNow({{ $order->id }})" title="Pošalji u Box Now" aria-label="Pošalji narudžbu {{ $order->id }} u Box Now"><i class="fa-duotone fa-box"></i></button>
@@ -492,6 +502,30 @@
 
         function sendBoxNow(order_id) {
             sendShipment(order_id, "{{ route('api.order.send.boxnow') }}");
+        }
+
+        function sendWolt(order_id) {
+            sendShipment(order_id, "{{ route('api.order.send.wolt') }}");
+        }
+
+        function cancelWolt(order_id) {
+            const reason = window.prompt('Razlog otkazivanja Wolt Drive dostave:', 'Otkazano iz Biblos administracije.');
+
+            if (!reason || reason.trim().length < 3) {
+                return;
+            }
+
+            axios.post("{{ route('api.order.cancel.wolt') }}", {
+                order_id: order_id,
+                reason: reason.trim(),
+            }).then(response => {
+                successToast.fire({ timer: 1500, text: response.data.message })
+                    .then(() => location.reload());
+            }).catch(error => {
+                return errorToast.fire(error.response && error.response.data
+                    ? (error.response.data.error || error.response.data.message)
+                    : 'Otkazivanje Wolt Drive dostave nije uspjelo.');
+            });
         }
     </script>
     <script>

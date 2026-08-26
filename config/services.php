@@ -87,6 +87,28 @@ return [
         'allow_return' => env('BOXNOW_ALLOW_RETURN', true),
     ],
 
+    // Optional bootstrap values. Once saved in the administration, Wolt
+    // settings are read from the database and secrets remain encrypted there.
+    'wolt' => [
+        'module_enabled' => env('WOLT_DRIVE_ENABLED', false),
+        'environment' => env('WOLT_DRIVE_ENVIRONMENT', 'development'),
+        'api_key' => env('WOLT_DRIVE_API_KEY'),
+        'webhook_secret' => env('WOLT_DRIVE_WEBHOOK_SECRET'),
+        'merchant_id' => env('WOLT_DRIVE_MERCHANT_ID'),
+        'venue_id' => env('WOLT_DRIVE_VENUE_ID'),
+        'availability_cache_seconds' => env('WOLT_DRIVE_CACHE_SECONDS', 300),
+        'preparation_time_minutes' => env('WOLT_DRIVE_PREPARATION_MINUTES', 30),
+        'request_timeout_seconds' => env('WOLT_DRIVE_TIMEOUT_SECONDS', 20),
+        'fallback_weight_grams' => env('WOLT_DRIVE_FALLBACK_WEIGHT_GRAMS', 500),
+        'cod_enabled' => env('WOLT_DRIVE_COD_ENABLED', false),
+        'pricing_mode' => env('WOLT_DRIVE_PRICING_MODE', 'fixed'),
+        'quote_markup_percent' => env('WOLT_DRIVE_QUOTE_MARKUP_PERCENT', 0),
+        'max_quote_price' => env('WOLT_DRIVE_MAX_QUOTE_PRICE', 0),
+        'support_url' => env('WOLT_DRIVE_SUPPORT_URL', env('APP_URL')),
+        'support_email' => env('WOLT_DRIVE_SUPPORT_EMAIL', env('MAIL_FROM_ADDRESS')),
+        'support_phone' => env('WOLT_DRIVE_SUPPORT_PHONE'),
+    ],
+
     /*******************************************************************************
      *                              END Copyright : AGmedia                         *
      *******************************************************************************/

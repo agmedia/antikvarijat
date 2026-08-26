@@ -30,6 +30,7 @@ use App\Http\Controllers\Back\Settings\FaqController;
 use App\Http\Controllers\Back\Settings\GoogleApiController;
 use App\Http\Controllers\Back\Settings\GoogleLoginSettingsController;
 use App\Http\Controllers\Back\Settings\BoxNowSettingsController;
+use App\Http\Controllers\Back\Settings\WoltDriveSettingsController;
 use App\Http\Controllers\Back\Settings\HistoryController;
 use App\Http\Controllers\Back\Settings\PageController;
 use App\Http\Controllers\Back\Settings\QuickMenuController;
@@ -261,6 +262,9 @@ Route::middleware(['auth:sanctum', 'verified', 'no.customers'])->prefix('admin')
         Route::get('google-login', [GoogleLoginSettingsController::class, 'edit'])->name('google-login.edit');
         Route::patch('google-login', [GoogleLoginSettingsController::class, 'update'])->name('google-login.update');
         Route::patch('boxnow', [BoxNowSettingsController::class, 'update'])->name('boxnow-settings.update');
+        Route::patch('wolt-drive', [WoltDriveSettingsController::class, 'update'])
+            ->middleware(['auth:web', 'not.editor'])
+            ->name('wolt-settings.update');
         // INFO PAGES
         Route::get('pages', [PageController::class, 'index'])->name('pages');
         Route::get('page/create', [PageController::class, 'create'])->name('pages.create');
@@ -414,6 +418,12 @@ Route::prefix('api/v2')->group(function () {
                 Route::post('send/gls', [OrderController::class, 'api_send_gls'])
                     ->middleware(['auth:sanctum', 'verified', 'no.customers'])
                     ->name('api.order.send.gls');
+                Route::post('send/wolt', [OrderController::class, 'api_send_wolt'])
+                    ->middleware(['auth:web', 'verified', 'no.customers', 'not.editor'])
+                    ->name('api.order.send.wolt');
+                Route::post('cancel/wolt', [OrderController::class, 'api_cancel_wolt'])
+                    ->middleware(['auth:web', 'verified', 'no.customers', 'not.editor'])
+                    ->name('api.order.cancel.wolt');
                 Route::post('send/tracking-email', [OrderController::class, 'api_send_tracking_email'])->name('api.order.send.tracking-email');
                 Route::post('tracking/refresh', [OrderController::class, 'api_refresh_tracking'])->name('api.order.tracking.refresh');
             });
@@ -424,7 +434,9 @@ Route::prefix('api/v2')->group(function () {
             });
             // SHIPMENTS
             Route::prefix('shipping')->group(function () {
-                Route::post('store', [ShippingController::class, 'store'])->name('api.shipping.store');
+                Route::post('store', [ShippingController::class, 'store'])
+                    ->middleware(['auth:web', 'not.editor'])
+                    ->name('api.shipping.store');
                 Route::post('destroy', [ShippingController::class, 'destroy'])->name('api.shipping.destroy');
             });
             // TAXES

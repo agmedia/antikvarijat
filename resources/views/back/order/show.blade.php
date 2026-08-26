@@ -279,6 +279,8 @@
             $trackingCarrier = $trackingService->resolveCarrier($order);
             $trackingUrl = $trackingService->trackingUrlForOrder($order);
             $hasTrackingIdentifier = filled($order->tracking_code) || filled($order->shipping_parcel_id);
+            $isWoltTracking = $trackingCarrier === \App\Services\Shipping\WoltDriveService::CARRIER;
+            $woltTrackingTerminal = in_array(\Illuminate\Support\Str::lower((string) $order->shipping_tracking_status_code), ['delivered', 'order.delivered', 'rejected', 'order.rejected', 'cancelled', 'canceled'], true);
         @endphp
 
         @if($trackingCarrier || $hasTrackingIdentifier || $order->shipping_tracking_status)
@@ -286,7 +288,15 @@
                 <div class="block-header block-header-default">
                     <h3 class="block-title">Praćenje dostave</h3>
                     <div class="block-options">
-                        @if($hasTrackingIdentifier)
+                        @if($isWoltTracking && ! $hasTrackingIdentifier)
+                            <button type="button" class="btn btn-sm btn-alt-primary" onclick="sendWoltDelivery({{ $order->id }})">
+                                Pošalji u Wolt <i class="fa-duotone fa-motorcycle ml-1"></i>
+                            </button>
+                        @elseif($isWoltTracking && ! $woltTrackingTerminal)
+                            <button type="button" class="btn btn-sm btn-alt-danger" onclick="cancelWoltDelivery({{ $order->id }})">
+                                Otkaži Wolt <i class="fa-duotone fa-ban ml-1"></i>
+                            </button>
+                        @elseif($hasTrackingIdentifier && ! $isWoltTracking)
                             <button type="button" class="btn btn-sm btn-alt-primary" data-tracking-btn="{{ $order->id }}" onclick="refreshTracking({{ $order->id }})">
                                 Osvježi <i class="fa fa-sync-alt ml-1"></i>
                             </button>
@@ -585,6 +595,22 @@
             button.innerHTML = isLoading
                 ? 'Šaljem <i class="fa fa-spinner fa-spin ml-1"></i>'
                 : 'Pošalji';
+        }
+
+        function sendWoltDelivery(orderId) {
+            axios.post("{{ route('api.order.send.wolt') }}", { order_id: orderId })
+                .then(response => successToast.fire({ timer: 1500, text: response.data.message }).then(() => location.reload()))
+                .catch(error => errorToast.fire(error?.response?.data?.error || 'Slanje u Wolt Drive nije uspjelo.'));
+        }
+
+        function cancelWoltDelivery(orderId) {
+            const reason = window.prompt('Razlog otkazivanja Wolt Drive dostave:', 'Otkazano iz Biblos administracije.');
+
+            if (!reason || reason.trim().length < 3) return;
+
+            axios.post("{{ route('api.order.cancel.wolt') }}", { order_id: orderId, reason: reason.trim() })
+                .then(response => successToast.fire({ timer: 1500, text: response.data.message }).then(() => location.reload()))
+                .catch(error => errorToast.fire(error?.response?.data?.error || 'Otkazivanje Wolt Drive dostave nije uspjelo.'));
         }
     </script>
 
