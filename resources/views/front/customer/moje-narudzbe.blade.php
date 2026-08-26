@@ -1,11 +1,15 @@
 @extends('front.layouts.app')
 
 @section('content')
-    @php($trackingService = app(\App\Services\Shipping\OrderTrackingService::class))
+    @php
+        $trackingService = app(\App\Services\Shipping\OrderTrackingService::class);
+    @endphp
     @foreach ($orders as $order)
-        @php($trackingUrl = $trackingService->trackingUrlForOrder($order))
-        @php($trackingCarrier = $trackingService->resolveCarrier($order))
-        @php($trackingCarrierLabel = $trackingService->carrierLabel($trackingCarrier))
+        @php
+            $trackingUrl = $trackingService->trackingUrlForOrder($order);
+            $trackingCarrier = $trackingService->resolveCarrier($order);
+            $trackingCarrierLabel = $trackingService->carrierLabel($trackingCarrier);
+        @endphp
         <div class="modal fade" id="order-details{{ $order->id }}" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg modal-dialog-scrollable">
                 <div class="modal-content">
@@ -76,7 +80,9 @@
                     </div>
                     <div class="modal-footer flex-wrap justify-content-between bg-secondary fs-md">
                         @foreach ($order->totals as $total)
-                            @php($totalKey = 'front.email.total_' . $total->code)
+                            @php
+                                $totalKey = 'front.email.total_' . $total->code;
+                            @endphp
                             <div class="px-2 py-1"><span class="text-muted">{{ trans($totalKey) !== $totalKey ? trans($totalKey) : $total->title }}:&nbsp;</span><strong>{{ number_format($total->value, 2, ',', '.') }} €</strong></div>
                         @endforeach
                     </div>
