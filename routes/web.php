@@ -219,14 +219,16 @@ Route::middleware(['auth:sanctum', 'verified', 'no.customers'])->prefix('admin')
     });
 
     // KORISNICI
-    Route::get('users', [UserController::class, 'index'])->name('users');
-    Route::get('user/create', [UserController::class, 'create'])->name('users.create');
-    Route::post('user', [UserController::class, 'store'])->name('users.store');
-    Route::get('user/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
-    Route::patch('user/{user}', [UserController::class, 'update'])->name('users.update');
-    Route::post('user/{user}/impersonate', [UserImpersonationController::class, 'start'])
-        ->middleware(['auth:web', 'not.editor', 'throttle:10,1'])
-        ->name('users.impersonate');
+    Route::middleware('not.editor')->group(function () {
+        Route::get('users', [UserController::class, 'index'])->name('users');
+        Route::get('user/create', [UserController::class, 'create'])->name('users.create');
+        Route::post('user', [UserController::class, 'store'])->name('users.store');
+        Route::get('user/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
+        Route::patch('user/{user}', [UserController::class, 'update'])->name('users.update');
+        Route::post('user/{user}/impersonate', [UserImpersonationController::class, 'start'])
+            ->middleware(['auth:web', 'throttle:10,1'])
+            ->name('users.impersonate');
+    });
 
 
     Route::get('wishlists', [WishlistController::class, 'index'])->name('wishlists');
@@ -235,7 +237,7 @@ Route::middleware(['auth:sanctum', 'verified', 'no.customers'])->prefix('admin')
     Route::redirect('admin/wishlists', '/admin/wishlists');
 
     // WIDGETS
-    Route::prefix('widgets')->group(function () {
+    Route::prefix('widgets')->middleware('not.editor')->group(function () {
         Route::get('/', [WidgetController::class, 'index'])->name('widgets');
         Route::get('create', [WidgetController::class, 'create'])->name('widget.create');
         Route::post('/', [WidgetController::class, 'store'])->name('widget.store');
@@ -251,7 +253,7 @@ Route::middleware(['auth:sanctum', 'verified', 'no.customers'])->prefix('admin')
     });
 
     // POSTAVKE
-    Route::prefix('settings')->group(function () {
+    Route::prefix('settings')->middleware('not.editor')->group(function () {
         // API
         Route::get('api', [ApiController::class, 'index'])->name('api.index');
         Route::get('google-api', [GoogleApiController::class, 'index'])->name('google.api.index');
@@ -310,9 +312,11 @@ Route::middleware(['auth:sanctum', 'verified', 'no.customers'])->prefix('admin')
     });
 
     // SETTINGS
-    Route::get('/clean/cache', [QuickMenuController::class, 'cache'])->name('cache');
-    Route::get('maintenance/on', [QuickMenuController::class, 'maintenanceModeON'])->name('maintenance.on');
-    Route::get('maintenance/off', [QuickMenuController::class, 'maintenanceModeOFF'])->name('maintenance.off');
+    Route::middleware('not.editor')->group(function () {
+        Route::get('/clean/cache', [QuickMenuController::class, 'cache'])->name('cache');
+        Route::get('maintenance/on', [QuickMenuController::class, 'maintenanceModeON'])->name('maintenance.on');
+        Route::get('maintenance/off', [QuickMenuController::class, 'maintenanceModeOFF'])->name('maintenance.off');
+    });
 });
 
 Route::post('/impersonacija/prekini', [UserImpersonationController::class, 'stop'])
@@ -390,12 +394,12 @@ Route::prefix('api/v2')->group(function () {
         // FRONT SETTINGS LIST
         Route::get('/get', [SettingsController::class, 'get']);
         // WIDGET
-        Route::prefix('widget')->group(function () {
+        Route::prefix('widget')->middleware(['auth:web', 'verified', 'no.customers', 'not.editor'])->group(function () {
             Route::post('destroy', [WidgetController::class, 'destroy'])->name('widget.destroy');
             Route::get('get-links', [WidgetController::class, 'getLinks'])->name('widget.api.get-links');
         });
         // API
-        Route::prefix('api')->group(function () {
+        Route::prefix('api')->middleware(['auth:web', 'verified', 'no.customers', 'not.editor'])->group(function () {
             Route::post('import', [ApiController::class, 'import'])->name('api.api.import');
             Route::post('upload/excel', [ApiController::class, 'upload'])->name('api.api.upload');
         });
@@ -409,8 +413,12 @@ Route::prefix('api/v2')->group(function () {
             });*/
             // ORDER STATUS
             Route::prefix('order-status')->group(function () {
-                Route::post('store', [OrderStatusController::class, 'store'])->name('api.order.status.store');
-                Route::post('destroy', [OrderStatusController::class, 'destroy'])->name('api.order.status.destroy');
+                Route::post('store', [OrderStatusController::class, 'store'])
+                    ->middleware(['auth:web', 'verified', 'no.customers', 'not.editor'])
+                    ->name('api.order.status.store');
+                Route::post('destroy', [OrderStatusController::class, 'destroy'])
+                    ->middleware(['auth:web', 'verified', 'no.customers', 'not.editor'])
+                    ->name('api.order.status.destroy');
                 Route::post('change', [OrderController::class, 'api_status_change'])->name('api.order.status.change');
                 Route::post('send/boxnow', [OrderController::class, 'api_send_boxnow'])
                     ->middleware(['auth:sanctum', 'verified', 'no.customers'])
@@ -428,24 +436,22 @@ Route::prefix('api/v2')->group(function () {
                 Route::post('tracking/refresh', [OrderController::class, 'api_refresh_tracking'])->name('api.order.tracking.refresh');
             });
             // PAYMENTS
-            Route::prefix('payment')->group(function () {
+            Route::prefix('payment')->middleware(['auth:web', 'verified', 'no.customers', 'not.editor'])->group(function () {
                 Route::post('store', [PaymentController::class, 'store'])->name('api.payment.store');
                 Route::post('destroy', [PaymentController::class, 'destroy'])->name('api.payment.destroy');
             });
             // SHIPMENTS
-            Route::prefix('shipping')->group(function () {
-                Route::post('store', [ShippingController::class, 'store'])
-                    ->middleware(['auth:web', 'not.editor'])
-                    ->name('api.shipping.store');
+            Route::prefix('shipping')->middleware(['auth:web', 'verified', 'no.customers', 'not.editor'])->group(function () {
+                Route::post('store', [ShippingController::class, 'store'])->name('api.shipping.store');
                 Route::post('destroy', [ShippingController::class, 'destroy'])->name('api.shipping.destroy');
             });
             // TAXES
-            Route::prefix('taxes')->group(function () {
+            Route::prefix('taxes')->middleware(['auth:web', 'verified', 'no.customers', 'not.editor'])->group(function () {
                 Route::post('store', [TaxController::class, 'store'])->name('api.taxes.store');
                 Route::post('destroy', [TaxController::class, 'destroy'])->name('api.taxes.destroy');
             });
             // CURRENCIES
-            Route::prefix('currencies')->group(function () {
+            Route::prefix('currencies')->middleware(['auth:web', 'verified', 'no.customers', 'not.editor'])->group(function () {
                 Route::post('store', [CurrencyController::class, 'store'])->name('api.currencies.store');
                 Route::post('store/main', [CurrencyController::class, 'storeMain'])->name('api.currencies.store.main');
                 Route::post('destroy', [CurrencyController::class, 'destroy'])->name('api.currencies.destroy');

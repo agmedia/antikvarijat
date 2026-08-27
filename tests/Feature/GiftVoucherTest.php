@@ -82,7 +82,7 @@ class GiftVoucherTest extends TestCase
         $this->assertStringContainsString("route('gift-vouchers.index')", $adminSidebarSource);
         $this->assertStringContainsString("request()->routeIs(['gift-vouchers.*'])", $adminSidebarSource);
         $this->assertStringContainsString('Poklon bonovi', $adminSidebarSource);
-        $this->assertStringContainsString("! auth()->user()->isAn('editor')", $adminSidebarSource);
+        $this->assertStringContainsString("! auth()->user()->isEditor()", $adminSidebarSource);
         $this->assertLessThan(
             strpos($adminSidebarSource, 'Raskidi ugovora'),
             strpos($adminSidebarSource, 'Poklon bonovi')

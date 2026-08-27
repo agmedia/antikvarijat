@@ -42,13 +42,15 @@
                         <a class="dropdown-item text-info" href="{{ route('index') }}" target="_blank">
                             <i class="fa-duotone fa-display mr-1"></i> Početna stranica
                         </a>
-                        <a class="dropdown-item text-warning" href="{{ route('cache') }}">
-                            <span><i class="fa-duotone fa-wand-magic-sparkles mr-1"></i> Očisti Cache</span>
-                        </a>
+                        @if (! auth()->user()->isEditor())
+                            <a class="dropdown-item text-warning" href="{{ route('cache') }}">
+                                <span><i class="fa-duotone fa-wand-magic-sparkles mr-1"></i> Očisti Cache</span>
+                            </a>
+                        @endif
 
                         <div role="separator" class="dropdown-divider"></div>
 
-                        @if (auth()->user()->can('*'))
+                        @if (! auth()->user()->isEditor() && auth()->user()->can('*'))
                             <a class="dropdown-item text-danger" href="{{ route('maintenance.on') }}">
                                 <i class="fa-duotone fa-ban mr-1"></i> Održavanje ON
                             </a>

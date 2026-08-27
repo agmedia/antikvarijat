@@ -39,7 +39,7 @@ class DashboardController extends Controller
      */
     public function index()
     {
-        $canViewSales = ! (auth()->check() && Bouncer::is(auth()->user())->an('editor'));
+        $canViewSales = ! (auth()->check() && auth()->user()->isEditor());
         $now = Carbon::now();
         $todayStart = $now->copy()->startOfDay();
         $todayEnd = $now->copy()->endOfDay();

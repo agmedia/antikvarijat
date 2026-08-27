@@ -93,7 +93,7 @@
                     </a>
                 </li>
 
-                @if(auth()->check() && ! auth()->user()->isAn('editor'))
+                @if(auth()->check() && ! auth()->user()->isEditor())
                     <li class="nav-main-item">
                         <a class="nav-main-link{{ request()->routeIs(['gift-vouchers.*']) ? ' active' : '' }}" href="{{ route('gift-vouchers.index') }}">
                             <i class="nav-main-link-icon fa-duotone fa-gift-card"></i>
@@ -164,12 +164,14 @@
                     </ul>
                 </li>
 
-                <li class="nav-main-item">
-                    <a class="nav-main-link{{ request()->routeIs(['users', 'users.*']) ? ' active' : '' }}" href="{{ route('users') }}">
-                        <i class="nav-main-link-icon fa-duotone fa-user-group"></i>
-                        <span class="nav-main-link-name">Korisnici</span>
-                    </a>
-                </li>
+                @if(auth()->check() && ! auth()->user()->isEditor())
+                    <li class="nav-main-item">
+                        <a class="nav-main-link{{ request()->routeIs(['users', 'users.*']) ? ' active' : '' }}" href="{{ route('users') }}">
+                            <i class="nav-main-link-icon fa-duotone fa-user-group"></i>
+                            <span class="nav-main-link-name">Korisnici</span>
+                        </a>
+                    </li>
+                @endif
 
                 <li class="nav-main-heading">Aplikacija</li>
 
@@ -180,19 +182,20 @@
                     </a>
                 </li>
 
-                <li class="nav-main-item">
-                    <a class="nav-main-link{{ request()->routeIs(['widgets', 'widgets.*']) ? ' active' : '' }}" href="{{ route('widgets') }}">
-                        <i class="nav-main-link-icon fa-duotone fa-puzzle-piece"></i>
-                        <span class="nav-main-link-name">Widgets</span>
-                    </a>
-                </li>
+                @if(auth()->check() && ! auth()->user()->isEditor())
+                    <li class="nav-main-item">
+                        <a class="nav-main-link{{ request()->routeIs(['widgets', 'widgets.*']) ? ' active' : '' }}" href="{{ route('widgets') }}">
+                            <i class="nav-main-link-icon fa-duotone fa-puzzle-piece"></i>
+                            <span class="nav-main-link-name">Widgets</span>
+                        </a>
+                    </li>
 
-                <li class="nav-main-item{{ request()->is(['admin/settings/*']) ? ' open' : '' }}">
-                    <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="true" href="#">
-                        <i class="nav-main-link-icon fa-duotone fa-gear"></i>
-                        <span class="nav-main-link-name">Postavke</span>
-                    </a>
-                    <ul class="nav-main-submenu">
+                    <li class="nav-main-item{{ request()->is(['admin/settings/*']) ? ' open' : '' }}">
+                        <a class="nav-main-link nav-main-link-submenu" data-toggle="submenu" aria-haspopup="true" aria-expanded="true" href="#">
+                            <i class="nav-main-link-icon fa-duotone fa-gear"></i>
+                            <span class="nav-main-link-name">Postavke</span>
+                        </a>
+                        <ul class="nav-main-submenu">
                        <li class="nav-main-item">
                            <a class="nav-main-link{{ request()->routeIs(['api', 'api.*']) ? ' active' : '' }}" href="{{ route('api.index') }}">
                                <span class="nav-main-link-name">API</span>
@@ -267,8 +270,9 @@
                             </a>
                         </li>
 
-                    </ul>
-                </li>
+                        </ul>
+                    </li>
+                @endif
 
             </ul>
         </div>

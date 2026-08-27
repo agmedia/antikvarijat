@@ -10,6 +10,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
@@ -86,6 +87,22 @@ class User extends Authenticatable
     public function isAdministrator(): bool
     {
         return optional($this->details)->role === 'admin' || $this->isAn('admin');
+    }
+
+    /**
+     * Determine whether the user has editor access restrictions.
+     */
+    public function isEditor(): bool
+    {
+        if ($this->isAn('editor')) {
+            return true;
+        }
+
+        if (! $this->relationLoaded('details') && ! Schema::hasTable('user_details')) {
+            return false;
+        }
+
+        return optional($this->details)->role === 'editor';
     }
 
 

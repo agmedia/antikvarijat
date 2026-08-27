@@ -28,7 +28,7 @@ class UserImpersonationService
             return false;
         }
 
-        return $user->isAdministrator() && ! $user->isAn('editor');
+        return $user->isAdministrator() && ! $user->isEditor();
     }
 
     /**
@@ -45,7 +45,7 @@ class UserImpersonationService
         }
 
         return ! $user->isAn('admin')
-            && ! $user->isAn('editor')
+            && ! $user->isEditor()
             && ! $user->isAn('superadmin');
     }
 

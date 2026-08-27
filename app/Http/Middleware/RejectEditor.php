@@ -2,7 +2,7 @@
 
 namespace App\Http\Middleware;
 
-use Bouncer;
+use App\Models\User;
 use Closure;
 
 class RejectEditor
@@ -12,7 +12,9 @@ class RejectEditor
      */
     public function handle($request, Closure $next)
     {
-        if (auth()->check() && Bouncer::is(auth()->user())->an('editor')) {
+        $user = $request->user();
+
+        if ($user instanceof User && $user->isEditor()) {
             abort(403);
         }
 

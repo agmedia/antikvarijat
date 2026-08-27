@@ -28,7 +28,6 @@ use App\Services\Shipping\WoltDriveException;
 use App\Services\Shipping\WoltDriveService;
 use App\Services\Shipping\WoltDriveSettingsService;
 use App\Services\GiftVoucherService;
-use Bouncer;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
@@ -170,7 +169,7 @@ class OrderController extends Controller
             'history.user',
         ]);
 
-        $canViewGiftVouchers = ! (auth()->check() && Bouncer::is(auth()->user())->an('editor'))
+        $canViewGiftVouchers = ! (auth()->check() && auth()->user()->isEditor())
             && Schema::hasTable('gift_vouchers')
             && Schema::hasTable('gift_voucher_redemptions');
 

@@ -7,7 +7,6 @@ use App\Models\Back\Product\Product;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
-use Bouncer;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -30,7 +29,7 @@ class OrderStats extends Model
 
         $query = (new Order())->newQuery();
 
-        if (Bouncer::is($user)->an('editor')) {
+        if ($user->isEditor()) {
             $query->where('client_id', $user->clientId());
         }
 
@@ -63,7 +62,7 @@ class OrderStats extends Model
         $chart   = new Chart($request);
         $query   = (new Order())->newQuery();
 
-        if (Bouncer::is($user)->an('editor')) {
+        if ($user->isEditor()) {
             $query->where('client_id', $user->clientId());
         }
 
@@ -93,7 +92,7 @@ class OrderStats extends Model
         $products      = Product::clients()->pluck('id');
         $query_product = (new OrderProduct())->newQuery();
 
-        if (Bouncer::is($user)->an('editor')) {
+        if ($user->isEditor()) {
             $query_product->whereIn('product_id', $products);
         }
 
