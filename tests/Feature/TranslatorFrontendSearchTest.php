@@ -8,8 +8,10 @@ use App\Models\Front\Catalog\Product;
 use App\Models\Front\Catalog\Translator;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\ViewErrorBag;
 use Tests\TestCase;
 
 class TranslatorFrontendSearchTest extends TestCase
@@ -193,5 +195,55 @@ class TranslatorFrontendSearchTest extends TestCase
             ['@type' => 'Person', 'name' => 'Ana Horvat'],
             ['@type' => 'Person', 'name' => 'Ivo Ivić'],
         ], $schema['translator']);
+    }
+
+    public function test_product_view_derives_translator_state_without_controller_variables(): void
+    {
+        $product = Product::query()->with('translators:id,title')->findOrFail(1);
+        $product->setRelation('images', collect());
+
+        $source = file_get_contents(resource_path('views/front/catalog/product/index.blade.php'));
+        $matched = preg_match('/@php.*?@endphp/s', $source, $matches);
+
+        $this->assertSame(1, $matched, 'Product view setup block was not found.');
+
+        $html = Blade::render($matches[0].PHP_EOL.'{{ $hasTranslators ? $translatorNames->implode("|") : "none" }}', [
+            'prod' => $product,
+            'errors' => new ViewErrorBag(),
+            'reviewStats' => ['average' => 0, 'count' => 0],
+            'subcat' => null,
+            'cat' => null,
+            'authorProducts' => collect(),
+            'publisherProducts' => collect(),
+            'relatedProducts' => collect(),
+        ]);
+
+        $this->assertSame('Ivo Ivić|Ana Horvat', trim($html));
+
+        $legacyProduct = new class {
+            public $images;
+
+            public function __construct()
+            {
+                $this->images = collect();
+            }
+
+            public function getRawOriginal(string $key)
+            {
+                return null;
+            }
+        };
+        $legacyHtml = Blade::render($matches[0].PHP_EOL.'{{ $hasTranslators ? "unexpected" : "none" }}', [
+            'prod' => $legacyProduct,
+            'errors' => new ViewErrorBag(),
+            'reviewStats' => ['average' => 0, 'count' => 0],
+            'subcat' => null,
+            'cat' => null,
+            'authorProducts' => collect(),
+            'publisherProducts' => collect(),
+            'relatedProducts' => collect(),
+        ]);
+
+        $this->assertSame('none', trim($legacyHtml));
     }
 }

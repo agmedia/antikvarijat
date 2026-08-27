@@ -30,6 +30,17 @@
     $exploreCategory = $subcat ?: $cat;
     $exploreCategoryUrl = $cat ? \App\Helpers\LocaleHelper::categoryUrl($cat, $subcat) : null;
     $hasExploreLinks = $authorProducts->isNotEmpty() || $publisherProducts->isNotEmpty() || $relatedProducts->isNotEmpty();
+    $translatorNames = isset($translatorNames)
+        ? collect($translatorNames)
+        : (method_exists($prod, 'relationLoaded') && $prod->relationLoaded('translators')
+            ? collect($prod->getRelation('translators'))->pluck('title')
+            : collect());
+    $translatorNames = $translatorNames
+        ->map(fn ($title) => trim((string) $title))
+        ->filter(fn ($title) => \App\Models\Front\Catalog\Author::hasMeaningfulTitle($title))
+        ->unique(fn ($title) => \Illuminate\Support\Str::lower($title))
+        ->values();
+    $hasTranslators = $translatorNames->isNotEmpty();
     $galleryItems = collect();
 
     if ($prod->getRawOriginal('image')) {
