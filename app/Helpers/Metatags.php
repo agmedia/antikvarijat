@@ -38,6 +38,7 @@ class Metatags
         'end',
         'autor',
         'nakladnik',
+        'prevoditelj',
         'sort',
         'letter',
         'pismo',

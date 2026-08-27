@@ -3,6 +3,7 @@
     $selectedPublishers = array_filter(explode('+', (string) request('nakladnik')));
     $activeFilterCount = count($selectedAuthors)
         + count($selectedPublishers)
+        + count(array_filter(explode('+', (string) request('prevoditelj'))))
         + (request()->filled('start') ? 1 : 0)
         + (request()->filled('end') ? 1 : 0)
         + (request()->filled('pismo') ? 1 : 0)

@@ -203,6 +203,21 @@ class ProductDeliveryInSevenDaysTest extends TestCase
             $table->unsignedBigInteger('category_id');
         });
 
+        Schema::create('translators', function (Blueprint $table): void {
+            $table->id();
+            $table->string('title');
+            $table->string('normalized_title')->unique();
+            $table->timestamps();
+        });
+
+        Schema::create('product_translator', function (Blueprint $table): void {
+            $table->unsignedBigInteger('product_id');
+            $table->unsignedBigInteger('translator_id');
+            $table->unsignedInteger('sort_order')->default(0);
+            $table->timestamps();
+            $table->unique(['product_id', 'translator_id']);
+        });
+
         Schema::create('product_images', function (Blueprint $table): void {
             $table->id();
             $table->unsignedBigInteger('product_id');

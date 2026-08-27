@@ -279,6 +279,32 @@ class FilterController extends Controller
             $request_data['nakladnik'] = $publishers;
         }
 
+        if (isset($params['prevoditelj']) && $params['prevoditelj'] !== '') {
+            $translatorInput = is_array($params['prevoditelj'])
+                ? $params['prevoditelj']
+                : explode('+', (string) $params['prevoditelj']);
+
+            $translatorIds = collect($translatorInput)
+                ->map(function ($translatorId) {
+                    if (is_object($translatorId) && isset($translatorId->id)) {
+                        return (int) $translatorId->id;
+                    }
+
+                    if (is_array($translatorId) && isset($translatorId['id'])) {
+                        return (int) $translatorId['id'];
+                    }
+
+                    return is_numeric($translatorId) ? (int) $translatorId : null;
+                })
+                ->filter(fn ($translatorId) => $translatorId > 0)
+                ->unique()
+                ->values();
+
+            if ($translatorIds->isNotEmpty()) {
+                $request_data['prevoditelj'] = $translatorIds->all();
+            }
+        }
+
         if (isset($params['start']) && $params['start']) {
             $request_data['start'] = $params['start'];
         }
@@ -394,7 +420,7 @@ class FilterController extends Controller
             return false;
         }
 
-        foreach (['ids', 'cat', 'subcat', 'autor', 'nakladnik', 'start', 'end', 'pismo', 'stanje', 'uvez', 'sort', config('settings.search_keyword', 'pojam')] as $key) {
+        foreach (['ids', 'cat', 'subcat', 'autor', 'nakladnik', 'prevoditelj', 'start', 'end', 'pismo', 'stanje', 'uvez', 'sort', config('settings.search_keyword', 'pojam')] as $key) {
             if (!empty($requestData[$key])) {
                 return false;
             }

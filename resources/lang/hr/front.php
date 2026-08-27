@@ -179,6 +179,7 @@ return [
         'delivery_in_7_days_notice' => 'Rok isporuke za ovaj artikl je 7 dana.',
         'basic_information' => 'Osnovne informacije',
         'author' => 'Autor',
+        'translator' => 'Prevoditelj',
         'publisher' => 'Nakladnik',
         'publisher_alt' => 'Izdavač',
         'condition' => 'Stanje',

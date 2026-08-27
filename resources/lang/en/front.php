@@ -179,6 +179,7 @@ return [
         'delivery_in_7_days_notice' => 'The delivery time for this item is 7 days.',
         'basic_information' => 'Basic information',
         'author' => 'Author',
+        'translator' => 'Translator',
         'publisher' => 'Publisher',
         'publisher_alt' => 'Publisher',
         'condition' => 'Condition',

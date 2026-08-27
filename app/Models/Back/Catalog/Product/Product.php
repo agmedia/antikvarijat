@@ -7,6 +7,7 @@ use App\Helpers\ProductHelper;
 use App\Models\Back\Catalog\Author;
 use App\Models\Back\Catalog\Category;
 use App\Models\Back\Catalog\Publisher;
+use App\Models\Back\Catalog\Translator;
 use App\Models\Back\Settings\Settings;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
@@ -15,6 +16,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -24,6 +26,15 @@ use App\Models\ProductReview;
 class Product extends Model
 {
     use HasFactory;
+
+    protected static function booted(): void
+    {
+        static::deleting(function (Product $product): void {
+            if (Schema::hasTable('product_translator')) {
+                $product->translators()->detach();
+            }
+        });
+    }
 
     /**
      * @var string
@@ -102,6 +113,43 @@ class Product extends Model
     public function author()
     {
         return $this->belongsTo(Author::class, 'author_id', 'id');
+    }
+
+    /**
+     * Translators credited for this product, in display order.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function translators()
+    {
+        return $this->belongsToMany(
+            Translator::class,
+            'product_translator',
+            'product_id',
+            'translator_id'
+        )
+            ->withPivot('sort_order')
+            ->withTimestamps()
+            ->orderBy('product_translator.sort_order')
+            ->orderBy('translators.id');
+    }
+
+    /**
+     * Synchronize translator ids while preserving their submitted order.
+     */
+    public function syncTranslators(array $translatorIds): array
+    {
+        $syncData = [];
+
+        foreach ($translatorIds as $translatorId) {
+            $translatorId = (int) $translatorId;
+
+            if ($translatorId > 0 && ! isset($syncData[$translatorId])) {
+                $syncData[$translatorId] = ['sort_order' => count($syncData)];
+            }
+        }
+
+        return $this->translators()->sync($syncData);
     }
 
     /**
@@ -205,6 +253,12 @@ class Product extends Model
                     }
                 },
             ],
+            'translator_ids'   => ['nullable', 'array'],
+            'translator_ids.*' => [
+                'integer',
+                'distinct',
+                Rule::exists('translators', 'id'),
+            ],
             'tags'     => ['nullable'], // može biti string ili array
         ]);
 
@@ -266,6 +320,7 @@ class Product extends Model
 
         $product->save();
 
+        $product->syncTranslators($this->request->input('translator_ids') ?? []);
         $this->resolveCategories($product->id);
 
         $product->update([
@@ -327,6 +382,7 @@ class Product extends Model
         ]);
 
         if ($updated) {
+            $this->syncTranslators($this->request->input('translator_ids') ?? []);
             $this->resolveCategories($this->id);
 
             $this->update([
@@ -389,6 +445,14 @@ class Product extends Model
         $response                = $product->toArray();
         $response['category']    = $product->category() ? $product->category()->toArray() : [];
         $response['subcategory'] = $product->subcategory() ? $product->subcategory()->toArray() : [];
+        $response['translators'] = $product->translators()
+            ->get(['translators.id', 'translators.title'])
+            ->map(fn (Translator $translator) => [
+                'id' => (int) $translator->id,
+                'title' => (string) $translator->title,
+            ])
+            ->values()
+            ->all();
         $response['images']      = $product->images()->get()->toArray();
 
         return $response;
@@ -419,7 +483,10 @@ class Product extends Model
 
                 $q
                     ->orWhere('polica', 'like', '%' . $searchTerm . '%')
-                    ->orWhere('year', 'like', '%' . $searchTerm . '%');
+                    ->orWhere('year', 'like', '%' . $searchTerm . '%')
+                    ->orWhereHas('translators', function ($translators) use ($searchTerm) {
+                        $translators->where('title', 'like', '%' . $searchTerm . '%');
+                    });
             });
         }
 

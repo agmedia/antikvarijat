@@ -74,7 +74,7 @@ class CatalogRouteController extends Controller
                 abort(404);
             }
 
-            $prod->loadMissing(['author', 'publisher', 'images', 'action', 'categories']);
+            $prod->loadMissing(['author', 'publisher', 'translators:id,title', 'images', 'action', 'categories']);
 
             $canonicalProductUrl = url(LocaleHelper::productPath(
                 $prod,
@@ -130,6 +130,14 @@ class CatalogRouteController extends Controller
 
             $authorTitle = trim((string) optional($prod->author)->title);
             $hasAuthor = $prod->author && Author::hasMeaningfulTitle($authorTitle);
+
+            $translatorNames = $prod->translators
+                ->pluck('title')
+                ->map(fn ($title) => trim((string) $title))
+                ->filter(fn ($title) => Author::hasMeaningfulTitle($title))
+                ->unique(fn ($title) => Str::lower($title))
+                ->values();
+            $hasTranslators = $translatorNames->isNotEmpty();
 
             $authorProducts = $hasAuthor
                 ? $prod->author->products()
@@ -211,7 +219,9 @@ class CatalogRouteController extends Controller
                 'authorProducts',
                 'publisherProducts',
                 'hasAuthor',
-                'hasPublisher'
+                'hasPublisher',
+                'translatorNames',
+                'hasTranslators'
             ));
         }
 
@@ -953,6 +963,29 @@ class CatalogRouteController extends Controller
             $requestData['nakladnik'] = $this->resolveSelectedPublishers($query['nakladnik']);
         }
 
+        if (! empty($query['prevoditelj'])) {
+            $translatorIds = is_array($query['prevoditelj'])
+                ? $query['prevoditelj']
+                : explode('+', (string) $query['prevoditelj']);
+
+            $requestData['prevoditelj'] = collect($translatorIds)
+                ->map(function ($translatorId) {
+                    if (is_object($translatorId) && isset($translatorId->id)) {
+                        return (int) $translatorId->id;
+                    }
+
+                    if (is_array($translatorId) && isset($translatorId['id'])) {
+                        return (int) $translatorId['id'];
+                    }
+
+                    return is_numeric($translatorId) ? (int) $translatorId : null;
+                })
+                ->filter(fn ($translatorId) => $translatorId > 0)
+                ->unique()
+                ->values()
+                ->all();
+        }
+
         if (!empty($query['start']) && strlen((string) $query['start']) === 4) {
             $requestData['start'] = $query['start'];
         }
@@ -994,7 +1027,7 @@ class CatalogRouteController extends Controller
             return false;
         }
 
-        foreach (['ids', 'cat', 'subcat', 'autor', 'nakladnik', 'start', 'end', 'pismo', 'stanje', 'uvez', 'sort', config('settings.search_keyword', 'pojam')] as $key) {
+        foreach (['ids', 'cat', 'subcat', 'autor', 'nakladnik', 'prevoditelj', 'start', 'end', 'pismo', 'stanje', 'uvez', 'sort', config('settings.search_keyword', 'pojam')] as $key) {
             if (!empty($requestData[$key])) {
                 return false;
             }

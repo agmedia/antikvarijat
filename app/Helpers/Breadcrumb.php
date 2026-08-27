@@ -248,6 +248,22 @@ class Breadcrumb
             ];
         }
 
+        $translators = $prod->translators
+            ->pluck('title')
+            ->map(fn ($title) => trim((string) $title))
+            ->filter(fn ($title) => $this->hasMeaningfulEntityName($title))
+            ->unique(fn ($title) => Str::lower($title))
+            ->values();
+
+        if ($translators->isNotEmpty()) {
+            $schema['translator'] = $translators
+                ->map(fn ($title) => [
+                    '@type' => 'Person',
+                    'name' => $title,
+                ])
+                ->all();
+        }
+
         if ($prod->publisher && $this->hasMeaningfulEntityName($prod->publisher->title)) {
             $schema['publisher'] = [
                 '@type' => 'Organization',

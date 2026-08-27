@@ -3,6 +3,7 @@
         <i class="fa-duotone fa-magnifying-glass admin-entity-picker-search-icon" aria-hidden="true"></i>
         <input type="search"
                wire:model.debounce.300ms="search"
+               wire:keydown.enter.prevent
                class="form-control admin-entity-picker-input @error('author_id') is-invalid @enderror"
                id="author-input"
                placeholder="{{ ! $list ? 'Pretraži ili dodaj autora' : 'Pretraži autora' }}"
@@ -55,15 +56,16 @@
             <div class="admin-entity-picker-create-body">
                 <label for="new-author-name">Ime autora</label>
                 <input type="text"
-                       class="form-control @if (session()->has('title')) is-invalid @endif"
+                       class="form-control @error('new.title') is-invalid @enderror"
                        id="new-author-name"
                        wire:model.defer="new.title"
                        wire:keydown.enter.prevent="makeNewAuthor"
+                       maxlength="191"
                        placeholder="npr. William Shakespeare"
                        autocomplete="off">
-                @if (session()->has('title'))
-                    <small class="text-danger">Ime autora je obvezno.</small>
-                @endif
+                @error('new.title')
+                    <small class="text-danger d-block mt-1">{{ $message }}</small>
+                @enderror
             </div>
             <div class="admin-entity-picker-create-actions">
                 <button type="button" wire:click="viewAddWindow" class="btn btn-alt-secondary">Odustani</button>

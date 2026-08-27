@@ -188,6 +188,10 @@
 
                    <h1 class="h3"><span class="product-title-author">{{ $hasAuthor ? $prod->author->title.':' : '' }}</span> {{ $prod->name }}</h1>
 
+                   @if ($hasTranslators)
+                       <p class="mb-0 mt-2 text-muted"><strong>{{ __('front.product.translator') }}:</strong> {{ $translatorNames->implode(', ') }}</p>
+                   @endif
+
                        <div class="mb-0 mt-4">
                            @if ($prod->main_price > $prod->main_special)
                                <span class="h3 fw-normal text-accent me-1">{{ $prod->main_special_text }}</span>
@@ -243,6 +247,9 @@
                                    <ul class="fs-sm ps-4 mb-0 info-list">
                                        @if ($hasAuthor)
                                            <li><strong>{{ __('front.product.author') }}:</strong> <a href="{{ \App\Helpers\LocaleHelper::route('catalog.route.author', ['author' => $prod->author]) }}">{{ $prod->author->title }} </a></li>
+                                       @endif
+                                       @if ($hasTranslators)
+                                           <li><strong>{{ __('front.product.translator') }}:</strong> {{ $translatorNames->implode(', ') }}</li>
                                        @endif
                                        @if ($hasPublisher)
                                            <li><strong>{{ __('front.product.publisher') }}:</strong> <a href="{{ \App\Helpers\LocaleHelper::route('catalog.route.publisher', ['publisher' => $prod->publisher]) }}">{{ $prod->publisher->title }}</a> </li>
@@ -390,7 +397,10 @@
                                    {{-- Title and author --}}
                                    <h2 class="h5 mb-2 pb-0">{{ $prod->name }}</h2>
                                    @if ($hasAuthor)
-                                       <h3 class="h6 mb-4">{{ $prod->author->title }}</h3>
+                                       <h3 class="h6 {{ $hasTranslators ? 'mb-2' : 'mb-4' }}">{{ $prod->author->title }}</h3>
+                                   @endif
+                                   @if ($hasTranslators)
+                                       <p class="h6 mb-4"><span class="text-muted">{{ __('front.product.translator') }}:</span> {{ $translatorNames->implode(', ') }}</p>
                                    @endif
 
                                    {{-- Sažetak i opis --}}
@@ -424,6 +434,13 @@
                             {{ Illuminate\Support\Str::limit($prod->author->title, 30) }}
                         </a>
                     </span>
+                                           </li>
+                                       @endif
+
+                                       @if ($hasTranslators)
+                                           <li class="d-flex justify-content-between gap-3 pb-2 border-bottom">
+                                               <span class="text-muted">{{ __('front.product.translator') }}:</span>
+                                               <span class="text-end">{{ $translatorNames->implode(', ') }}</span>
                                            </li>
                                        @endif
 

@@ -15,6 +15,9 @@
         $selectedSubcategoryId = $selectedSubcategoryId ?? null;
         $hasActiveSpecial = isset($product) && (float) $product->special > 0 && $product->special() !== false;
         $productPhotoCount = ($existingImagesCount ?? 0) + ((isset($product) && ! empty($product->image)) ? 1 : 0);
+        $selectedTranslatorIds = old('translator_ids_present')
+            ? old('translator_ids', [])
+            : (isset($product) ? $product->translators->pluck('id')->all() : []);
     @endphp
 
     @include('back.catalog.partials.editor-hero', [
@@ -312,7 +315,7 @@
 
 
                                 <div class="form-group row items-push mb-4">
-                                    <div class="col-md-4">
+                                    <div class="col-md-6">
                                         <label for="dm-post-edit-slug">Kategorija <span class="text-danger">*</span></label>
                                         <select class="js-select2 form-control admin-category-select" id="category-select" name="category" style="width: 100%;" data-placeholder="Odaberite kategoriju">
                                             <option></option>
@@ -340,13 +343,21 @@
                                         <span class="text-danger font-italic">Kategorija je potrebna...</span>
                                         @enderror
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-6">
                                         <label for="dm-post-edit-slug">Autor</label>
                                         @livewire('back.layout.search.author-search', ['author_id' => isset($product) ? $product->author_id : 0])
                                     </div>
-                                    <div class="col-md-4">
+                                </div>
+
+                                <div class="form-group row items-push mb-4">
+                                    <div class="col-md-6">
                                         <label for="dm-post-edit-slug">Izdavač</label>
                                         @livewire('back.layout.search.publisher-search', ['publisher_id' => isset($product) ? $product->publisher_id : 0])
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="translator-input">Prevoditelji <span class="small text-muted">(neobavezno)</span></label>
+                                        @livewire('back.layout.search.translator-search', ['translator_ids' => $selectedTranslatorIds])
+                                        <small class="form-text text-muted">Možete odabrati više prevoditelja i strelicama odrediti redoslijed prikaza.</small>
                                     </div>
                                 </div>
 

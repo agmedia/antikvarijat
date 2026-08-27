@@ -151,6 +151,30 @@ class ProductHistory extends Model
             $this->changed .= '<li>Promjenjen autor: <b>' . (isset($old->title) ? $old->title : '(Nepoznat)') . '</b> u <b>' . (isset($new->title) ? $new->title : '(Nepoznat)') . '</b></li>' ;
         }
 
+        $oldTranslators = collect($this->old['translators'] ?? []);
+        $newTranslators = collect($this->new['translators'] ?? []);
+        $oldTranslatorIds = $oldTranslators->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
+        $newTranslatorIds = $newTranslators->pluck('id')->map(fn ($id) => (int) $id)->values()->all();
+
+        if ($oldTranslatorIds !== $newTranslatorIds) {
+            $formatTranslators = function ($translators): string {
+                $titles = collect($translators)
+                    ->pluck('title')
+                    ->map(fn ($title) => trim((string) $title))
+                    ->filter()
+                    ->map(fn ($title) => e($title))
+                    ->implode(', ');
+
+                return $titles !== '' ? $titles : '(nema)';
+            };
+
+            $this->changed .= '<li>Promijenjeni prevoditelji: <b>'
+                . $formatTranslators($oldTranslators)
+                . '</b> u <b>'
+                . $formatTranslators($newTranslators)
+                . '</b></li>';
+        }
+
         // Publisher changed
         if ($this->old['publisher_id'] != $this->new['publisher_id']) {
             $old = Publisher::find($this->old['publisher_id']);

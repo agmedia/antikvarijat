@@ -3,6 +3,7 @@
         <i class="fa-duotone fa-magnifying-glass admin-entity-picker-search-icon" aria-hidden="true"></i>
         <input type="search"
                wire:model.debounce.300ms="search"
+               wire:keydown.enter.prevent
                class="form-control admin-entity-picker-input @error('publisher_id') is-invalid @enderror"
                id="publisher-input"
                placeholder="{{ ! $list ? 'Pretraži ili dodaj izdavača' : 'Pretraži izdavača' }}"
@@ -55,15 +56,16 @@
             <div class="admin-entity-picker-create-body">
                 <label for="new-publisher-name">Naziv izdavača</label>
                 <input type="text"
-                       class="form-control @if (session()->has('title')) is-invalid @endif"
+                       class="form-control @error('new.title') is-invalid @enderror"
                        id="new-publisher-name"
                        wire:model.defer="new.title"
                        wire:keydown.enter.prevent="makeNewPublisher"
+                       maxlength="191"
                        placeholder="npr. Školska knjiga"
                        autocomplete="off">
-                @if (session()->has('title'))
-                    <small class="text-danger">Naziv izdavača je obvezan.</small>
-                @endif
+                @error('new.title')
+                    <small class="text-danger d-block mt-1">{{ $message }}</small>
+                @enderror
             </div>
             <div class="admin-entity-picker-create-actions">
                 <button type="button" wire:click="viewAddWindow" class="btn btn-alt-secondary">Odustani</button>

@@ -132,6 +132,7 @@ class ProductSchemaTest extends TestCase
         ]);
         $product->setRelation('action', null);
         $product->setRelation('author', null);
+        $product->setRelation('translators', collect());
         $product->setRelation('publisher', null);
         $product->setRelation('categories', collect());
         $product->syncOriginal();

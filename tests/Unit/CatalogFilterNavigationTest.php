@@ -20,4 +20,20 @@ class CatalogFilterNavigationTest extends TestCase
         $this->assertStringContainsString('parentUrl', $cartBundle);
         $this->assertStringContainsString('window.location.href=this.parentUrl', $cartBundle);
     }
+
+    public function testTranslatorConstraintIsPropagatedThroughCatalogueRequestsAndRoutes(): void
+    {
+        $filter = file_get_contents(resource_path('js/front/filter/components/Filter/Filter.vue'));
+        $products = file_get_contents(resource_path('js/front/filter/components/ProductsList/ProductsList.vue'));
+        $controller = file_get_contents(app_path('Http/Controllers/Api/v2/FilterController.php'));
+        $cartBundle = file_get_contents(public_path('js/cart.js'));
+
+        $this->assertGreaterThanOrEqual(2, substr_count($filter, 'prevoditelj: this.prevoditelj'));
+        $this->assertStringContainsString('params.query.prevoditelj', $filter);
+        $this->assertGreaterThanOrEqual(2, substr_count($products, 'prevoditelj: this.prevoditelj'));
+        $this->assertStringContainsString('params.query.prevoditelj', $products);
+        $this->assertStringContainsString("\$request_data['prevoditelj'] = \$translatorIds->all();", $controller);
+        $this->assertStringContainsString("'nakladnik', 'prevoditelj', 'start'", $controller);
+        $this->assertStringContainsString('prevoditelj', $cartBundle);
+    }
 }

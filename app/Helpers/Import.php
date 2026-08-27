@@ -239,28 +239,25 @@ class Import
      *
      * @return int
      */
-    public function resolveAuthor(string $author = null): int
+    public function resolveAuthor(?string $author = null): int
     {
-        if ($author) {
-            $exist = Author::where('title', $author)->first();
+        $author = Author::cleanSemanticTitle((string) $author);
 
-            if ( ! $exist) {
-                return Author::insertGetId([
-                    'title'            => $author,
-                    'description'      => '',
-                    'meta_title'       => $author,
-                    'meta_description' => '',
-                    'lang'             => 'hr',
-                    'sort_order'       => 0,
-                    'status'           => 1,
-                    'slug'             => Str::slug($author),
-                    'url'              => config('settings.author_path') . '/' . Str::slug($author),
-                    'created_at'       => Carbon::now(),
-                    'updated_at'       => Carbon::now()
-                ]);
-            }
+        if ($author !== '') {
+            $slug = Str::slug($author);
+            $record = Author::findOrCreateBySemanticTitle($author, [
+                'letter'           => Helper::resolveFirstLetter($author),
+                'description'      => '',
+                'meta_title'       => $author,
+                'meta_description' => '',
+                'lang'             => 'hr',
+                'sort_order'       => 0,
+                'status'           => 1,
+                'slug'             => $slug,
+                'url'              => config('settings.author_path') . '/' . $slug,
+            ]);
 
-            return $exist->id;
+            return (int) $record->getKey();
         }
 
         return 0;
@@ -272,28 +269,25 @@ class Import
      *
      * @return int
      */
-    public function resolvePublisher(string $publisher = null): int
+    public function resolvePublisher(?string $publisher = null): int
     {
-        if ($publisher) {
-            $exist = Publisher::where('title', $publisher)->first();
+        $publisher = Publisher::cleanSemanticTitle((string) $publisher);
 
-            if ( ! $exist) {
-                return Publisher::insertGetId([
-                    'title'            => $publisher,
-                    'description'      => '',
-                    'meta_title'       => $publisher,
-                    'meta_description' => '',
-                    'lang'             => 'hr',
-                    'sort_order'       => 0,
-                    'status'           => 1,
-                    'slug'             => Str::slug($publisher),
-                    'url'              => config('settings.publisher_path') . '/' . Str::slug($publisher),
-                    'created_at'       => Carbon::now(),
-                    'updated_at'       => Carbon::now()
-                ]);
-            }
+        if ($publisher !== '') {
+            $slug = Str::slug($publisher);
+            $record = Publisher::findOrCreateBySemanticTitle($publisher, [
+                'letter'           => Helper::resolveFirstLetter($publisher),
+                'description'      => '',
+                'meta_title'       => $publisher,
+                'meta_description' => '',
+                'lang'             => 'hr',
+                'sort_order'       => 0,
+                'status'           => 1,
+                'slug'             => $slug,
+                'url'              => config('settings.publisher_path') . '/' . $slug,
+            ]);
 
-            return $exist->id;
+            return (int) $record->getKey();
         }
 
         return 0;

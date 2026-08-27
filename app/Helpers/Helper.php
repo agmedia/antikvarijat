@@ -191,7 +191,10 @@ class Helper
             ->active()
             ->where(function ($q) use ($target) {
                 $q->where('name', 'like', "%{$target}%")
-                    ->orWhere('sku', 'like', "%{$target}%");
+                    ->orWhere('sku', 'like', "%{$target}%")
+                    ->orWhereHas('translators', function (Builder $translators) use ($target) {
+                        $translators->where('title', 'like', "%{$target}%");
+                    });
 
                 if (LocaleHelper::isEnglish()) {
                     $q->orWhere('name_en', 'like', "%{$target}%")

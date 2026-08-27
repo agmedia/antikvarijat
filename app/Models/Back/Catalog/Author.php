@@ -3,6 +3,7 @@
 namespace App\Models\Back\Catalog;
 
 use App\Helpers\Helper;
+use App\Models\Back\Catalog\Concerns\FindsSemanticallyEquivalentTitles;
 use App\Models\Back\Catalog\Product\Product;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -15,6 +16,7 @@ use Illuminate\Support\Str;
 
 class Author extends Model
 {
+    use FindsSemanticallyEquivalentTitles;
     use HasFactory;
 
     /**
@@ -62,8 +64,33 @@ class Author extends Model
      */
     public function validateRequest(Request $request)
     {
+        if (is_string($request->input('title'))) {
+            $request->merge([
+                'title' => static::cleanSemanticTitle($request->input('title')),
+            ]);
+        }
+
+        $titleRules = [
+            'required',
+            'string',
+            'max:' . static::semanticTitleMaxLength(),
+        ];
+
+        if (
+            is_string($request->input('title'))
+            && $this->semanticTitleDiffersFromOriginal($request->input('title'))
+        ) {
+            $titleRules[] = static::uniqueSemanticTitleRule(
+                $this->exists ? $this->getKey() : null,
+                'Autor s ovim imenom već postoji.'
+            );
+        }
+
         $request->validate([
-            'title' => 'required'
+            'title' => $titleRules,
+        ], [
+            'title.required' => 'Ime autora je obvezno.',
+            'title.max' => 'Ime autora ne smije imati više od 191 znaka.',
         ]);
 
         $this->request = $request;
@@ -81,33 +108,41 @@ class Author extends Model
     {
         $slug = isset($this->request->slug) ? Str::slug($this->request->slug) : Str::slug($this->request->title);
 
-        $id = $this->insertGetId([
-            'letter'           => Helper::resolveFirstLetter($this->request->title),
-            'title'            => $this->request->title,
-            'description'      => $this->request->description,
-            'meta_title'       => $this->request->meta_title,
-            'meta_description' => $this->request->meta_description,
-            'title_en'         => $this->request->title_en ?: null,
-            'description_en'   => $this->request->description_en ?: null,
-            'meta_title_en'    => $this->request->meta_title_en ?: null,
-            'meta_description_en' => $this->request->meta_description_en ?: null,
-            'lang'             => 'hr',
-            'sort_order'       => 0,
-            'status'           => (isset($this->request->status) and $this->request->status == 'on') ? 1 : 0,
-            'featured'         => (isset($this->request->featured) and $this->request->featured == 'on') ? 1 : 0,
-            'slug'             => $slug,
-            'url'              => config('settings.author_path') . '/' . $slug,
-            'slug_en'          => $this->resolveSlugEn(),
-            'url_en'           => $this->resolveUrlEn($slug),
-            'created_at'       => Carbon::now(),
-            'updated_at'       => Carbon::now()
-        ]);
+        return static::withSemanticTitleLock($this->request->title, function () use ($slug) {
+            static::assertSemanticTitleIsAvailable(
+                $this->request->title,
+                null,
+                'Autor s ovim imenom već postoji.'
+            );
 
-        if ($id) {
-            return $this->find($id);
-        }
+            $id = $this->insertGetId([
+                'letter'           => Helper::resolveFirstLetter($this->request->title),
+                'title'            => $this->request->title,
+                'description'      => $this->request->description,
+                'meta_title'       => $this->request->meta_title,
+                'meta_description' => $this->request->meta_description,
+                'title_en'         => $this->request->title_en ?: null,
+                'description_en'   => $this->request->description_en ?: null,
+                'meta_title_en'    => $this->request->meta_title_en ?: null,
+                'meta_description_en' => $this->request->meta_description_en ?: null,
+                'lang'             => 'hr',
+                'sort_order'       => 0,
+                'status'           => (isset($this->request->status) and $this->request->status == 'on') ? 1 : 0,
+                'featured'         => (isset($this->request->featured) and $this->request->featured == 'on') ? 1 : 0,
+                'slug'             => $slug,
+                'url'              => config('settings.author_path') . '/' . $slug,
+                'slug_en'          => $this->resolveSlugEn(),
+                'url_en'           => $this->resolveUrlEn($slug),
+                'created_at'       => Carbon::now(),
+                'updated_at'       => Carbon::now()
+            ]);
 
-        return false;
+            if ($id) {
+                return static::query()->useWritePdo()->find($id);
+            }
+
+            return false;
+        });
     }
 
 
@@ -120,32 +155,42 @@ class Author extends Model
     {
         $slug = isset($this->request->slug) ? Str::slug($this->request->slug) : Str::slug($this->request->title);
 
-        $id = $this->update([
-            'letter'           => Helper::resolveFirstLetter($this->request->title),
-            'title'            => $this->request->title,
-            'description'      => $this->request->description,
-            'meta_title'       => $this->request->meta_title,
-            'meta_description' => $this->request->meta_description,
-            'title_en'         => $this->request->title_en ?: null,
-            'description_en'   => $this->request->description_en ?: null,
-            'meta_title_en'    => $this->request->meta_title_en ?: null,
-            'meta_description_en' => $this->request->meta_description_en ?: null,
-            'lang'             => 'hr',
-            'sort_order'       => 0,
-            'status'           => (isset($this->request->status) and $this->request->status == 'on') ? 1 : 0,
-            'featured'         => (isset($this->request->featured) and $this->request->featured == 'on') ? 1 : 0,
-            'slug'             => $slug,
-            'url'              => config('settings.author_path') . '/' . $slug,
-            'slug_en'          => $this->resolveSlugEn('update'),
-            'url_en'           => $this->resolveUrlEn($slug),
-            'updated_at'       => Carbon::now()
-        ]);
+        return static::withSemanticTitleLock($this->request->title, function () use ($slug) {
+            if ($this->semanticTitleDiffersFromOriginal($this->request->title)) {
+                static::assertSemanticTitleIsAvailable(
+                    $this->request->title,
+                    $this->getKey(),
+                    'Autor s ovim imenom već postoji.'
+                );
+            }
 
-        if ($id) {
-            return $this;
-        }
+            $id = $this->update([
+                'letter'           => Helper::resolveFirstLetter($this->request->title),
+                'title'            => $this->request->title,
+                'description'      => $this->request->description,
+                'meta_title'       => $this->request->meta_title,
+                'meta_description' => $this->request->meta_description,
+                'title_en'         => $this->request->title_en ?: null,
+                'description_en'   => $this->request->description_en ?: null,
+                'meta_title_en'    => $this->request->meta_title_en ?: null,
+                'meta_description_en' => $this->request->meta_description_en ?: null,
+                'lang'             => 'hr',
+                'sort_order'       => 0,
+                'status'           => (isset($this->request->status) and $this->request->status == 'on') ? 1 : 0,
+                'featured'         => (isset($this->request->featured) and $this->request->featured == 'on') ? 1 : 0,
+                'slug'             => $slug,
+                'url'              => config('settings.author_path') . '/' . $slug,
+                'slug_en'          => $this->resolveSlugEn('update'),
+                'url_en'           => $this->resolveUrlEn($slug),
+                'updated_at'       => Carbon::now()
+            ]);
 
-        return false;
+            if ($id) {
+                return $this;
+            }
+
+            return false;
+        });
     }
 
     private function resolveSlugEn(string $target = 'insert'): ?string

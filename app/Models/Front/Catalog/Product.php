@@ -356,6 +356,26 @@ class Product extends Model
 
 
     /**
+     * Translators credited for this product, in display order.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function translators()
+    {
+        return $this->belongsToMany(
+            Translator::class,
+            'product_translator',
+            'product_id',
+            'translator_id'
+        )
+            ->withPivot('sort_order')
+            ->withTimestamps()
+            ->orderBy('product_translator.sort_order')
+            ->orderBy('translators.id');
+    }
+
+
+    /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
     public function publisher()
@@ -605,7 +625,10 @@ class Product extends Model
                 $query->where('name', 'like', '%' . $searchTerm . '%')
                     ->orWhere('name_en', 'like', '%' . $searchTerm . '%')
                     ->orWhere('description_en', 'like', '%' . $searchTerm . '%')
-                    ->orWhere('sku', $searchTerm);
+                    ->orWhere('sku', $searchTerm)
+                    ->orWhereHas('translators', function (Builder $translators) use ($searchTerm) {
+                        $translators->where('title', 'like', '%' . $searchTerm . '%');
+                    });
             });
         }
 
@@ -688,6 +711,40 @@ class Product extends Model
             }
 
             $query->whereIn('publisher_id', $pubs);
+        }
+
+        if ($request->has('prevoditelj')) {
+            $translatorInput = $request->input('prevoditelj', []);
+
+            if (is_string($translatorInput)) {
+                $translatorInput = explode('+', $translatorInput);
+            }
+
+            $translatorIds = collect($translatorInput)
+                ->map(function ($item, $key) {
+                    if (is_object($item) && isset($item->id)) {
+                        return (int) $item->id;
+                    }
+
+                    if (is_array($item) && isset($item['id'])) {
+                        return (int) $item['id'];
+                    }
+
+                    if (is_numeric($item)) {
+                        return (int) $item;
+                    }
+
+                    return is_numeric($key) ? null : (int) $key;
+                })
+                ->filter(fn ($id) => $id > 0)
+                ->unique()
+                ->values();
+
+            if ($translatorIds->isNotEmpty()) {
+                $query->whereHas('translators', function (Builder $translators) use ($translatorIds) {
+                    $translators->whereIn('translators.id', $translatorIds);
+                });
+            }
         }
 
         if ($request->has('start')) {

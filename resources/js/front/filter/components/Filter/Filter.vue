@@ -279,6 +279,7 @@
             activeFilterCount() {
                 return this.selectedAuthors.length
                     + this.selectedPublishers.length
+                    + (this.prevoditelj ? String(this.prevoditelj).split('+').filter(Boolean).length : 0)
                     + (this.start ? 1 : 0)
                     + (this.end ? 1 : 0)
                     + (this.pismo ? 1 : 0)
@@ -347,6 +348,7 @@
                 uvez: '',
                 autor: '',
                 nakladnik: '',
+                prevoditelj: '',
                 search_query: '',
                 searchAuthor: '',
                 searchPublisher: '',
@@ -662,6 +664,7 @@
                     uvez: this.uvez,
                     autor: this.autor,
                     nakladnik: this.nakladnik,
+                    prevoditelj: this.prevoditelj,
                     sort: this.$route.query.sort || '',
                     page: '',
                     pojam: this.search_query,
@@ -679,7 +682,7 @@
              *
              */
             checkNoFollowQuery(param) {
-                const hasFilters = Boolean(param.nakladnik || param.autor || param.start || param.end || param.pismo || param.stanje || param.uvez);
+                const hasFilters = Boolean(param.nakladnik || param.autor || param.prevoditelj || param.start || param.end || param.pismo || param.stanje || param.uvez);
                 let robotsMeta = document.querySelector('meta[name="robots"]');
 
                 if (hasFilters) {
@@ -713,6 +716,7 @@
                 this.uvez = params.query.uvez ? params.query.uvez : '';
                 this.autor = params.query.autor ? params.query.autor : '';
                 this.nakladnik = params.query.nakladnik ? params.query.nakladnik : '';
+                this.prevoditelj = params.query.prevoditelj ? params.query.prevoditelj : '';
                 this.search_query = params.query.pojam ? params.query.pojam : '';
                 this.selectedAuthors = this.autor ? this.autor.split('+').filter(Boolean) : [];
                 this.selectedPublishers = this.nakladnik ? this.nakladnik.split('+').filter(Boolean) : [];
@@ -738,6 +742,7 @@
                     pismo: this.pismo,
                     stanje: this.stanje,
                     uvez: this.uvez,
+                    prevoditelj: this.prevoditelj,
                     pojam: this.search_query,
                     locale: this.locale
                 };

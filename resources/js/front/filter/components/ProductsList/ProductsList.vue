@@ -274,6 +274,7 @@
 
                 return countValues(query.autor)
                     + countValues(query.nakladnik)
+                    + countValues(query.prevoditelj)
                     + (query.start ? 1 : 0)
                     + (query.end ? 1 : 0)
                     + (query.pismo ? 1 : 0)
@@ -291,6 +292,7 @@
                 products: bootstrappedProducts || {},
                 autor: '',
                 nakladnik: '',
+                prevoditelj: '',
                 start: '',
                 end: '',
                 pismo: '',
@@ -484,6 +486,7 @@
                     uvez: this.uvez,
                     autor: this.autor,
                     nakladnik: this.nakladnik,
+                    prevoditelj: this.prevoditelj,
                     sort: this.sorting,
                     pojam: this.search_query,
                     page: this.page > 1 ? this.page : ''
@@ -507,6 +510,7 @@
                 this.uvez = params.query.uvez ? params.query.uvez : '';
                 this.autor = params.query.autor ? params.query.autor : '';
                 this.nakladnik = params.query.nakladnik ? params.query.nakladnik : '';
+                this.prevoditelj = params.query.prevoditelj ? params.query.prevoditelj : '';
                 this.page = params.query.page ? Number(params.query.page) : 1;
                 this.search_query = params.query.pojam ? params.query.pojam : '';
                 this.sorting = params.query.sort ? params.query.sort : '';
@@ -528,6 +532,7 @@
                     subcat: this.subcat,
                     autor: this.autor,
                     nakladnik: this.nakladnik,
+                    prevoditelj: this.prevoditelj,
                     start: this.start,
                     end: this.end,
                     pismo: this.pismo,
