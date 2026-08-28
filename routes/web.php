@@ -592,6 +592,7 @@ Route::prefix('en')->as('en.')->group(function () {
  */
 $statelessSitemapMiddleware = [
     \App\Http\Middleware\EncryptCookies::class,
+    \App\Http\Middleware\EnsureValidUserImpersonation::class,
     \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
     \Illuminate\Session\Middleware\StartSession::class,
     \Illuminate\View\Middleware\ShareErrorsFromSession::class,

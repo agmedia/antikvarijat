@@ -21,7 +21,6 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use phpDocumentor\Reflection\Types\False_;
@@ -161,8 +160,6 @@ class Helper
             'total'    => $totalAll,
         ]);
 
-        \Log::info($response);
-
         if ($builder) {
             return $response;
         }
@@ -265,8 +262,6 @@ class Helper
 
         $response->put('products', $limitedIds->flatten());
         $response->put('total', $totalAll);
-
-        Log::info($response);
 
         if ($builder) {
             return $response;

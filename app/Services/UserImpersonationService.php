@@ -58,7 +58,8 @@ class UserImpersonationService
 
     public function hasState(Request $request): bool
     {
-        return $request->session()->has(self::SESSION_KEY);
+        return $request->hasSession()
+            && $request->session()->has(self::SESSION_KEY);
     }
 
     public function state(Request $request): ?array

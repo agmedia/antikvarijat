@@ -2,6 +2,7 @@
 
 namespace Tests\Unit;
 
+use App\Http\Middleware\EnsureValidUserImpersonation;
 use App\Http\Middleware\VerifyCsrfToken;
 use App\Models\Sitemap;
 use Illuminate\Session\Middleware\StartSession;
@@ -72,12 +73,13 @@ class SitemapTest extends TestCase
         $this->assertSame(url('en/sale'), $en['sale']);
     }
 
-    public function testPublicSitemapRoutesDoNotStartSessionsOrAddCsrfCookies(): void
+    public function testPublicSitemapRoutesExcludeStatefulMiddleware(): void
     {
         $sitemapRoute = app('router')->getRoutes()->getByName('sitemap');
         $imageRoute = app('router')->getRoutes()->getByName('image-sitemap');
 
         foreach ([$sitemapRoute, $imageRoute] as $route) {
+            $this->assertContains(EnsureValidUserImpersonation::class, $route->excludedMiddleware());
             $this->assertContains(StartSession::class, $route->excludedMiddleware());
             $this->assertContains(VerifyCsrfToken::class, $route->excludedMiddleware());
         }
