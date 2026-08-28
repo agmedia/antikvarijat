@@ -192,6 +192,29 @@ class LocaleHelperTest extends TestCase
         $this->assertSame('Povijest', LocaleHelper::localizedField($cachedCategory, 'title', true, 'hr'));
     }
 
+    public function testSettingLocalizationTreatsLiteralNullAsMissing(): void
+    {
+        $payment = (object) [
+            'title' => 'Apple Pay / Google Pay',
+            'title_en' => 'null',
+            'data' => (object) [
+                'description' => 'Plaćanje putem Corvusa.',
+                'description_en' => ' NULL ',
+            ],
+        ];
+
+        $this->assertSame(
+            'Apple Pay / Google Pay',
+            LocaleHelper::localizedSettingField($payment, 'title', true, 'en')
+        );
+        $this->assertSame(
+            'Plaćanje putem Corvusa.',
+            LocaleHelper::localizedSettingDataField($payment, 'description', true, 'en')
+        );
+        $this->assertNull(LocaleHelper::localizedSettingField($payment, 'title', false, 'en'));
+        $this->assertNull(LocaleHelper::localizedSettingField((object) ['title' => 'null'], 'title', true, 'hr'));
+    }
+
     public function testWidgetUrlsConvertLegacyCroatianLinksToEnglishRoutes(): void
     {
         config(['app.url' => 'https://antlaravel.test']);

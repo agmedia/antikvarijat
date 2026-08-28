@@ -132,17 +132,43 @@ class LocaleHelper
 
     public static function localizedSettingField($item, string $field, bool $fallback = true, ?string $locale = null): ?string
     {
-        $value = self::localizedField($item, $field, $fallback, $locale);
-
-        return $value !== null ? (string) $value : null;
+        return self::localizedSettingValue($item, $field, $fallback, $locale);
     }
 
     public static function localizedSettingDataField($item, string $field, bool $fallback = true, ?string $locale = null): ?string
     {
         $data = self::rawAttribute($item, 'data');
-        $value = self::localizedField($data, $field, $fallback, $locale);
 
-        return $value !== null ? (string) $value : null;
+        return self::localizedSettingValue($data, $field, $fallback, $locale);
+    }
+
+    private static function localizedSettingValue($item, string $field, bool $fallback, ?string $locale): ?string
+    {
+        if (! $item) {
+            return null;
+        }
+
+        $locale = $locale ?: self::current();
+        $raw = self::normalizeSettingString(self::rawAttribute($item, $field));
+
+        if (self::isEnglish($locale)) {
+            $localized = self::normalizeSettingString(self::rawAttribute($item, $field . '_en'));
+
+            return $localized !== null ? $localized : ($fallback ? $raw : null);
+        }
+
+        return $raw;
+    }
+
+    private static function normalizeSettingString($value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        $value = trim((string) $value);
+
+        return $value === '' || strcasecmp($value, 'null') === 0 ? null : $value;
     }
 
     public static function paymentTitle(?string $code, ?string $fallback = null, ?string $locale = null): string

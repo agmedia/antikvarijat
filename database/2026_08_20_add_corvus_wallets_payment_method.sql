@@ -53,17 +53,18 @@ WHERE NOT EXISTS (
 );
 
 -- Preserve later administrator edits while filling fields that may be missing from
--- an automatically created stub record. Status follows availability of Corvus credentials.
+-- an automatically created stub record. Existing status is preserved so rerunning this
+-- installer cannot re-enable a payment method disabled by an administrator.
 UPDATE `settings`
 SET `value` = JSON_SET(
         `value`,
         '$[0].title', IF(
-            COALESCE(JSON_UNQUOTE(JSON_EXTRACT(`value`, '$[0].title')), '') IN ('', 'corvus_wallets'),
+            LOWER(TRIM(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(`value`, '$[0].title')), ''))) IN ('', 'null', 'corvus_wallets'),
             'Apple Pay / Google Pay',
             JSON_UNQUOTE(JSON_EXTRACT(`value`, '$[0].title'))
         ),
         '$[0].title_en', IF(
-            COALESCE(JSON_UNQUOTE(JSON_EXTRACT(`value`, '$[0].title_en')), '') = '',
+            LOWER(TRIM(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(`value`, '$[0].title_en')), ''))) IN ('', 'null'),
             'Apple Pay / Google Pay',
             JSON_UNQUOTE(JSON_EXTRACT(`value`, '$[0].title_en'))
         ),
@@ -71,30 +72,36 @@ SET `value` = JSON_SET(
         '$[0].min', COALESCE(JSON_EXTRACT(`value`, '$[0].min'), @wallet_min),
         '$[0].data.price', COALESCE(JSON_EXTRACT(`value`, '$[0].data.price'), @wallet_price),
         '$[0].data.short_description', IF(
-            COALESCE(JSON_UNQUOTE(JSON_EXTRACT(`value`, '$[0].data.short_description')), '') = '',
+            LOWER(TRIM(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(`value`, '$[0].data.short_description')), ''))) IN ('', 'null'),
             'Brzo i sigurno plaćanje putem Apple Paya ili Google Paya',
             JSON_UNQUOTE(JSON_EXTRACT(`value`, '$[0].data.short_description'))
         ),
         '$[0].data.short_description_en', IF(
-            COALESCE(JSON_UNQUOTE(JSON_EXTRACT(`value`, '$[0].data.short_description_en')), '') = '',
+            LOWER(TRIM(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(`value`, '$[0].data.short_description_en')), ''))) IN ('', 'null'),
             'Fast and secure payment with Apple Pay or Google Pay',
             JSON_UNQUOTE(JSON_EXTRACT(`value`, '$[0].data.short_description_en'))
         ),
         '$[0].data.description', IF(
-            COALESCE(JSON_UNQUOTE(JSON_EXTRACT(`value`, '$[0].data.description')), '') = '',
+            LOWER(TRIM(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(`value`, '$[0].data.description')), ''))) IN ('', 'null'),
             'Plaćanje putem Apple Paya ili Google Paya na sigurnoj CorvusPay stranici.',
             JSON_UNQUOTE(JSON_EXTRACT(`value`, '$[0].data.description'))
         ),
         '$[0].data.description_en', IF(
-            COALESCE(JSON_UNQUOTE(JSON_EXTRACT(`value`, '$[0].data.description_en')), '') = '',
+            LOWER(TRIM(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(`value`, '$[0].data.description_en')), ''))) IN ('', 'null'),
             'Pay with Apple Pay or Google Pay on the secure CorvusPay page.',
             JSON_UNQUOTE(JSON_EXTRACT(`value`, '$[0].data.description_en'))
         ),
         '$[0].data.credential_source', 'corvus',
         '$[0].geo_zone', COALESCE(JSON_EXTRACT(`value`, '$[0].geo_zone'), @wallet_geo_zone),
-        '$[0].status', @wallet_enabled,
+        '$[0].status', IF(
+            JSON_TYPE(JSON_EXTRACT(`value`, '$[0].status')) IS NULL
+                OR JSON_TYPE(JSON_EXTRACT(`value`, '$[0].status')) = 'NULL'
+                OR LOWER(TRIM(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(`value`, '$[0].title')), ''))) IN ('', 'null', 'corvus_wallets'),
+            @wallet_enabled,
+            JSON_EXTRACT(`value`, '$[0].status')
+        ),
         '$[0].sort_order', IF(
-            COALESCE(JSON_UNQUOTE(JSON_EXTRACT(`value`, '$[0].title')), '') IN ('', 'corvus_wallets')
+            LOWER(TRIM(COALESCE(JSON_UNQUOTE(JSON_EXTRACT(`value`, '$[0].title')), ''))) IN ('', 'null', 'corvus_wallets')
                 AND COALESCE(CAST(JSON_UNQUOTE(JSON_EXTRACT(`value`, '$[0].sort_order')) AS UNSIGNED), 0) = 0,
             @wallet_sort_order,
             COALESCE(JSON_EXTRACT(`value`, '$[0].sort_order'), @wallet_sort_order)
