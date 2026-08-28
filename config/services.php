@@ -42,6 +42,13 @@ return [
         'bypass_local' => env('RECAPTCHA_BYPASS_LOCAL', true),
     ],
 
+    'mailchimp' => [
+        'api_key' => env('MAILCHIMP_API_KEY'),
+        'server_prefix' => env('MAILCHIMP_SERVER_PREFIX'),
+        'audience_id' => env('MAILCHIMP_AUDIENCE_ID'),
+        'subscribe_status' => env('MAILCHIMP_SUBSCRIBE_STATUS', 'subscribed'),
+    ],
+
     'google_translate' => [
         'api_key' => env('GOOGLE_TRANSLATE_API_KEY'),
         'source' => env('GOOGLE_TRANSLATE_SOURCE', 'hr'),

@@ -19,6 +19,7 @@ class NewsletterSubscriber extends Model
 
     protected $casts = [
         'subscribed_at' => 'datetime',
+        'mailchimp_synced_at' => 'datetime',
     ];
 
     public function user()

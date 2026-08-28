@@ -200,6 +200,9 @@ Route::middleware(['auth:sanctum', 'verified', 'no.customers'])->prefix('admin')
 
         // NEWSLETTER
         Route::get('newsletter', [NewsletterSubscriberController::class, 'index'])->name('newsletter.subscribers');
+        Route::post('newsletter/sync-mailchimp', [NewsletterSubscriberController::class, 'syncMailchimp'])
+            ->middleware('not.editor')
+            ->name('newsletter.mailchimp.sync');
         Route::post('newsletter/clear-caches', [NewsletterSubscriberController::class, 'clearCaches'])->name('newsletter.caches.clear');
         // VIALIBRI
         Route::get('vialibri', [VialibriController::class, 'index'])->name('vialibri.index');
