@@ -189,5 +189,22 @@ class RouteServiceProvider extends ServiceProvider
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(60);
         });
+
+        RateLimiter::for('facebook-preview', function (Request $request) {
+            $userAgent = Str::lower((string) $request->userAgent());
+
+            if (! Str::contains($userAgent, 'facebookexternalhit')) {
+                return Limit::none();
+            }
+
+            $pathKey = sha1(Str::lower($request->getHost()).'|'.$request->path());
+
+            return [
+                // Check the path-specific limit first so rejected retries do not
+                // consume the broader crawler allowance.
+                Limit::perMinute(5)->by('facebook-preview:path:'.$pathKey),
+                Limit::perMinute(20)->by('facebook-preview:global'),
+            ];
+        });
     }
 }
