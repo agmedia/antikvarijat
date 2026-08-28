@@ -11,6 +11,7 @@ use Throwable;
 class MailchimpAttributionService
 {
     public const CAMPAIGN_COOKIE = 'biblos_mc_cid';
+    public const CONSENT_COOKIE = 'biblos_marketing_consent';
 
     /** @var bool|null */
     private $columnsAvailable;
@@ -27,11 +28,12 @@ class MailchimpAttributionService
 
         try {
             $campaignId = $this->normalizeIdentifier($request->cookie(self::CAMPAIGN_COOKIE));
+            $marketingConsent = strtolower(trim((string) $request->cookie(self::CONSENT_COOKIE)));
 
-            // If marketing consent was withdrawn before payment, remove any
-            // attribution already attached to this still-unfinished order.
-            // The checkout itself remains completely unaffected.
-            if ($campaignId === null) {
+            // Only an explicit client-side consent withdrawal may remove an
+            // existing attribution. A missing cookie alone can also happen on
+            // payment redirects and must never erase valid metadata.
+            if ($marketingConsent === 'denied') {
                 DB::table('orders')
                     ->where('id', $orderId)
                     ->whereNull('checkout_processed_at')
@@ -40,6 +42,10 @@ class MailchimpAttributionService
                         'mailchimp_campaign_id' => null,
                     ]);
 
+                return false;
+            }
+
+            if ($campaignId === null) {
                 return false;
             }
 

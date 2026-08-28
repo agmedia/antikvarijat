@@ -183,7 +183,7 @@ class MailchimpEcommerceService
     /**
      * @return array{ok:bool,error:?string,stop?:bool}
      */
-    private function ensureStore(): array
+    public function ensureStore(): array
     {
         if ($this->storeEnsured) {
             return ['ok' => true, 'error' => null];

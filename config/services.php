@@ -51,6 +51,7 @@ return [
         'ecommerce_store_name' => env('MAILCHIMP_ECOMMERCE_STORE_NAME', 'Antikvarijat Biblos'),
         'ecommerce_currency_code' => env('MAILCHIMP_ECOMMERCE_CURRENCY_CODE', 'EUR'),
         'ecommerce_automations_enabled' => env('MAILCHIMP_ECOMMERCE_AUTOMATIONS_ENABLED', false),
+        'ecommerce_sync_from' => env('MAILCHIMP_ECOMMERCE_SYNC_FROM', '2026-08-28 00:00:00'),
         'storefront_url' => env('MAILCHIMP_STOREFRONT_URL', env('APP_URL')),
     ],
 

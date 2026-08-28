@@ -44,11 +44,21 @@
         };
 
         const validMailchimpIdentifier = (value) => /^[a-z0-9_-]{1,100}$/i.test(value || '');
+        const pendingMailchimpCampaignId = new URL(window.location.href).searchParams.get('mc_cid');
+        const mailchimpConsentCookie = 'biblos_marketing_consent';
+        const mailchimpCookieMaxAge = 60 * 60 * 24 * 30;
+
+        const setMailchimpConsentState = (state) => {
+            const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+            document.cookie = `${mailchimpConsentCookie}=${state}; Max-Age=${mailchimpCookieMaxAge}; Path=/; SameSite=Lax${secure}`;
+        };
 
         const clearMailchimpAttribution = () => {
             Object.keys(mailchimpAttributionCookies).forEach((cookieName) => {
                 document.cookie = `${cookieName}=; Max-Age=0; Path=/; SameSite=Lax`;
             });
+
+            setMailchimpConsentState('denied');
         };
 
         const syncMailchimpAttribution = (marketingGranted) => {
@@ -57,15 +67,16 @@
                 return;
             }
 
-            const params = new URL(window.location.href).searchParams;
             const secure = window.location.protocol === 'https:' ? '; Secure' : '';
-            const maxAge = 60 * 60 * 24 * 30;
+            setMailchimpConsentState('granted');
 
             Object.entries(mailchimpAttributionCookies).forEach(([cookieName, parameterName]) => {
-                const value = params.get(parameterName);
+                const value = parameterName === 'mc_cid'
+                    ? pendingMailchimpCampaignId
+                    : new URL(window.location.href).searchParams.get(parameterName);
 
                 if (validMailchimpIdentifier(value)) {
-                    document.cookie = `${cookieName}=${encodeURIComponent(value)}; Max-Age=${maxAge}; Path=/; SameSite=Lax${secure}`;
+                    document.cookie = `${cookieName}=${encodeURIComponent(value)}; Max-Age=${mailchimpCookieMaxAge}; Path=/; SameSite=Lax${secure}`;
                 }
             });
         };
@@ -231,7 +242,7 @@
             .some((entry) => entry.trim().startsWith('cc_cookie='));
 
         const scheduleCookieConsentBoot = () => {
-            if (hasStoredCookieConsent()) {
+            if (hasStoredCookieConsent() || validMailchimpIdentifier(pendingMailchimpCampaignId)) {
                 bootCookieConsent();
                 return;
             }

@@ -13,5 +13,6 @@ class EncryptCookies extends Middleware
      */
     protected $except = [
         'biblos_mc_cid',
+        'biblos_marketing_consent',
     ];
 }

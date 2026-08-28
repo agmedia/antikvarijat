@@ -21,6 +21,13 @@ class SyncMailchimpEcommerceOrders extends Command
             return self::FAILURE;
         }
 
+        $store = $synchronizer->ensureStore();
+        if (! $store['ok']) {
+            $this->error($store['error'] ?? 'Mailchimp store nije moguće pripremiti.');
+
+            return self::FAILURE;
+        }
+
         $limit = max(1, min((int) $this->option('limit'), 25));
         $maxSeconds = max(5, min((int) $this->option('max-seconds'), 55));
         $startedAt = microtime(true);

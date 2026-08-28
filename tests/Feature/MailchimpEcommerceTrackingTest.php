@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
+use ReflectionProperty;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -36,6 +37,7 @@ class MailchimpEcommerceTrackingTest extends TestCase
             'services.mailchimp.ecommerce_store_name' => 'Biblos test store',
             'services.mailchimp.ecommerce_currency_code' => 'EUR',
             'services.mailchimp.ecommerce_automations_enabled' => false,
+            'services.mailchimp.ecommerce_sync_from' => '2026-08-28 00:00:00',
             'services.mailchimp.storefront_url' => 'https://shop.example.test/knjige',
         ]);
 
@@ -53,7 +55,7 @@ class MailchimpEcommerceTrackingTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_attribution_accepts_only_a_valid_campaign_cookie_and_removes_it_without_cookie(): void
+    public function test_attribution_accepts_only_a_valid_campaign_cookie_and_preserves_it_when_cookie_is_missing(): void
     {
         $order = $this->makeOrder([
             'checkout_processed_at' => null,
@@ -73,13 +75,20 @@ class MailchimpEcommerceTrackingTest extends TestCase
         ]);
 
         $this->assertFalse($service->attachToOrder($order->id, $invalidRequest));
-        $this->assertNull($order->fresh()->mailchimp_campaign_id);
+        $this->assertSame('AbC_123-test', $order->fresh()->mailchimp_campaign_id);
 
         DB::table('orders')->where('id', $order->id)->update([
             'mailchimp_campaign_id' => 'previous-campaign',
         ]);
 
         $this->assertFalse($service->attachToOrder($order->id, Request::create('/', 'GET')));
+        $this->assertSame('previous-campaign', $order->fresh()->mailchimp_campaign_id);
+
+        $withdrawnConsentRequest = Request::create('/', 'GET', [], [
+            'biblos_marketing_consent' => 'denied',
+        ]);
+
+        $this->assertFalse($service->attachToOrder($order->id, $withdrawnConsentRequest));
         $this->assertNull($order->fresh()->mailchimp_campaign_id);
 
         DB::table('orders')->where('id', $order->id)->update([
@@ -91,6 +100,50 @@ class MailchimpEcommerceTrackingTest extends TestCase
         $this->assertSame('locked-after-checkout', $order->fresh()->mailchimp_campaign_id);
         $this->assertFalse($service->attachToOrder($order->id, Request::create('/', 'GET')));
         $this->assertSame('locked-after-checkout', $order->fresh()->mailchimp_campaign_id);
+    }
+
+    public function test_campaign_landing_boots_consent_immediately_and_keeps_the_pending_campaign_id(): void
+    {
+        $source = file_get_contents(
+            resource_path('views/front/layouts/partials/cookie-consent.blade.php')
+        );
+
+        $snapshotDeclaration = strpos($source, 'const pendingMailchimpCampaignId =');
+        $attributionSync = strpos($source, 'const syncMailchimpAttribution =');
+
+        $this->assertNotFalse($snapshotDeclaration);
+        $this->assertNotFalse($attributionSync);
+        $this->assertLessThan(
+            $attributionSync,
+            $snapshotDeclaration,
+            'mc_cid mora biti snapshotan prije asinkronog CookieConsent lifecyclea.'
+        );
+        $this->assertStringContainsString("searchParams.get('mc_cid')", $source);
+        $this->assertStringContainsString('biblos_marketing_consent', $source);
+        $this->assertStringContainsString('denied', $source);
+        $this->assertGreaterThanOrEqual(
+            3,
+            substr_count($source, 'pendingMailchimpCampaignId'),
+            'Snapshot mora se ponovno koristiti kod spremanja cookieja i odluke o ranom bootu.'
+        );
+        $this->assertMatchesRegularExpression(
+            '/hasStoredCookieConsent\(\)\s*\|\|\s*validMailchimpIdentifier\(pendingMailchimpCampaignId\)/',
+            $source,
+            'Landing s mc_cid mora odmah bootati consent, bez čekanja prvog klika ili 6 sekundi.'
+        );
+    }
+
+    public function test_plain_marketing_consent_cookie_is_available_to_the_server(): void
+    {
+        $middleware = app(\App\Http\Middleware\EncryptCookies::class);
+        $except = new ReflectionProperty($middleware, 'except');
+        $except->setAccessible(true);
+
+        $this->assertContains(
+            'biblos_marketing_consent',
+            $except->getValue($middleware),
+            'Client-side consent cookie mora biti izuzet od Laravel dekripcije.'
+        );
     }
 
     public function test_service_creates_store_then_customer_product_and_attributed_order_with_safe_payloads(): void
@@ -227,26 +280,35 @@ class MailchimpEcommerceTrackingTest extends TestCase
         Http::assertSentCount(1);
     }
 
-    public function test_pending_orders_excludes_historical_orders_without_campaign_attribution(): void
+    public function test_pending_orders_includes_recent_unattributed_orders_and_excludes_pre_rollout_history(): void
     {
+        Carbon::setTestNow('2026-08-28 08:00:00');
         $attributed = $this->makeOrder(['mailchimp_campaign_id' => 'campaign-new']);
-        $historical = $this->makeOrder(['mailchimp_campaign_id' => null]);
+        $recentUnattributed = $this->makeOrder(['mailchimp_campaign_id' => null]);
+        $preRollout = $this->makeOrder([
+            'checkout_processed_at' => '2026-08-27 23:59:59',
+            'mailchimp_campaign_id' => null,
+        ]);
 
         $pendingIds = app(MailchimpOrderSynchronizer::class)
             ->pendingOrders(25)
             ->pluck('id')
             ->all();
 
-        $this->assertSame([$attributed->id], $pendingIds);
-        $this->assertNotContains($historical->id, $pendingIds);
+        $this->assertSame([$attributed->id, $recentUnattributed->id], $pendingIds);
+        $this->assertNotContains($preRollout->id, $pendingIds);
         Http::assertNothingSent();
     }
 
-    public function test_command_syncs_only_campaign_attributed_orders(): void
+    public function test_command_syncs_recent_orders_for_native_attribution_but_not_pre_rollout_history(): void
     {
         Carbon::setTestNow('2026-08-28 08:00:00');
         $attributed = $this->makeOrder(['mailchimp_campaign_id' => 'campaign-command'], true);
-        $historical = $this->makeOrder(['mailchimp_campaign_id' => null], true);
+        $recentUnattributed = $this->makeOrder(['mailchimp_campaign_id' => null], true);
+        $preRollout = $this->makeOrder([
+            'checkout_processed_at' => '2026-08-27 23:59:59',
+            'mailchimp_campaign_id' => null,
+        ], true);
         $requests = [];
         $this->fakeSuccessfulMailchimp($requests);
 
@@ -254,20 +316,59 @@ class MailchimpEcommerceTrackingTest extends TestCase
             '--limit' => 25,
             '--max-seconds' => 50,
         ])
-            ->expectsOutput('Mailchimp e-commerce sync završen. Sinkronizirano: 1, neuspjelo: 0, preskočeno: 0.')
+            ->expectsOutput('Mailchimp e-commerce sync završen. Sinkronizirano: 2, neuspjelo: 0, preskočeno: 0.')
             ->assertExitCode(0);
         $this->assertNotNull($attributed->fresh()->mailchimp_ecommerce_synced_at);
         $this->assertSame('paid', $attributed->fresh()->mailchimp_ecommerce_financial_status);
-        $this->assertNull($historical->fresh()->mailchimp_ecommerce_synced_at);
-        $this->assertNull($historical->fresh()->mailchimp_ecommerce_last_attempt_at);
+        $this->assertNotNull($recentUnattributed->fresh()->mailchimp_ecommerce_synced_at);
+        $this->assertSame('paid', $recentUnattributed->fresh()->mailchimp_ecommerce_financial_status);
+        $this->assertNull($preRollout->fresh()->mailchimp_ecommerce_synced_at);
+        $this->assertNull($preRollout->fresh()->mailchimp_ecommerce_last_attempt_at);
         $this->assertCount(1, array_filter($requests, function (array $request) use ($attributed) {
             return $request['method'] === 'PUT'
                 && substr($request['url'], -strlen('/orders/' . $attributed->id)) === '/orders/' . $attributed->id;
         }));
-        $this->assertCount(0, array_filter($requests, function (array $request) use ($historical) {
+        $recentRemoteOrder = collect($requests)->first(function (array $request) use ($recentUnattributed) {
             return $request['method'] === 'PUT'
-                && substr($request['url'], -strlen('/orders/' . $historical->id)) === '/orders/' . $historical->id;
+                && substr($request['url'], -strlen('/orders/' . $recentUnattributed->id))
+                    === '/orders/' . $recentUnattributed->id;
+        });
+        $this->assertNotNull($recentRemoteOrder);
+        $this->assertArrayNotHasKey('campaign_id', $recentRemoteOrder['data']);
+        $this->assertCount(0, array_filter($requests, function (array $request) use ($preRollout) {
+            return $request['method'] === 'PUT'
+                && substr($request['url'], -strlen('/orders/' . $preRollout->id)) === '/orders/' . $preRollout->id;
         }));
+    }
+
+    public function test_command_provisions_store_even_when_there_are_no_attributed_orders(): void
+    {
+        $historical = $this->makeOrder([
+            'checkout_processed_at' => '2026-08-27 23:59:59',
+            'mailchimp_campaign_id' => null,
+        ], true);
+        $requests = [];
+        $this->fakeSuccessfulMailchimp($requests);
+
+        $this->artisan('mailchimp:sync-ecommerce-orders', [
+            '--limit' => 25,
+            '--max-seconds' => 50,
+        ])
+            ->expectsOutput('Mailchimp e-commerce sync završen. Sinkronizirano: 0, neuspjelo: 0, preskočeno: 0.')
+            ->assertExitCode(0);
+
+        $this->assertSame(['GET', 'POST'], array_column($requests, 'method'));
+        $this->assertSame(
+            'https://us7.api.mailchimp.com/3.0/ecommerce/stores/store-123',
+            $requests[0]['url']
+        );
+        $this->assertSame(
+            'https://us7.api.mailchimp.com/3.0/ecommerce/stores',
+            $requests[1]['url']
+        );
+        $this->assertNull($historical->fresh()->mailchimp_ecommerce_synced_at);
+        $this->assertNull($historical->fresh()->mailchimp_ecommerce_last_attempt_at);
+        Http::assertSentCount(2);
     }
 
     private function createTables(): void

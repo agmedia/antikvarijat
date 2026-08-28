@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Back\Orders\Order;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -28,8 +29,52 @@ class MailchimpOrderSynchronizer
         return $this->columnsAreAvailable() && $this->mailchimp->isConfigured();
     }
 
+    /** @return array{ok:bool,error:?string,stop?:bool} */
+    public function ensureStore(): array
+    {
+        if (! $this->columnsAreAvailable()) {
+            return [
+                'ok' => false,
+                'error' => 'Mailchimp e-commerce migracija nije dostupna.',
+                'stop' => true,
+            ];
+        }
+
+        if (! $this->mailchimp->isConfigured()) {
+            return [
+                'ok' => false,
+                'error' => 'Mailchimp e-commerce nije konfiguriran.',
+                'stop' => true,
+            ];
+        }
+
+        try {
+            $result = $this->mailchimp->ensureStore();
+
+            if (! $result['ok']) {
+                Log::warning('Mailchimp e-commerce store check failed.', [
+                    'stop' => ! empty($result['stop']),
+                    'error' => $this->sanitizeError($result['error'] ?? null),
+                ]);
+            }
+
+            return $result;
+        } catch (Throwable $e) {
+            Log::warning('Mailchimp e-commerce store check could not run.', [
+                'exception' => get_class($e),
+            ]);
+
+            return [
+                'ok' => false,
+                'error' => 'Mailchimp e-commerce trenutno nije dostupan.',
+                'stop' => true,
+            ];
+        }
+    }
+
     /**
-     * Sync one already-completed, campaign-attributed order. All exceptions
+     * Sync one already-completed order. Mailchimp applies native last-touch
+     * attribution when no explicit campaign ID is available. All exceptions
      * are contained here so Mailchimp can never change the checkout outcome.
      *
      * @return array{ok:bool,skipped:bool,error:?string,stop:bool}
@@ -47,7 +92,7 @@ class MailchimpOrderSynchronizer
         try {
             $order = Order::query()->find($orderId);
 
-            if (! $order || ! $order->checkout_processed_at || ! $order->mailchimp_campaign_id) {
+            if (! $order || ! $order->checkout_processed_at) {
                 return $this->result(true, true, null, false);
             }
 
@@ -132,7 +177,7 @@ class MailchimpOrderSynchronizer
         try {
             DB::table('orders')
                 ->whereIn('id', $ids)
-                ->whereNotNull('mailchimp_campaign_id')
+                ->where('checkout_processed_at', '>=', $this->syncFrom())
                 ->update([
                     'mailchimp_ecommerce_synced_at' => null,
                     'mailchimp_ecommerce_last_attempt_at' => null,
@@ -147,9 +192,10 @@ class MailchimpOrderSynchronizer
     }
 
     /**
-     * Return only new campaign-attributed orders or previously-synced orders
-     * whose local financial status changed. Historical unattributed orders are
-     * intentionally excluded to prevent an unsafe automatic backfill.
+     * Return new completed orders or previously-synced orders whose local
+     * financial status changed. Mailchimp's native attribution connects these
+     * orders to recent campaign interactions. The rollout cutoff deliberately
+     * excludes older history from automatic backfill.
      */
     public function pendingOrders(int $limit = 5): Collection
     {
@@ -173,7 +219,7 @@ class MailchimpOrderSynchronizer
 
         return Order::query()
             ->whereNotNull('checkout_processed_at')
-            ->whereNotNull('mailchimp_campaign_id')
+            ->where('checkout_processed_at', '>=', $this->syncFrom())
             ->whereIn('order_status_id', $statusIds)
             ->where(function ($query) {
                 $query->whereNull('mailchimp_ecommerce_last_attempt_at')
@@ -189,6 +235,21 @@ class MailchimpOrderSynchronizer
             ->orderBy('id')
             ->limit($limit)
             ->get();
+    }
+
+    private function syncFrom(): Carbon
+    {
+        $fallback = '2026-08-28 00:00:00';
+        $configured = trim((string) config('services.mailchimp.ecommerce_sync_from', $fallback));
+
+        try {
+            return Carbon::parse(
+                $configured !== '' ? $configured : $fallback,
+                config('app.timezone')
+            );
+        } catch (Throwable $e) {
+            return Carbon::parse($fallback, config('app.timezone'));
+        }
     }
 
     /** @return array<int,string> */
