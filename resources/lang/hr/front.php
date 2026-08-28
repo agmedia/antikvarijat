@@ -700,6 +700,8 @@ return [
         'preheader_order' => 'Narudžba Antikvarijat Biblos',
         'order_subject_customer' => 'Hvala vam za narudžbu s Antikvarijata Biblos - :order_id',
         'order_subject_status' => 'Hvala vam za narudžbu s Antikvarijata Biblos',
+        'order_subject_paid' => 'Narudžba #:order_id je uspješno plaćena - Antikvarijat Biblos',
+        'order_subject_canceled' => 'Narudžba #:order_id je otkazana - Antikvarijat Biblos',
         'order_subject_admin' => 'Dobili ste novu narudžbu - Antikvarijat Biblos - :order_id',
         'order_admin_preheader' => 'Nova narudžba #:order_id spremna je za obradu.',
         'order_admin_badge' => 'Nova web narudžba',

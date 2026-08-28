@@ -42,6 +42,10 @@ class Kernel extends ConsoleKernel
         $schedule->command('mailchimp:sync-ecommerce-orders --limit=5 --max-seconds=50')
             ->everyMinute()
             ->withoutOverlapping(5);
+        $schedule->command('orders:send-notifications --limit=25')
+            ->everyMinute()
+            ->runInBackground()
+            ->withoutOverlapping(5);
     }
 
     /**

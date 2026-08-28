@@ -7,8 +7,6 @@ use App\Helpers\Session\CheckoutSession;
 use App\Exceptions\GiftVoucherUnavailableException;
 use App\Exceptions\ShippingUnavailableException;
 use App\Http\Controllers\Controller;
-use App\Mail\OrderReceived;
-use App\Mail\OrderSent;
 use App\Models\Back\Marketing\NewsletterSubscriber;
 use App\Models\Back\Orders\Order as BackOrder;
 use App\Models\Front\AgCart;
@@ -17,14 +15,15 @@ use App\Models\TagManager;
 use App\Services\ProductRecommendationService;
 use App\Services\GiftVoucherService;
 use App\Services\MailchimpAttributionService;
+use App\Services\OrderNotificationService;
 use App\Services\Shipping\WoltDriveService;
 use App\Services\Shipping\WoltDriveSettingsService;
 use App\Models\Front\Checkout\GeoZone;
 use App\Models\Front\Checkout\PaymentMethod;
 use App\Models\Front\Checkout\ShippingMethod;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 
 class CheckoutController extends Controller
 {
@@ -240,13 +239,28 @@ class CheckoutController extends Controller
                     ->with('error', $exception->getMessage());
             }
 
-            $processedNow = \App\Models\Back\Orders\Order::query()
-                ->where('id', $order->id)
-                ->whereNull('checkout_processed_at')
-                ->update([
-                    'checkout_processed_at' => now(),
-                    'updated_at' => now(),
-                ]);
+            $notifications = app(OrderNotificationService::class);
+
+            // Once the outbox is installed, the checkout marker and both
+            // notification rows are committed together. A killed request can
+            // therefore never leave a completed order without a durable admin
+            // notification waiting to be sent.
+            $processedNow = DB::transaction(function () use ($order, $notifications) {
+                $processed = BackOrder::query()
+                    ->where('id', $order->id)
+                    ->whereNull('checkout_processed_at')
+                    ->update([
+                        'checkout_processed_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+
+                if ($processed) {
+                    $order->refresh();
+                    $notifications->enqueue($order);
+                }
+
+                return $processed;
+            });
 
             if ($processedNow) {
                 NewsletterSubscriber::attachOrderToEmail((string) $order->payment_email, (int) $order->id);
@@ -258,8 +272,17 @@ class CheckoutController extends Controller
                      ->flush()
                      ->resolveDB();
 
-                app()->terminating(function () use ($order) {
-                    $this->sendOrderNotifications($order);
+                app()->terminating(function () use ($order, $notifications) {
+                    try {
+                        $notifications->sendForOrder($order);
+                    } catch (\Throwable $exception) {
+                        // The scheduler will retry the durable rows. Never let
+                        // a terminating callback hide the original response.
+                        Log::warning('Immediate order notification attempt failed.', [
+                            'order_id' => $order->id,
+                            'error' => $exception->getMessage(),
+                        ]);
+                    }
                 });
             } else {
                 Log::info('Checkout success already processed', [
@@ -455,99 +478,6 @@ class CheckoutController extends Controller
         }
 
         return new AgCart(config('session.cart'));
-    }
-
-
-    /**
-     * @param BackOrder $order
-     *
-     * @return void
-     */
-    private function sendOrderNotifications(BackOrder $order): void
-    {
-        $orderId = $order->id;
-        $order = BackOrder::query()->find($orderId);
-
-        if (! $order) {
-            Log::warning('Order notifications skipped because order was not found', [
-                'order_id' => $orderId,
-            ]);
-
-            return;
-        }
-
-        $this->sendAdminOrderNotification($order);
-        $this->sendCustomerOrderNotification($order);
-    }
-
-
-    /**
-     * @param BackOrder $order
-     *
-     * @return void
-     */
-    private function sendAdminOrderNotification(BackOrder $order): void
-    {
-        $email = config('mail.admin');
-
-        if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            Log::warning('Admin order notification skipped because admin email is invalid', [
-                'order_id' => $order->id,
-                'email' => $email,
-            ]);
-
-            return;
-        }
-
-        try {
-            Log::info('Admin order notification sending', [
-                'order_id' => $order->id,
-                'email' => $email,
-            ]);
-
-            Mail::to($email)->send(new OrderReceived($order));
-
-            Log::info('Admin order notification sent', [
-                'order_id' => $order->id,
-                'email' => $email,
-            ]);
-        } catch (\Throwable $e) {
-            Log::warning('Admin order notification failed', [
-                'order_id' => $order->id,
-                'email' => $email,
-                'error' => $e->getMessage(),
-            ]);
-        }
-    }
-
-
-    /**
-     * @param BackOrder $order
-     *
-     * @return void
-     */
-    private function sendCustomerOrderNotification(BackOrder $order): void
-    {
-        $email = trim((string) $order->payment_email);
-
-        if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            Log::warning('Customer order confirmation skipped because email is invalid', [
-                'order_id' => $order->id,
-                'email' => $order->payment_email,
-            ]);
-
-            return;
-        }
-
-        try {
-            Mail::to($email)->send(new OrderSent($order));
-        } catch (\Throwable $e) {
-            Log::warning('Customer order notification failed', [
-                'order_id' => $order->id,
-                'email' => $email,
-                'error' => $e->getMessage(),
-            ]);
-        }
     }
 
 }

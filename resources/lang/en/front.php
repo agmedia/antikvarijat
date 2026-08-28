@@ -744,6 +744,8 @@ return [
         'preheader_order' => 'Order Antikvarijat Biblos',
         'order_subject_customer' => 'Thank you for your order from Antikvarijat Biblos - :order_id',
         'order_subject_status' => 'Thank you for your order from Antikvarijat Biblos',
+        'order_subject_paid' => 'Order #:order_id has been paid - Antikvarijat Biblos',
+        'order_subject_canceled' => 'Order #:order_id has been canceled - Antikvarijat Biblos',
         'order_subject_admin' => 'New order received - Antikvarijat Biblos - :order_id',
         'order_admin_preheader' => 'New order #:order_id is ready to be processed.',
         'order_admin_badge' => 'New web order',

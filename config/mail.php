@@ -41,7 +41,9 @@ return [
             'encryption' => env('MAIL_ENCRYPTION', 'tls'),
             'username' => env('MAIL_USERNAME'),
             'password' => env('MAIL_PASSWORD'),
-            'timeout' => null,
+            // A bounded timeout lets the durable order-notification outbox
+            // release and retry a delivery instead of hanging a PHP worker.
+            'timeout' => (int) env('MAIL_TIMEOUT', 20),
             'auth_mode' => null,
         ],
 

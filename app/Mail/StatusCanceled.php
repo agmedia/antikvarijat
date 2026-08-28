@@ -36,7 +36,9 @@ class StatusCanceled extends Mailable
      */
     public function build()
     {
-        return $this->subject(__('front.email.order_subject_status'))
+        return $this->subject(__('front.email.order_subject_canceled', [
+            'order_id' => $this->order->id,
+        ]))
             ->view('emails.status-canceled');
     }
 }

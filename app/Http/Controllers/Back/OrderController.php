@@ -285,16 +285,28 @@ class OrderController extends Controller
                 $updates['unfinished_at'] = now();
             }
 
-            Order::whereIn('id', $orders)->update($updates);
+            $changedOrderIds = [];
+            foreach ($orders as $orderId) {
+                $orderId = (int) $orderId;
+
+                if ($this->changeOrderStatus($orderId, $statusId, $updates)) {
+                    $changedOrderIds[$orderId] = true;
+                }
+            }
+
             $mailchimpOrders->markForSync($orders);
 
             if ($statusId) {
                 Order::query()
                     ->whereIn('id', $orders)
                     ->get()
-                    ->each(function (Order $order) use ($statusId, $giftVouchers) {
+                    ->each(function (Order $order) use ($statusId, $giftVouchers, $changedOrderIds) {
                         $giftVouchers->handleStatusChange($order, $statusId);
-                        $this->sendStatusNotification($order, $statusId);
+                        $this->sendStatusNotification(
+                            $order,
+                            $statusId,
+                            isset($changedOrderIds[(int) $order->id])
+                        );
                     });
             }
 
@@ -304,6 +316,7 @@ class OrderController extends Controller
         if ($request->has('order_id')) {
             $statusId = (int) $request->input('status');
             $orderId = (int) $request->input('order_id');
+            $statusChanged = false;
 
             if ($request->has('status') && $request->input('status')) {
                 $updates = ['order_status_id' => $statusId];
@@ -312,7 +325,7 @@ class OrderController extends Controller
                     $updates['unfinished_at'] = now();
                 }
 
-                Order::where('id', $orderId)->update($updates);
+                $statusChanged = $this->changeOrderStatus($orderId, $statusId, $updates);
                 $mailchimpOrders->markForSync($orderId);
             }
 
@@ -322,7 +335,7 @@ class OrderController extends Controller
                 $giftVouchers->handleStatusChange($order, $statusId);
             }
 
-            $this->sendStatusNotification($order, $statusId);
+            $this->sendStatusNotification($order, $statusId, $statusChanged);
 
             OrderHistory::store($orderId, $request);
 
@@ -375,12 +388,32 @@ class OrderController extends Controller
         }
     }
 
-    private function sendStatusNotification(?Order $order, int $statusId): void
+    private function changeOrderStatus(int $orderId, int $statusId, array $updates): bool
+    {
+        if ($orderId < 1 || $statusId < 1) {
+            return false;
+        }
+
+        return Order::query()
+            ->whereKey($orderId)
+            ->where(function ($query) use ($statusId) {
+                $query->whereNull('order_status_id')
+                    ->orWhere('order_status_id', '!=', $statusId);
+            })
+            ->update($updates) === 1;
+    }
+
+    private function sendStatusNotification(
+        ?Order $order,
+        int $statusId,
+        bool $statusChanged
+    ): void
     {
         $paidStatusId = (int) config('settings.order.status.paid');
         $canceledStatusId = (int) config('settings.order.status.canceled');
 
-        if (! in_array($statusId, [$paidStatusId, $canceledStatusId], true)) {
+        if (! $statusChanged
+            || ! in_array($statusId, [$paidStatusId, $canceledStatusId], true)) {
             return;
         }
 
@@ -413,13 +446,15 @@ class OrderController extends Controller
             return;
         }
 
-        dispatch(function () use ($order, $email, $statusId, $paidStatusId) {
+        $locale = $order->resolvedLocale();
+
+        dispatch(function () use ($order, $email, $locale, $statusId, $paidStatusId) {
             try {
                 $mailable = $statusId === $paidStatusId
                     ? new StatusPaid($order)
                     : new StatusCanceled($order);
 
-                Mail::to($email)->send($mailable);
+                Mail::to($email)->send($mailable->locale($locale));
             } catch (\Throwable $e) {
                 Log::warning('Order status notification failed', [
                     'order_id' => $order->id,
