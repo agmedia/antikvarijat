@@ -14,7 +14,7 @@
             'analytics_title' => 'Analytics',
             'analytics_description' => '<strong>Google Analytics 4 via Google Tag Manager</strong> — measures visits and webshop events, including product views, <em>add_to_cart</em>, checkout, and purchases.',
             'marketing_title' => 'Marketing',
-            'marketing_description' => '<strong>Google Ads and Meta Pixel</strong> — measure campaign performance and enable more relevant advertising on Google, Facebook, and Instagram.',
+            'marketing_description' => '<strong>Google Ads, Meta Pixel, and Mailchimp attribution</strong> — measure campaign performance and enable more relevant advertising on Google, Facebook, Instagram, and email.',
         ]
         : [
             'title' => 'Kolačići za ugodnije listanje',
@@ -29,7 +29,7 @@
             'analytics_title' => 'Analitika',
             'analytics_description' => '<strong>Google Analytics 4 putem Google Tag Managera</strong> — mjeri posjete i događaje webshopa, uključujući pregled proizvoda, <em>add_to_cart</em>, naplatu i kupnju.',
             'marketing_title' => 'Marketing',
-            'marketing_description' => '<strong>Google Ads i Meta Pixel</strong> — mjere uspješnost kampanja i omogućuju relevantnije oglase na Googleu, Facebooku i Instagramu.',
+            'marketing_description' => '<strong>Google Ads, Meta Pixel i Mailchimp atribucija</strong> — mjere uspješnost kampanja i omogućuju relevantnije oglase na Googleu, Facebooku, Instagramu i e-mailu.',
         ];
 @endphp
 
@@ -38,6 +38,37 @@
         window.cookieAnalyticsAllowed = window.cookieAnalyticsAllowed === true;
         window.cookieMarketingAllowed = window.cookieMarketingAllowed === true;
         window.canTrackAnalytics = () => window.cookieAnalyticsAllowed === true;
+
+        const mailchimpAttributionCookies = {
+            biblos_mc_cid: 'mc_cid'
+        };
+
+        const validMailchimpIdentifier = (value) => /^[a-z0-9_-]{1,100}$/i.test(value || '');
+
+        const clearMailchimpAttribution = () => {
+            Object.keys(mailchimpAttributionCookies).forEach((cookieName) => {
+                document.cookie = `${cookieName}=; Max-Age=0; Path=/; SameSite=Lax`;
+            });
+        };
+
+        const syncMailchimpAttribution = (marketingGranted) => {
+            if (!marketingGranted) {
+                clearMailchimpAttribution();
+                return;
+            }
+
+            const params = new URL(window.location.href).searchParams;
+            const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+            const maxAge = 60 * 60 * 24 * 30;
+
+            Object.entries(mailchimpAttributionCookies).forEach(([cookieName, parameterName]) => {
+                const value = params.get(parameterName);
+
+                if (validMailchimpIdentifier(value)) {
+                    document.cookie = `${cookieName}=${encodeURIComponent(value)}; Max-Age=${maxAge}; Path=/; SameSite=Lax${secure}`;
+                }
+            });
+        };
 
         const syncConsent = () => {
             if (!window.CookieConsent) {
@@ -50,6 +81,7 @@
             window.cookieAnalyticsAllowed = analyticsGranted;
             window.cookieMarketingAllowed = marketingGranted;
             window.canTrackAnalytics = () => window.cookieAnalyticsAllowed === true;
+            syncMailchimpAttribution(marketingGranted);
 
             if (typeof window.updateGoogleConsentFromCookie === 'function') {
                 window.updateGoogleConsentFromCookie(analyticsGranted, marketingGranted);

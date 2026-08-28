@@ -34,7 +34,10 @@ class Order extends Model
     protected $guarded = ['id', 'created_at', 'updated_at'];
 
     protected $casts = [
+        'checkout_processed_at' => 'datetime',
         'unfinished_at' => 'datetime',
+        'mailchimp_ecommerce_synced_at' => 'datetime',
+        'mailchimp_ecommerce_last_attempt_at' => 'datetime',
         'shipping_tracking_updated_at' => 'datetime',
         'shipping_tracking_email_sent_at' => 'datetime',
         'shipping_tracking_payload' => 'array',

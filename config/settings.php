@@ -59,9 +59,11 @@ return [
         'made_text' => 'Narudžba napravljena.',
         'status' => [
             'new' => 1,
+            'awaiting_payment' => 2,
             'unfinished' => 8,
             'declined' => 7,
             'canceled' => 5,
+            'refunded' => 6,
             'paid' => 3,
             'send' => 4,
         ]

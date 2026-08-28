@@ -16,6 +16,7 @@ use App\Models\Front\Checkout\Order;
 use App\Models\TagManager;
 use App\Services\ProductRecommendationService;
 use App\Services\GiftVoucherService;
+use App\Services\MailchimpAttributionService;
 use App\Services\Shipping\WoltDriveService;
 use App\Services\Shipping\WoltDriveSettingsService;
 use App\Models\Front\Checkout\GeoZone;
@@ -116,6 +117,12 @@ class CheckoutController extends Controller
             $data['id'] = CheckoutSession::getOrder()['id'];
         }
 
+        if (! empty($data['id'])) {
+            // Tracking metadata is attached only after marketing consent and
+            // never participates in order creation or payment resolution.
+            app(MailchimpAttributionService::class)->attachToOrder((int) $data['id'], $request);
+        }
+
         if (! empty($data['newsletter']) && ! empty($data['address']['email']) && ! empty($data['id'])) {
             NewsletterSubscriber::subscribe([
                 'email'      => $data['address']['email'],
@@ -202,6 +209,12 @@ class CheckoutController extends Controller
         $order = \App\Models\Back\Orders\Order::where('id', $data['order']['id'])->first();
 
         if ($order) {
+            // Re-check consent immediately before checkout is finalized. If
+            // marketing consent was withdrawn on the payment review screen,
+            // the cleared cookie removes attribution while the order is still
+            // unfinished. This remains a fail-open metadata-only operation.
+            app(MailchimpAttributionService::class)->attachToOrder((int) $order->id, $request);
+
             if (! in_array((int) $order->order_status_id, [
                 (int) config('settings.order.status.new'),
                 (int) config('settings.order.status.paid'),

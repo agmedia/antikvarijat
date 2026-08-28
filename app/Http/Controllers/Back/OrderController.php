@@ -28,6 +28,7 @@ use App\Services\Shipping\WoltDriveException;
 use App\Services\Shipping\WoltDriveService;
 use App\Services\Shipping\WoltDriveSettingsService;
 use App\Services\GiftVoucherService;
+use App\Services\MailchimpOrderSynchronizer;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
@@ -243,6 +244,8 @@ class OrderController extends Controller
                 ->where('code', 'shipping')
                 ->update(['title' => $shippingTitle]);
 
+            app(MailchimpOrderSynchronizer::class)->markForSync((int) $updated->id);
+
             return redirect()->route('orders.edit', ['order' => $updated])
                 ->with(['success' => 'Narudžba je snimljena!']);
         }
@@ -266,7 +269,11 @@ class OrderController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function api_status_change(Request $request, GiftVoucherService $giftVouchers)
+    public function api_status_change(
+        Request $request,
+        GiftVoucherService $giftVouchers,
+        MailchimpOrderSynchronizer $mailchimpOrders
+    )
     {
         if ($request->has('orders')) {
             $orders = explode(',', substr($request->input('orders'), 1, -1));
@@ -279,6 +286,7 @@ class OrderController extends Controller
             }
 
             Order::whereIn('id', $orders)->update($updates);
+            $mailchimpOrders->markForSync($orders);
 
             if ($statusId) {
                 Order::query()
@@ -305,6 +313,7 @@ class OrderController extends Controller
                 }
 
                 Order::where('id', $orderId)->update($updates);
+                $mailchimpOrders->markForSync($orderId);
             }
 
             $order = Order::query()->find($orderId);

@@ -39,6 +39,9 @@ class Kernel extends ConsoleKernel
         $schedule->command('sync:shipment-tracking --limit=50 --stale-minutes=15')
             ->everyFifteenMinutes()
             ->withoutOverlapping();
+        $schedule->command('mailchimp:sync-ecommerce-orders --limit=5 --max-seconds=50')
+            ->everyMinute()
+            ->withoutOverlapping(5);
     }
 
     /**
