@@ -4,6 +4,7 @@ namespace App\Models\Back\Marketing;
 
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class NewsletterSubscriber extends Model
 {
@@ -62,6 +63,36 @@ class NewsletterSubscriber extends Model
         $subscriber->save();
 
         return $subscriber;
+    }
+
+    /**
+     * Store a footer signup without modifying an existing subscriber. A
+     * repeated public request must never reactivate an unsubscribed address
+     * or overwrite customer/order attribution.
+     */
+    public static function subscribeFromFooter(string $email, int $userId = 0): void
+    {
+        $email = strtolower(trim($email));
+
+        if ($email === '') {
+            return;
+        }
+
+        $now = now();
+
+        DB::table((new static())->getTable())->insertOrIgnore([
+            [
+                'email' => $email,
+                'user_id' => max(0, $userId),
+                'order_id' => 0,
+                'source' => 'footer',
+                'gdpr' => 1,
+                'subscribed_at' => $now,
+                'status' => 1,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+        ]);
     }
 
     /**

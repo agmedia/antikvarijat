@@ -664,6 +664,10 @@ return [
         'email_required' => 'Polje za e-mail adresu je obavezno.',
         'email_invalid' => 'Unesite ispravnu e-mail adresu.',
         'gdpr_required' => 'Morate prihvatiti GDPR privolu.',
+        'too_fast' => 'Pričekajte trenutak i pokušajte ponovno.',
+        'too_many_requests' => 'Previše pokušaja prijave. Pričekajte i pokušajte ponovno.',
+        'form_expired' => 'Obrazac je istekao. Osvježite stranicu i pokušajte ponovno.',
+        'captcha_failed' => 'Sigurnosna provjera nije uspjela. Pokušajte ponovno.',
         'success' => 'Hvala! Uspješno ste prijavljeni na newsletter.',
     ],
 

@@ -15,6 +15,7 @@ use App\Models\Back\Marketing\Wishlist;
 use App\Models\Front\Page;
 use App\Models\Sitemap;
 use App\Services\BookPurchaseContentService;
+use App\Services\NewsletterSignupGuard;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -22,6 +23,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Intervention\Image\Facades\Image;
 
@@ -114,35 +116,109 @@ class HomeController extends Controller
     /**
      * @param Request $request
      *
-     * @return \Illuminate\Http\RedirectResponse
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
      */
-    public function newsletter(Request $request)
+    public function newsletter(Request $request, NewsletterSignupGuard $signupGuard, Recaptcha $recaptcha)
     {
-        $request->validate([
-            'email' => 'required|email',
+        // Honeypot submissions receive the same answer as a real signup so a
+        // bot cannot use the response to tune its payload.
+        if ($signupGuard->honeypotIsFilled($request->input('website'))) {
+            return $this->newsletterSuccessResponse($request);
+        }
+
+        $timingResult = $signupGuard->timingResult($request->input('newsletter_started_at'));
+
+        if ($timingResult === NewsletterSignupGuard::TIMING_TOO_FAST) {
+            return $this->newsletterValidationError(
+                $request,
+                'newsletter_started_at',
+                __('front.newsletter.too_fast')
+            );
+        }
+
+        if ($timingResult !== NewsletterSignupGuard::TIMING_ALLOWED) {
+            return $this->newsletterValidationError(
+                $request,
+                'newsletter_started_at',
+                __('front.newsletter.form_expired')
+            );
+        }
+
+        $validator = Validator::make($request->only(['email', 'gdpr']), [
+            'email' => 'required|string|email:rfc|max:191',
             'gdpr' => 'required|accepted',
         ], [
             'email.required' => __('front.newsletter.email_required'),
             'email.email' => __('front.newsletter.email_invalid'),
+            'email.max' => __('front.newsletter.email_invalid'),
             'gdpr.required' => __('front.newsletter.gdpr_required'),
             'gdpr.accepted' => __('front.newsletter.gdpr_required'),
         ]);
 
-        NewsletterSubscriber::subscribe([
-            'email' => $request->input('email'),
-            'user_id' => auth()->id() ?? 0,
-            'source' => 'footer',
-            'gdpr' => true,
-        ]);
+        if ($validator->fails()) {
+            return $this->newsletterValidationErrors($request, $validator->errors()->toArray());
+        }
+
+        $captchaEnabled = trim((string) config('services.recaptcha.sitekey')) !== ''
+            && trim((string) config('services.recaptcha.secret')) !== '';
+
+        if ($captchaEnabled) {
+            $token = $request->input('recaptcha');
+            $appHostname = parse_url((string) config('app.url'), PHP_URL_HOST);
+            $expectedHostname = is_string($appHostname) && $appHostname !== '' ? $appHostname : null;
+
+            if (! is_string($token)
+                || strlen($token) > 4096
+                || ! $recaptcha->check(['recaptcha' => $token])->ok('newsletter_subscribe', $expectedHostname)) {
+                return $this->newsletterValidationError(
+                    $request,
+                    'recaptcha',
+                    __('front.newsletter.captcha_failed')
+                );
+            }
+        }
+
+        NewsletterSubscriber::subscribeFromFooter(
+            Str::lower(trim((string) $request->input('email'))),
+            (int) (auth()->id() ?: 0)
+        );
+
+        return $this->newsletterSuccessResponse($request);
+    }
+
+    private function newsletterSuccessResponse(Request $request)
+    {
+        $message = __('front.newsletter.success');
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
                 'status' => 'success',
-                'message' => __('front.newsletter.success'),
+                'message' => $message,
             ]);
         }
 
-        return back()->with('newsletter_success', __('front.newsletter.success'));
+        return back()->with('newsletter_success', $message);
+    }
+
+    private function newsletterValidationError(Request $request, string $field, string $message)
+    {
+        return $this->newsletterValidationErrors($request, [
+            $field => [$message],
+        ]);
+    }
+
+    private function newsletterValidationErrors(Request $request, array $errors)
+    {
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'message' => collect($errors)->flatten()->first(),
+                'errors' => $errors,
+            ], 422);
+        }
+
+        return back()
+            ->withErrors($errors)
+            ->withInput($request->only(['newsletter_form', 'email', 'gdpr']));
     }
 
 

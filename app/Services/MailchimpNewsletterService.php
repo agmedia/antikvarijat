@@ -151,17 +151,79 @@ class MailchimpNewsletterService
         ];
     }
 
+    /**
+     * Archive one subscriber in Mailchimp before it is removed locally.
+     * A missing Mailchimp member is already in the desired state, so HTTP 404
+     * is intentionally treated as a successful archive.
+     *
+     * @return array{ok:bool,error:?string,stop?:bool}
+     */
+    public function archiveSubscriber(NewsletterSubscriber $subscriber): array
+    {
+        if (! $this->isConfigured()) {
+            return [
+                'ok' => false,
+                'error' => 'Mailchimp nije konfiguriran. Nedostaje API ključ, server prefix ili Audience ID.',
+                'stop' => true,
+            ];
+        }
+
+        $email = strtolower(trim((string) $subscriber->email));
+
+        if ($email === '' || filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
+            return ['ok' => false, 'error' => 'E-mail adresa nije valjana.'];
+        }
+
+        try {
+            $response = $this->request()->delete($this->memberUrl($email));
+        } catch (Throwable $e) {
+            return [
+                'ok' => false,
+                'error' => 'Mailchimp trenutno nije dostupan. Pokušaj ponovno za nekoliko minuta.',
+                'stop' => true,
+            ];
+        }
+
+        if ($response->successful()) {
+            return ['ok' => true, 'error' => null];
+        }
+
+        if ($response->status() === 404) {
+            // A missing member is safe to treat as already archived only while
+            // the configured audience itself can still be verified.
+            $connection = $this->connectionStatus(true);
+
+            if ($connection['ok']) {
+                return ['ok' => true, 'error' => null];
+            }
+
+            return [
+                'ok' => false,
+                'error' => 'Arhiviranje kontakta nije potvrđeno: ' . (string) $connection['error'],
+                'stop' => true,
+            ];
+        }
+
+        return [
+            'ok' => false,
+            'error' => $this->responseError($response),
+            'stop' => $this->shouldStopAfter($response),
+        ];
+    }
+
     private function sendMemberUpsert(string $email, array $payload): Response
     {
-        $memberHash = md5($email);
-
         return $this->request()->put(
-            $this->baseUrl()
-                . '/lists/' . rawurlencode($this->audienceId())
-                . '/members/' . $memberHash
-                . '?skip_merge_validation=true',
+            $this->memberUrl($email) . '?skip_merge_validation=true',
             $payload
         );
+    }
+
+    private function memberUrl(string $email): string
+    {
+        return $this->baseUrl()
+            . '/lists/' . rawurlencode($this->audienceId())
+            . '/members/' . md5($email);
     }
 
     private function request(): PendingRequest

@@ -1,6 +1,13 @@
 @extends('back.layouts.backend')
 
 @section('content')
+    @php
+        $adminUser = auth()->user();
+        $canManageNewsletter = $adminUser
+            && $adminUser->isAdministrator()
+            && (bool) optional($adminUser->details)->status;
+    @endphp
+
     <div class="admin-page-hero">
         <div class="content content-full">
             <div class="admin-page-heading">
@@ -10,7 +17,7 @@
                     <p class="admin-page-description">Pregledajte pretplatnike, izvore prijave i GDPR privole.</p>
                 </div>
                 <div class="admin-page-actions">
-                    @if(auth()->user() && auth()->user()->isAdministrator() && (bool) optional(auth()->user()->details)->status)
+                    @if($canManageNewsletter)
                         <form id="mailchimp-sync-form"
                               method="post"
                               action="{{ route('newsletter.mailchimp.sync') }}"
@@ -87,10 +94,36 @@
                     </form>
                 </div>
 
+                @if($canManageNewsletter)
+                    <form id="newsletter-cleanup-form"
+                          method="post"
+                          action="{{ route('newsletter.subscribers.destroy') }}">
+                        @csrf
+                        @method('DELETE')
+
+                        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between border rounded p-3 mb-3">
+                            <div class="text-muted mb-2 mb-md-0 mr-md-3">
+                                Odabrani kontakt prvo se reverzibilno arhivira u Mailchimpu, a lokalni zapis zatim se trajno briše.
+                                Moguće je odabrati samo anonimne footer prijave bez korisnika i narudžbe.
+                            </div>
+                            <button type="submit" class="btn btn-outline-danger flex-shrink-0" data-newsletter-cleanup-submit disabled>
+                                <i class="fa-duotone fa-user-slash mr-1" aria-hidden="true"></i>
+                                <span data-newsletter-cleanup-label>Arhiviraj i ukloni (0)</span>
+                            </button>
+                        </div>
+                @endif
+
                 <div class="table-responsive">
                     <table class="table table-borderless table-striped table-vcenter admin-data-table admin-newsletter-table">
                         <thead>
                         <tr>
+                            @if($canManageNewsletter)
+                                <th class="admin-newsletter-select-column">
+                                    <input type="checkbox"
+                                           data-newsletter-select-all
+                                           aria-label="Odaberi sve anonimne footer prijave na ovoj stranici">
+                                </th>
+                            @endif
                             <th>ID</th>
                             <th>Email</th>
                             <th>User ID</th>
@@ -106,8 +139,25 @@
                         @forelse($subscribers as $subscriber)
                             @php
                                 $fullName = trim((optional(optional($subscriber->user)->details)->fname ?? '') . ' ' . (optional(optional($subscriber->user)->details)->lname ?? ''));
+                                $cleanupEligible = $subscriber->source === 'footer'
+                                    && (int) $subscriber->user_id === 0
+                                    && (int) $subscriber->order_id === 0;
                             @endphp
                             <tr>
+                                @if($canManageNewsletter)
+                                    <td class="admin-newsletter-select-column" data-label="Odabir">
+                                        @if($cleanupEligible)
+                                            <input type="checkbox"
+                                                   name="subscriber_ids[]"
+                                                   value="{{ $subscriber->id }}"
+                                                   data-newsletter-cleanup-checkbox
+                                                   aria-label="Odaberi newsletter prijavu ID {{ $subscriber->id }}"
+                                                   {{ in_array((int) $subscriber->id, array_map('intval', (array) old('subscriber_ids', [])), true) ? 'checked' : '' }}>
+                                        @else
+                                            <span class="text-muted" title="Zaštićeno jer nije anonimna footer prijava">—</span>
+                                        @endif
+                                    </td>
+                                @endif
                                 <td data-label="ID">{{ $subscriber->id }}</td>
                                 <td data-label="E-mail">{{ $subscriber->email }}</td>
                                 <td data-label="User ID">{{ $subscriber->user_id ?: '—' }}</td>
@@ -134,12 +184,16 @@
                             </tr>
                         @empty
                             <tr>
-                                <td class="text-center text-muted py-5" colspan="9">Nema newsletter prijava.</td>
+                                <td class="text-center text-muted py-5" colspan="{{ $canManageNewsletter ? 10 : 9 }}">Nema newsletter prijava.</td>
                             </tr>
                         @endforelse
                         </tbody>
                     </table>
                 </div>
+
+                @if($canManageNewsletter)
+                    </form>
+                @endif
 
                 {{ $subscribers->appends(request()->query())->links() }}
             </div>
@@ -149,9 +203,11 @@
 
 @push('css_after')
     <style>
+        .admin-newsletter-table .admin-newsletter-select-column { width: 3rem !important; text-align: center; }
         .admin-newsletter-table th:last-child,
         .admin-newsletter-table td:last-child { width: 9.5rem !important; }
         @media (max-width: 767.98px) {
+            .admin-newsletter-table .admin-newsletter-select-column { width: 100% !important; text-align: left; }
             .admin-newsletter-table th:last-child,
             .admin-newsletter-table td:last-child { width: 100% !important; }
         }
@@ -325,6 +381,78 @@
             });
 
             updateButton();
+        })();
+    </script>
+    <script>
+        (function () {
+            var form = document.getElementById('newsletter-cleanup-form');
+
+            if (! form) {
+                return;
+            }
+
+            var selectAll = form.querySelector('[data-newsletter-select-all]');
+            var checkboxes = Array.prototype.slice.call(
+                form.querySelectorAll('[data-newsletter-cleanup-checkbox]')
+            );
+            var submitButton = form.querySelector('[data-newsletter-cleanup-submit]');
+            var submitLabel = form.querySelector('[data-newsletter-cleanup-label]');
+
+            function selectedCheckboxes() {
+                return checkboxes.filter(function (checkbox) {
+                    return checkbox.checked;
+                });
+            }
+
+            function updateControls() {
+                var selectedCount = selectedCheckboxes().length;
+
+                submitButton.disabled = selectedCount === 0;
+                submitLabel.textContent = 'Arhiviraj i ukloni (' + selectedCount + ')';
+
+                if (selectAll) {
+                    selectAll.disabled = checkboxes.length === 0;
+                    selectAll.checked = checkboxes.length > 0 && selectedCount === checkboxes.length;
+                    selectAll.indeterminate = selectedCount > 0 && selectedCount < checkboxes.length;
+                }
+            }
+
+            if (selectAll) {
+                selectAll.addEventListener('change', function () {
+                    checkboxes.forEach(function (checkbox) {
+                        checkbox.checked = selectAll.checked;
+                    });
+                    updateControls();
+                });
+            }
+
+            checkboxes.forEach(function (checkbox) {
+                checkbox.addEventListener('change', updateControls);
+            });
+
+            form.addEventListener('submit', function (event) {
+                var selectedCount = selectedCheckboxes().length;
+
+                if (selectedCount === 0) {
+                    event.preventDefault();
+                    return;
+                }
+
+                var confirmed = window.confirm(
+                    'Reverzibilno arhivirati ' + selectedCount + ' označenih kontakata u Mailchimpu i trajno ukloniti njihove lokalne zapise? '
+                    + 'Prijave povezane s korisnicima ili narudžbama neće biti dirane.'
+                );
+
+                if (! confirmed) {
+                    event.preventDefault();
+                    return;
+                }
+
+                submitButton.disabled = true;
+                submitLabel.textContent = 'Arhiviram i uklanjam...';
+            });
+
+            updateControls();
         })();
     </script>
 @endpush

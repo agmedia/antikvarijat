@@ -136,6 +136,75 @@ class MailchimpNewsletterSyncTest extends TestCase
         Http::assertNothingSent();
     }
 
+    public function test_service_archives_a_subscriber_with_the_mailchimp_member_delete_endpoint(): void
+    {
+        Http::fake([
+            'https://us7.api.mailchimp.com/3.0/lists/audience-123/members/*' => Http::response(null, 204),
+        ]);
+
+        $subscriber = $this->subscriber([
+            'email' => ' Archive.Me@Example.test ',
+            'source' => 'footer',
+        ]);
+
+        $result = app(MailchimpNewsletterService::class)->archiveSubscriber($subscriber);
+
+        $this->assertSame(['ok' => true, 'error' => null], $result);
+        Http::assertSent(function (ClientRequest $request) {
+            return $request->method() === 'DELETE'
+                && $request->url() === 'https://us7.api.mailchimp.com/3.0/lists/audience-123/members/'
+                    . md5('archive.me@example.test');
+        });
+        Http::assertSentCount(1);
+    }
+
+    public function test_service_treats_a_missing_mailchimp_member_as_already_archived(): void
+    {
+        Http::fake(function (ClientRequest $request) {
+            if ($request->method() === 'DELETE') {
+                return Http::response(['title' => 'Resource Not Found'], 404);
+            }
+
+            if ($request->method() === 'GET'
+                && strpos($request->url(), 'https://us7.api.mailchimp.com/3.0/lists/audience-123') === 0) {
+                return Http::response([
+                    'id' => 'audience-123',
+                    'name' => 'Biblos newsletter',
+                ], 200);
+            }
+
+            throw new RuntimeException('Unexpected Mailchimp request: ' . $request->method() . ' ' . $request->url());
+        });
+
+        $result = app(MailchimpNewsletterService::class)->archiveSubscriber(
+            $this->subscriber(['source' => 'footer'])
+        );
+
+        $this->assertSame(['ok' => true, 'error' => null], $result);
+        $this->assertCount(1, $this->archiveRequests());
+        Http::assertSentCount(2);
+    }
+
+    public function test_service_does_not_accept_member_404_when_the_audience_can_no_longer_be_verified(): void
+    {
+        Http::fake(function (ClientRequest $request) {
+            return Http::response([
+                'title' => 'Resource Not Found',
+                'detail' => 'The requested resource could not be found.',
+            ], 404);
+        });
+
+        $result = app(MailchimpNewsletterService::class)->archiveSubscriber(
+            $this->subscriber(['source' => 'footer'])
+        );
+
+        $this->assertFalse($result['ok']);
+        $this->assertTrue($result['stop']);
+        $this->assertStringContainsString('nije potvrđeno', $result['error']);
+        $this->assertCount(1, $this->archiveRequests());
+        Http::assertSentCount(2);
+    }
+
     public function test_controller_batch_records_success_and_failure_and_excludes_ineligible_subscribers(): void
     {
         Carbon::setTestNow('2026-08-28 07:15:00');
@@ -341,6 +410,187 @@ class MailchimpNewsletterSyncTest extends TestCase
         Http::assertNothingSent();
     }
 
+    public function test_admin_cleanup_archives_and_deletes_only_anonymous_footer_subscribers(): void
+    {
+        $eligible = $this->subscriber([
+            'email' => 'spam-footer@example.test',
+            'source' => 'footer',
+        ]);
+        $linkedUser = $this->subscriber([
+            'email' => 'linked-user@example.test',
+            'source' => 'footer',
+            'user_id' => 71,
+        ]);
+        $linkedOrder = $this->subscriber([
+            'email' => 'linked-order@example.test',
+            'source' => 'footer',
+            'order_id' => 812,
+        ]);
+        $checkout = $this->subscriber([
+            'email' => 'checkout@example.test',
+            'source' => 'checkout',
+        ]);
+
+        $this->fakeMailchimpArchive();
+
+        $response = $this->actingAs($this->admin())->withoutMiddleware()->delete(
+            route('newsletter.subscribers.destroy'),
+            [
+                'subscriber_ids' => [
+                    $eligible->id,
+                    $linkedUser->id,
+                    $linkedOrder->id,
+                    $checkout->id,
+                    999999,
+                ],
+            ]
+        );
+
+        $response->assertRedirect()->assertSessionHas('warning');
+
+        $this->assertDatabaseMissing('newsletter_subscribers', ['id' => $eligible->id]);
+        $this->assertDatabaseHas('newsletter_subscribers', ['id' => $linkedUser->id]);
+        $this->assertDatabaseHas('newsletter_subscribers', ['id' => $linkedOrder->id]);
+        $this->assertDatabaseHas('newsletter_subscribers', ['id' => $checkout->id]);
+
+        $archiveRequests = $this->archiveRequests();
+        $this->assertCount(1, $archiveRequests);
+        $this->assertSame($this->archiveUrl($eligible->email), $archiveRequests->first()[0]->url());
+    }
+
+    public function test_admin_cleanup_keeps_local_row_when_mailchimp_archive_fails(): void
+    {
+        $subscriber = $this->subscriber([
+            'email' => 'archive-failure@example.test',
+            'source' => 'footer',
+        ]);
+
+        $this->fakeMailchimpArchive(400);
+
+        $response = $this->actingAs($this->admin())->withoutMiddleware()->delete(
+            route('newsletter.subscribers.destroy'),
+            ['subscriber_ids' => [$subscriber->id]]
+        );
+
+        $response->assertRedirect()->assertSessionHas('warning');
+        $subscriber->refresh();
+        $this->assertStringContainsString('HTTP 400', (string) $subscriber->mailchimp_last_error);
+        $this->assertCount(1, $this->archiveRequests());
+    }
+
+    public function test_admin_cleanup_checks_the_audience_before_treating_member_404_as_success(): void
+    {
+        $subscriber = $this->subscriber([
+            'email' => 'wrong-audience@example.test',
+            'source' => 'footer',
+        ]);
+
+        Http::fake(function (ClientRequest $request) {
+            if ($request->method() === 'GET') {
+                return Http::response([
+                    'title' => 'Resource Not Found',
+                    'detail' => 'The requested list could not be found.',
+                ], 404);
+            }
+
+            throw new RuntimeException('Cleanup must not archive members when the audience check fails.');
+        });
+
+        $response = $this->actingAs($this->admin())->withoutMiddleware()->delete(
+            route('newsletter.subscribers.destroy'),
+            ['subscriber_ids' => [$subscriber->id]]
+        );
+
+        $response->assertRedirect()->assertSessionHas('error');
+        $this->assertDatabaseHas('newsletter_subscribers', ['id' => $subscriber->id]);
+        $this->assertCount(0, $this->archiveRequests());
+        Http::assertSentCount(1);
+    }
+
+    public function test_admin_cleanup_rechecks_order_and_user_links_before_local_delete(): void
+    {
+        $subscriber = $this->subscriber([
+            'email' => 'linked-during-cleanup@example.test',
+            'source' => 'footer',
+        ]);
+
+        Http::fake(function (ClientRequest $request) use ($subscriber) {
+            if ($request->method() === 'GET') {
+                return Http::response([
+                    'id' => 'audience-123',
+                    'name' => 'Biblos newsletter',
+                ], 200);
+            }
+
+            if ($request->method() === 'DELETE') {
+                NewsletterSubscriber::query()
+                    ->whereKey($subscriber->id)
+                    ->update(['order_id' => 991]);
+
+                return Http::response(null, 204);
+            }
+
+            throw new RuntimeException('Unexpected Mailchimp request: ' . $request->method() . ' ' . $request->url());
+        });
+
+        $response = $this->actingAs($this->admin())->withoutMiddleware()->delete(
+            route('newsletter.subscribers.destroy'),
+            ['subscriber_ids' => [$subscriber->id]]
+        );
+
+        $response->assertRedirect()->assertSessionHas('warning');
+        $this->assertDatabaseHas('newsletter_subscribers', [
+            'id' => $subscriber->id,
+            'order_id' => 991,
+        ]);
+        $this->assertCount(1, $this->archiveRequests());
+    }
+
+    public function test_admin_cleanup_rejects_more_than_fifty_ids_without_contacting_mailchimp(): void
+    {
+        Http::fake();
+
+        $response = $this->actingAs($this->admin())->withoutMiddleware()->delete(
+            route('newsletter.subscribers.destroy'),
+            ['subscriber_ids' => range(1, 51)]
+        );
+
+        $response->assertSessionHasErrors('subscriber_ids');
+        Http::assertNothingSent();
+    }
+
+    public function test_admin_cleanup_rejects_a_non_administrator_before_contacting_mailchimp(): void
+    {
+        Http::fake();
+
+        $subscriber = $this->subscriber(['source' => 'footer']);
+        $user = new class extends User {
+            public function isAdministrator(): bool
+            {
+                return false;
+            }
+        };
+        $user->forceFill([
+            'id' => 1001,
+            'name' => 'Test editor',
+            'email' => 'cleanup-editor@example.test',
+        ]);
+        $user->setRelation('details', (object) [
+            'role' => 'editor',
+            'status' => 1,
+        ]);
+
+        $this->actingAs($user)
+            ->withoutMiddleware()
+            ->delete(route('newsletter.subscribers.destroy'), [
+                'subscriber_ids' => [$subscriber->id],
+            ])
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('newsletter_subscribers', ['id' => $subscriber->id]);
+        Http::assertNothingSent();
+    }
+
     private function subscriber(array $overrides = []): NewsletterSubscriber
     {
         static $sequence = 0;
@@ -411,10 +661,45 @@ class MailchimpNewsletterSyncTest extends TestCase
         });
     }
 
+    private function fakeMailchimpArchive(int $memberStatus = 204): void
+    {
+        Http::fake(function (ClientRequest $request) use ($memberStatus) {
+            if ($request->method() === 'GET'
+                && strpos($request->url(), 'https://us7.api.mailchimp.com/3.0/lists/audience-123') === 0) {
+                return Http::response([
+                    'id' => 'audience-123',
+                    'name' => 'Biblos newsletter',
+                ], 200);
+            }
+
+            if ($request->method() === 'DELETE'
+                && strpos($request->url(), 'https://us7.api.mailchimp.com/3.0/lists/audience-123/members/') === 0) {
+                if ($memberStatus === 204) {
+                    return Http::response(null, 204);
+                }
+
+                return Http::response([
+                    'title' => 'Member Archive Failed',
+                    'detail' => 'Mailchimp rejected the archive request.',
+                ], $memberStatus);
+            }
+
+            throw new RuntimeException('Unexpected Mailchimp request: ' . $request->method() . ' ' . $request->url());
+        });
+    }
+
     private function memberRequests()
     {
         return Http::recorded(function (ClientRequest $request) {
             return $request->method() === 'PUT'
+                && strpos($request->url(), '/members/') !== false;
+        });
+    }
+
+    private function archiveRequests()
+    {
+        return Http::recorded(function (ClientRequest $request) {
+            return $request->method() === 'DELETE'
                 && strpos($request->url(), '/members/') !== false;
         });
     }
@@ -424,5 +709,11 @@ class MailchimpNewsletterSyncTest extends TestCase
         return 'https://us7.api.mailchimp.com/3.0/lists/audience-123/members/'
             . md5(strtolower(trim($email)))
             . '?skip_merge_validation=true';
+    }
+
+    private function archiveUrl(string $email): string
+    {
+        return 'https://us7.api.mailchimp.com/3.0/lists/audience-123/members/'
+            . md5(strtolower(trim($email)));
     }
 }

@@ -203,6 +203,9 @@ Route::middleware(['auth:sanctum', 'verified', 'no.customers'])->prefix('admin')
         Route::post('newsletter/sync-mailchimp', [NewsletterSubscriberController::class, 'syncMailchimp'])
             ->middleware('not.editor')
             ->name('newsletter.mailchimp.sync');
+        Route::delete('newsletter/subscribers', [NewsletterSubscriberController::class, 'destroySelected'])
+            ->middleware(['not.editor', 'throttle:5,1'])
+            ->name('newsletter.subscribers.destroy');
         Route::post('newsletter/clear-caches', [NewsletterSubscriberController::class, 'clearCaches'])->name('newsletter.caches.clear');
         // VIALIBRI
         Route::get('vialibri', [VialibriController::class, 'index'])->name('vialibri.index');
@@ -487,7 +490,9 @@ Route::post('/forma-za-povrat-i-reklamacije/potvrdi', [ContractWithdrawalControl
     ->name('contract-withdrawal.store');
 Route::get('/otkup-knjiga', [HomeController::class, 'bookPurchase'])->name('otkup.knjiga');
 Route::post('/otkup-knjiga/posalji', [HomeController::class, 'sendBookPurchaseMessage'])->name('otkup.knjiga.posalji');
-Route::post('/newsletter/prijava', [HomeController::class, 'newsletter'])->name('newsletter.subscribe');
+Route::post('/newsletter/prijava', [HomeController::class, 'newsletter'])
+    ->middleware('throttle:newsletter')
+    ->name('newsletter.subscribe');
 Route::get('/faq', [CatalogRouteController::class, 'faq'])->name('faq');
 Route::get('/poklon-bon', [GiftVoucherController::class, 'create'])->name('poklon-bon.create');
 Route::post('/poklon-bon', [GiftVoucherController::class, 'store'])
@@ -549,7 +554,9 @@ Route::prefix('en')->as('en.')->group(function () {
         ->name('contract-withdrawal.store');
     Route::get('/book-purchase', [HomeController::class, 'bookPurchase'])->name('otkup.knjiga');
     Route::post('/book-purchase/send', [HomeController::class, 'sendBookPurchaseMessage'])->name('otkup.knjiga.posalji');
-    Route::post('/newsletter/subscribe', [HomeController::class, 'newsletter'])->name('newsletter.subscribe');
+    Route::post('/newsletter/subscribe', [HomeController::class, 'newsletter'])
+        ->middleware('throttle:newsletter')
+        ->name('newsletter.subscribe');
     Route::get('/faq', [CatalogRouteController::class, 'faq'])->name('faq');
     Route::get('/gift-voucher', [GiftVoucherController::class, 'create'])->name('poklon-bon.create');
     Route::post('/gift-voucher', [GiftVoucherController::class, 'store'])

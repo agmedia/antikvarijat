@@ -207,6 +207,177 @@ class NewsletterSubscriberController extends Controller
         ]);
     }
 
+    public function destroySelected(Request $request, MailchimpNewsletterService $mailchimp)
+    {
+        $user = $request->user();
+        abort_unless(
+            $user
+                && $user->isAdministrator()
+                && (bool) optional($user->details)->status,
+            403
+        );
+
+        $validated = $request->validate([
+            'subscriber_ids' => ['required', 'array', 'min:1', 'max:50'],
+            'subscriber_ids.*' => ['required', 'integer', 'distinct'],
+        ]);
+
+        $ids = collect($validated['subscriber_ids'])
+            ->map(static function ($id) {
+                return (int) $id;
+            })
+            ->filter(static function ($id) {
+                return $id > 0;
+            })
+            ->unique()
+            ->values();
+
+        $subscribers = NewsletterSubscriber::query()
+            ->whereIn('id', $ids)
+            ->where('source', 'footer')
+            ->where(function ($query) {
+                $query->whereNull('user_id')->orWhere('user_id', 0);
+            })
+            ->where(function ($query) {
+                $query->whereNull('order_id')->orWhere('order_id', 0);
+            })
+            ->orderBy('id')
+            ->get();
+
+        $ignored = max($ids->count() - $subscribers->count(), 0);
+
+        if ($subscribers->isEmpty()) {
+            return back()->with(
+                'warning',
+                'Nije pronađena nijedna označena anonimna footer prijava. Prijave povezane s korisnicima ili narudžbama nisu dirane.'
+            );
+        }
+
+        $connection = $mailchimp->connectionStatus(true);
+
+        if (! $connection['ok']) {
+            return back()->with(
+                'error',
+                'Ništa nije obrisano: ' . (string) $connection['error']
+            );
+        }
+
+        @set_time_limit(120);
+
+        $removed = 0;
+        $errors = [];
+        $systemError = null;
+
+        foreach ($subscribers as $subscriber) {
+            // Narrow the window in which a footer signup could become linked
+            // to a customer/order while an earlier Mailchimp request runs.
+            $subscriber = NewsletterSubscriber::query()
+                ->whereKey($subscriber->id)
+                ->where('source', 'footer')
+                ->where(function ($query) {
+                    $query->whereNull('user_id')->orWhere('user_id', 0);
+                })
+                ->where(function ($query) {
+                    $query->whereNull('order_id')->orWhere('order_id', 0);
+                })
+                ->first();
+
+            if (! $subscriber) {
+                if (count($errors) < 3) {
+                    $errors[] = 'Jedan zapis je u međuvremenu povezan s korisnikom ili narudžbom i zato je zadržan.';
+                }
+
+                continue;
+            }
+
+            try {
+                $result = $mailchimp->archiveSubscriber($subscriber);
+            } catch (Throwable $e) {
+                Log::warning('Unexpected Mailchimp newsletter archive failure', [
+                    'subscriber_id' => $subscriber->id,
+                    'exception' => get_class($e),
+                ]);
+
+                $result = [
+                    'ok' => false,
+                    'error' => 'Neočekivana greška pri komunikaciji s Mailchimpom.',
+                    'stop' => true,
+                ];
+            }
+
+            if ($result['ok']) {
+                try {
+                    $locallyDeleted = NewsletterSubscriber::query()
+                        ->whereKey($subscriber->id)
+                        ->where('source', 'footer')
+                        ->where(function ($query) {
+                            $query->whereNull('user_id')->orWhere('user_id', 0);
+                        })
+                        ->where(function ($query) {
+                            $query->whereNull('order_id')->orWhere('order_id', 0);
+                        })
+                        ->delete();
+                } catch (Throwable $e) {
+                    Log::warning('Mailchimp subscriber archived but local newsletter deletion failed', [
+                        'subscriber_id' => $subscriber->id,
+                        'exception' => get_class($e),
+                    ]);
+
+                    if (count($errors) < 3) {
+                        $errors[] = 'ID ' . $subscriber->id . ': lokalno brisanje nije uspjelo.';
+                    }
+
+                    $systemError = 'Lokalno brisanje nije uspjelo.';
+                    break;
+                }
+
+                if ($locallyDeleted === 1) {
+                    $removed++;
+                } elseif (count($errors) < 3) {
+                    $errors[] = 'ID ' . $subscriber->id . ': zapis je u međuvremenu promijenjen i zato nije obrisan.';
+                }
+
+                continue;
+            }
+
+            $error = Str::limit(
+                trim((string) ($result['error'] ?? 'Nepoznata Mailchimp greška.')),
+                1000,
+                '…'
+            );
+
+            $subscriber->forceFill(['mailchimp_last_error' => $error])->save();
+
+            if (count($errors) < 3) {
+                $errors[] = 'ID ' . $subscriber->id . ': ' . $error;
+            }
+
+            if (! empty($result['stop'])) {
+                $systemError = $error;
+                break;
+            }
+        }
+
+        $retained = $subscribers->count() - $removed;
+        $message = 'Arhivirano u Mailchimpu i uklonjeno lokalno: ' . $removed . '.';
+
+        if ($retained > 0) {
+            $message .= ' Zadržano: ' . $retained . '.';
+        }
+
+        if ($ignored > 0) {
+            $message .= ' Preskočeno zbog zaštite korisnika i narudžbi ili zato što zapis više ne postoji: ' . $ignored . '.';
+        }
+
+        if ($systemError !== null) {
+            $message .= ' Obrada je privremeno zaustavljena: ' . $systemError;
+        } elseif ($errors !== []) {
+            $message .= ' Greške: ' . implode(' | ', array_unique($errors));
+        }
+
+        return back()->with($retained > 0 || $ignored > 0 ? 'warning' : 'success', $message);
+    }
+
     public function clearCaches()
     {
         @set_time_limit(0);

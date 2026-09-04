@@ -708,6 +708,10 @@ return [
         'email_required' => 'The email address field is required.',
         'email_invalid' => 'Enter a valid email address.',
         'gdpr_required' => 'You must accept GDPR consent.',
+        'too_fast' => 'Please wait a moment and try again.',
+        'too_many_requests' => 'Too many subscription attempts. Please wait and try again.',
+        'form_expired' => 'The form has expired. Refresh the page and try again.',
+        'captcha_failed' => 'The security check failed. Please try again.',
         'success' => 'Thank you! You have successfully subscribed to the newsletter.',
     ],
 

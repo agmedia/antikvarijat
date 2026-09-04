@@ -190,6 +190,53 @@ class RouteServiceProvider extends ServiceProvider
             return Limit::perMinute(60);
         });
 
+        RateLimiter::for('newsletter', function (Request $request) {
+            $secret = (string) config('app.key');
+            $ipKey = hash_hmac('sha256', (string) $request->ip(), $secret);
+            $rawEmail = $request->input('email');
+            $email = is_string($rawEmail) ? Str::lower(trim($rawEmail)) : '';
+
+            $tooManyAttempts = function (Request $request, array $headers) {
+                $message = __('front.newsletter.too_many_requests');
+
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'message' => $message,
+                        'errors' => [
+                            'email' => [$message],
+                        ],
+                    ], 429, $headers);
+                }
+
+                return back()
+                    ->withErrors(['email' => $message])
+                    ->withInput($request->except([
+                        '_token',
+                        'recaptcha',
+                        'newsletter_started_at',
+                        'website',
+                    ]))
+                    ->withHeaders($headers);
+            };
+
+            $limits = [
+                Limit::perMinutes(10, 6)
+                    ->by('newsletter:ip:' . $ipKey)
+                    ->response($tooManyAttempts),
+            ];
+
+            if ($email !== '') {
+                // Pair the address with the client IP so one attacker cannot
+                // exhaust another person's daily allowance before CAPTCHA.
+                $emailKey = hash_hmac('sha256', $email . '|' . (string) $request->ip(), $secret);
+                $limits[] = Limit::perDay(3)
+                    ->by('newsletter:email-ip:' . $emailKey)
+                    ->response($tooManyAttempts);
+            }
+
+            return $limits;
+        });
+
         RateLimiter::for('facebook-preview', function (Request $request) {
             $userAgent = Str::lower((string) $request->userAgent());
 
