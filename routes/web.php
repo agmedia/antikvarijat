@@ -521,7 +521,12 @@ Route::get('/kosarica/vrati/{order}', AbandonedCartRecoveryController::class)
     ->middleware(['signed', 'throttle:30,1'])
     ->name('abandoned-cart.restore');
 Route::get('/naplata', [CheckoutController::class, 'checkout'])->name('naplata');
-Route::get('/pregled', [CheckoutController::class, 'view'])->name('pregled');
+// Serialize the final checkout step per session. Without this lock, two
+// concurrent review requests can both see an empty checkout.order value and
+// create separate orders (and therefore separate payment forms).
+Route::get('/pregled', [CheckoutController::class, 'view'])
+    ->block(60, 60)
+    ->name('pregled');
 Route::get('/narudzba', [CheckoutController::class, 'order'])->name('checkout');
 Route::get('/uspjeh', [CheckoutController::class, 'success'])->name('checkout.success');
 Route::get('/greska', [CheckoutController::class, 'error'])->name('checkout.error');
@@ -575,7 +580,9 @@ Route::prefix('en')->as('en.')->group(function () {
         ->middleware(['signed', 'throttle:30,1'])
         ->name('abandoned-cart.restore');
     Route::get('/checkout', [CheckoutController::class, 'checkout'])->name('naplata');
-    Route::get('/checkout/review', [CheckoutController::class, 'view'])->name('pregled');
+    Route::get('/checkout/review', [CheckoutController::class, 'view'])
+        ->block(60, 60)
+        ->name('pregled');
     Route::get('/checkout/order', [CheckoutController::class, 'order'])->name('checkout');
     Route::get('/checkout/success', [CheckoutController::class, 'success'])->name('checkout.success');
     Route::get('/checkout/error', [CheckoutController::class, 'error'])->name('checkout.error');
