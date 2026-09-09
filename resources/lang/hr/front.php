@@ -2,7 +2,7 @@
 
 return [
     'meta' => [
-        'default_title' => 'Antikvarijat Zagreb – stare i rijetke knjige | Biblos',
+        'default_title' => 'Antikvarijat Biblos – stare i rijetke knjige',
         'default_description' => 'Stare i rijetke knjige, zemljovidi i vedute u Antikvarijatu Biblos u Zagrebu. Sigurna online kupnja, dostava i otkup knjiga.',
     ],
 
