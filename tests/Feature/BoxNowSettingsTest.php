@@ -69,6 +69,8 @@ class BoxNowSettingsTest extends TestCase
 
         $response->assertOk()
             ->assertSee('Box Now API postavke')
+            ->assertSee('Upišite Partner ID koji ste dobili od BOX NOW-a.')
+            ->assertSee('Ostavite prazno osim ako je BOX NOW zatražio slanje X-PartnerID zaglavlja.')
             ->assertSee('Client Secret je spremljen šifrirano.')
             ->assertDontSee('must-never-be-rendered');
     }

@@ -329,6 +329,11 @@
             top: 6rem;
         }
 
+        /* BOX NOW injects a full-screen fixed iframe without a z-index. */
+        #boxnowmap > iframe {
+            z-index: 12000;
+        }
+
         .checkout-save-toast {
             position: fixed;
             bottom: 1.5rem;

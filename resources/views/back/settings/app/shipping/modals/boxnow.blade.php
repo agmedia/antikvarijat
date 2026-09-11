@@ -103,6 +103,7 @@
                                 <div class="form-group">
                                     <label for="boxnow-api-partner-id">API Partner ID <span class="text-muted">(opcionalno)</span></label>
                                     <input class="form-control @error('api_partner_id') is-invalid @enderror" id="boxnow-api-partner-id" name="api_partner_id" type="text" value="{{ old('api_partner_id', $boxNowSettings['api_partner_id']) }}" maxlength="191">
+                                    <small class="form-text text-muted">Ostavite prazno osim ako je BOX NOW zatražio slanje X-PartnerID zaglavlja.</small>
                                     @error('api_partner_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                 </div>
                             </div>
@@ -110,6 +111,7 @@
                                 <div class="form-group">
                                     <label for="boxnow-widget-partner-id">Widget Partner ID</label>
                                     <input class="form-control @error('widget_partner_id') is-invalid @enderror" id="boxnow-widget-partner-id" name="widget_partner_id" type="number" min="1" value="{{ old('widget_partner_id', $boxNowSettings['widget_partner_id']) }}">
+                                    <small class="form-text text-muted">Upišite Partner ID koji ste dobili od BOX NOW-a.</small>
                                     @error('widget_partner_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                 </div>
                             </div>
