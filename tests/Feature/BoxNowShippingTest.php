@@ -113,6 +113,37 @@ class BoxNowShippingTest extends TestCase
         });
     }
 
+    public function test_boxnow_pdf_label_can_be_downloaded_for_an_existing_shipment(): void
+    {
+        $this->configureBoxNow();
+        Http::fake(function (HttpRequest $request) {
+            if ($request->url() === 'https://boxnow.example.test/api/v1/auth-sessions') {
+                return Http::response(['access_token' => 'boxnow-token'], 200);
+            }
+
+            if ($request->url() === 'https://boxnow.example.test/api/v1/parcels/BOX-123456/label.pdf') {
+                return Http::response('%PDF-1.4 boxnow-label', 200, ['Content-Type' => 'application/pdf']);
+            }
+
+            return Http::response(['message' => 'Unexpected request'], 500);
+        });
+
+        $orderId = $this->createOrder([
+            'shipping_carrier' => BoxNowService::CARRIER,
+            'shipping_parcel_id' => 'BOX-123456',
+            'tracking_code' => 'BOX-123456',
+            'printed' => true,
+        ]);
+
+        $response = $this->actingAs(User::factory()->create())
+            ->get(route('order.boxnow.label', ['order' => $orderId]));
+
+        $response->assertOk();
+        $response->assertHeader('Content-Type', 'application/pdf');
+        $response->assertHeader('Content-Disposition', 'attachment; filename="boxnow-BOX-123456.pdf"');
+        $this->assertSame('%PDF-1.4 boxnow-label', $response->getContent());
+    }
+
     public function test_boxnow_order_conflict_recovers_existing_remote_parcel_without_a_second_create_request(): void
     {
         $this->configureBoxNow();

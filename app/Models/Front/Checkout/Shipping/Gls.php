@@ -8,7 +8,6 @@ use SoapClient;
 use \stdClass;
 
 use Illuminate\Support\Facades\Log;
-use RuntimeException;
 
 
 /**
@@ -144,57 +143,6 @@ class Gls
     }
 
 
-    /**
-     * Fetch the official PDF label for an already prepared GLS parcel.
-     *
-     * @return array{contents:string,filename:string}
-     */
-    public function label()
-    {
-        $parcelId = trim((string) data_get($this->order, 'shipping_parcel_id'));
-
-        if ($parcelId === '') {
-            throw new RuntimeException('GLS naljepnica još nije dostupna za ovu narudžbu.');
-        }
-
-        $username = trim((string) config('services.gls.username'));
-        $password = (string) config('services.gls.password');
-
-        if ($username === '' || $password === '') {
-            throw new RuntimeException('GLS pristupni podaci nisu podešeni.');
-        }
-
-        $wsdl = str_replace('ParcelService', 'SERVICE_NAME', (string) config('services.gls.wsdl'));
-        $soapOptions = ['soap_version' => SOAP_1_1];
-
-        if (file_exists(base_path('cacert.pem'))) {
-            $soapOptions['stream_context'] = stream_context_create([
-                'ssl' => ['cafile' => base_path('cacert.pem')],
-            ]);
-        }
-
-        $request = [
-            'Username' => $username,
-            'Password' => hash('sha512', $password, true),
-            'ParcelIdList' => [$parcelId],
-            'PrintPosition' => 1,
-            'ShowPrintDialog' => 0,
-        ];
-
-        $label = $this->GetPrintedLabels(
-            str_replace('SERVICE_NAME', 'ParcelService', $wsdl),
-            $soapOptions,
-            $request
-        );
-        $safeParcelId = preg_replace('/[^A-Za-z0-9_-]/', '-', $parcelId) ?: 'parcel';
-
-        return [
-            'contents' => $label,
-            'filename' => 'gls-' . $safeParcelId . '.pdf',
-        ];
-    }
-
-
     private function getTotal()
     {
         if ($this->order['payment_code'] == 'cod') {
@@ -327,40 +275,22 @@ class Gls
      * @param $soapOptions
      * @param $getPrintedLabelsRequest
      *
-     * @return string
+     * @return void
      */
     private function GetPrintedLabels($wsdl, $soapOptions, $getPrintedLabelsRequest)
     {
         $request = array("getPrintedLabelsRequest" => $getPrintedLabelsRequest);
 
         //Service client creation:
-        $client = $this->soapClient($wsdl, $soapOptions);
+        $client = new SoapClient($wsdl, $soapOptions);
 
         //Service calling:
         $response = $client->GetPrintedLabels($request);
 
-        $result = $response->GetPrintedLabelsResult ?? null;
-        $errors = $result->GetPrintedLabelsErrorList ?? [];
-        $labels = $result->Labels ?? '';
-
-        if ($result !== null && count((array) $errors) === 0 && $labels !== '') {
-            return (string) $labels;
+        if ($response != null && count((array) $response->GetPrintedLabelsResult->GetPrintedLabelsErrorList) == 0 && $response->GetPrintedLabelsResult->Labels != "") {
+            //Label(s) saving:
+            file_put_contents('php_soap_client_GetPrintedLabels.pdf', $response->GetPrintedLabelsResult->Labels);
         }
-
-        $errorMessage = data_get(json_decode(json_encode($errors), true), 'ErrorInfo.0.ErrorDescription')
-            ?: data_get(json_decode(json_encode($errors), true), 'ErrorInfo.ErrorDescription')
-            ?: 'GLS nije vratio PDF naljepnicu.';
-
-        throw new RuntimeException((string) $errorMessage);
-    }
-
-
-    /**
-     * Kept behind a method so the GLS response can be verified without a live API call.
-     */
-    protected function soapClient($wsdl, $soapOptions)
-    {
-        return new SoapClient($wsdl, $soapOptions);
     }
 
 

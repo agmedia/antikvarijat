@@ -579,20 +579,16 @@ class OrderController extends Controller
     }
 
     /**
-     * Download the official GLS PDF label for an existing shipment.
+     * Download the official Box Now PDF label for an existing shipment.
      */
-    public function gls_label(Order $order)
+    public function boxnow_label(Order $order, BoxNowService $boxNow)
     {
-        if (! $this->isGlsOrder($order)) {
-            return redirect()->back()->with('error', 'Narudžba nema odabranu GLS dostavu.');
-        }
-
-        if (! filled($order->shipping_parcel_id)) {
-            return redirect()->back()->with('error', 'GLS naljepnica još nije dostupna za ovu narudžbu.');
+        if (! $this->isBoxNowOrder($order)) {
+            return redirect()->back()->with('error', 'Narudžba nema odabranu Box Now dostavu.');
         }
 
         try {
-            $label = (new Gls($order))->label();
+            $label = $boxNow->label($order);
 
             return response($label['contents'], 200, [
                 'Content-Type' => 'application/pdf',
@@ -600,7 +596,7 @@ class OrderController extends Controller
                 'Cache-Control' => 'private, no-store, max-age=0',
             ]);
         } catch (\Throwable $exception) {
-            Log::warning('GLS label download failed.', [
+            Log::warning('Box Now label download failed.', [
                 'order_id' => $order->id,
                 'error' => $exception->getMessage(),
             ]);

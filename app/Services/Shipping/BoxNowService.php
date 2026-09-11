@@ -167,6 +167,36 @@ class BoxNowService
         ];
     }
 
+    public function label(Order $order): array
+    {
+        $parcelId = trim((string) ($order->shipping_parcel_id ?: $order->tracking_code));
+
+        if ($parcelId === '') {
+            throw new RuntimeException('Box Now pošiljka još nema ID za preuzimanje adresnice.');
+        }
+
+        $response = $this->authorizedRequest()
+            ->accept('application/pdf')
+            ->get($this->url('/parcels/' . rawurlencode($parcelId) . '/label.pdf'));
+
+        if (! $response->successful()) {
+            throw new RuntimeException($this->errorMessage($response->json(), 'Box Now adresnica nije dohvaćena.'));
+        }
+
+        $contents = $response->body();
+
+        if (! Str::startsWith($contents, '%PDF-')) {
+            throw new RuntimeException('Box Now nije vratio ispravnu PDF adresnicu.');
+        }
+
+        $safeParcelId = preg_replace('/[^A-Za-z0-9_-]/', '-', $parcelId) ?: 'parcel';
+
+        return [
+            'contents' => $contents,
+            'filename' => 'boxnow-' . $safeParcelId . '.pdf',
+        ];
+    }
+
     public function trackingUrl(string $parcelId): ?string
     {
         $parcelId = trim($parcelId);
