@@ -1,6 +1,7 @@
 @extends('front.layouts.app')
 @php
     $isEnglish = \App\Helpers\LocaleHelper::isEnglish();
+    $showBoxNowPromotion = ! $isEnglish && now()->toDateString() <= '2026-12-01';
 @endphp
 @if (request()->routeIs(['index', 'en.index']))
     @section ( 'title', __('front.meta.default_title') )
@@ -41,6 +42,32 @@
                         <div class="tns-carousel">
                             <div class="tns-carousel-inner"
                                  data-carousel-options="{&quot;items&quot;:1,&quot;controls&quot;:false,&quot;autoplay&quot;:true,&quot;autoplayTimeout&quot;:5500,&quot;autoplayHoverPause&quot;:true,&quot;speed&quot;:800,&quot;mode&quot;:&quot;carousel&quot;,&quot;loop&quot;:true,&quot;nav&quot;:false,&quot;mouseDrag&quot;:true,&quot;autoplayButtonOutput&quot;:false}">
+                                @if ($showBoxNowPromotion)
+                                    <div>
+                                        <div class="row align-items-center">
+                                            <div class="col-md-6 order-md-2">
+                                                <img class="d-block img-fluid mx-auto"
+                                                     src="{{ asset('media/img/box-now-besplatna-dostava.webp') }}"
+                                                     width="430"
+                                                     height="430"
+                                                     alt="{{ __('front.home.boxnow_promotion_image_alt') }}"
+                                                     loading="eager"
+                                                     decoding="async">
+                                            </div>
+                                            <div class="col-lg-5 col-md-6 offset-lg-1 order-md-1 pt-4 pb-md-4 text-center text-md-start">
+                                                <p class="fw-light h4 pb-1 from-top delay-1">{{ __('front.home.boxnow_promotion_eyebrow') }}</p>
+                                                <h2 class="display-6 from-bottom">{{ __('front.home.boxnow_promotion_title') }}</h2>
+                                                <p class="h5 fw-light pb-3 from-bottom delay-2">{{ __('front.home.boxnow_promotion_subtitle') }}</p>
+
+                                                <div class="d-table scale-up delay-4 mx-auto mx-md-0">
+                                                    <a class="btn btn-primary btn-shadow" href="{{ url('knjige') }}">
+                                                        {{ __('front.home.boxnow_promotion_cta') }}<i class="fa-solid fa-arrow-right ms-2 me-n1"></i>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
                                  <div>
                                     <div class="row align-items-center">
                                         <div class="col-md-6 order-md-2"><img class="d-block mx-auto" src="{{ asset('media/img/knjige_rara_shape_left.png') }}" width="500" height="478" alt="Hrvatska RARA" loading="eager" fetchpriority="high" decoding="async"></div>

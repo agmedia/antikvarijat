@@ -389,6 +389,11 @@ return [
     ],
 
     'home' => [
+        'boxnow_promotion_eyebrow' => 'Posebna pogodnost do 1. prosinca',
+        'boxnow_promotion_title' => 'Besplatna BOX NOW dostava',
+        'boxnow_promotion_subtitle' => 'Naručite knjige i preuzmite ih u odabranom paketomatu bez troška dostave.',
+        'boxnow_promotion_cta' => 'Odaberite knjige',
+        'boxnow_promotion_image_alt' => 'Besplatna dostava knjiga putem BOX NOW paketomata',
         'for_collectors' => 'Za istinske kolekcionare',
         'rara_subtitle' => 'Jedinstvena izdanja za Vašu biblioteku',
         'maps_title' => 'Zemljovidi i vedute',
