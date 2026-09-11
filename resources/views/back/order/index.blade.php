@@ -270,6 +270,7 @@
                                     @php($shipmentCarrierHint = \Illuminate\Support\Str::lower($order->shipping_carrier . ' ' . $order->shipping_method . ' ' . $order->shipping_code))
                                     @php($hasShipment = $order->printed || filled($order->shipping_parcel_id) || filled($order->tracking_code))
                                     @php($isWoltShipment = \Illuminate\Support\Str::contains($shipmentCarrierHint, ['wolt_drive', 'wolt drive', 'wolt']))
+                                    @php($isGlsShipment = \Illuminate\Support\Str::contains($shipmentCarrierHint, 'gls'))
                                     @php($hasWoltDelivery = filled($order->shipping_parcel_id) || filled($order->tracking_code))
                                     @php($woltTerminal = in_array(\Illuminate\Support\Str::lower((string) $order->shipping_tracking_status_code), ['delivered', 'order.delivered', 'rejected', 'order.rejected', 'cancelled', 'canceled'], true))
                                     @if($isWoltShipment && $hasWoltDelivery)
@@ -279,11 +280,16 @@
                                         @endunless
                                     @elseif($isWoltShipment)
                                         <button type="button" class="btn btn-alt-primary btn-sm" onclick="sendWolt({{ $order->id }})" title="Pošalji u Wolt Drive" aria-label="Pošalji narudžbu {{ $order->id }} u Wolt Drive"><i class="fa-duotone fa-motorcycle"></i></button>
+                                    @elseif($isGlsShipment && $hasShipment)
+                                        <button type="button" class="btn btn-light btn-sm disabled" disabled title="GLS pošiljka je kreirana"><i class="fa-duotone fa-check text-success"></i></button>
+                                        @if(filled($order->shipping_parcel_id))
+                                            <a class="btn btn-alt-success btn-sm" href="{{ route('order.gls.label', ['order' => $order]) }}" title="Preuzmi GLS PDF naljepnicu" aria-label="Preuzmi GLS PDF naljepnicu za narudžbu {{ $order->id }}"><i class="fa-duotone fa-file-pdf"></i></a>
+                                        @endif
                                     @elseif($hasShipment)
                                         <button type="button" class="btn btn-light btn-sm disabled" disabled title="Pošiljka je kreirana"><i class="fa-duotone fa-check text-success"></i></button>
                                     @elseif(\Illuminate\Support\Str::contains($shipmentCarrierHint, ['boxnow', 'box now']))
                                         <button type="button" class="btn btn-alt-warning btn-sm" onclick="sendBoxNow({{ $order->id }})" title="Pošalji u Box Now" aria-label="Pošalji narudžbu {{ $order->id }} u Box Now"><i class="fa-duotone fa-box"></i></button>
-                                    @elseif(\Illuminate\Support\Str::contains($shipmentCarrierHint, 'gls'))
+                                    @elseif($isGlsShipment)
                                         <button type="button" class="btn btn-alt-warning btn-sm" onclick="sendGLS({{ $order->id }})" title="Pošalji u GLS" aria-label="Pošalji narudžbu {{ $order->id }} u GLS"><i class="fa-duotone fa-truck-fast"></i></button>
                                     @endif
                                     </span>

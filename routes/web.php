@@ -148,6 +148,7 @@ Route::middleware(['auth:sanctum', 'verified', 'no.customers'])->prefix('admin')
     Route::get('order/create', [OrderController::class, 'create'])->name('orders.create');
     Route::post('order', [OrderController::class, 'store'])->name('orders.store');
     Route::get('order/{order}', [OrderController::class, 'show'])->name('orders.show');
+    Route::get('order/{order}/gls-label', [OrderController::class, 'gls_label'])->name('order.gls.label');
     Route::get('order/{order}/edit', [OrderController::class, 'edit'])->name('orders.edit');
     Route::patch('order/{order}', [OrderController::class, 'update'])->name('orders.update');
     Route::post('order/{order}/abandoned-cart-reminder', [OrderController::class, 'sendAbandonedCartReminder'])

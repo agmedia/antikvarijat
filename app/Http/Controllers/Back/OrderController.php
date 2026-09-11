@@ -578,6 +578,37 @@ class OrderController extends Controller
         return response()->json(['error' => 'Greška..! Molimo pokušajte ponovo ili kontaktirajte administratora..']);
     }
 
+    /**
+     * Download the official GLS PDF label for an existing shipment.
+     */
+    public function gls_label(Order $order)
+    {
+        if (! $this->isGlsOrder($order)) {
+            return redirect()->back()->with('error', 'Narudžba nema odabranu GLS dostavu.');
+        }
+
+        if (! filled($order->shipping_parcel_id)) {
+            return redirect()->back()->with('error', 'GLS naljepnica još nije dostupna za ovu narudžbu.');
+        }
+
+        try {
+            $label = (new Gls($order))->label();
+
+            return response($label['contents'], 200, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'attachment; filename="' . $label['filename'] . '"',
+                'Cache-Control' => 'private, no-store, max-age=0',
+            ]);
+        } catch (\Throwable $exception) {
+            Log::warning('GLS label download failed.', [
+                'order_id' => $order->id,
+                'error' => $exception->getMessage(),
+            ]);
+
+            return redirect()->back()->with('error', $exception->getMessage());
+        }
+    }
+
     public function api_send_wolt(
         Request $request,
         WoltDriveService $wolt,
