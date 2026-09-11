@@ -24,7 +24,8 @@ class HomepageBoxNowPromotionTest extends TestCase
         $this->get('/')
             ->assertOk()
             ->assertSee('<h2 class="display-6 from-bottom">Besplatna BOX NOW dostava</h2>', false)
-            ->assertSee('media/img/box-now-besplatna-dostava.webp');
+            ->assertSee('media/img/box-now-besplatna-dostava.webp')
+            ->assertSee('&quot;loop&quot;:false,&quot;rewind&quot;:true', false);
     }
 
     public function test_box_now_promotion_is_hidden_after_december_first(): void
