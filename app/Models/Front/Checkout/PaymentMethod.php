@@ -209,8 +209,10 @@ class PaymentMethod
         }
 
         if ($shipping === 'boxnow') {
+            $allowedCodes = array_merge(['bank'], $corvusCodes);
+
             $this->response_methods = $this->response_methods
-                ->filter(fn ($method) => in_array($method->code, $corvusCodes, true))
+                ->filter(fn ($method) => in_array($method->code, $allowedCodes, true))
                 ->keyBy('code');
 
             return $this;
