@@ -152,6 +152,24 @@ class TranslatorFrontendSearchTest extends TestCase
         $this->assertSame([1], $search->get('products')->all());
     }
 
+    public function test_author_search_keeps_available_products_for_each_name_format(): void
+    {
+        DB::table('authors')->insert([
+            'id' => 1,
+            'title' => 'Ana Marija Horvat',
+            'status' => 1,
+        ]);
+        DB::table('products')->whereIn('id', [1, 2])->update(['author_id' => 1]);
+        DB::table('products')->where('id', 2)->update(['quantity' => 0]);
+
+        foreach (['Ana', 'Ana Horvat', 'Ana Marija Horvat'] as $name) {
+            $search = Helper::search($name, true);
+
+            $this->assertSame([1], $search->get('products')->all(), $name);
+            $this->assertSame(1, $search->get('total'), $name);
+        }
+    }
+
     public function test_catalogue_query_can_filter_by_translator_id(): void
     {
         $ids = (new Product())

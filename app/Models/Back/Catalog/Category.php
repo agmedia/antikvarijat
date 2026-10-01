@@ -106,7 +106,12 @@ class Category extends Model
                 $cats = $this->where('group', $group)->where('parent_id', 0)->orderBy('title')->with('subcategories')->withCount('products')->get();
             } else {
                 $cats = [];
-                $fill = $this->where('group', $group)->where('parent_id', 0)->orderBy('title')->with('subcategories')->withCount('products')->get();
+                $fill = $this->where('group', $group)
+                    ->where('parent_id', 0)
+                    ->orderBy('title')
+                    ->select('id', 'title')
+                    ->with('subcategories:id,parent_id,title')
+                    ->get();
 
                 foreach ($fill as $cat) {
                     $cats[$cat->id] = ['title' => $cat->title];

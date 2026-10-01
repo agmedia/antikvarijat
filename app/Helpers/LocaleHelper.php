@@ -303,11 +303,11 @@ class LocaleHelper
 
         $params = [
             'group' => self::groupSlug((string) $category->getRawOriginal('group'), $locale),
-            'cat' => self::routeKey($category, $locale),
+            'cat' => $category,
         ];
 
         if ($subcategory) {
-            $params['subcat'] = self::routeKey($subcategory, $locale);
+            $params['subcat'] = $subcategory;
         }
 
         return self::route('catalog.route', $params, true, $locale);

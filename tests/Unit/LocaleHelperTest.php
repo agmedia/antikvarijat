@@ -18,6 +18,83 @@ use Tests\TestCase;
 
 class LocaleHelperTest extends TestCase
 {
+    /** @dataProvider categoryUrlCases */
+    public function testLoadedCategoryUrlsPreserveLocalizedSlugsWithoutDatabaseLookups(
+        string $locale,
+        bool $hasTranslations,
+        bool $hasSubcategory
+    ): void {
+        $category = new Category();
+        $category->setRawAttributes([
+            'id' => 2,
+            'parent_id' => 0,
+            'group' => 'Knjige',
+            'title' => 'Hrvatska rara',
+            'title_en' => $hasTranslations ? 'Croatian rara' : null,
+            'slug' => 'hrvatska-rara',
+            'slug_en' => $hasTranslations ? 'croatian-rara' : null,
+        ], true);
+        $subcategory = new Category();
+        $subcategory->setRawAttributes([
+            'id' => 30,
+            'parent_id' => 2,
+            'group' => 'Knjige',
+            'title' => '16. stoljeće',
+            'title_en' => $hasTranslations ? '16th century' : null,
+            'slug' => 'hrvatska-rara-16-stoljece',
+            'slug_en' => $hasTranslations ? 'croatian-rara-16th-century' : null,
+        ], true);
+
+        $english = $locale === 'en';
+        $expectedParameters = [
+            'group' => $english ? 'books' : 'knjige',
+            'cat' => $english && $hasTranslations ? 'croatian-rara' : 'hrvatska-rara',
+        ];
+        if ($hasSubcategory) {
+            $expectedParameters['subcat'] = $english && $hasTranslations
+                ? 'croatian-rara-16th-century'
+                : 'hrvatska-rara-16-stoljece';
+        }
+        $expectedUrl = route($english ? 'en.catalog.route' : 'catalog.route', $expectedParameters);
+        $originalLocale = app()->getLocale();
+        // An explicitly requested URL language must not depend on the current page language.
+        app()->setLocale($english ? 'hr' : 'en');
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        try {
+            foreach (range(1, 36) as $card) {
+                $this->assertSame($expectedUrl, LocaleHelper::categoryUrl(
+                    $category,
+                    $hasSubcategory ? $subcategory : null,
+                    $locale
+                ));
+            }
+            $this->assertSame(
+                $english && $hasTranslations ? 'Croatian rara' : 'Hrvatska rara',
+                LocaleHelper::localizedField($category, 'title', true, $locale)
+            );
+            $this->assertCount(0, DB::getQueryLog());
+        } finally {
+            DB::disableQueryLog();
+            app()->setLocale($originalLocale);
+        }
+    }
+
+    public static function categoryUrlCases(): array
+    {
+        return [
+            'Croatian category' => ['hr', true, false],
+            'Croatian subcategory' => ['hr', true, true],
+            'English category' => ['en', true, false],
+            'English subcategory' => ['en', true, true],
+            'Croatian category without translations' => ['hr', false, false],
+            'Croatian subcategory without translations' => ['hr', false, true],
+            'English category falls back to Croatian slug and title' => ['en', false, false],
+            'English subcategory falls back to Croatian slugs' => ['en', false, true],
+        ];
+    }
+
     public function testEnglishProductPathRebuildsAStaleIdBasedUrlFromSlugs(): void
     {
         $category = new Category();
