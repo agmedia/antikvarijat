@@ -31,4 +31,22 @@ class RegistrationTest extends TestCase
         $this->assertAuthenticated();
         $response->assertRedirect(RouteServiceProvider::HOME);
     }
+
+    public function test_failed_recaptcha_returns_a_validation_error_instead_of_a_server_error()
+    {
+        config(['services.recaptcha.bypass_local' => false]);
+
+        $response = $this->from('/register')->post('/register', [
+            'name' => 'Test User',
+            'email' => 'test@example.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+            'terms' => Jetstream::hasTermsAndPrivacyPolicyFeature(),
+        ]);
+
+        $response->assertRedirect('/register');
+        $response->assertSessionHasErrors('recaptcha');
+        $this->assertGuest();
+        $this->assertDatabaseMissing('users', ['email' => 'test@example.com']);
+    }
 }
