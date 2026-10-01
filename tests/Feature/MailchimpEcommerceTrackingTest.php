@@ -33,6 +33,7 @@ class MailchimpEcommerceTrackingTest extends TestCase
             'services.mailchimp.api_key' => 'test-secret-us7',
             'services.mailchimp.server_prefix' => 'us7',
             'services.mailchimp.audience_id' => 'audience-123',
+            'services.mailchimp.ecommerce_sync_enabled' => true,
             'services.mailchimp.ecommerce_store_id' => 'store-123',
             'services.mailchimp.ecommerce_store_name' => 'Biblos test store',
             'services.mailchimp.ecommerce_currency_code' => 'EUR',
@@ -320,6 +321,30 @@ class MailchimpEcommerceTrackingTest extends TestCase
 
         $this->assertSame([$attributed->id, $recentUnattributed->id], $pendingIds);
         $this->assertNotContains($preRollout->id, $pendingIds);
+        Http::assertNothingSent();
+    }
+
+    public function test_disabled_ecommerce_sync_sends_nothing_and_does_not_requeue_orders(): void
+    {
+        config(['services.mailchimp.ecommerce_sync_enabled' => false]);
+        Http::fake();
+        $order = $this->makeOrder([
+            'mailchimp_ecommerce_synced_at' => now(),
+            'mailchimp_ecommerce_last_attempt_at' => now(),
+            'mailchimp_ecommerce_last_error' => 'Existing delivery error',
+        ], true);
+        $original = $order->getAttributes();
+        $service = app(MailchimpEcommerceService::class);
+        $synchronizer = app(MailchimpOrderSynchronizer::class);
+
+        $this->artisan('mailchimp:sync-ecommerce-orders')->assertExitCode(1);
+        $this->assertFalse($service->syncOrder($order)['ok']);
+        $this->assertFalse($service->ensureStore()['ok']);
+        $this->assertTrue($synchronizer->syncOrderId($order->id)['skipped']);
+        $this->assertCount(0, $synchronizer->pendingOrders());
+        $synchronizer->markForSync($order->id);
+
+        $this->assertSame($original, $order->fresh()->getAttributes());
         Http::assertNothingSent();
     }
 

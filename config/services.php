@@ -47,6 +47,7 @@ return [
         'server_prefix' => env('MAILCHIMP_SERVER_PREFIX'),
         'audience_id' => env('MAILCHIMP_AUDIENCE_ID'),
         'subscribe_status' => env('MAILCHIMP_SUBSCRIBE_STATUS', 'subscribed'),
+        'ecommerce_sync_enabled' => env('MAILCHIMP_ECOMMERCE_SYNC_ENABLED', false),
         'ecommerce_store_id' => env('MAILCHIMP_ECOMMERCE_STORE_ID', 'antikvarijat-biblos'),
         'ecommerce_store_name' => env('MAILCHIMP_ECOMMERCE_STORE_NAME', 'Antikvarijat Biblos'),
         'ecommerce_currency_code' => env('MAILCHIMP_ECOMMERCE_CURRENCY_CODE', 'EUR'),

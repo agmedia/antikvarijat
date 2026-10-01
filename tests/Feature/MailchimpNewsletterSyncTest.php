@@ -28,6 +28,7 @@ class MailchimpNewsletterSyncTest extends TestCase
             'services.mailchimp.server_prefix' => '',
             'services.mailchimp.audience_id' => 'audience-123',
             'services.mailchimp.subscribe_status' => 'subscribed',
+            'services.mailchimp.ecommerce_sync_enabled' => false,
         ]);
 
         DB::purge('sqlite');

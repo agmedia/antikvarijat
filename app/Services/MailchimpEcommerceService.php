@@ -20,7 +20,8 @@ class MailchimpEcommerceService
 
     public function isConfigured(): bool
     {
-        return $this->apiKey() !== ''
+        return filter_var(config('services.mailchimp.ecommerce_sync_enabled', false), FILTER_VALIDATE_BOOLEAN)
+            && $this->apiKey() !== ''
             && $this->serverPrefix() !== ''
             && $this->audienceId() !== ''
             && $this->storeId() !== '';
@@ -189,6 +190,14 @@ class MailchimpEcommerceService
      */
     public function ensureStore(): array
     {
+        if (! $this->isConfigured()) {
+            return [
+                'ok' => false,
+                'error' => 'Mailchimp e-commerce nije konfiguriran.',
+                'stop' => true,
+            ];
+        }
+
         if ($this->storeEnsured) {
             return ['ok' => true, 'error' => null];
         }

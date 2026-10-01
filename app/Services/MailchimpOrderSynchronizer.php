@@ -28,7 +28,7 @@ class MailchimpOrderSynchronizer
 
     public function isAvailable(): bool
     {
-        return $this->columnsAreAvailable() && $this->mailchimp->isConfigured();
+        return $this->mailchimp->isConfigured() && $this->columnsAreAvailable();
     }
 
     /** @return array{ok:bool,error:?string,stop?:bool} */
@@ -167,7 +167,7 @@ class MailchimpOrderSynchronizer
      */
     public function markForSync($orderIds): void
     {
-        if (! $this->columnsAreAvailable()) {
+        if (! $this->mailchimp->isConfigured() || ! $this->columnsAreAvailable()) {
             return;
         }
 
