@@ -34,17 +34,17 @@ class Kernel extends ConsoleKernel
             ->runInBackground()
             ->withoutOverlapping(5);
         $schedule->command('orders:send-abandoned-cart-reminders')
-            ->everyMinute()
+            ->everyFiveMinutes()
             ->withoutOverlapping();
         $schedule->command('sync:shipment-tracking --limit=50 --stale-minutes=15')
             ->everyFifteenMinutes()
             ->withoutOverlapping();
-        $schedule->command('mailchimp:sync-ecommerce-orders --limit=5 --max-seconds=50')
-            ->everyMinute()
-            ->withoutOverlapping(5);
         $schedule->command('orders:send-notifications --limit=25')
             ->everyMinute()
             ->runInBackground()
+            ->withoutOverlapping(5);
+        $schedule->command('mailchimp:sync-ecommerce-orders --limit=3 --max-seconds=20')
+            ->everyFiveMinutes()
             ->withoutOverlapping(5);
     }
 

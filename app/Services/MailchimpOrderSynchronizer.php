@@ -13,6 +13,8 @@ use Throwable;
 
 class MailchimpOrderSynchronizer
 {
+    private const PERMANENT_ERROR_PREFIX = '[permanent] ';
+
     /** @var MailchimpEcommerceService */
     private $mailchimp;
 
@@ -125,15 +127,19 @@ class MailchimpOrderSynchronizer
             }
 
             $error = $this->sanitizeError($response['error'] ?? null);
+            $storedError = ! empty($response['permanent'])
+                ? self::PERMANENT_ERROR_PREFIX . $error
+                : $error;
             DB::table('orders')->where('id', $order->id)->update([
                 'mailchimp_ecommerce_synced_at' => null,
                 'mailchimp_ecommerce_last_attempt_at' => $attemptedAt,
-                'mailchimp_ecommerce_last_error' => $error,
+                'mailchimp_ecommerce_last_error' => $storedError,
             ]);
 
             Log::warning('Mailchimp e-commerce order sync failed.', [
                 'order_id' => $order->id,
                 'stop' => ! empty($response['stop']),
+                'permanent' => ! empty($response['permanent']),
                 'error' => $error,
             ]);
 
@@ -224,6 +230,14 @@ class MailchimpOrderSynchronizer
             ->where(function ($query) {
                 $query->whereNull('mailchimp_ecommerce_last_attempt_at')
                     ->orWhere('mailchimp_ecommerce_last_attempt_at', '<=', now()->subMinutes(15));
+            })
+            ->where(function ($query) {
+                $query->whereNull('mailchimp_ecommerce_last_error')
+                    ->orWhere(
+                        'mailchimp_ecommerce_last_error',
+                        'not like',
+                        self::PERMANENT_ERROR_PREFIX . '%'
+                    );
             })
             ->where(function ($query) use ($statusCase, $bindings) {
                 $query->whereNull('mailchimp_ecommerce_synced_at')

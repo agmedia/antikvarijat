@@ -13,6 +13,7 @@ use App\Models\Back\Catalog\Publisher;
 use App\Models\Front\Catalog\Product as FrontProduct;
 use App\Services\GoogleTranslateService;
 use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Carbon;
@@ -36,24 +37,7 @@ class ProductController extends Controller
     public function index(Request $request, Product $product)
     {
         // osnovni upit + subselecti
-        $query = $product->filter($request)
-            ->with(['categories', 'subcategories'])
-            ->select('products.*')
-            ->addSelect([
-                // ID zadnje narudžbe u kojoj se artikal pojavio (po datumu stavke)
-                'last_order_id' => DB::table('order_products')
-                    ->whereColumn('order_products.product_id', 'products.id')
-                    ->orderByDesc('order_products.created_at')
-                    ->limit(1)
-                    ->select('order_products.order_id'),
-
-                // Datum te zadnje stavke (može ti koristiti u listi/tooltipu)
-                'last_order_at' => DB::table('order_products')
-                    ->whereColumn('order_products.product_id', 'products.id')
-                    ->orderByDesc('order_products.created_at')
-                    ->limit(1)
-                    ->select('order_products.created_at'),
-            ]);
+        $query = $this->adminListQuery($product->filter($request));
 
         // Ako IMAŠ polje "number" na orders, možeš dodati i ovo:
         // ->addSelect([
@@ -73,21 +57,7 @@ class ProductController extends Controller
             if ($request->input('status') == 'with_action' || $request->input('status') == 'without_action') {
 
                 // Napravi bazni upit opet sa subselectima (bez full-load u memoriju)
-                $base = Product::query()
-                    ->with(['categories', 'subcategories'])
-                    ->select('products.*')
-                    ->addSelect([
-                        'last_order_id' => DB::table('order_products')
-                            ->whereColumn('order_products.product_id', 'products.id')
-                            ->orderByDesc('order_products.created_at')
-                            ->limit(1)
-                            ->select('order_products.order_id'),
-                        'last_order_at' => DB::table('order_products')
-                            ->whereColumn('order_products.product_id', 'products.id')
-                            ->orderByDesc('order_products.created_at')
-                            ->limit(1)
-                            ->select('order_products.created_at'),
-                    ]);
+                $base = $this->adminListQuery(Product::query());
 
                 if ($request->input('status') === 'with_action') {
                     $base->whereNotNull('special')
@@ -115,6 +85,47 @@ class ProductController extends Controller
         $counts = [];
 
         return view('back.catalog.product.index', compact('products', 'categories', 'counts'));
+    }
+
+    /**
+     * Keep the admin list payload small. The previous products.* selection
+     * loaded long descriptions and metadata that the table never renders.
+     */
+    private function adminListQuery(Builder $query): Builder
+    {
+        return $query
+            ->with(['categories', 'subcategories'])
+            ->select([
+                'products.id',
+                'products.image',
+                'products.name',
+                'products.sku',
+                'products.polica',
+                'products.skl',
+                'products.year',
+                'products.dimensions',
+                'products.price',
+                'products.quantity',
+                'products.special',
+                'products.special_from',
+                'products.special_to',
+                'products.status',
+                'products.url',
+                'products.created_at',
+                'products.updated_at',
+            ])
+            ->addSelect([
+                'last_order_id' => DB::table('order_products')
+                    ->whereColumn('order_products.product_id', 'products.id')
+                    ->orderByDesc('order_products.created_at')
+                    ->limit(1)
+                    ->select('order_products.order_id'),
+                'last_order_at' => DB::table('order_products')
+                    ->whereColumn('order_products.product_id', 'products.id')
+                    ->orderByDesc('order_products.created_at')
+                    ->limit(1)
+                    ->select('order_products.created_at'),
+            ]);
     }
 
 

@@ -184,6 +184,18 @@
                                 if ($subcategory && ! $categoryLabels->contains($subcategory->title)) {
                                     $categoryLabels->push($subcategory->title);
                                 }
+                                $quickEditItem = json_encode([
+                                    'id' => (int) $product->id,
+                                    'polica' => $product->polica,
+                                    'skl' => $product->skl,
+                                    'year' => $product->year,
+                                    'dimensions' => $product->dimensions,
+                                    'price' => $product->price,
+                                    'quantity' => $product->quantity,
+                                    'special' => $product->special,
+                                    'special_from' => $product->special_from,
+                                    'special_to' => $product->special_to,
+                                ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
                             @endphp
                             <tr>
                                 <td class="admin-product-main" data-label="Artikl">
@@ -208,18 +220,18 @@
                                     </div>
                                 </td>
                                 <td class="admin-product-quick-fields" data-label="Lokacija">
-                                    <div class="admin-quick-field"><span>Polica</span><ag-input-field item="{{ $product }}" target="polica"></ag-input-field></div>
-                                    <div class="admin-quick-field"><span>Skladište</span><ag-input-field item="{{ $product }}" target="skl"></ag-input-field></div>
+                                    <div class="admin-quick-field"><span>Polica</span><ag-input-field item="{{ $quickEditItem }}" target="polica"></ag-input-field></div>
+                                    <div class="admin-quick-field"><span>Skladište</span><ag-input-field item="{{ $quickEditItem }}" target="skl"></ag-input-field></div>
                                 </td>
                                 <td class="admin-product-quick-fields" data-label="Bibliografski podaci">
-                                    <div class="admin-quick-field"><span>Godina</span><ag-input-field item="{{ $product }}" target="year"></ag-input-field></div>
-                                    <div class="admin-quick-field"><span>Dimenzije</span><ag-input-field item="{{ $product }}" target="dimensions"></ag-input-field></div>
+                                    <div class="admin-quick-field"><span>Godina</span><ag-input-field item="{{ $quickEditItem }}" target="year"></ag-input-field></div>
+                                    <div class="admin-quick-field"><span>Dimenzije</span><ag-input-field item="{{ $quickEditItem }}" target="dimensions"></ag-input-field></div>
                                 </td>
                                 <td class="text-right admin-product-price" data-label="Cijena">
-                                    <ag-input-field item="{{ $product }}" target="price" field="price"></ag-input-field>
+                                    <ag-input-field item="{{ $quickEditItem }}" target="price" field="price"></ag-input-field>
                                 </td>
                                 <td class="admin-product-stock" data-label="Zaliha">
-                                    <div class="admin-product-quantity"><ag-input-field item="{{ $product }}" target="quantity"></ag-input-field></div>
+                                    <div class="admin-product-quantity"><ag-input-field item="{{ $quickEditItem }}" target="quantity"></ag-input-field></div>
                                 </td>
                                 <td class="admin-product-activity" data-label="Aktivnost">
                                     @if($product->last_order_id)

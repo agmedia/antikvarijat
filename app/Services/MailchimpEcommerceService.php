@@ -52,7 +52,11 @@ class MailchimpEcommerceService
 
         $email = strtolower(trim((string) $order->payment_email));
         if ($email === '' || filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
-            return ['ok' => false, 'error' => 'Narudžba nema valjanu e-mail adresu kupca.'];
+            return [
+                'ok' => false,
+                'error' => 'Narudžba nema valjanu e-mail adresu kupca.',
+                'permanent' => true,
+            ];
         }
 
         try {
@@ -401,6 +405,7 @@ class MailchimpEcommerceService
             'ok' => false,
             'error' => $context . ': ' . $this->responseError($response),
             'stop' => in_array($response->status(), [401, 403, 404, 429, 500, 502, 503, 504], true),
+            'permanent' => in_array($response->status(), [400, 422], true),
         ];
     }
 

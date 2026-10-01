@@ -280,6 +280,29 @@ class MailchimpEcommerceTrackingTest extends TestCase
         Http::assertSentCount(1);
     }
 
+    public function test_invalid_customer_email_is_not_retried_until_the_order_is_queued_again(): void
+    {
+        Carbon::setTestNow('2026-08-28 07:40:00');
+        $order = $this->makeOrder(['payment_email' => 'invalid-email'], true);
+        $synchronizer = app(MailchimpOrderSynchronizer::class);
+
+        $result = $synchronizer->syncOrderId($order->id);
+
+        $this->assertFalse($result['ok']);
+        $this->assertStringStartsWith(
+            '[permanent] ',
+            (string) $order->fresh()->mailchimp_ecommerce_last_error
+        );
+
+        Carbon::setTestNow('2026-08-29 07:40:00');
+        $this->assertCount(0, $synchronizer->pendingOrders(5));
+
+        $synchronizer->markForSync($order->id);
+
+        $this->assertSame([$order->id], $synchronizer->pendingOrders(5)->pluck('id')->all());
+        Http::assertNothingSent();
+    }
+
     public function test_pending_orders_includes_recent_unattributed_orders_and_excludes_pre_rollout_history(): void
     {
         Carbon::setTestNow('2026-08-28 08:00:00');
