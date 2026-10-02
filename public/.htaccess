@@ -355,6 +355,10 @@ FileETag None
 
   RewriteEngine On
 
+  # Block high-volume AI crawlers before Laravel boots and opens a DB connection.
+  RewriteCond %{HTTP_USER_AGENT} (?:GPTBot|ClaudeBot|AionBot) [NC]
+  RewriteRule ^ - [F,L]
+
   # Handle Authorization Header
   RewriteCond %{HTTP:Authorization} .
   RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
