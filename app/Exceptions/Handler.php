@@ -27,6 +27,8 @@ class Handler extends ExceptionHandler
         'api_key',
         'webhook_secret',
         'client_secret',
+        'files',
+        'slim',
     ];
 
     /**

@@ -3,7 +3,7 @@
         <div class="product-photo-dropzone-icon"><i class="fa-duotone fa-cloud-arrow-up"></i></div>
         <div>
             <strong>Dodajte fotografije artikla</strong>
-            <span>Povucite datoteke ovdje ili ih odaberite s uređaja. Možete dodati više fotografija odjednom.</span>
+            <span>Povucite datoteke ovdje ili ih odaberite s uređaja. Do 10 fotografija po spremanju; velike se automatski smanjuju.</span>
         </div>
         <label for="files" class="btn btn-secondary mb-0"><i class="fa-duotone fa-images mr-1"></i> Odaberi fotografije</label>
         <input name="files[][image]" id="files" type="file" accept="image/*" multiple>
@@ -61,10 +61,13 @@
         //
         let blocks = {{ $existingImagesCount ?? 0 }};
         let created_id = 0;
+        const maxNewImages = 10;
+        const pendingImageFiles = [];
+        let isProcessingImage = false;
+        window.productImageQueueBusy = false;
         // get a reference to the file drop area and the file input
         var fileDropArea = document.querySelector('.file-drop-area');
         var fileInput = fileDropArea.querySelector('input');
-        var fileInputName = fileInput.name;
 
         // listen to events for dragging and dropping
         fileDropArea.addEventListener('dragover', handleDragOver);
@@ -98,31 +101,91 @@
 
         // loops over a list of items
         function handleFileItems(items) {
-            let l = items.length;
-            for (let i=0; i<l; i++) {
-                handleItem(items[i]);
+            const files = [];
+
+            for (let i = 0; i < items.length; i++) {
+                const file = getFileFromItem(items[i]);
+
+                if (file) {
+                    files.push(file);
+                }
             }
+
+            const activeImages = document.querySelectorAll('#new-images .product-photo-card-new').length;
+            const availableSlots = Math.max(0, maxNewImages - activeImages - pendingImageFiles.length);
+
+            if (files.length > availableSlots) {
+                showPhotoError('Odjednom možete dodati najviše ' + maxNewImages + ' fotografija.');
+            }
+
+            pendingImageFiles.push(...files.slice(0, availableSlots));
+            updateImageQueueState();
+            processNextImage();
         }
 
-        function handleItem(item) {
-            // get file from item
+        function getFileFromItem(item) {
+            if (item.getAsFile && item.kind !== 'file') {
+                return null;
+            }
+
             let file = item;
+
             if (item.getAsFile && item.kind == 'file') {
                 file = item.getAsFile();
             }
 
-            handleFile(file);
+            return file;
         }
 
-        // now we're sure each item is a file
-        function handleFile(file) {
-            createCropper(file);
+        function processNextImage() {
+            if (isProcessingImage || !pendingImageFiles.length) {
+                if (!isProcessingImage) {
+                    fileInput.value = '';
+                }
+
+                updateImageQueueState();
+                return;
+            }
+
+            isProcessingImage = true;
+            updateImageQueueState();
+            createCropper(pendingImageFiles.shift(), function () {
+                isProcessingImage = false;
+                updateImageQueueState();
+                processNextImage();
+            });
+        }
+
+        function updateImageQueueState() {
+            const busy = isProcessingImage || pendingImageFiles.length > 0;
+            const saveButton = document.getElementById('product-save-button');
+
+            window.productImageQueueBusy = busy;
+
+            if (!saveButton || saveButton.dataset.submitting === 'true') {
+                return;
+            }
+
+            saveButton.disabled = busy;
+            saveButton.innerHTML = busy
+                ? '<i class="fa fa-spinner fa-spin mr-1"></i> Pripremam fotografije...'
+                : '<i class="fa-duotone fa-floppy-disk mr-1"></i> Spremi artikl';
+        }
+
+        function showPhotoError(message) {
+            if (typeof errorToast !== 'undefined' && errorToast && typeof errorToast.fire === 'function') {
+                errorToast.fire({ text: message });
+                return;
+            }
+
+            window.alert(message);
         }
 
         // create an Image Cropper for each passed file
-        function createCropper(file) {
+        function createCropper(file, onComplete) {
             // create container element for cropper
             let holder = document.getElementById('new-images');
+            const imageIndex = created_id;
 
             let col = document.createElement('div');
             col.className = 'col-lg-4 col-md-6 animated fadeIn mb-3 product-photo-card product-photo-card-new';
@@ -132,9 +195,9 @@
             // insert this element after the file drop area
             col.insertAdjacentElement('afterbegin', cropper);
             col.insertAdjacentHTML('beforeend', '<div class="product-photo-new-controls">\n' +
-                '                                    <label>Redoslijed<input type="number" min="0" class="form-control" name="files[' + created_id + '][sort_order]" value="' + blocks + '"></label>\n' +
+                '                                    <label>Redoslijed<input type="number" min="0" class="form-control" name="files[' + imageIndex + '][sort_order]" value="' + blocks + '"></label>\n' +
                 '                                    <label class="custom-control custom-radio mb-0">\n' +
-                '                                        <input type="radio" class="custom-control-input" id="new-main-photo-' + created_id + '" name="files[default]" value="image/' + file.name + '">\n' +
+                '                                        <input type="radio" class="custom-control-input" id="new-main-photo-' + imageIndex + '" name="files[default]" value="' + imageIndex + '">\n' +
                 '                                        <span class="custom-control-label">Postavi kao glavnu</span>\n' +
                 '                                    </label>\n' +
                 '                                </div>');
@@ -144,18 +207,37 @@
             // create a Slim Cropper
             Slim.create(cropper, {
                 ratio: 'free',
-                //size: '600,800',
-                maxFileSize: '2',
+                size: '1600,2000',
+                internalCanvasSize: { width: 2048, height: 2560 },
+                internalCanvasSizeLowMemory: { width: 1600, height: 2000 },
+                maxFileSize: 8,
+                forceType: 'jpg',
+                jpegCompression: 82,
                 service: false,
                 meta: {
                     type: 'products',
                     type_id: "{{ isset($product) ? $product->id : '' }}",
                     image_id: 0
                 },
-                defaultInputName: fileInputName,
+                defaultInputName: 'files[' + imageIndex + '][image]',
                 didInit: function() {
                     // load the file to our slim cropper
-                    this.load(file);
+                    this.load(file, function (error) {
+                        if (error) {
+                            this.destroy();
+                            col.remove();
+
+                            if (error === 'file-too-big') {
+                                showPhotoError('Fotografija smije imati najviše 8 MB.');
+                            } else {
+                                showPhotoError('Fotografiju nije moguće učitati. Provjerite format datoteke.');
+                            }
+                        }
+
+                        if (typeof onComplete === 'function') {
+                            onComplete();
+                        }
+                    });
 
                 },
                 didRemove: function(data, slim) {

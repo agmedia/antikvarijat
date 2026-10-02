@@ -5,14 +5,25 @@ namespace App\Models\Back\Catalog\Product;
 use App\Helpers\ProductHelper;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
+use InvalidArgumentException;
 use Intervention\Image\Facades\Image;
 
 class ProductImage extends Model
 {
+    public const MAX_NEW_IMAGES_PER_REQUEST = 10;
+    public const MAX_UPLOAD_BYTES = 6291456;
+    public const MAX_UPLOAD_WIDTH = 2000;
+    public const MAX_UPLOAD_HEIGHT = 2000;
+    public const MAX_UPLOAD_PIXELS = 4000000;
+    public const STORED_MAX_WIDTH = 1600;
+    public const STORED_MAX_HEIGHT = 2000;
+
     /**
      * @var string
      */
@@ -47,19 +58,20 @@ class ProductImage extends Model
 
         // Ako ima novih slika
         if (!empty($new)) {
-            foreach ($new as $new_image) {
+            foreach ($new as $key => $new_image) {
                 if (isset($new_image['image']) && $new_image['image']) {
                     $data = json_decode($new_image['image']); // stdClass
                     if ($data && isset($data->output)) {
                         $saved = $this->saveNew($data->output, $new_image['sort_order'] ?? 0);
 
                         // Ako je default označen na novouploadanoj fotki
-                        if (
-                            isset($new['default']) &&
-                            strpos($new['default'], 'image/') !== false &&
-                            isset($data->output->name) &&
-                            $data->output->name == str_replace('image/', '', $new['default'])
-                        ) {
+                        $isDefaultByIndex = isset($new['default']) && (string) $new['default'] === (string) $key;
+                        $isDefaultByLegacyName = isset($new['default'])
+                            && strpos((string) $new['default'], 'image/') !== false
+                            && isset($data->output->name)
+                            && $data->output->name == str_replace('image/', '', $new['default']);
+
+                        if ($isDefaultByIndex || $isDefaultByLegacyName) {
                             $this->switchDefault($saved);
                         }
                     }
@@ -262,13 +274,22 @@ class ProductImage extends Model
 
         $time = Str::random(4);
         $img  = Image::make($this->makeImageFromBase($image));
+
+        // A phone photo can be small on disk but require hundreds of MB once
+        // decoded. Keep enough detail for zoom without encoding that full canvas
+        // three times in this synchronous request.
+        $img->resize(self::STORED_MAX_WIDTH, self::STORED_MAX_HEIGHT, function ($constraint) {
+            $constraint->aspectRatio();
+            $constraint->upsize();
+        });
+
         $path = $this->resource->id . '/' . Str::slug($this->resource->name) . '-' . $time . '.';
 
         $path_jpg = $path . 'jpg';
-        Storage::disk('products')->put($path_jpg, $img->encode('jpg'));
+        Storage::disk('products')->put($path_jpg, (string) $img->encode('jpg', 85));
 
         $path_webp = $path . 'webp';
-        Storage::disk('products')->put($path_webp, $img->encode('webp'));
+        Storage::disk('products')->put($path_webp, (string) $img->encode('webp', 82));
 
         // Thumb creation
         $path_thumb = $this->resource->id . '/' . Str::slug($this->resource->name) . '-' . $time . '-thumb.';
@@ -278,9 +299,128 @@ class ProductImage extends Model
         })->resizeCanvas(250, null);
 
         $path_webp_thumb = $path_thumb . 'webp';
-        Storage::disk('products')->put($path_webp_thumb, $img->encode('webp'));
+        Storage::disk('products')->put($path_webp_thumb, (string) $img->encode('webp', 82));
 
         return $path_jpg;
+    }
+
+    /**
+     * Validate Slim payloads before the product or its relations are saved.
+     *
+     * @throws ValidationException
+     */
+    public static function validateRequestImages(Request $request): void
+    {
+        $errors = [];
+        $newImages = $request->input('files', []);
+        $newImageCount = 0;
+
+        if (is_array($newImages)) {
+            foreach ($newImages as $image) {
+                if (is_array($image) && ! empty($image['image'])) {
+                    $newImageCount++;
+                }
+            }
+        }
+
+        if ($newImageCount > self::MAX_NEW_IMAGES_PER_REQUEST) {
+            $errors['files'][] = 'Odjednom možete dodati najviše ' . self::MAX_NEW_IMAGES_PER_REQUEST . ' fotografija.';
+        }
+
+        foreach (['files', 'slim'] as $group) {
+            $images = $request->input($group, []);
+
+            if (! is_array($images)) {
+                continue;
+            }
+
+            foreach ($images as $key => $image) {
+                if (! is_array($image) || empty($image['image'])) {
+                    continue;
+                }
+
+                try {
+                    self::decodeSlimPayload((string) $image['image']);
+                } catch (InvalidArgumentException $exception) {
+                    $errors[$group . '.' . $key . '.image'][] = $exception->getMessage();
+                }
+            }
+        }
+
+        if ($errors) {
+            throw ValidationException::withMessages($errors);
+        }
+    }
+
+    /**
+     * Decode and inspect the JSON value generated by Slim.
+     */
+    private static function decodeSlimPayload(string $payload): string
+    {
+        // 6 MiB of binary data expands to roughly 8 MiB in Base64.
+        if (strlen($payload) > 8500000) {
+            throw new InvalidArgumentException('Fotografija je prevelika za obradu. Smanjite je i pokušajte ponovno.');
+        }
+
+        $data = json_decode($payload, true);
+
+        if (! is_array($data) || ! isset($data['output']['image']) || ! is_string($data['output']['image'])) {
+            throw new InvalidArgumentException('Fotografija nije ispravno pripremljena. Učitajte je ponovno.');
+        }
+
+        return self::decodeImageDataUri($data['output']['image']);
+    }
+
+    /**
+     * Strictly decode a supported data URI before GD allocates its canvas.
+     */
+    private static function decodeImageDataUri(string $dataUri): string
+    {
+        $separator = strpos($dataUri, ',');
+        $header = $separator === false ? '' : substr($dataUri, 0, $separator);
+
+        if (! preg_match('/\Adata:(image\/(?:jpeg|jpg|png|webp|gif));base64\z/i', $header, $matches)) {
+            throw new InvalidArgumentException('Format fotografije nije podržan. Koristite JPG, PNG ili WebP.');
+        }
+
+        $encoded = preg_replace('/\s+/', '', substr($dataUri, $separator + 1));
+        $maxEncodedLength = (int) ceil(self::MAX_UPLOAD_BYTES / 3) * 4;
+
+        if (! is_string($encoded) || strlen($encoded) > $maxEncodedLength) {
+            throw new InvalidArgumentException('Fotografija je prevelika za obradu. Smanjite je i pokušajte ponovno.');
+        }
+
+        $decoded = base64_decode($encoded, true);
+
+        if ($decoded === false || strlen($decoded) > self::MAX_UPLOAD_BYTES) {
+            throw new InvalidArgumentException('Fotografija sadrži neispravne podatke. Učitajte je ponovno.');
+        }
+
+        $info = @getimagesizefromstring($decoded);
+        $claimedMime = strtolower($matches[1]) === 'image/jpg' ? 'image/jpeg' : strtolower($matches[1]);
+        $actualMime = is_array($info) ? strtolower((string) ($info['mime'] ?? '')) : '';
+        $allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+
+        if (! is_array($info) || ! in_array($actualMime, $allowedMimes, true) || $actualMime !== $claimedMime) {
+            throw new InvalidArgumentException('Sadržaj fotografije ne odgovara odabranom formatu.');
+        }
+
+        $width = (int) ($info[0] ?? 0);
+        $height = (int) ($info[1] ?? 0);
+
+        if (
+            $width < 1 ||
+            $height < 1 ||
+            $width > self::MAX_UPLOAD_WIDTH ||
+            $height > self::MAX_UPLOAD_HEIGHT ||
+            ($width * $height) > self::MAX_UPLOAD_PIXELS
+        ) {
+            throw new InvalidArgumentException(
+                'Fotografija ima preveliku rezoluciju. Ponovno je odaberite kako bi se automatski smanjila.'
+            );
+        }
+
+        return $decoded;
     }
 
     /**
@@ -290,9 +430,7 @@ class ProductImage extends Model
      */
     private function makeImageFromBase(string $base_64_string)
     {
-        $image_parts = explode(";base64,", $base_64_string);
-
-        return base64_decode($image_parts[1] ?? '');
+        return self::decodeImageDataUri($base_64_string);
     }
 
     /*******************************************************************************

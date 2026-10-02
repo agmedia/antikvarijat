@@ -259,8 +259,14 @@ class Product extends Model
                 'distinct',
                 Rule::exists('translators', 'id'),
             ],
-            'tags'     => ['nullable'], // može biti string ili array
+            'tags'          => ['nullable'], // može biti string ili array
+            'files'         => ['nullable', 'array'],
+            'files.*.image' => ['nullable', 'string'],
+            'slim'          => ['nullable', 'array'],
+            'slim.*.image'  => ['nullable', 'string'],
         ]);
+
+        ProductImage::validateRequestImages($request);
 
         $this->setRequest($request);
 

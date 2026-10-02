@@ -8,7 +8,12 @@
                     </div>
                     <div class="slim"
                          data-ratio="free"
-                         data-max-file-size="2"
+                         data-size="1600,2000"
+                         data-internal-canvas-size="2048,2560"
+                         data-internal-canvas-size-low-memory="1600,2000"
+                         data-max-file-size="8"
+                         data-force-type="jpg"
+                         data-jpeg-compression="82"
                          data-meta-type="products"
                          data-meta-type_id="{{ $product->id }}"
                          data-will-remove="removeImage">
@@ -54,7 +59,12 @@
                 <div class="options-container fx-item-zoom-in fx-overlay-zoom-out product-photo-preview">
                     <div class="slim"
                          data-ratio="free"
-                         data-max-file-size="2"
+                         data-size="1600,2000"
+                         data-internal-canvas-size="2048,2560"
+                         data-internal-canvas-size-low-memory="1600,2000"
+                         data-max-file-size="8"
+                         data-force-type="jpg"
+                         data-jpeg-compression="82"
                          data-meta-type="products"
                          data-meta-type_id="{{ $product->id }}"
                          data-meta-image_id="{{ $image['id'] }}"

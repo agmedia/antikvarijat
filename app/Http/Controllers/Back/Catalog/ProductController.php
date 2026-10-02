@@ -199,7 +199,11 @@ class ProductController extends Controller
     {
         $data = $product->getRelationsData(false);
 
-        $logs = $product->historyLogs()->with('user:id,name')->get();
+        $logs = $product->historyLogs()
+            ->select(['id', 'user_id', 'target_id', 'title', 'changes', 'created_at'])
+            ->with('user:id,name')
+            ->limit(50)
+            ->get();
         $selectedCategoryIds = $product->categories()->pluck('id')->map(fn ($id) => (int) $id)->all();
         $selectedSubcategoryId = optional($product->subcategory())->id;
         $existingImagesCount = ProductImage::where('product_id', $product->id)->count();

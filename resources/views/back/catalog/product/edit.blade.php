@@ -2,7 +2,6 @@
 
 @push('css_before')
     <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('js/plugins/select2/css/select2.min.css') }}">
-    <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('js/plugins/dropzone/min/dropzone.min.css') }}">
     <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('js/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.min.css') }}">
     <link rel="stylesheet" href="{{ \App\Helpers\Asset::url('css/plugins/slim/slim.css') }}">
 
@@ -30,7 +29,7 @@
     <div class="content content-full admin-form-page">
         @include('back.layouts.partials.session')
 
-        <form action="{{ isset($product) ? route('products.update', ['product' => $product]) : route('products.store') }}" method="POST" enctype="multipart/form-data">
+        <form id="product-editor-form" action="{{ isset($product) ? route('products.update', ['product' => $product]) : route('products.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
             @if (isset($product))
                 {{ method_field('PATCH') }}
@@ -558,7 +557,7 @@
                                     <i class="fa-duotone fa-trash-can mr-1"></i> Obriši
                                 </a>
                             @endif
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" class="btn btn-primary" id="product-save-button">
                                 <i class="fa-duotone fa-floppy-disk mr-1"></i> Spremi artikl
                             </button>
                 </div>
@@ -579,7 +578,6 @@
     <!-- Page JS Plugins -->
     <script src="{{ \App\Helpers\Asset::url('js/plugins/select2/js/select2.full.min.js') }}"></script>
     <script src="{{ \App\Helpers\Asset::url('js/plugins/ckeditor5-classic/build/ckeditor.js') }}"></script>
-    <script src="{{ \App\Helpers\Asset::url('js/plugins/dropzone/min/dropzone.min.js') }}"></script>
     <script src="{{ \App\Helpers\Asset::url('js/plugins/bootstrap-datepicker/js/bootstrap-datepicker.min.js') }}"></script>
     <script src="{{ \App\Helpers\Asset::url('js/plugins/jquery.maskedinput/jquery.maskedinput.min.js') }}"></script>
     <script src="{{ \App\Helpers\Asset::url('js/plugins/slim/slim.kickstart.js') }}"></script>
@@ -726,6 +724,35 @@
             if (productStatusSwitch && productStatusLabel) {
                 productStatusSwitch.addEventListener('change', function () {
                     productStatusLabel.textContent = this.checked ? 'Aktivan' : 'Neaktivan';
+                });
+            }
+
+            const productEditorForm = document.getElementById('product-editor-form');
+            const productSaveButton = document.getElementById('product-save-button');
+            let productSaveInProgress = false;
+
+            if (productEditorForm && productSaveButton) {
+                productEditorForm.addEventListener('submit', function (event) {
+                    if (window.productImageQueueBusy) {
+                        event.preventDefault();
+
+                        if (typeof errorToast !== 'undefined' && errorToast && typeof errorToast.fire === 'function') {
+                            errorToast.fire({ text: 'Pričekajte da se odabrane fotografije pripreme.' });
+                        }
+
+                        return;
+                    }
+
+                    if (productSaveInProgress) {
+                        event.preventDefault();
+                        return;
+                    }
+
+                    productSaveInProgress = true;
+                    productEditorForm.setAttribute('aria-busy', 'true');
+                    productSaveButton.dataset.submitting = 'true';
+                    productSaveButton.disabled = true;
+                    productSaveButton.innerHTML = '<i class="fa fa-spinner fa-spin mr-1"></i> Spremam i obrađujem slike...';
                 });
             }
 
