@@ -10,6 +10,7 @@ use Livewire\Component;
 
 class PublisherSearch extends Component
 {
+    private const RESULTS_PER_PAGE = 20;
 
     /**
      * @var string
@@ -20,6 +21,16 @@ class PublisherSearch extends Component
      * @var array
      */
     public $search_results = [];
+
+    /**
+     * @var int
+     */
+    public $result_limit = self::RESULTS_PER_PAGE;
+
+    /**
+     * @var bool
+     */
+    public $has_more_results = false;
 
     /**
      * @var int
@@ -70,6 +81,7 @@ class PublisherSearch extends Component
         if ($this->show_add_window) {
             $this->new['title'] = Publisher::cleanSemanticTitle((string) $this->search);
             $this->search_results = [];
+            $this->has_more_results = false;
         }
     }
 
@@ -83,20 +95,63 @@ class PublisherSearch extends Component
         $this->search_results = [];
         $this->show_add_window = false;
         $this->publisher_id = 0;
+        $this->result_limit = self::RESULTS_PER_PAGE;
 
+        $this->refreshSearchResults($value);
+    }
+
+
+    /**
+     * Load the next group of matching publishers without rendering the whole
+     * catalog on every keystroke.
+     */
+    public function loadMore()
+    {
+        if (! $this->has_more_results) {
+            return;
+        }
+
+        $this->result_limit += self::RESULTS_PER_PAGE;
+        $this->refreshSearchResults($this->search);
+    }
+
+
+    /**
+     * @param mixed $value
+     */
+    private function refreshSearchResults($value): void
+    {
         $search = Publisher::cleanSemanticTitle((string) $value);
 
-        if (mb_strlen($search) >= 2) {
-            $this->search_results = Publisher::query()
-                ->where('title', 'LIKE', '%' . $search . '%')
-                ->orderByRaw(
-                    'CASE WHEN LOWER(TRIM(title)) = LOWER(?) THEN 0 '
-                    . 'WHEN LOWER(TRIM(title)) LIKE LOWER(?) THEN 1 ELSE 2 END',
-                    [$search, $search . '%']
-                )
-                ->orderBy('title')
-                ->get();
+        if (mb_strlen($search) < 2) {
+            $this->has_more_results = false;
+
+            return;
         }
+
+        $publishers = Publisher::query()
+            ->where('title', 'LIKE', '%' . $search . '%')
+            ->orderByRaw(
+                'CASE WHEN LOWER(TRIM(title)) = LOWER(?) THEN 0 '
+                . 'WHEN LOWER(TRIM(title)) LIKE LOWER(?) THEN 1 ELSE 2 END',
+                [$search, $search . '%']
+            )
+            ->orderBy('title')
+            ->orderBy('id')
+            ->limit($this->result_limit + 1)
+            ->get(['id', 'title']);
+
+        $this->has_more_results = $publishers->count() > $this->result_limit;
+        $this->search_results = $publishers
+            ->take($this->result_limit)
+            ->map(function (Publisher $publisher): array {
+                return [
+                    'id' => (int) $publisher->id,
+                    'title' => (string) $publisher->title,
+                ];
+            })
+            ->values()
+            ->all();
     }
 
 
@@ -112,6 +167,7 @@ class PublisherSearch extends Component
         }
 
         $this->search_results = [];
+        $this->has_more_results = false;
         $this->search         = $publisher->title;
         $this->publisher_id     = $publisher->id;
 

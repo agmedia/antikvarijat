@@ -29,16 +29,32 @@
                 <button type="button"
                         class="admin-entity-picker-option"
                         role="option"
-                        wire:key="publisher-result-{{ $publisher->id }}"
-                        wire:click="addPublisher('{{ $publisher->id }}')">
+                        wire:key="publisher-result-{{ $publisher['id'] }}"
+                        wire:click="addPublisher('{{ $publisher['id'] }}')">
                     <span class="admin-entity-picker-option-icon"><i class="fa-duotone fa-building" aria-hidden="true"></i></span>
                     <span>
-                        <strong>{{ $publisher->title }}</strong>
+                        <strong>{{ $publisher['title'] }}</strong>
                         <small>Izdavač</small>
                     </span>
                     <i class="fa-solid fa-chevron-right admin-entity-picker-option-arrow" aria-hidden="true"></i>
                 </button>
             @endforeach
+
+            @if ($has_more_results)
+                <button type="button"
+                        class="admin-entity-picker-option"
+                        wire:click="loadMore"
+                        wire:loading.attr="disabled"
+                        wire:target="loadMore"
+                        aria-label="Prikaži još izdavača">
+                    <span class="admin-entity-picker-option-icon"><i class="fa-solid fa-plus" aria-hidden="true"></i></span>
+                    <span>
+                        <strong>Prikaži još</strong>
+                        <small>Učitaj sljedećih 20 rezultata</small>
+                    </span>
+                    <i class="fa-solid fa-chevron-down admin-entity-picker-option-arrow" aria-hidden="true"></i>
+                </button>
+            @endif
         </div>
     @endif
 
