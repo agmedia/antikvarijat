@@ -84,11 +84,18 @@ class PublisherSearch extends Component
         $this->show_add_window = false;
         $this->publisher_id = 0;
 
-        if (mb_strlen(trim($this->search)) >= 2) {
-            $this->search_results = (new Publisher())->where('title', 'LIKE', '%' . $this->search . '%')
-                                                  ->orderBy('title')
-                                                  ->limit(6)
-                                                  ->get();
+        $search = Publisher::cleanSemanticTitle((string) $value);
+
+        if (mb_strlen($search) >= 2) {
+            $this->search_results = Publisher::query()
+                ->where('title', 'LIKE', '%' . $search . '%')
+                ->orderByRaw(
+                    'CASE WHEN LOWER(TRIM(title)) = LOWER(?) THEN 0 '
+                    . 'WHEN LOWER(TRIM(title)) LIKE LOWER(?) THEN 1 ELSE 2 END',
+                    [$search, $search . '%']
+                )
+                ->orderBy('title')
+                ->get();
         }
     }
 
