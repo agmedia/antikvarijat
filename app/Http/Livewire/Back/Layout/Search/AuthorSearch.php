@@ -79,16 +79,27 @@ class AuthorSearch extends Component
      */
     public function updatingSearch($value)
     {
-        $this->search         = $value;
+        $this->search = $value;
         $this->search_results = [];
         $this->show_add_window = false;
         $this->author_id = 0;
 
-        if (mb_strlen(trim($this->search)) >= 2) {
-            $this->search_results = (new Author())->where('title', 'LIKE', '%' . $this->search . '%')
-                                                  ->orderBy('title')
-                                                  ->limit(6)
-                                                  ->get();
+        $search = Author::cleanSemanticTitle((string) $value);
+
+        if (mb_strlen($search) >= 2) {
+            $this->search_results = Author::query()
+                ->where('title', 'LIKE', '%' . $search . '%')
+                ->orderBy('title')
+                ->orderBy('id')
+                ->limit(6)
+                ->get(['id', 'title'])
+                ->map(function (Author $author): array {
+                    return [
+                        'id' => (int) $author->id,
+                        'title' => (string) $author->title,
+                    ];
+                })
+                ->all();
         }
     }
 

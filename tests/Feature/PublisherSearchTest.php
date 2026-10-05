@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Http\Livewire\Back\Layout\Search\PublisherSearch;
 use App\Models\Back\Catalog\Publisher;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Event;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -60,6 +61,31 @@ class PublisherSearchTest extends TestCase
         $this->assertSame(20, $component->get('result_limit'));
         $this->assertCount(1, $component->get('search_results'));
         $this->assertFalse($component->get('has_more_results'));
+    }
+
+    public function test_semantic_duplicate_lookup_does_not_hydrate_every_publisher(): void
+    {
+        foreach (range(1, 30) as $index) {
+            $this->createPublisher(sprintf('Izdavač %02d', $index), true);
+        }
+
+        $expected = $this->createPublisher('  Naklada   Test  ', true);
+        $retrievedPublishers = 0;
+
+        Event::listen('eloquent.retrieved: ' . Publisher::class, function () use (&$retrievedPublishers): void {
+            $retrievedPublishers++;
+        });
+
+        $match = Publisher::findSemanticallyEquivalentTitle('NAKLADA TEST');
+
+        $this->assertNotNull($match);
+        $this->assertSame($expected->id, $match->id);
+        $this->assertSame(1, $retrievedPublishers);
+
+        $retrievedPublishers = 0;
+
+        $this->assertNull(Publisher::findSemanticallyEquivalentTitle('Potpuno novi izdavač'));
+        $this->assertSame(0, $retrievedPublishers);
     }
 
     private function createPublisher(string $title, bool $active): Publisher

@@ -29,11 +29,11 @@
                 <button type="button"
                         class="admin-entity-picker-option"
                         role="option"
-                        wire:key="author-result-{{ $author->id }}"
-                        wire:click="addAuthor('{{ $author->id }}')">
+                        wire:key="author-result-{{ $author['id'] }}"
+                        wire:click="addAuthor('{{ $author['id'] }}')">
                     <span class="admin-entity-picker-option-icon"><i class="fa-duotone fa-user-pen" aria-hidden="true"></i></span>
                     <span>
-                        <strong>{{ $author->title }}</strong>
+                        <strong>{{ $author['title'] }}</strong>
                         <small>Autor</small>
                     </span>
                     <i class="fa-solid fa-chevron-right admin-entity-picker-option-arrow" aria-hidden="true"></i>

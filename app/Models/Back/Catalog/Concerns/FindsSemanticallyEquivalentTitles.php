@@ -79,19 +79,26 @@ trait FindsSemanticallyEquivalentTitles
         $model = new static();
         $keyName = $model->getKeyName();
         $matchedId = null;
+        // This lookup can walk the entire author/publisher catalog when the
+        // title is new. Read raw rows instead of hydrating thousands of
+        // Eloquent models (and firing a retrieved event for every one of
+        // them), which can make the Livewire picker appear to freeze.
         $candidates = static::query()
             ->useWritePdo()
             ->select([$keyName, 'title'])
             ->orderBy($keyName)
+            ->toBase()
             ->cursor();
 
         foreach ($candidates as $candidate) {
-            if ($ignoredKey !== null && (string) $candidate->getKey() === (string) $ignoredKey) {
+            $candidateKey = $candidate->{$keyName};
+
+            if ($ignoredKey !== null && (string) $candidateKey === (string) $ignoredKey) {
                 continue;
             }
 
             if (static::normalizeSemanticTitle((string) $candidate->title) === $normalizedTitle) {
-                $matchedId = $candidate->getKey();
+                $matchedId = $candidateKey;
 
                 break;
             }
