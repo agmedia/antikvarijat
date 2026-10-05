@@ -6,6 +6,7 @@ use App\Mail\OrderReceived;
 use App\Mail\OrderSent;
 use App\Models\Back\Orders\Order;
 use App\Models\OrderNotificationDelivery;
+use App\Services\CheckoutFinalizationService;
 use App\Services\OrderNotificationService;
 use Carbon\Carbon;
 use Illuminate\Database\Schema\Blueprint;
@@ -41,12 +42,15 @@ class OrderNotificationReliabilityTest extends TestCase
 
         Schema::create('products', function (Blueprint $table) {
             $table->bigIncrements('id');
+            $table->integer('quantity')->default(0);
+            $table->timestamps();
         });
 
         Schema::create('order_products', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('order_id');
             $table->unsignedBigInteger('product_id')->nullable();
+            $table->unsignedInteger('quantity')->default(1);
             $table->timestamps();
         });
 
@@ -60,7 +64,15 @@ class OrderNotificationReliabilityTest extends TestCase
         Schema::create('order_transactions', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('order_id');
+            $table->boolean('success')->default(false);
             $table->string('lang', 5)->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('newsletter_subscribers', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->string('email');
+            $table->unsignedBigInteger('order_id')->nullable();
             $table->timestamps();
         });
 
@@ -162,6 +174,160 @@ class OrderNotificationReliabilityTest extends TestCase
         Mail::assertSent(OrderSent::class, 1);
     }
 
+    public function test_checkout_finalization_decrements_stock_and_enqueues_notifications_only_once(): void
+    {
+        $order = $this->insertOrder(106, 'buyer106@example.test', 'hr', null);
+
+        DB::table('products')->insert([
+            'id' => 501,
+            'quantity' => 1,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        DB::table('order_products')->insert([
+            'order_id' => $order->id,
+            'product_id' => 501,
+            'quantity' => 1,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $service = app(CheckoutFinalizationService::class);
+
+        $this->assertTrue($service->finalize($order));
+        $this->assertFalse($service->finalize($order->fresh()));
+
+        $this->assertSame(0, (int) DB::table('products')->where('id', 501)->value('quantity'));
+        $this->assertNotNull(DB::table('orders')->where('id', $order->id)->value('checkout_processed_at'));
+        $this->assertSame(2, DB::table('order_notification_deliveries')->where('order_id', $order->id)->count());
+    }
+
+    public function test_checkout_finalization_can_recover_admin_only_without_creating_customer_delivery(): void
+    {
+        $order = $this->insertOrder(107, 'buyer107@example.test', 'hr', null);
+
+        DB::table('products')->insert([
+            'id' => 502,
+            'quantity' => 1,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        DB::table('order_products')->insert([
+            'order_id' => $order->id,
+            'product_id' => 502,
+            'quantity' => 1,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $processed = app(CheckoutFinalizationService::class)->finalize(
+            $order,
+            [OrderNotificationDelivery::KIND_ADMIN]
+        );
+
+        $this->assertTrue($processed);
+        $this->assertSame(0, (int) DB::table('products')->where('id', 502)->value('quantity'));
+        $this->assertDatabaseHas('order_notification_deliveries', [
+            'order_id' => $order->id,
+            'kind' => OrderNotificationDelivery::KIND_ADMIN,
+        ]);
+        $this->assertDatabaseMissing('order_notification_deliveries', [
+            'order_id' => $order->id,
+            'kind' => OrderNotificationDelivery::KIND_CUSTOMER,
+        ]);
+    }
+
+    public function test_checkout_finalization_never_decrements_stock_below_zero(): void
+    {
+        $order = $this->insertOrder(108, 'buyer108@example.test', 'hr', null);
+
+        DB::table('products')->insert([
+            'id' => 503,
+            'quantity' => 0,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        DB::table('order_products')->insert([
+            'order_id' => $order->id,
+            'product_id' => 503,
+            'quantity' => 1,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->assertTrue(app(CheckoutFinalizationService::class)->finalize($order));
+
+        $this->assertSame(0, (int) DB::table('products')->where('id', 503)->value('quantity'));
+        $this->assertNotNull($order->fresh()->checkout_processed_at);
+        $this->assertSame(2, DB::table('order_notification_deliveries')->where('order_id', $order->id)->count());
+    }
+
+    public function test_scheduler_recovers_only_new_paid_corvus_checkouts(): void
+    {
+        $incident = $this->insertOrder(27041, 'incident@example.test', 'hr', null);
+        $recoverable = $this->insertOrder(27042, 'recoverable@example.test', 'hr', null);
+
+        DB::table('orders')->whereIn('id', [$incident->id, $recoverable->id])->update([
+            'order_status_id' => 3,
+            'payment_method' => 'CorvusPay',
+            'payment_code' => 'corvus',
+        ]);
+        DB::table('products')->insert([
+            [
+                'id' => 504,
+                'quantity' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 505,
+                'quantity' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ]);
+        DB::table('order_products')->insert([
+            [
+                'order_id' => $incident->id,
+                'product_id' => 504,
+                'quantity' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'order_id' => $recoverable->id,
+                'product_id' => 505,
+                'quantity' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ]);
+        DB::table('order_transactions')->insert([
+            'order_id' => $recoverable->id,
+            'success' => 1,
+            'lang' => 'hr',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        config(['order_notifications.checkout_recovery_after_order_id' => 27041]);
+
+        $summary = app(CheckoutFinalizationService::class)->recoverIncompleteCorvusOrders();
+
+        $this->assertSame([
+            'selected' => 1,
+            'recovered' => 1,
+            'skipped' => 0,
+            'failed' => 0,
+        ], $summary);
+        $this->assertNull($incident->fresh()->checkout_processed_at);
+        $this->assertSame(1, (int) DB::table('products')->where('id', 504)->value('quantity'));
+        $this->assertNotNull($recoverable->fresh()->checkout_processed_at);
+        $this->assertSame(0, (int) DB::table('products')->where('id', 505)->value('quantity'));
+        $this->assertSame(2, DB::table('order_notification_deliveries')->where('order_id', 27042)->count());
+        $this->assertSame(0, DB::table('order_notification_deliveries')->where('order_id', 27041)->count());
+    }
+
     public function test_transient_failure_releases_claim_and_retries_only_after_backoff(): void
     {
         $order = $this->insertOrder(104);
@@ -253,7 +419,8 @@ class OrderNotificationReliabilityTest extends TestCase
     private function insertOrder(
         int $id,
         string $email = 'buyer@example.test',
-        string $locale = 'hr'
+        string $locale = 'hr',
+        $processedAt = '2026-08-28 09:59:00'
     ): Order {
         DB::table('orders')->insert([
             'id' => $id,
@@ -267,7 +434,7 @@ class OrderNotificationReliabilityTest extends TestCase
             'payment_code' => 'bank',
             'shipping_method' => 'GLS',
             'shipping_code' => 'gls',
-            'checkout_processed_at' => '2026-08-28 09:59:00',
+            'checkout_processed_at' => $processedAt,
             'created_at' => '2026-08-28 09:58:00',
             'updated_at' => '2026-08-28 09:59:00',
         ]);

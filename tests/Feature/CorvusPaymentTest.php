@@ -5,9 +5,11 @@ namespace Tests\Feature;
 use App\Models\Back\Orders\Order;
 use App\Models\Back\Settings\Settings;
 use App\Models\Front\Checkout\PaymentMethod;
+use App\Models\OrderNotificationDelivery;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
@@ -37,9 +39,39 @@ class CorvusPaymentTest extends TestCase
 
         Schema::create('orders', function (Blueprint $table) {
             $table->bigIncrements('id');
+            $table->unsignedBigInteger('user_id')->default(0);
             $table->unsignedInteger('order_status_id');
             $table->decimal('total', 15, 4)->default(0);
+            $table->string('locale', 5)->nullable();
+            $table->string('payment_fname')->nullable();
+            $table->string('payment_lname')->nullable();
+            $table->string('payment_email')->nullable();
+            $table->string('payment_method')->nullable();
             $table->string('payment_code')->nullable();
+            $table->string('shipping_method')->nullable();
+            $table->string('shipping_code')->nullable();
+            $table->timestamp('checkout_processed_at')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('products', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->integer('quantity')->default(0);
+            $table->timestamps();
+        });
+
+        Schema::create('order_products', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->unsignedBigInteger('order_id');
+            $table->unsignedBigInteger('product_id');
+            $table->unsignedInteger('quantity')->default(1);
+            $table->timestamps();
+        });
+
+        Schema::create('order_total', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->unsignedBigInteger('order_id');
+            $table->unsignedInteger('sort_order')->default(0);
             $table->timestamps();
         });
 
@@ -55,6 +87,30 @@ class CorvusPaymentTest extends TestCase
             $table->string('pg_order_id')->nullable();
             $table->string('lang', 5);
             $table->string('error')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('order_notification_deliveries', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->unsignedBigInteger('order_id');
+            $table->string('kind', 20);
+            $table->string('recipient_email', 191);
+            $table->string('locale', 5)->default('hr');
+            $table->unsignedInteger('attempts')->default(0);
+            $table->timestamp('available_at')->nullable();
+            $table->timestamp('claimed_at')->nullable();
+            $table->timestamp('last_attempt_at')->nullable();
+            $table->timestamp('sent_at')->nullable();
+            $table->timestamp('failed_at')->nullable();
+            $table->text('last_error')->nullable();
+            $table->timestamps();
+            $table->unique(['order_id', 'kind']);
+        });
+
+        Schema::create('newsletter_subscribers', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->string('email');
+            $table->unsignedBigInteger('order_id')->nullable();
             $table->timestamps();
         });
 
@@ -199,6 +255,73 @@ class CorvusPaymentTest extends TestCase
             'success' => 1,
             'approval_code' => 'CARD-APPROVED-1',
         ]);
+    }
+
+    public function test_successful_corvus_return_finalizes_stock_and_outbox_before_redirect(): void
+    {
+        Mail::fake();
+
+        $order = Order::query()->create([
+            'order_status_id' => config('settings.order.status.unfinished'),
+            'total' => 39.90,
+            'locale' => 'hr',
+            'payment_fname' => 'Ana',
+            'payment_lname' => 'Anić',
+            'payment_email' => 'ana@example.test',
+            'payment_method' => 'CorvusPay',
+            'payment_code' => 'corvus',
+            'shipping_method' => 'GLS',
+            'shipping_code' => 'gls',
+        ]);
+        DB::table('products')->insert([
+            'id' => 701,
+            'quantity' => 1,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        DB::table('order_products')->insert([
+            'order_id' => $order->id,
+            'product_id' => 701,
+            'quantity' => 1,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $parameters = [
+            'order_number' => (string) $order->id,
+            'language' => 'hr',
+            'response_code' => '0',
+            'approval_code' => 'CARD-APPROVED-FINALIZE',
+        ];
+        $parameters['signature'] = $this->signature($parameters);
+
+        $response = $this->get(route('checkout', $parameters));
+
+        $response->assertRedirect(route('checkout.success', ['order_number' => $order->id]));
+        $this->assertDatabaseHas('orders', [
+            'id' => $order->id,
+            'order_status_id' => config('settings.order.status.paid'),
+        ]);
+        $this->assertNotNull($order->fresh()->checkout_processed_at);
+        $this->assertSame(0, (int) DB::table('products')->where('id', 701)->value('quantity'));
+        $this->assertSame(2, DB::table('order_notification_deliveries')->where('order_id', $order->id)->count());
+        $this->assertDatabaseHas('order_notification_deliveries', [
+            'order_id' => $order->id,
+            'kind' => OrderNotificationDelivery::KIND_ADMIN,
+            'attempts' => 1,
+        ]);
+        $this->assertDatabaseHas('order_notification_deliveries', [
+            'order_id' => $order->id,
+            'kind' => OrderNotificationDelivery::KIND_CUSTOMER,
+            'attempts' => 1,
+        ]);
+
+        $this->get(route('checkout', $parameters))
+            ->assertRedirect(route('checkout.success', ['order_number' => $order->id]));
+
+        $this->assertSame(1, DB::table('order_transactions')->where('order_id', $order->id)->count());
+        $this->assertSame(2, DB::table('order_notification_deliveries')->where('order_id', $order->id)->count());
+        $this->assertSame(0, (int) DB::table('products')->where('id', 701)->value('quantity'));
     }
 
     public function test_invalid_return_signature_does_not_change_order_or_create_transaction(): void

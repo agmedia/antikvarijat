@@ -20,4 +20,16 @@ return [
     'max_retry_minutes' => (int) env('ORDER_NOTIFICATION_MAX_RETRY_MINUTES', 60),
     'stale_claim_minutes' => (int) env('ORDER_NOTIFICATION_STALE_CLAIM_MINUTES', 10),
     'max_seconds' => (int) env('ORDER_NOTIFICATION_MAX_SECONDS', 50),
+
+    // The incident order itself was repaired manually because its stock had
+    // already been adjusted. The production preflight found 27046 as the last
+    // existing order, so only later Corvus orders are safe to auto-recover.
+    'checkout_recovery_after_order_id' => (int) env(
+        'ORDER_CHECKOUT_RECOVERY_AFTER_ORDER_ID',
+        27046
+    ),
+    'checkout_recovery_grace_seconds' => (int) env(
+        'ORDER_CHECKOUT_RECOVERY_GRACE_SECONDS',
+        60
+    ),
 ];

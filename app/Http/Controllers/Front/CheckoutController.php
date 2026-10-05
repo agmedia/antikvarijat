@@ -12,17 +12,17 @@ use App\Models\Back\Orders\Order as BackOrder;
 use App\Models\Front\AgCart;
 use App\Models\Front\Checkout\Order;
 use App\Models\TagManager;
-use App\Services\ProductRecommendationService;
+use App\Services\CheckoutFinalizationService;
 use App\Services\GiftVoucherService;
 use App\Services\MailchimpAttributionService;
 use App\Services\OrderNotificationService;
+use App\Services\ProductRecommendationService;
 use App\Services\Shipping\WoltDriveService;
 use App\Services\Shipping\WoltDriveSettingsService;
 use App\Models\Front\Checkout\GeoZone;
 use App\Models\Front\Checkout\PaymentMethod;
 use App\Models\Front\Checkout\ShippingMethod;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class CheckoutController extends Controller
@@ -149,7 +149,7 @@ class CheckoutController extends Controller
      *
      * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
      */
-    public function order(Request $request)
+    public function order(Request $request, CheckoutFinalizationService $finalizer)
     {
         Log::info('Payment return hit', [
             'method' => $request->method(),
@@ -174,14 +174,27 @@ class CheckoutController extends Controller
 
         $ok = $order->finish($request);
 
-        // Fallback za success page (session zna puknuti nakon payment redirecta)
-        if ($ok && ! CheckoutSession::hasOrder()) {
+        if (! $ok) {
+            return redirect(LocaleHelper::route('checkout.error', ['order_number' => $orderNumber]));
+        }
+
+        // Preserve the pre-existing fallback so the original cart is cleared
+        // even if only the checkout order key disappeared during the payment trip.
+        if (! CheckoutSession::hasOrder()) {
             CheckoutSession::setOrder(['id' => (int) $orderNumber]);
         }
 
-        return $ok
-            ? redirect(LocaleHelper::route('checkout.success', ['order_number' => $orderNumber]))
-            : redirect(LocaleHelper::route('checkout.error', ['order_number' => $orderNumber]));
+        $confirmedOrder = BackOrder::query()->find((int) $orderNumber);
+        if (! $confirmedOrder) {
+            return redirect(LocaleHelper::route('checkout.error', ['order_number' => $orderNumber]));
+        }
+
+        $failure = $this->finalizeSuccessfulOrder($confirmedOrder, $request, $finalizer);
+        if ($failure) {
+            return $failure;
+        }
+
+        return redirect(LocaleHelper::route('checkout.success', ['order_number' => $orderNumber]));
     }
 
 
@@ -189,7 +202,7 @@ class CheckoutController extends Controller
     /**
      * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
      */
-    public function success(Request $request)
+    public function success(Request $request, CheckoutFinalizationService $finalizer)
     {
 
 
@@ -208,86 +221,9 @@ class CheckoutController extends Controller
         $order = \App\Models\Back\Orders\Order::where('id', $data['order']['id'])->first();
 
         if ($order) {
-            // Re-check consent immediately before checkout is finalized. If
-            // marketing consent was withdrawn on the payment review screen,
-            // the cleared cookie removes attribution while the order is still
-            // unfinished. This remains a fail-open metadata-only operation.
-            app(MailchimpAttributionService::class)->attachToOrder((int) $order->id, $request);
-
-            if (! in_array((int) $order->order_status_id, [
-                (int) config('settings.order.status.new'),
-                (int) config('settings.order.status.paid'),
-                (int) config('settings.order.status.send'),
-            ], true)) {
-                Log::warning('Checkout success rejected for an unconfirmed order.', [
-                    'order_id' => $order->id,
-                    'order_status_id' => $order->order_status_id,
-                ]);
-
-                return redirect(LocaleHelper::route('checkout.error', ['order_number' => $order->id]));
-            }
-
-            try {
-                app(GiftVoucherService::class)->completeCheckout($order);
-            } catch (GiftVoucherUnavailableException $exception) {
-                Log::warning('Gift voucher checkout completion failed.', [
-                    'order_id' => $order->id,
-                    'error' => $exception->getMessage(),
-                ]);
-
-                return redirect(LocaleHelper::route('checkout.error', ['order_number' => $order->id]))
-                    ->with('error', $exception->getMessage());
-            }
-
-            $notifications = app(OrderNotificationService::class);
-
-            // Once the outbox is installed, the checkout marker and both
-            // notification rows are committed together. A killed request can
-            // therefore never leave a completed order without a durable admin
-            // notification waiting to be sent.
-            $processedNow = DB::transaction(function () use ($order, $notifications) {
-                $processed = BackOrder::query()
-                    ->where('id', $order->id)
-                    ->whereNull('checkout_processed_at')
-                    ->update([
-                        'checkout_processed_at' => now(),
-                        'updated_at' => now(),
-                    ]);
-
-                if ($processed) {
-                    $order->refresh();
-                    $notifications->enqueue($order);
-                }
-
-                return $processed;
-            });
-
-            if ($processedNow) {
-                NewsletterSubscriber::attachOrderToEmail((string) $order->payment_email, (int) $order->id);
-
-                $order->decreaseCartItems($order->products)
-                      ->forgetSession();
-
-                $this->shoppingCart()
-                     ->flush()
-                     ->resolveDB();
-
-                app()->terminating(function () use ($order, $notifications) {
-                    try {
-                        $notifications->sendForOrder($order);
-                    } catch (\Throwable $exception) {
-                        // The scheduler will retry the durable rows. Never let
-                        // a terminating callback hide the original response.
-                        Log::warning('Immediate order notification attempt failed.', [
-                            'order_id' => $order->id,
-                            'error' => $exception->getMessage(),
-                        ]);
-                    }
-                });
-            } else {
-                Log::info('Checkout success already processed', [
-                    'order_id' => $order->id,
-                ]);
+            $failure = $this->finalizeSuccessfulOrder($order, $request, $finalizer);
+            if ($failure) {
+                return $failure;
             }
 
             $data['order'] = $order->toArray();
@@ -297,6 +233,88 @@ class CheckoutController extends Controller
         }
 
         return redirect(LocaleHelper::route('naplata', ['step' => '']));
+    }
+
+
+    private function finalizeSuccessfulOrder(
+        BackOrder $order,
+        Request $request,
+        CheckoutFinalizationService $finalizer
+    ) {
+        // Re-check consent immediately before checkout is finalized. If
+        // marketing consent was withdrawn on the payment review screen, the
+        // cleared cookie removes attribution while the order is still unfinished.
+        app(MailchimpAttributionService::class)->attachToOrder((int) $order->id, $request);
+
+        if (! in_array((int) $order->order_status_id, [
+            (int) config('settings.order.status.new'),
+            (int) config('settings.order.status.paid'),
+            (int) config('settings.order.status.send'),
+        ], true)) {
+            Log::warning('Checkout success rejected for an unconfirmed order.', [
+                'order_id' => $order->id,
+                'order_status_id' => $order->order_status_id,
+            ]);
+
+            return redirect(LocaleHelper::route('checkout.error', ['order_number' => $order->id]));
+        }
+
+        try {
+            $processedNow = $finalizer->finalize($order);
+        } catch (GiftVoucherUnavailableException $exception) {
+            Log::warning('Gift voucher checkout completion failed.', [
+                'order_id' => $order->id,
+                'error' => $exception->getMessage(),
+            ]);
+
+            return redirect(LocaleHelper::route('checkout.error', ['order_number' => $order->id]))
+                ->with('error', $exception->getMessage());
+        }
+
+        $this->clearMatchingCheckoutSession($order);
+
+        if ($processedNow) {
+            $notifications = app(OrderNotificationService::class);
+
+            app()->terminating(function () use ($order, $notifications) {
+                try {
+                    $notifications->sendForOrder($order);
+                } catch (\Throwable $exception) {
+                    // The scheduler will retry the durable rows. Never let a
+                    // terminating callback hide the original response.
+                    Log::warning('Immediate order notification attempt failed.', [
+                        'order_id' => $order->id,
+                        'error' => $exception->getMessage(),
+                    ]);
+                }
+            });
+        } else {
+            Log::info('Checkout success already processed', [
+                'order_id' => $order->id,
+            ]);
+        }
+
+        return null;
+    }
+
+
+    private function clearMatchingCheckoutSession(BackOrder $order): void
+    {
+        $sessionOrderId = (int) data_get(CheckoutSession::getOrder(), 'id');
+
+        if ($sessionOrderId !== (int) $order->id) {
+            return;
+        }
+
+        $order->forgetSession();
+
+        if (! session()->has(config('session.cart'))) {
+            return;
+        }
+
+        $this->shoppingCart()
+            ->flush()
+            ->resolveDB();
     }
 
 

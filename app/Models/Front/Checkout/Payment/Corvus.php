@@ -8,6 +8,7 @@ use App\Models\Back\Settings\Settings;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -237,32 +238,50 @@ class Corvus
             ? config('settings.order.status.paid')
             : config('settings.order.status.declined');
 
-        $order->update(['order_status_id' => $statusId]);
-
-        // Idempotent transaction log (avoid duplicates on refresh)
-        // If you have a better unique key (pg id), add it.
-        $transaction = Transaction::firstOrNew(['order_id' => $orderNumber]);
-        $transaction->success = $isSuccess ? 1 : 0;
-        $transaction->amount = $order->total;
-        $transaction->signature = $signature;
-        $transaction->datetime = $order->created_at ?: Carbon::now();
-        $transaction->approval_code = $approvalCode;
-        $transaction->pg_order_id = $request->input('corvus_order_id')
-            ?? $request->input('CorvusOrderId')
-            ?? $request->input('reference_number');
-        $transaction->lang = $request->input('language') ?? $request->input('Lang') ?? 'hr';
-        $transaction->error = $request->input('response_message') ?? $request->input('ResponseMessage');
-
         $paymentType = $request->input('payment_type')
             ?? $request->input('PaymentType')
             ?? $request->input('transaction_type')
             ?? $request->input('TransactionType');
+        $pgOrderId = $request->input('corvus_order_id')
+            ?? $request->input('CorvusOrderId')
+            ?? $request->input('reference_number');
+        $language = $request->input('language') ?? $request->input('Lang') ?? 'hr';
+        $error = $request->input('response_message') ?? $request->input('ResponseMessage');
 
-        if ($paymentType !== null) {
-            $transaction->payment_type = $paymentType;
-        }
+        // Serialize repeated callbacks for the same order and commit the paid
+        // state together with its transaction evidence. The scheduler can then
+        // safely recover checkout finalization if this request dies afterward.
+        DB::transaction(function () use (
+            $order,
+            $orderNumber,
+            $statusId,
+            $isSuccess,
+            $signature,
+            $approvalCode,
+            $pgOrderId,
+            $language,
+            $error,
+            $paymentType
+        ) {
+            $lockedOrder = Order::query()->lockForUpdate()->findOrFail((int) $order->id);
+            $lockedOrder->update(['order_status_id' => $statusId]);
 
-        $transaction->save();
+            $transaction = Transaction::firstOrNew(['order_id' => $orderNumber]);
+            $transaction->success = $isSuccess ? 1 : 0;
+            $transaction->amount = $lockedOrder->total;
+            $transaction->signature = $signature;
+            $transaction->datetime = $lockedOrder->created_at ?: Carbon::now();
+            $transaction->approval_code = $approvalCode;
+            $transaction->pg_order_id = $pgOrderId;
+            $transaction->lang = $language;
+            $transaction->error = $error;
+
+            if ($paymentType !== null) {
+                $transaction->payment_type = $paymentType;
+            }
+
+            $transaction->save();
+        }, 3);
 
         Log::info('Corvus return', [
             'order_number' => $orderNumber,

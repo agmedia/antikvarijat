@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Back\Orders\Order;
 use App\Models\OrderNotificationDelivery;
+use App\Services\CheckoutFinalizationService;
 use App\Services\OrderNotificationService;
 use Illuminate\Console\Command;
 
@@ -19,7 +20,10 @@ class SendOrderNotifications extends Command
 
     protected $description = 'Provjerava i pouzdano šalje administratorske i kupčeve obavijesti o narudžbi';
 
-    public function handle(OrderNotificationService $service): int
+    public function handle(
+        OrderNotificationService $service,
+        CheckoutFinalizationService $finalizer
+    ): int
     {
         if (! $service->isAvailable()) {
             $this->error('Nedostaje order_notification_deliveries tablica ili potrebni stupci. Primijenite migraciju/SQL 040.');
@@ -53,7 +57,7 @@ class SendOrderNotifications extends Command
                 return 1;
             }
 
-            return $this->processQueue($service, $kinds);
+            return $this->processQueue($service, $finalizer, $kinds);
         }
 
         if ($this->option('status') && $this->option('force')) {
@@ -67,11 +71,36 @@ class SendOrderNotifications extends Command
             : $this->sendOrders($service, $orderIds, $kinds, (bool) $this->option('force'));
     }
 
-    private function processQueue(OrderNotificationService $service, array $kinds): int
+    private function processQueue(
+        OrderNotificationService $service,
+        CheckoutFinalizationService $finalizer,
+        array $kinds
+    ): int
     {
         $limit = max(1, (int) $this->option('limit'));
         $maxSeconds = max(1, (int) config('order_notifications.max_seconds', 50));
+        $recovery = [
+            'selected' => 0,
+            'recovered' => 0,
+            'skipped' => 0,
+            'failed' => 0,
+        ];
+
+        if (! $this->option('admin-only') && ! $this->option('customer-only')) {
+            $recovery = $finalizer->recoverIncompleteCorvusOrders($limit);
+        }
+
         $summary = $service->processPending($limit, $maxSeconds, $kinds);
+
+        if ($recovery['selected'] > 0) {
+            $this->info(sprintf(
+                'Corvus oporavak: %d pronađeno, %d dovršeno, %d preskočeno, %d neuspjelo.',
+                $recovery['selected'],
+                $recovery['recovered'],
+                $recovery['skipped'],
+                $recovery['failed']
+            ));
+        }
 
         foreach ($summary['results'] as $result) {
             $label = sprintf(
@@ -100,7 +129,7 @@ class SendOrderNotifications extends Command
             $summary['skipped']
         ));
 
-        return $summary['failed'] === 0 ? 0 : 1;
+        return $summary['failed'] === 0 && $recovery['failed'] === 0 ? 0 : 1;
     }
 
     private function showStatuses(OrderNotificationService $service, array $orderIds, array $kinds): int
