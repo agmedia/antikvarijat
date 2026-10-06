@@ -7,14 +7,17 @@ use App\Models\Front\Catalog\Product;
 use App\Models\Front\Page;
 use App\Models\ProductReview;
 use App\Models\Back\Marketing\Wishlist;
+use App\Session\LockedFileSessionHandler;
 use App\Services\CustomerMetricsService;
 use App\Services\GoogleLoginSettingsService;
 use App\Services\ProductRecommendationService;
+use App\Support\Session\SessionFileLockPool;
 use Illuminate\Auth\Notifications\ResetPassword as ResetPasswordNotification;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -38,6 +41,21 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        $lockedFileSessionHandler = function ($app) {
+            $path = (string) $app['config']->get('session.files');
+
+            return new LockedFileSessionHandler(
+                $app->make('files'),
+                $path,
+                (int) $app['config']->get('session.lifetime'),
+                new SessionFileLockPool($path, storage_path('framework'))
+            );
+        };
+        // Keep the configured driver names intact while replacing Laravel's
+        // inode-only locking with a stable lock acquired before the inode opens.
+        Session::extend('file', $lockedFileSessionHandler);
+        Session::extend('native', $lockedFileSessionHandler);
+
         Paginator::useBootstrap();
 
         ResetPasswordNotification::createUrlUsing(function ($notifiable, string $token) {

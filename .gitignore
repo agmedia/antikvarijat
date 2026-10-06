@@ -4,6 +4,8 @@
 /public/media/img/products
 /public/media/img/qr
 /storage/*.key
+/storage/framework/session-write-locks-*/
+/storage/framework/session-prune-*.lock
 /vendor
 .env
 .env.backup

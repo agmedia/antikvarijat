@@ -22,6 +22,14 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
+        // File-session directory scans must never run inside a storefront
+        // request. One low-priority, rate-limited pass may take longer than the
+        // interval on large directories; its OS lock prevents overlap too.
+        $schedule->command('session:prune-files')
+            ->everyFifteenMinutes()
+            ->runInBackground()
+            ->withoutOverlapping(120);
+
         $schedule->command('clean:authors')->dailyAt('00:03');
         $schedule->command('clean:publishers')->dailyAt('00:04');
         //

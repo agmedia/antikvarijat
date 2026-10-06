@@ -19,6 +19,7 @@ use App\Models\Front\Catalog\Publisher;
 use App\Models\Seo;
 use App\Models\TagManager;
 use App\Models\ProductReview;
+use App\Services\ProductDetailDataService;
 use App\Services\ProductRecommendationService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -86,9 +87,8 @@ class CatalogRouteController extends Controller
             }
             $request->attributes->set('seo.product', $prod);
 
-            $prod->timestamps = false;
-            $prod->increment('viewed');
-            $prod->timestamps = true;
+            $detailData = app(ProductDetailDataService::class);
+            $detailData->recordView($prod, $request);
 
             $seo = Seo::getProductData($prod);
             $gdl = TagManager::getGoogleProductDataLayer($prod);
@@ -103,30 +103,7 @@ class CatalogRouteController extends Controller
                 ->values()
                 ->all();
 
-            $recentProducts = collect();
-            if (!empty($recentIds)) {
-                $recentProducts = Product::whereIn('id', $recentIds)
-                    ->where('status', 1)
-                    ->withReviewSummary()
-                    ->with(['author', 'action'])
-                    ->get()
-                    ->sortBy(fn ($p) => array_search($p->id, $recentIds))
-                    ->values();
-            }
-
-            $relatedProducts = collect();
             $relatedCategory = $subcat instanceof Category ? $subcat : $cat;
-            if ($relatedCategory) {
-                $relatedProducts = $relatedCategory->products()
-                    ->where('products.id', '!=', $prod->id)
-                    ->where('quantity', '>', 0)
-                    ->withReviewSummary()
-                    ->with(['author', 'action'])
-                    ->take(15)
-                    ->get()
-                    ->unique('id')
-                    ->values();
-            }
 
             $authorTitle = trim((string) optional($prod->author)->title);
             $hasAuthor = $prod->author && Author::hasMeaningfulTitle($authorTitle);
@@ -139,28 +116,13 @@ class CatalogRouteController extends Controller
                 ->values();
             $hasTranslators = $translatorNames->isNotEmpty();
 
-            $authorProducts = $hasAuthor
-                ? $prod->author->products()
-                    ->where('products.id', '!=', $prod->id)
-                    ->withReviewSummary()
-                    ->with(['author', 'action'])
-                    ->latest('products.created_at')
-                    ->take(15)
-                    ->get()
-                : collect();
-
             $publisherTitle = trim((string) optional($prod->publisher)->title);
             $hasPublisher = $prod->publisher && $publisherTitle !== '' && $publisherTitle !== '-';
-
-            $publisherProducts = $hasPublisher
-                ? $prod->publisher->products()
-                    ->where('products.id', '!=', $prod->id)
-                    ->withReviewSummary()
-                    ->with(['author', 'action'])
-                    ->latest('products.created_at')
-                    ->take(15)
-                    ->get()
-                : collect();
+            $recommendations = $detailData->recommendations($prod, $relatedCategory, $hasAuthor, $hasPublisher, $recentIds);
+            $recentProducts = $recommendations['recentProducts'];
+            $relatedProducts = $recommendations['relatedProducts'];
+            $authorProducts = $recommendations['authorProducts'];
+            $publisherProducts = $recommendations['publisherProducts'];
 
             $reviews = ProductReview::query()
                 ->approved()
@@ -169,24 +131,7 @@ class CatalogRouteController extends Controller
                 ->take(20)
                 ->get();
 
-            $reviewStatsRow = ProductReview::query()
-                ->approved()
-                ->where('product_id', $prod->id)
-                ->selectRaw('COUNT(*) AS review_count, AVG(rating) AS rating_average')
-                ->first();
-            $reviewDistribution = ProductReview::query()
-                ->approved()
-                ->where('product_id', $prod->id)
-                ->selectRaw('rating, COUNT(*) AS review_count')
-                ->groupBy('rating')
-                ->pluck('review_count', 'rating')
-                ->map(fn ($count) => (int) $count)
-                ->all();
-            $reviewStats = [
-                'count' => (int) ($reviewStatsRow->review_count ?? 0),
-                'average' => round((float) ($reviewStatsRow->rating_average ?? 0), 2),
-                'distribution' => array_replace(array_fill_keys(range(1, 5), 0), $reviewDistribution),
-            ];
+            $reviewStats = $detailData->reviewStats((int) $prod->id);
 
             $bc = new Breadcrumb();
             $crumbs = $bc->product($group, $cat, $subcat, $prod)->resolve();
