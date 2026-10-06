@@ -2,6 +2,10 @@
 
 use Illuminate\Support\Str;
 
+$sessionDriver = env('APP_ENV') === 'production'
+    ? env('SESSION_DRIVER', 'file')
+    : env('SESSION_DRIVER', 'database');
+
 return [
 
     /*
@@ -19,9 +23,7 @@ return [
     */
 
     // Emergency-safe default: avoid storing sessions in MySQL on production traffic spikes.
-    'driver' => env('APP_ENV') === 'production'
-        ? env('SESSION_DRIVER', 'file')
-        : env('SESSION_DRIVER', 'database'),
+    'driver' => $sessionDriver,
 
     /*
     |--------------------------------------------------------------------------
@@ -116,7 +118,12 @@ return [
     |
     */
 
-    'lottery' => [2, 100],
+    // Scanning a large file-session directory inside an HTTP request can pin
+    // every PHP worker. Production file sessions are pruned by the scheduler.
+    'lottery' => [
+        env('APP_ENV') === 'production' && in_array($sessionDriver, ['file', 'native'], true) ? 0 : 2,
+        100,
+    ],
 
     /*
     |--------------------------------------------------------------------------
