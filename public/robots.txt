@@ -7,6 +7,12 @@ Disallow: /
 User-agent: AionBot
 Disallow: /
 
+User-agent: meta-externalagent
+Disallow: /
+
+User-agent: ReflectionBot
+Disallow: /
+
 User-agent: *
 Disallow: /admin/
 Disallow: /api/
@@ -16,6 +22,7 @@ Disallow: /pregled
 Disallow: /narudzba
 Disallow: /kosarica
 Disallow: /login
+Disallow: /prijava/
 Disallow: /register
 Disallow: /forgot-password
 Disallow: /reset-password

@@ -356,7 +356,9 @@ FileETag None
   RewriteEngine On
 
   # Block high-volume AI crawlers before Laravel boots and opens a DB connection.
-  RewriteCond %{HTTP_USER_AGENT} (?:GPTBot|ClaudeBot|AionBot) [NC]
+  # Meta's preview crawler (facebookexternalhit) remains allowed and is throttled
+  # in Laravel; meta-externalagent is the separate AI-training crawler.
+  RewriteCond %{HTTP_USER_AGENT} (?:GPTBot|ClaudeBot|AionBot|meta-externalagent|ReflectionBot) [NC]
   RewriteRule ^ - [F,L]
 
   # Handle Authorization Header

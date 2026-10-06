@@ -54,6 +54,14 @@ return [
             'days' => 14,
         ],
 
+        'db-capacity' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/db-capacity.log'),
+            'level' => 'warning',
+            'days' => 14,
+            'locking' => true,
+        ],
+
         'slack' => [
             'driver' => 'slack',
             'url' => env('LOG_SLACK_WEBHOOK_URL'),

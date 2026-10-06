@@ -29,14 +29,42 @@ class ProductController extends Controller
      */
     public function autocomplete(Request $request)
     {
-        $query = (new Product())->newQuery();
-
-        if ($request->has('query')) {
-            $query->where('name', 'like', '%' . $request->input('query') . '%')
-                  ->orWhere('sku', 'like', '%' . $request->input('query'));
+        if (is_string($request->input('query'))) {
+            $request->merge(['query' => trim($request->input('query'))]);
         }
 
-        $products = $query->get();
+        $validated = $request->validate([
+            'query' => ['required', 'string', 'min:3', 'max:100'],
+        ]);
+
+        $term = $validated['query'];
+        $columns = ['id', 'name', 'sku', 'price'];
+
+        // A complete product code is the common admin use case and can use the
+        // existing SKU index without scanning the catalogue.
+        $exactProduct = Product::query()
+            ->select($columns)
+            ->where('sku', $term)
+            ->first();
+
+        if ($exactProduct) {
+            return response()->json([$exactProduct]);
+        }
+
+        // Treat LIKE metacharacters as ordinary input. The explicit escape
+        // character works consistently with both MySQL and the SQLite tests.
+        $like = '%' . str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $term) . '%';
+
+        $products = Product::query()
+            ->select($columns)
+            ->where(function ($query) use ($like) {
+                $query->whereRaw("name LIKE ? ESCAPE '!'", [$like])
+                    ->orWhereRaw("sku LIKE ? ESCAPE '!'", [$like]);
+            })
+            ->orderBy('name')
+            ->orderBy('id')
+            ->limit(20)
+            ->get();
 
         return response()->json($products);
     }

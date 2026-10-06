@@ -489,19 +489,41 @@ class CatalogRouteController extends Controller
         // API autocomplete – structured JSON: counts + products + categories
         if ($request->has(config('settings.search_keyword') . '_api')) {
 
-            $q = (string) $request->input(config('settings.search_keyword') . '_api', '');
+            $q = trim((string) $request->input(config('settings.search_keyword') . '_api', ''));
+
+            if (Str::length($q) < 3) {
+                return response()->json([
+                    'counts' => [
+                        'products' => 0,
+                        'authors' => 0,
+                        'categories' => 0,
+                    ],
+                    'products' => [],
+                    'categories' => [],
+                    'authors' => [],
+                ])->header('X-Total-Count', 0);
+            }
 
             // >>> UZMI $group IZ REQUESTA ILI STAVI DEFAULT
             $group = trim((string) $request->input('group', 'knjige'), '/');
+            $likePattern = '%' . Helper::escapeLike($q) . '%';
 
                 // --- PROIZVODI ---
             $search = Helper::search($q, true, true);
             $totalProducts = (int) ($search['total'] ?? 0);
             $productIds    = $search['products'];
 
-                $items = Product::query()
-                ->with(['author'])
+            $productRelations = ['author', 'action'];
+            if (LocaleHelper::isEnglish()) {
+                $productRelations[] = 'categories';
+            }
+
+            $items = $productIds->isEmpty()
+                ? collect()
+                : Product::query()
+                    ->with($productRelations)
                     ->whereIn('id', $productIds)
+                    ->limit(15)
                     ->get()
                     ->keyBy('id');
 
@@ -528,16 +550,9 @@ class CatalogRouteController extends Controller
                 // --- KATEGORIJE ---
                 $catsBase = Category::query()
                 ->when(method_exists(Category::class, 'scopeActive'), fn ($q2) => $q2->active())
-                ->where(function ($w) use ($q) {
-                    $w->where('title', 'like', '%' . $q . '%');
-                    // dodaj druge kolone samo ako postoje
-                    if (\Illuminate\Support\Facades\Schema::hasColumn('categories', 'description')) {
-                        $w->orWhere('description', 'like', '%' . $q . '%');
-                    } elseif (\Illuminate\Support\Facades\Schema::hasColumn('categories', 'meta_description')) {
-                        $w->orWhere('meta_description', 'like', '%' . $q . '%');
-                    } elseif (\Illuminate\Support\Facades\Schema::hasColumn('categories', 'content')) {
-                        $w->orWhere('content', 'like', '%' . $q . '%');
-                }
+                ->where(function ($w) use ($likePattern) {
+                    $w->whereRaw("title LIKE ? ESCAPE '!'", [$likePattern])
+                        ->orWhereRaw("description LIKE ? ESCAPE '!'", [$likePattern]);
                 });
 
                 $totalCategories = (clone $catsBase)->count();
@@ -582,7 +597,9 @@ class CatalogRouteController extends Controller
                 ->when($tokens->isNotEmpty(), function ($qA) use ($tokens) {
                     $qA->where(function ($w) use ($tokens) {
                         foreach ($tokens as $t) {
-                            $w->where('title', 'like', '%' . $t . '%');
+                            $w->whereRaw("title LIKE ? ESCAPE '!'", [
+                                '%' . Helper::escapeLike($t) . '%',
+                            ]);
                         }
                     });
                 });

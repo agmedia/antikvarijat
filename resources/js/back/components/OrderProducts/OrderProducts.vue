@@ -2,7 +2,7 @@
     <div class="OrderProducts">
         <div class="admin-order-product-search mb-4">
             <label for="order-product-search">Dodaj artikl</label>
-            <input id="order-product-search" type="search" v-model="query" @keyup="autoComplete" class="form-control" placeholder="Upišite naziv ili šifru artikla" autocomplete="off">
+            <input id="order-product-search" type="search" v-model="query" @input="autoComplete" class="form-control" placeholder="Upišite naziv ili šifru artikla" autocomplete="off">
                 <div class="admin-order-autocomplete" v-if="results.length">
                     <ul class="list-group">
                         <li class="list-group-item" v-for="result in results" @click="select(result)">
@@ -91,6 +91,8 @@ export default {
             totals_local: [],
             query: '',
             results: [],
+            autocomplete_timer: null,
+            autocomplete_request_id: 0,
             items: [],
             sums: [],
             selected_product: {},
@@ -112,6 +114,11 @@ export default {
             this.totals_local = JSON.parse(this.totals)
             this.Sort()
         }
+    },
+    //
+    beforeDestroy() {
+        clearTimeout(this.autocomplete_timer)
+        this.autocomplete_request_id++
     },
     //
     methods: {
@@ -142,6 +149,8 @@ export default {
          * @param selected
          */
         select(selected) {
+            clearTimeout(this.autocomplete_timer)
+            this.autocomplete_request_id++
             this.results = [];
             this.query = '';
             let price = selected.price;
@@ -286,13 +295,31 @@ export default {
          *
          */
         autoComplete() {
+            clearTimeout(this.autocomplete_timer)
+
+            const query = this.query.trim()
+            const request_id = ++this.autocomplete_request_id
             this.results = []
 
-            if (this.query.length > 2) {
-                axios.get(this.products_autocomplete_url, {params: {query: this.query}}).then(response => {
-                    this.results = response.data;
-                })
+            if (query.length < 3) {
+                return
             }
+
+            this.autocomplete_timer = setTimeout(() => {
+                axios.get(this.products_autocomplete_url, {params: {query: query}})
+                    .then(response => {
+                        if (request_id !== this.autocomplete_request_id || query !== this.query.trim()) {
+                            return
+                        }
+
+                        this.results = Array.isArray(response.data) ? response.data : []
+                    })
+                    .catch(() => {
+                        if (request_id === this.autocomplete_request_id) {
+                            this.results = []
+                        }
+                    })
+            }, 300)
         }
     }
 };

@@ -356,7 +356,9 @@ Route::middleware(['auth:sanctum', 'verified', 'no.administrators'])->prefix('en
  */
 Route::prefix('api/v2')->group(function () {
     // SEARCH
-    Route::get('pretrazi/autocomplete', [CatalogRouteController::class, 'search'])->name('api.front.autocomplete');
+    Route::get('pretrazi/autocomplete', [CatalogRouteController::class, 'search'])
+        ->middleware('throttle:120,1')
+        ->name('api.front.autocomplete');
     Route::get('pretrazi', [CatalogRouteController::class, 'search'])->name('api.front.search');
 
 
@@ -372,7 +374,9 @@ Route::prefix('api/v2')->group(function () {
         Route::post('/provjeri-stanje-artikala', [CartController::class, 'provjeriStanje']);
     });
 
-    Route::get('/products/autocomplete', [\App\Http\Controllers\Api\v2\ProductController::class, 'autocomplete'])->name('products.autocomplete');
+    Route::get('/products/autocomplete', [\App\Http\Controllers\Api\v2\ProductController::class, 'autocomplete'])
+        ->middleware(['auth:sanctum', 'verified', 'no.customers', 'throttle:60,1'])
+        ->name('products.autocomplete');
     Route::post('/products/image/delete', [\App\Http\Controllers\Api\v2\ProductController::class, 'destroyImage'])->name('products.destroy.image');
     Route::post('/products/change/status', [\App\Http\Controllers\Api\v2\ProductController::class, 'changeStatus'])
         ->middleware(['auth:sanctum', 'verified', 'no.customers'])

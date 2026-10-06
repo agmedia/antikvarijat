@@ -177,88 +177,101 @@ class Helper
      */
     public static function search(string $target = '', bool $builder = false, bool $api = false)
     {
+        $target = trim($target);
+
         if ($target === '') {
             return false;
         }
 
+        if ($api && Str::length($target) < 3) {
+            $emptyResponse = collect([
+                'products' => collect(),
+                'total' => 0,
+            ]);
+
+            return $builder ? $emptyResponse : $emptyResponse['products']->toJson();
+        }
+
+        if ($api) {
+            // Product codes are the most common autocomplete lookup. This uses
+            // the indexed SKU column and avoids repeating the broad LIKE scan.
+            $exactProductId = Product::query()
+                ->active()
+                ->where('sku', $target)
+                ->value('id');
+
+            if ($exactProductId !== null) {
+                $exactResponse = collect([
+                    'products' => collect([(int) $exactProductId]),
+                    'total' => 1,
+                ]);
+
+                return $builder ? $exactResponse : $exactResponse['products']->toJson();
+            }
+        }
+
         $response = collect();
+        $english = LocaleHelper::isEnglish();
+        $productPattern = '%' . self::escapeLike($target) . '%';
+        $authorPatterns = self::authorSearchPatterns($target);
 
         // proizvodi po nazivu/sku/opisu
-        $products = Product::query()
+        $directProducts = Product::query()
             ->active()
-            ->where(function ($q) use ($target) {
-                $q->where('name', 'like', "%{$target}%")
-                    ->orWhere('sku', 'like', "%{$target}%")
-                    ->orWhereHas('translators', function (Builder $translators) use ($target) {
-                        $translators->where('title', 'like', "%{$target}%");
+            ->where(function (Builder $query) use ($productPattern, $english) {
+                self::applyDirectProductSearch($query, $productPattern, $english);
+            });
+
+        $authorProducts = Product::query()
+            ->active()
+            ->hasStock()
+            ->whereHas('author', function (Builder $author) use ($authorPatterns, $english) {
+                $author->active()
+                    ->where(function (Builder $query) use ($authorPatterns, $english) {
+                        self::applyAuthorSearch($query, $authorPatterns, $english);
                     });
-
-                if (LocaleHelper::isEnglish()) {
-                    $q->orWhere('name_en', 'like', "%{$target}%")
-                        ->orWhere('description_en', 'like', "%{$target}%");
-                }
             })
-            ->pluck('id');
+            ->select('products.id');
 
-        if (! $products->count()) {
-            $products = collect();
-        }
-
-        // autori -> merge njihovih proizvoda
-        $preg = explode(' ', $target, 3);
-
-        if (isset($preg[1]) && in_array($preg[1], $preg) && !isset($preg[2])) {
-            $authors = Author::active()
-                ->where(function ($query) use ($preg) {
-                    $query->where('title', 'like', '%' . $preg[0] . '%' . $preg[1] . '%')
-                        ->orWhere('title', 'like', '%' . $preg[1] . '% ' . $preg[0] . '%');
-
-                    if (LocaleHelper::isEnglish()) {
-                        $query->orWhere('title_en', 'like', '%' . $preg[0] . '%' . $preg[1] . '%')
-                            ->orWhere('title_en', 'like', '%' . $preg[1] . '% ' . $preg[0] . '%');
-                    }
+        if ($api) {
+            $totalAll = Product::query()
+                ->active()
+                ->where(function (Builder $query) use ($productPattern, $authorPatterns, $english) {
+                    $query->where(function (Builder $direct) use ($productPattern, $english) {
+                        self::applyDirectProductSearch($direct, $productPattern, $english);
+                    })->orWhere(function (Builder $byAuthor) use ($authorPatterns, $english) {
+                        $byAuthor->where('quantity', '>', 0)
+                            ->whereHas('author', function (Builder $author) use ($authorPatterns, $english) {
+                                $author->active()
+                                    ->where(function (Builder $query) use ($authorPatterns, $english) {
+                                        self::applyAuthorSearch($query, $authorPatterns, $english);
+                                    });
+                            });
+                    });
                 })
-                ->select('id')
-                ->with('products:id,author_id')->get();
-        } elseif (isset($preg[2]) && in_array($preg[2], $preg)) {
-            $authors = Author::active()
-                ->where(function ($query) use ($preg) {
-                    $query->where('title', 'like', $preg[0] . '%' . $preg[1] . '%' . $preg[2] . '%')
-                        ->orWhere('title', 'like', $preg[2] . '%' . $preg[1] . '% ' . $preg[0] . '%')
-                        ->orWhere('title', 'like', $preg[0] . '%' . $preg[2] . '% ' . $preg[1] . '%')
-                        ->orWhere('title', 'like', $preg[1] . '%' . $preg[0] . '% ' . $preg[2] . '%')
-                        ->orWhere('title', 'like', $preg[1] . '%' . $preg[2] . '% ' . $preg[0] . '%');
+                ->count();
 
-                    if (LocaleHelper::isEnglish()) {
-                        $query->orWhere('title_en', 'like', $preg[0] . '%' . $preg[1] . '%' . $preg[2] . '%')
-                            ->orWhere('title_en', 'like', $preg[2] . '%' . $preg[1] . '% ' . $preg[0] . '%')
-                            ->orWhere('title_en', 'like', $preg[0] . '%' . $preg[2] . '% ' . $preg[1] . '%')
-                            ->orWhere('title_en', 'like', $preg[1] . '%' . $preg[0] . '% ' . $preg[2] . '%')
-                            ->orWhere('title_en', 'like', $preg[1] . '%' . $preg[2] . '% ' . $preg[0] . '%');
-                    }
-                })
-                ->select('id')
-                ->with('products:id,author_id')->get();
+            // Keep the previous direct-match-first order while limiting in SQL.
+            $products = (clone $directProducts)
+                ->limit(15)
+                ->pluck('products.id');
+
+            $remaining = 15 - $products->count();
+            if ($remaining > 0) {
+                $authorIds = (clone $authorProducts)
+                    ->whereNotIn('products.id', $products)
+                    ->limit($remaining)
+                    ->pluck('products.id');
+                $products = $products->merge($authorIds);
+            }
         } else {
-            $authors = Author::active()
-                ->where(function ($query) use ($preg) {
-                    $query->where('title', 'like', '%' . $preg[0] . '%');
-
-                    if (LocaleHelper::isEnglish()) {
-                        $query->orWhere('title_en', 'like', '%' . $preg[0] . '%');
-                    }
-                })
-                ->select('id')
-                ->with('products:id,author_id')->get();
-        }
-
-        foreach ($authors as $author) {
-            $products = $products->merge($author->products->pluck('id'));
+            $products = $directProducts->pluck('products.id')
+                ->merge($authorProducts->pluck('products.id'));
+            $totalAll = $products->unique()->count();
         }
 
         // jedinstveni popis i ukupno
         $uniqueIds = $products->unique()->values();
-        $totalAll  = $uniqueIds->count();
 
         // ako je API – ograniči na 15, ali zadrži totalAll
         $limitedIds = $api ? $uniqueIds->take(15) : $uniqueIds;
@@ -272,6 +285,73 @@ class Helper
 
         // Back-compat: kad se ne traži builder, vrati samo niz ID-eva kao JSON
         return $response['products']->toJson();
+    }
+
+
+    /**
+     * Escape user input so SQL LIKE treats wildcard characters literally.
+     */
+    public static function escapeLike(string $value): string
+    {
+        return str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $value);
+    }
+
+
+    private static function applyDirectProductSearch(Builder $query, string $pattern, bool $english): void
+    {
+        $query->whereRaw("name LIKE ? ESCAPE '!'", [$pattern])
+            ->orWhereRaw("sku LIKE ? ESCAPE '!'", [$pattern])
+            ->orWhereHas('translators', function (Builder $translators) use ($pattern) {
+                $translators->whereRaw("title LIKE ? ESCAPE '!'", [$pattern]);
+            });
+
+        if ($english) {
+            $query->orWhereRaw("name_en LIKE ? ESCAPE '!'", [$pattern])
+                ->orWhereRaw("description_en LIKE ? ESCAPE '!'", [$pattern]);
+        }
+    }
+
+
+    private static function applyAuthorSearch(Builder $query, array $patterns, bool $english): void
+    {
+        foreach ($patterns as $index => $pattern) {
+            $method = $index === 0 ? 'whereRaw' : 'orWhereRaw';
+            $query->{$method}("title LIKE ? ESCAPE '!'", [$pattern]);
+        }
+
+        if ($english) {
+            foreach ($patterns as $pattern) {
+                $query->orWhereRaw("title_en LIKE ? ESCAPE '!'", [$pattern]);
+            }
+        }
+    }
+
+
+    private static function authorSearchPatterns(string $target): array
+    {
+        $terms = array_map(
+            fn (string $term) => self::escapeLike($term),
+            explode(' ', $target, 3)
+        );
+
+        if (isset($terms[2])) {
+            return [
+                $terms[0] . '%' . $terms[1] . '%' . $terms[2] . '%',
+                $terms[2] . '%' . $terms[1] . '% ' . $terms[0] . '%',
+                $terms[0] . '%' . $terms[2] . '% ' . $terms[1] . '%',
+                $terms[1] . '%' . $terms[0] . '% ' . $terms[2] . '%',
+                $terms[1] . '%' . $terms[2] . '% ' . $terms[0] . '%',
+            ];
+        }
+
+        if (isset($terms[1])) {
+            return [
+                '%' . $terms[0] . '%' . $terms[1] . '%',
+                '%' . $terms[1] . '% ' . $terms[0] . '%',
+            ];
+        }
+
+        return ['%' . $terms[0] . '%'];
     }
 
 

@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Helpers\Breadcrumb;
 use App\Helpers\Helper;
+use App\Http\Controllers\Front\CatalogRouteController;
 use App\Models\Front\Catalog\Product;
 use App\Models\Front\Catalog\Translator;
 use Illuminate\Database\Schema\Blueprint;
@@ -168,6 +169,152 @@ class TranslatorFrontendSearchTest extends TestCase
             $this->assertSame([1], $search->get('products')->all(), $name);
             $this->assertSame(1, $search->get('total'), $name);
         }
+    }
+
+    public function test_autocomplete_skips_queries_shorter_than_three_characters(): void
+    {
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        $search = Helper::search('ab', true, true);
+
+        $this->assertSame([], $search->get('products')->all());
+        $this->assertSame(0, $search->get('total'));
+        $this->assertSame([], DB::getQueryLog());
+
+        $key = config('settings.search_keyword') . '_api';
+        $response = (new CatalogRouteController())->search(
+            Request::create('/pretrazi/autocomplete', 'GET', [$key => 'ab'])
+        );
+
+        $this->assertSame([
+            'counts' => [
+                'products' => 0,
+                'authors' => 0,
+                'categories' => 0,
+            ],
+            'products' => [],
+            'categories' => [],
+            'authors' => [],
+        ], $response->getData(true));
+        $this->assertSame('0', $response->headers->get('X-Total-Count'));
+        $this->assertSame([], DB::getQueryLog());
+    }
+
+    public function test_autocomplete_treats_sql_wildcards_as_literal_characters(): void
+    {
+        DB::table('products')->insert([
+            [
+                'id' => 3,
+                'name' => 'Popust 100%',
+                'description' => null,
+                'slug' => 'popust-100-posto',
+                'url' => 'knjige/popust-100-posto',
+                'sku' => 'LITERAL_1',
+                'status' => 1,
+                'price' => 10,
+                'quantity' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 4,
+                'name' => 'Popust 100X',
+                'description' => null,
+                'slug' => 'popust-100-x',
+                'url' => 'knjige/popust-100-x',
+                'sku' => 'LITERALX1',
+                'status' => 1,
+                'price' => 10,
+                'quantity' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ]);
+
+        $percentSearch = Helper::search('100%', true, true);
+        $underscoreSearch = Helper::search('LITERAL_', true, true);
+
+        $this->assertSame([3], $percentSearch->get('products')->all());
+        $this->assertSame(1, $percentSearch->get('total'));
+        $this->assertSame([3], $underscoreSearch->get('products')->all());
+        $this->assertSame(1, $underscoreSearch->get('total'));
+    }
+
+    public function test_autocomplete_uses_the_indexed_exact_sku_path(): void
+    {
+        DB::table('products')->insert([
+            [
+                'id' => 3,
+                'name' => 'Traženi proizvod',
+                'description' => null,
+                'slug' => 'trazeni-proizvod',
+                'url' => 'knjige/trazeni-proizvod',
+                'sku' => 'CODE-123',
+                'status' => 1,
+                'price' => 10,
+                'quantity' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 4,
+                'name' => 'Proizvod koji spominje CODE-123',
+                'description' => null,
+                'slug' => 'spominje-code-123',
+                'url' => 'knjige/spominje-code-123',
+                'sku' => 'OTHER-4',
+                'status' => 1,
+                'price' => 10,
+                'quantity' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ]);
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        $search = Helper::search('CODE-123', true, true);
+
+        $this->assertSame([3], $search->get('products')->all());
+        $this->assertSame(1, $search->get('total'));
+        $this->assertCount(1, DB::getQueryLog());
+        $this->assertStringContainsString('"sku" = ?', DB::getQueryLog()[0]['query']);
+    }
+
+    public function test_autocomplete_limits_product_ids_before_hydration_and_keeps_total(): void
+    {
+        $products = [];
+        foreach (range(10, 29) as $id) {
+            $products[] = [
+                'id' => $id,
+                'name' => 'Limit test ' . $id,
+                'description' => null,
+                'slug' => 'limit-test-' . $id,
+                'url' => 'knjige/limit-test-' . $id,
+                'sku' => 'LIMIT-' . $id,
+                'status' => 1,
+                'price' => 10,
+                'quantity' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+        }
+        DB::table('products')->insert($products);
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        $search = Helper::search('Limit test', true, true);
+
+        $this->assertCount(15, $search->get('products'));
+        $this->assertSame(20, $search->get('total'));
+        $this->assertTrue(collect(DB::getQueryLog())->contains(function (array $query) {
+            $sql = strtolower($query['query']);
+
+            return str_contains($sql, 'products') && str_contains($sql, 'limit 15');
+        }));
     }
 
     public function test_catalogue_query_can_filter_by_translator_id(): void
