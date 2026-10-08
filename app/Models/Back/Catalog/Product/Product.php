@@ -479,9 +479,9 @@ class Product extends Model
             $normalizedIsbn = static::normalizeIsbn($searchTerm);
 
             $query->where(function ($q) use ($searchTerm, $normalizedIsbn) {
-                $q->where('name', 'like', '%' . $searchTerm . '%')
-                    ->orWhere('description', 'like', '%' . $searchTerm . '%')
-                    ->orWhere('sku', 'like', '%' . $searchTerm . '%');
+                $this->whereAdminSearchText($q, 'name', $searchTerm);
+                $this->whereAdminSearchText($q, 'description', $searchTerm, 'or');
+                $q->orWhere('sku', 'like', '%' . $searchTerm . '%');
 
                 if ($normalizedIsbn !== null && $normalizedIsbn !== '') {
                     $q->orWhere('isbn', 'like', '%' . $normalizedIsbn . '%');
@@ -491,7 +491,7 @@ class Product extends Model
                     ->orWhere('polica', 'like', '%' . $searchTerm . '%')
                     ->orWhere('year', 'like', '%' . $searchTerm . '%')
                     ->orWhereHas('translators', function ($translators) use ($searchTerm) {
-                        $translators->where('title', 'like', '%' . $searchTerm . '%');
+                        $this->whereAdminSearchText($translators, 'title', $searchTerm);
                     });
             });
         }
@@ -556,6 +556,25 @@ class Product extends Model
         }
 
         return $query;
+    }
+
+    private function whereAdminSearchText(Builder $query, string $column, string $searchTerm, string $boolean = 'and'): void
+    {
+        // Legacy catalog text sometimes uses Icelandic eth (Ð/ð) for Croatian Đ/đ.
+        $searchTerm = strtr($searchTerm, ['Ð' => 'Đ', 'ð' => 'đ']);
+
+        if (!preg_match('/[Đđ]/u', $searchTerm)) {
+            $query->where($column, 'like', '%' . $searchTerm . '%', $boolean);
+
+            return;
+        }
+
+        $column = $query->getQuery()->getGrammar()->wrap($column);
+        $query->whereRaw(
+            "REPLACE(REPLACE({$column}, 'Ð', 'Đ'), 'ð', 'đ') LIKE ?",
+            ['%' . $searchTerm . '%'],
+            $boolean
+        );
     }
 
     public static function normalizeIsbn($isbn): ?string
