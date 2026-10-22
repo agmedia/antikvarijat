@@ -43,6 +43,7 @@ class OrderNotificationReliabilityTest extends TestCase
         Schema::create('products', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->integer('quantity')->default(0);
+            $table->boolean('status')->default(true);
             $table->timestamps();
         });
 
@@ -237,9 +238,10 @@ class OrderNotificationReliabilityTest extends TestCase
         ]);
     }
 
-    public function test_checkout_finalization_never_decrements_stock_below_zero(): void
+    public function test_paid_gateway_return_is_reconciled_even_if_stock_was_removed(): void
     {
         $order = $this->insertOrder(108, 'buyer108@example.test', 'hr', null);
+        $order->update(['payment_code' => 'corvus']);
 
         DB::table('products')->insert([
             'id' => 503,
@@ -260,6 +262,68 @@ class OrderNotificationReliabilityTest extends TestCase
         $this->assertSame(0, (int) DB::table('products')->where('id', 503)->value('quantity'));
         $this->assertNotNull($order->fresh()->checkout_processed_at);
         $this->assertSame(2, DB::table('order_notification_deliveries')->where('order_id', $order->id)->count());
+    }
+
+    public function test_offline_checkout_with_removed_stock_does_not_finalize_or_notify(): void
+    {
+        $order = $this->insertOrder(109, 'buyer109@example.test', 'hr', null);
+        DB::table('products')->insert(['id' => 504, 'quantity' => 0, 'status' => 1]);
+        DB::table('order_products')->insert(['order_id' => $order->id, 'product_id' => 504, 'quantity' => 1]);
+
+        try {
+            app(CheckoutFinalizationService::class)->finalize($order);
+            $this->fail('Unavailable stock must block offline checkout.');
+        } catch (\App\Exceptions\StockUnavailableException $exception) {
+            $this->assertNull($order->fresh()->checkout_processed_at);
+            $this->assertSame(0, DB::table('order_notification_deliveries')->where('order_id', $order->id)->count());
+        }
+    }
+
+    public function test_direct_offline_confirmation_rejects_stale_order_before_changing_status(): void
+    {
+        $order = $this->insertOrder(110, 'buyer110@example.test', 'hr', null);
+        $order->update(['order_status_id' => 0, 'payment_code' => 'cod']);
+        DB::table('products')->insert(['id' => 505, 'quantity' => 0, 'status' => 1]);
+        DB::table('order_products')->insert(['order_id' => $order->id, 'product_id' => 505, 'quantity' => 1]);
+
+        $response = app(\App\Http\Controllers\Front\CheckoutController::class)->order(
+            \Illuminate\Http\Request::create('/narudzba', 'GET', ['provjera' => $order->id]),
+            app(CheckoutFinalizationService::class)
+        );
+
+        $this->assertSame(302, $response->getStatusCode());
+        $this->assertSame(0, (int) $order->fresh()->order_status_id);
+        $this->assertNull($order->fresh()->checkout_processed_at);
+        $this->assertSame(0, DB::table('order_notification_deliveries')->count());
+    }
+
+    public function test_cart_validation_uses_current_stock_and_status_instead_of_saved_product(): void
+    {
+        DB::table('products')->insert(['id' => 506, 'quantity' => 1, 'status' => 1]);
+        $cart = ['items' => [['id' => 506, 'quantity' => 1]]];
+        $service = app(\App\Services\CheckoutStockService::class);
+        $service->assertCart($cart);
+        DB::table('products')->where('id', 506)->update(['quantity' => 0]);
+
+        $this->expectException(\App\Exceptions\StockUnavailableException::class);
+        $service->assertCart($cart);
+    }
+
+    public function test_stock_validation_rejects_disabled_missing_and_insufficient_products(): void
+    {
+        DB::table('products')->insert(['id' => 507, 'quantity' => 1, 'status' => 0]);
+        $service = app(\App\Services\CheckoutStockService::class);
+        foreach ([['id' => 507, 'quantity' => 1], ['id' => 999, 'quantity' => 1]] as $item) {
+            try {
+                $service->assertCart(['items' => [$item]]);
+                $this->fail('Unavailable product must be rejected.');
+            } catch (\App\Exceptions\StockUnavailableException $exception) {
+                $this->assertNotEmpty($exception->getMessage());
+            }
+        }
+        DB::table('products')->where('id', 507)->update(['status' => 1]);
+        $this->expectException(\App\Exceptions\StockUnavailableException::class);
+        $service->assertCart(['items' => [['id' => 507, 'quantity' => 2]]]);
     }
 
     public function test_scheduler_recovers_only_new_paid_corvus_checkouts(): void

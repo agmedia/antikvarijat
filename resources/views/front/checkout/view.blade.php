@@ -174,42 +174,41 @@
     @include('front.checkout.partials.progress-script')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const form = document.querySelector('form[name="pay"]');
-            const submitButton = form ? form.querySelector('button[type="submit"]') : null;
-
             window.scrollTo({ top: 0, behavior: 'auto' });
 
-            if (!form || !submitButton) {
-                return;
-            }
+            document.querySelectorAll('form[name="pay"]').forEach(function(form) {
+                let checking = false;
+                form.addEventListener('submit', function(event) {
+                    event.preventDefault();
+                    if (checking || !form.reportValidity()) return;
+                    checking = true;
 
-            submitButton.addEventListener('click', function(event) {
-                event.preventDefault(); // Zaustavi automatski submit forme
-
-                // PUTANJA NA BACKEND KOJA PROVJERAVA STANJE ARTIKALA
-                fetch('{{ url('/api/v2/cart/provjeri-stanje-artikala') }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
-                    body: JSON.stringify({
-                        order_id: '{{ $data['id'] }}'
+                    // PUTANJA NA BACKEND KOJA PROVJERAVA STANJE ARTIKALA
+                    fetch('{{ url('/api/v2/cart/provjeri-stanje-artikala') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({
+                            order_id: '{{ $data['id'] }}'
+                        })
                     })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === 'ok') {
-                        // Sve je u redu, šaljemo formu
-                        form.submit();
-                    } else {
-                        // Prikaz greške korisniku
-                        alert('{{ __('front.checkout.stock_error') }}');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('{{ __('front.checkout.stock_check_error') }}');
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'ok') {
+                            // Sve je u redu, šaljemo formu
+                            form.submit();
+                        } else {
+                            // Prikaz greške korisniku
+                            alert('{{ __('front.checkout.stock_error') }}');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('{{ __('front.checkout.stock_check_error') }}');
+                    })
+                    .finally(() => { checking = false; });
                 });
             });
         });

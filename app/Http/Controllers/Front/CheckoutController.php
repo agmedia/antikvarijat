@@ -6,6 +6,9 @@ use App\Helpers\LocaleHelper;
 use App\Helpers\Session\CheckoutSession;
 use App\Exceptions\GiftVoucherUnavailableException;
 use App\Exceptions\ShippingUnavailableException;
+use App\Exceptions\StockUnavailableException;
+use App\Services\CheckoutStockService;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Models\Back\Marketing\NewsletterSubscriber;
 use App\Models\Back\Orders\Order as BackOrder;
@@ -88,9 +91,12 @@ class CheckoutController extends Controller
             $this->validateShippingCheckout($data);
             $data = $this->collectData($data, config('settings.order.status.unfinished'));
             $this->validateGiftVoucherCheckout($data);
+            app(CheckoutStockService::class)->assertCart($data['cart']);
         } catch (ShippingUnavailableException $exception) {
             return redirect(LocaleHelper::route('naplata', ['step' => 'dostava']))
                 ->with('error', $exception->getMessage());
+        } catch (StockUnavailableException $exception) {
+            return redirect(LocaleHelper::route('kosarica'))->with('error', $exception->getMessage());
         } catch (GiftVoucherUnavailableException $exception) {
             return redirect(LocaleHelper::route('kosarica'))->with('error', $exception->getMessage());
         }
@@ -169,6 +175,30 @@ class CheckoutController extends Controller
             return redirect(LocaleHelper::route('checkout.error'));
         }
 
+        try {
+            return DB::transaction(function () use ($orderNumber, $request, $finalizer) {
+                $persisted = BackOrder::query()->where('id', $orderNumber)->lockForUpdate()->first();
+                if (! $persisted) {
+                    return redirect(LocaleHelper::route('checkout.error'));
+                }
+
+                // Offline payments must validate and consume stock under the same locks.
+                // Paid gateway returns still need reconciliation even if stock changed.
+                if (! $persisted->checkout_processed_at && in_array($persisted->payment_code, [
+                    'cod', 'bank', 'pickup', GiftVoucherService::PAYMENT_CODE,
+                ], true)) {
+                    app(CheckoutStockService::class)->assertOrder((int) $persisted->id, true);
+                }
+
+                return $this->completeOrder($orderNumber, $request, $finalizer);
+            }, 3);
+        } catch (StockUnavailableException $exception) {
+            return redirect(LocaleHelper::route('kosarica'))->with('error', $exception->getMessage());
+        }
+    }
+
+    private function completeOrder($orderNumber, Request $request, CheckoutFinalizationService $finalizer)
+    {
         $order = new Order();
         $order->setData($orderNumber);
 
@@ -261,6 +291,8 @@ class CheckoutController extends Controller
 
         try {
             $processedNow = $finalizer->finalize($order);
+        } catch (StockUnavailableException $exception) {
+            return redirect(LocaleHelper::route('kosarica'))->with('error', $exception->getMessage());
         } catch (GiftVoucherUnavailableException $exception) {
             Log::warning('Gift voucher checkout completion failed.', [
                 'order_id' => $order->id,

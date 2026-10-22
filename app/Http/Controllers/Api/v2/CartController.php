@@ -156,17 +156,14 @@ class CartController extends Controller
     {
         $orderId = $request->input('order_id');
 
-        // Ovdje provjeriš artikle i količine
-        $order = Order::query()->where('id', $orderId)->with('products')->first();
+        if (! is_numeric($orderId) || ! Order::query()->where('id', $orderId)->exists()) {
+            return response()->json(['status' => 'error']);
+        }
 
-        if ($order->count() && $order->products()->count()) {
-            foreach ($order->products()->get() as $item) {
-                $product = Product::query()->where('id', $item->product_id)->first();
-
-                if ($product->count() && ($product->quantity < $item->quantity)) {
-                    return response()->json(['status' => 'error']);
-                }
-            }
+        try {
+            app(\App\Services\CheckoutStockService::class)->assertOrder((int) $orderId);
+        } catch (\App\Exceptions\StockUnavailableException $exception) {
+            return response()->json(['status' => 'error']);
         }
 
         return response()->json(['status' => 'ok']);

@@ -128,16 +128,13 @@ class AgCart extends Model
             ->filter(fn ($id) => is_numeric($id))
             ->map(fn ($id) => (int) $id)
             ->all();
-        $products = Product::whereIn('id', $ids)->pluck('quantity', 'id');
+        $products = Product::whereIn('id', $ids)->where('status', 1)->pluck('quantity', 'id');
         $message = null;
 
-        foreach ($products as $id => $quantity) {
-            if ( ! $quantity) {
+        foreach ($ids as $id) {
+            if ((int) $products->get($id, 0) < 1) {
                 $this->remove(intval($id));
 
-                $product = Product::where('id', intval($id))->first();
-
-                // $message = 'Nažalost, knjiga ' . substr($product->name, 0, 150) . ' više nije dostupna.';
             }
         }
 
@@ -183,7 +180,7 @@ class AgCart extends Model
                 $quantity = (int) ($requestItem['quantity'] ?? 1);
                 $product  = Product::where('id', $requestItem['id'])->first();
 
-                if (! $product) {
+                if (! $product || (int) $product->status !== 1) {
                     return ['error' => __('front.gift_voucher.errors.unavailable')];
                 }
 
@@ -447,7 +444,7 @@ class AgCart extends Model
 
         $product = Product::where('id', $requestItem['id'] ?? 0)->first();
 
-        if (! $product) {
+        if (! $product || (int) $product->status !== 1) {
             return ['error' => 'Artikl više nije dostupan.'];
         }
 

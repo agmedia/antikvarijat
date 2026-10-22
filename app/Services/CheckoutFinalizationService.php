@@ -41,8 +41,6 @@ class CheckoutFinalizationService
         ]
     ): bool {
         $this->ensureConfirmed($order);
-        $this->giftVouchers->completeCheckout($order);
-
         $processedNow = DB::transaction(function () use ($order, $notificationKinds) {
             $claimed = Order::query()
                 ->where('id', $order->id)
@@ -58,6 +56,11 @@ class CheckoutFinalizationService
 
             $persistedOrder = Order::query()->findOrFail((int) $order->id);
 
+            if (in_array($persistedOrder->payment_code, ['cod', 'bank', 'pickup', GiftVoucherService::PAYMENT_CODE], true)) {
+                app(CheckoutStockService::class)->assertOrder((int) $order->id, true);
+            }
+
+            $this->giftVouchers->completeCheckout($persistedOrder);
             $this->notifications->enqueue($persistedOrder, $notificationKinds);
             $this->decreaseStock($persistedOrder);
 
