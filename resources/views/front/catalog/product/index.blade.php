@@ -267,6 +267,9 @@
                                        @elseif ($prod->publisher)
                                            <li><strong>{{ __('front.product.publisher') }}:</strong> -</li>
                                        @endif
+                                       @if ($prod->origin)
+                                           <li><strong>{{ __('front.product.place_of_publication') }}:</strong> {{ $prod->origin }}</li>
+                                       @endif
                                        @if ($prod->isbn)
                                            <li><strong>ISBN:</strong> {{ $prod->isbn }} </li>
                                        @endif
