@@ -6,6 +6,9 @@
 @endpush
 
 @section('content')
+    @php
+        $selectedGroup = old('group', isset($action) ? $action->group : '');
+    @endphp
     <div class="bg-body-light">
         <div class="content content-full">
             <div class="d-flex flex-column flex-sm-row justify-content-sm-between align-items-sm-center">
@@ -60,17 +63,20 @@
                                             <select class="form-control" id="group-select" name="group">
                                                 <option></option>
                                                 @foreach ($groups as $group)
-                                                    <option value="{{ $group->id }}" {{ (isset($action) and $group->id == $action->group) ? 'selected="selected"' : '' }}>{{ $group->title }}</option>
+                                                    <option value="{{ $group->id }}" {{ $group->id === $selectedGroup ? 'selected="selected"' : '' }}>{{ $group->title }}</option>
                                                 @endforeach
                                             </select>
                                         </div>
+                                    </div>
+                                    <div class="alert alert-info" id="all-products-hint" @if ($selectedGroup !== 'all') style="display: none;" @endif>
+                                        Popust vrijedi za sve artikle osim onih sa zaključanom akcijskom cijenom. Bez kupon koda na stranici se prikazuju snižena cijena i oznaka postotka popusta.
                                     </div>
                                     <div class="form-group row items-push mb-2">
                                         <div class="col-md-6">
                                             <label for="type-select">Vrsta popusta <span class="text-danger">*</span></label>
                                             <select class="form-control" id="type-select" name="type">
                                                 @foreach ($types as $type)
-                                                    <option value="{{ $type->id }}" {{ (isset($action) and $type->id == $action->type) ? 'selected="selected"' : '' }}>{{ $type->title }}</option>
+                                                    <option value="{{ $type->id }}" {{ $type->id === old('type', isset($action) ? $action->type : '') ? 'selected="selected"' : '' }}>{{ $type->title }}</option>
                                                 @endforeach
                                             </select>
                                         </div>
@@ -152,12 +158,8 @@
                 </div>
 
 
-                <div class="col-md-5" id="action-list-view">
-                    @if (isset($action))
-                        @livewire('back.marketing.action-group-list', ['group' => $action->group, 'list' => json_decode($action->links)])
-                    @else
-                        @livewire('back.marketing.action-group-list', ['group' => 'products'])
-                    @endif
+                <div class="col-md-5" id="action-list-view" @if ($selectedGroup === 'all') style="display: none;" @endif>
+                    @livewire('back.marketing.action-group-list', ['group' => $selectedGroup, 'list' => isset($action) && $selectedGroup === $action->group ? json_decode($action->links) : []])
                 </div>
             </div>
         </form>
@@ -187,7 +189,12 @@
                 minimumResultsForSearch: Infinity
             });
             $('#group-select').on('change', function (e) {
+                setGroup(e.currentTarget.value);
                 Livewire.emit('groupUpdated', e.currentTarget.value);
+            });
+
+            $('#group-select').closest('form').on('submit', function () {
+                $('#action-list-view input[name="group"]').val($('#group-select').val());
             });
 
             Livewire.on('list_full', () => {
@@ -207,21 +214,19 @@
                 setType(e.currentTarget.value);
             });
 
-            @if (isset($action) && ! in_array($action->group, ['total']))
-            let group = '{{ $action->group }}';
-            let links = '{{ $action->links }}';
-            links = JSON.parse(links.replace(/&quot;/g,'"'));
-
+            @if (isset($action) && ! in_array($selectedGroup, ['all', 'total']))
             $('#group-select').attr("disabled", true);
-
-            if (group == 'all' && links[0] == 'all') {
-                $('#group-select').attr("disabled", false);
-            }
-
-            setType('{{ $action->type }}');
             @endif
 
+            setGroup($('#group-select').val());
+            setType($('#type-select').val());
+
         })
+
+        function setGroup(group) {
+            $('#action-list-view').toggle(group !== 'all');
+            $('#all-products-hint').toggle(group === 'all');
+        }
 
         function setType(type) {
             if (type == 'F') {

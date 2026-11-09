@@ -85,6 +85,13 @@ class Action extends Model
             'discount' => 'required'
         ]);
 
+        if ($request->group === 'all') {
+            $request->validate([
+                'type' => 'in:P,F',
+                'discount' => 'numeric|min:0' . ($request->type === 'P' ? '|max:100' : ''),
+            ]);
+        }
+
         $this->request = $request;
 
         if ($this->listRequired()) {
@@ -126,10 +133,15 @@ class Action extends Model
      */
     public function edit()
     {
-        $data    = $this->getRequestData();
+        $data = $this->getRequestData();
+        $previousGroup = $this->group;
         $updated = $this->update($this->getModelArray(false));
 
         if ($updated) {
+            if ($previousGroup === 'all' && $this->request->group !== 'all') {
+                $this->deleteProductActions();
+            }
+
             if ($this->shouldUpdateProducts($data)) {
                 $this->updateProducts($this->resolveTarget($data['links']), $this->id, $data);
             }
@@ -360,7 +372,11 @@ class Action extends Model
      */
     private function resolveTarget($links)
     {
-        if (in_array($this->request->group, ['product', 'category', 'author', 'publisher', 'all'])) {
+        if ($this->request->group === 'all') {
+            return 'all';
+        }
+
+        if (in_array($this->request->group, ['product', 'category', 'author', 'publisher'])) {
             $products = Product::query();
 
             if ($this->request->group == 'product') {
@@ -381,10 +397,6 @@ class Action extends Model
                 return $products->whereIn('publisher_id', $links);
             }
 
-            if ($this->request->group == 'all' && $links->first() != 'all') {
-                return $products->whereNotIn('publisher_id', $links);
-            }
-
             return $products->where('special_lock', 0)
                 ->pluck('id')
                 ->unique();
@@ -403,6 +415,12 @@ class Action extends Model
      */
     private function updateProducts($target, int $id, array $data): void
     {
+        if ($this->request->group === 'all') {
+            $this->updateAllProducts($id, $data);
+
+            return;
+        }
+
         $query    = [];
         $products = Product::query();
 
@@ -435,6 +453,50 @@ class Action extends Model
         DB::select(DB::raw("UPDATE products p INNER JOIN temp_table tt ON p.id = tt.product_id SET p.special = tt.special, p.action_id = " . $id . ", p.special_from = '" . $data['start'] . "', p.special_to = '" . $data['end'] . "', p.special_lock = " . $data['lock'] . ";"));
 
         DB::table('temp_table')->truncate();
+    }
+
+
+    private function updateAllProducts(int $id, array $data): void
+    {
+        DB::transaction(function () use ($id, $data) {
+            // Clear this action first so locked actions can be edited and a
+            // narrower price range does not leave old discounts behind.
+            DB::table('products')->where('action_id', $id)->update([
+                'action_id' => 0,
+                'special' => null,
+                'special_from' => null,
+                'special_to' => null,
+                'special_lock' => 0,
+            ]);
+
+            $products = DB::table('products')->where('special_lock', 0);
+
+            if ($data['links']->first() !== 'all') {
+                $products->whereNotIn('publisher_id', $data['links']);
+            }
+
+            if ($this->request->min) {
+                $products->where('price', '>', $this->request->min);
+            }
+            if ($this->request->max) {
+                $products->where('price', '<', $this->request->max);
+            }
+
+            $discount = number_format((float) $this->request->discount, 8, '.', '');
+            $price = $this->request->type === 'F'
+                ? 'price - ' . $discount
+                : 'price * (1 - ' . $discount . ' / 100)';
+
+            // One update avoids the shared staging table and binds optional
+            // dates as NULL instead of writing empty datetime strings.
+            $products->update([
+                'special' => DB::raw('ROUND(CASE WHEN (' . $price . ') < 0 THEN 0 ELSE (' . $price . ') END, 2)'),
+                'action_id' => $id,
+                'special_from' => $data['start'],
+                'special_to' => $data['end'],
+                'special_lock' => $data['lock'],
+            ]);
+        });
     }
 
     /*******************************************************************************

@@ -8,6 +8,7 @@ use App\Models\Back\Catalog\Product\Product;
 use App\Models\Back\Marketing\Action;
 use App\Models\Back\Settings\Settings;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
 class ActionController extends Controller
@@ -20,7 +21,7 @@ class ActionController extends Controller
      */
     public function index(Request $request)
     {
-        $groups = Settings::get('action', 'group_list');
+        $groups = $this->actionGroups();
         $query  = Action::query();
 
         if ($request->has('lock')) {
@@ -53,7 +54,7 @@ class ActionController extends Controller
      */
     public function create()
     {
-        $groups = Settings::get('action', 'group_list');
+        $groups = $this->actionGroups();
         $types  = Settings::get('action', 'type_list');
 
         return view('back.marketing.action.edit', compact('groups', 'types'));
@@ -90,7 +91,7 @@ class ActionController extends Controller
      */
     public function edit(Action $action)
     {
-        $groups = Settings::get('action', 'group_list');
+        $groups = $this->actionGroups();
         $types  = Settings::get('action', 'type_list');
 
         return view('back.marketing.action.edit', compact('action', 'groups', 'types'));
@@ -161,5 +162,14 @@ class ActionController extends Controller
         }
 
         return response()->json(['error' => 300]);
+    }
+
+
+    private function actionGroups(): Collection
+    {
+        return collect(Settings::get('action', 'group_list'))
+            ->reject(fn ($group) => $group->id === 'all')
+            ->push((object) ['id' => 'all', 'title' => 'Svi artikli'])
+            ->values();
     }
 }
