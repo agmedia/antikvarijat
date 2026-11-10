@@ -42,6 +42,10 @@
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
+                <button class="navbar-tool front-header-search-toggle d-lg-none border-0 bg-transparent p-0" type="button" aria-controls="search-form-mobile" aria-expanded="false" aria-label="{{ __('front.search.search') }}" data-mobile-search-toggle>
+                    <span class="navbar-tool-icon-box"><i class="navbar-tool-icon fa-regular fa-magnifying-glass" aria-hidden="true"></i></span>
+                </button>
+
                 <a
                     class="front-gift-voucher-link d-none d-lg-inline-flex{{ request()->routeIs('poklon-bon.create', 'en.poklon-bon.create') ? ' is-active' : '' }}"
                     href="{{ \App\Helpers\LocaleHelper::route('poklon-bon.create') }}"
@@ -242,6 +246,9 @@
         let searchDebounceTimer = null;
         let activeSearchRequest = null;
         let mobileSearchScrollPosition = 0;
+        const mobileSearchToggle = document.querySelector('[data-mobile-search-toggle]');
+        const mobileSearchInput = document.getElementById('mobile_search_box');
+        const mobileSearchViewport = window.matchMedia('(max-width: 991.98px)');
 
         function debouncedLoad(input){
             clearTimeout(searchDebounceTimer);
@@ -255,13 +262,14 @@
             .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); }
 
         function openMobileSearch() {
-            if (!window.matchMedia('(max-width: 991.98px)').matches || document.body.classList.contains('mobile-search-open')) {
+            if (!mobileSearchViewport.matches || document.body.classList.contains('mobile-search-open')) {
                 return;
             }
 
-            mobileSearchScrollPosition = window.scrollY;
+            mobileSearchScrollPosition = Math.max(0, window.scrollY);
             document.body.style.top = '-' + mobileSearchScrollPosition + 'px';
             document.body.classList.add('mobile-search-open');
+            mobileSearchToggle.setAttribute('aria-expanded', 'true');
         }
 
         function closeMobileSearch() {
@@ -269,19 +277,45 @@
                 return;
             }
 
+            if (document.activeElement?.closest('.mobile-header-search')) {
+                document.activeElement.blur();
+                mobileSearchToggle.focus({ preventScroll: true });
+            }
+
             document.body.classList.remove('mobile-search-open');
             document.body.style.top = '';
+            mobileSearchToggle.setAttribute('aria-expanded', 'false');
             window.scrollTo(0, mobileSearchScrollPosition);
         }
 
-
-        // Close helpers
-        function closeSearch(){
+        function clearSearchResults() {
             $('.live-search').removeClass('show').empty();
             $('#search_overlay').addClass('d-none');
             $('[data-autosuggest-input]').attr('aria-expanded', 'false');
+        }
+
+        function closeSearch() {
+            clearTimeout(searchDebounceTimer);
+            activeSearchRequest?.abort();
+            clearSearchResults();
             closeMobileSearch();
         }
+
+        mobileSearchToggle.addEventListener('click', function () {
+            if (document.body.classList.contains('mobile-search-open')) {
+                closeSearch();
+                return;
+            }
+
+            openMobileSearch();
+            mobileSearchInput.focus({ preventScroll: true });
+        });
+
+        mobileSearchViewport.addEventListener?.('change', function (event) {
+            if (!event.matches && document.body.classList.contains('mobile-search-open')) {
+                closeSearch();
+            }
+        });
 
         // Overlay klik zatvara
         $(document).on('click', '#search_overlay', closeSearch);
@@ -294,7 +328,7 @@
 
         // Klik izvan aktivne pretrage zatvara rezultate.
         $(document).on('click', function(e){
-            if (!$(e.target).closest('[data-autosuggest-form], .live-search').length) {
+            if (!$(e.target).closest('[data-autosuggest-form], [data-mobile-search-toggle], .live-search').length) {
                 closeSearch();
             }
         });
@@ -456,7 +490,8 @@
                     }
                 });
             } else {
-                closeSearch();
+                activeSearchRequest?.abort();
+                clearSearchResults();
             }
         }
 

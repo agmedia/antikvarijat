@@ -85,6 +85,7 @@
     outline-offset: 2px;
 }
 
+.front-header-search-toggle,
 .front-header-account,
 .front-header-cart,
 .front-header-cart .navbar-tool {
@@ -94,6 +95,7 @@
     justify-content: center;
 }
 
+.front-header-search-toggle .navbar-tool-icon-box,
 .front-header-account .navbar-tool-icon-box,
 .front-header-cart .navbar-tool-icon-box {
     display: inline-flex;
@@ -104,6 +106,7 @@
     line-height: 1;
 }
 
+.front-header-search-toggle .navbar-tool-icon,
 .front-header-account .navbar-tool-icon,
 .front-header-cart .navbar-tool-icon {
     font-size: 1.2rem;
@@ -210,14 +213,16 @@
         --mobile-header-bar-height: 4.4rem;
     }
 
-    /* The theme adds inline padding for its fixed desktop navbar. */
+    /* Reserve the mobile bar's height instead of the theme's desktop offset. */
     body {
-        padding-top: 0 !important;
+        padding-top: var(--mobile-header-bar-height) !important;
     }
 
     .front-storefront-header {
-        position: sticky;
+        position: fixed;
         top: 0;
+        right: 0;
+        left: 0;
         z-index: 1030;
         box-shadow: none !important;
     }
@@ -259,11 +264,14 @@
         filter: grayscale(1) brightness(0) invert(1);
     }
 
+    .front-header-main .front-header-search-toggle .navbar-tool-icon,
     .front-header-main .front-header-account-icon,
     .front-header-main .front-header-cart-icon {
         color: #fff !important;
     }
 
+    .front-header-main .front-header-search-toggle:hover .navbar-tool-icon,
+    .front-header-main .front-header-search-toggle:focus-visible .navbar-tool-icon,
     .front-header-main .front-header-account:hover .front-header-account-icon,
     .front-header-main .front-header-account:focus-visible .front-header-account-icon,
     .front-header-main .front-header-cart:hover .front-header-cart-icon,
@@ -316,6 +324,7 @@
         line-height: 1;
     }
 
+    .front-header-search-toggle,
     .front-header-account,
     .front-header-cart,
     .front-header-cart .navbar-tool {
@@ -433,11 +442,6 @@ body.mobile-search-open .mobile-header-search {
 }
 
 body.mobile-search-open .front-storefront-header {
-    position: fixed;
-    top: 0;
-    right: 0;
-    left: 0;
-    width: 100%;
     z-index: 11051;
 }
 
