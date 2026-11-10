@@ -1,7 +1,9 @@
 @extends('front.layouts.app')
 @php
     $isEnglish = \App\Helpers\LocaleHelper::isEnglish();
-    $showBoxNowPromotion = ! $isEnglish && now()->toDateString() <= '2026-12-01';
+    $today = now()->toDateString();
+    $showInterliberPromotion = ! $isEnglish && $today >= '2026-11-10' && $today <= '2026-11-15';
+    $showBoxNowPromotion = ! $isEnglish && $today <= '2026-12-01';
 @endphp
 @if (request()->routeIs(['index', 'en.index']))
     @section ( 'title', __('front.meta.default_title') )
@@ -15,6 +17,46 @@
     <meta property="og:image:width" content="1920" />
     <meta property="og:image:height" content="720" />
 
+@endpush
+
+@push('css_after')
+    <style>
+        .home-hero-carousel .tns-nav {
+            padding-top: .375rem;
+            padding-bottom: 0;
+        }
+
+        .home-hero-carousel [data-nav],
+        .home-hero-carousel [data-nav].tns-nav-active {
+            position: relative;
+            width: 1.75rem;
+            height: 1.75rem;
+            margin: 0 .125rem;
+            border-radius: 50%;
+            background: transparent;
+            vertical-align: middle;
+        }
+
+        .home-hero-carousel [data-nav]::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            width: .625rem;
+            height: .625rem;
+            margin: auto;
+            border: 1px solid #466351;
+            border-radius: 50%;
+        }
+
+        .home-hero-carousel [data-nav].tns-nav-active::before {
+            background-color: #304536;
+        }
+
+        .home-hero-carousel [data-nav]:focus-visible {
+            outline: 2px solid #304536;
+            outline-offset: 1px;
+        }
+    </style>
 @endpush
 
 @else
@@ -39,9 +81,33 @@
                 <div class="row">
                     <!-- Slider     -->
                     <div class="col-xl-9 pt-0 order-xl-2">
-                        <div class="tns-carousel">
+                        <div class="tns-carousel tns-nav-enabled home-hero-carousel">
                             <div class="tns-carousel-inner"
-                                 data-carousel-options="{&quot;items&quot;:1,&quot;controls&quot;:false,&quot;autoplay&quot;:true,&quot;autoplayTimeout&quot;:5500,&quot;autoplayHoverPause&quot;:true,&quot;speed&quot;:800,&quot;mode&quot;:&quot;carousel&quot;,&quot;loop&quot;:false,&quot;rewind&quot;:true,&quot;nav&quot;:false,&quot;mouseDrag&quot;:true,&quot;autoplayButtonOutput&quot;:false}">
+                                 data-carousel-options="{&quot;items&quot;:1,&quot;controls&quot;:false,&quot;autoplay&quot;:true,&quot;autoplayTimeout&quot;:5500,&quot;autoplayHoverPause&quot;:true,&quot;speed&quot;:800,&quot;mode&quot;:&quot;carousel&quot;,&quot;loop&quot;:false,&quot;rewind&quot;:true,&quot;nav&quot;:true,&quot;mouseDrag&quot;:true,&quot;autoplayButtonOutput&quot;:false}">
+                                @if ($showInterliberPromotion)
+                                    <div>
+                                        <div class="row align-items-center">
+                                            <div class="col-md-6 order-md-2">
+                                                @include('front.layouts.partials.interliber-promotion-art')
+                                            </div>
+                                            <div class="col-lg-5 col-md-6 offset-lg-1 order-md-1 pt-3 pb-md-4 text-center text-md-start">
+                                                <p class="fw-light h4 mb-3">{{ __('front.home.interliber_promotion_eyebrow') }}</p>
+                                                <h2 class="display-6">{{ __('front.home.interliber_promotion_title') }}</h2>
+                                                <p class="h5 fw-light mb-3">{{ __('front.home.interliber_promotion_subtitle') }}</p>
+
+                                                <div class="d-table mx-auto mx-md-0">
+                                                    <a class="btn btn-primary btn-shadow" href="{{ url('knjige') }}">
+                                                        {{ __('front.home.interliber_promotion_cta') }}<i class="fa-solid fa-arrow-right ms-2 me-n1" aria-hidden="true"></i>
+                                                    </a>
+                                                </div>
+                                                <p class="fs-sm mt-3 mb-0">
+                                                    <i class="fa-solid fa-location-dot me-1" aria-hidden="true"></i>
+                                                    {{ __('front.home.interliber_promotion_location') }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
                                 @if ($showBoxNowPromotion)
                                     <div>
                                         <div class="row align-items-center">

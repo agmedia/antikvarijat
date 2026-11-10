@@ -389,6 +389,11 @@ return [
     ],
 
     'home' => [
+        'interliber_promotion_eyebrow' => 'Interliber · 10.–15. studenoga',
+        'interliber_promotion_title' => '20 % popusta na sve knjige',
+        'interliber_promotion_subtitle' => 'U webshopu i u antikvarijatu Biblos.',
+        'interliber_promotion_cta' => 'Odaberite knjige',
+        'interliber_promotion_location' => 'Velesajam, paviljoni 5 i 6',
         'boxnow_promotion_eyebrow' => 'Posebna pogodnost do 1. prosinca',
         'boxnow_promotion_title' => 'Besplatna BOX NOW dostava',
         'boxnow_promotion_subtitle' => 'Naručite knjige i preuzmite ih u odabranom paketomatu bez troška dostave.',
