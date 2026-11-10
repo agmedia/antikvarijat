@@ -1,4 +1,4 @@
-<header class="shadow-sm navbar-sticky bg-dark">
+<header class="shadow-sm navbar-sticky bg-dark front-storefront-header">
     <!-- GORNJI RED: logo + VIDLJIV SEARCH + toolbar -->
     <div class="navbar navbar-expand-lg navbar-light bg-light paper-white-bck front-header-main">
         <div class="container front-header-row">
@@ -83,29 +83,6 @@
         </div>
     </div>
 
-    <!-- Stalno vidljiva mobilna pretraga -->
-    <div class="mobile-header-search d-lg-none">
-        <div class="container">
-            <form action="{{ \App\Helpers\LocaleHelper::route('pretrazi') }}" id="search-form-mobile" method="get" class="mobile-header-search-form" role="search" data-autosuggest-form>
-                <label class="visually-hidden" for="mobile_search_box">{{ __('front.search.placeholder') }}</label>
-                <div class="mobile-header-search-field">
-                    <input id="mobile_search_box" type="search"
-                           name="{{ config('settings.search_keyword') }}"
-                           value="{{ request()->query('pojam') ?: '' }}"
-                           placeholder="{{ __('front.search.placeholder') }}"
-                           autocomplete="off" aria-autocomplete="list" aria-controls="mobile_search_result" aria-expanded="false" data-autosuggest-input data-results-id="mobile_search_result">
-                    <button class="mobile-search-close" type="button" aria-label="{{ __('front.search.close') }}" data-mobile-search-close>
-                        <i class="fa-regular fa-xmark" aria-hidden="true"></i>
-                    </button>
-                    <button type="submit" aria-label="{{ __('front.search.search') }}">
-                        <i class="fa-regular fa-magnifying-glass" aria-hidden="true"></i>
-                    </button>
-                </div>
-                <div id="mobile_search_result" class="live-search mobile-search-results" role="listbox"></div>
-            </form>
-        </div>
-    </div>
-
     <!-- Desktop navigacija -->
     <div class="navbar navbar-expand-lg navbar-dark bg-dark navbar-stuck-menu d-none d-lg-flex mt-0 pt-0 pb-0">
         <div class="container">
@@ -133,9 +110,34 @@
             </div>
         </div>
     </div>
+</header>
+
+<div class="d-lg-none">
+    <!-- Mobilna pretraga -->
+    <div class="mobile-header-search">
+        <div class="container">
+            <form action="{{ \App\Helpers\LocaleHelper::route('pretrazi') }}" id="search-form-mobile" method="get" class="mobile-header-search-form" role="search" data-autosuggest-form>
+                <label class="visually-hidden" for="mobile_search_box">{{ __('front.search.placeholder') }}</label>
+                <div class="mobile-header-search-field">
+                    <input id="mobile_search_box" type="search"
+                           name="{{ config('settings.search_keyword') }}"
+                           value="{{ request()->query('pojam') ?: '' }}"
+                           placeholder="{{ __('front.search.placeholder') }}"
+                           autocomplete="off" aria-autocomplete="list" aria-controls="mobile_search_result" aria-expanded="false" data-autosuggest-input data-results-id="mobile_search_result">
+                    <button class="mobile-search-close" type="button" aria-label="{{ __('front.search.close') }}" data-mobile-search-close>
+                        <i class="fa-regular fa-xmark" aria-hidden="true"></i>
+                    </button>
+                    <button type="submit" aria-label="{{ __('front.search.search') }}">
+                        <i class="fa-regular fa-magnifying-glass" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <div id="mobile_search_result" class="live-search mobile-search-results" role="listbox"></div>
+            </form>
+        </div>
+    </div>
 
     <!-- Mobilna navigacija -->
-    <div class="offcanvas mobile-navigation d-lg-none" tabindex="-1" id="mobileNavigation" aria-label="{{ __('front.nav.menu') }}">
+    <div class="offcanvas mobile-navigation" tabindex="-1" id="mobileNavigation" aria-label="{{ __('front.nav.menu') }}">
         <div class="mobile-navigation-shell" data-active-view="{{ $initialMobileNavigationView }}" data-initial-view="{{ $initialMobileNavigationView }}">
             <section class="mobile-navigation-view{{ $initialMobileNavigationView === 'main' ? ' is-active' : '' }}" data-mobile-nav-view="main" aria-hidden="{{ $initialMobileNavigationView === 'main' ? 'false' : 'true' }}">
                 <div class="mobile-navigation-header">
@@ -232,7 +234,7 @@
             </section>
         </div>
     </div>
-</header>
+</div>
 
 @push('js_after')
     <script>

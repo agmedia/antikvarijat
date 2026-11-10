@@ -135,12 +135,18 @@ export function showCartAddSuccessModal(swal, payload = {}) {
         return null;
     }
 
+    const mobile = window.matchMedia('(max-width: 991.98px)').matches;
+    const presentation = mobile ? {
+        toast: true,
+        position: 'bottom',
+        html: `<h2 class="cart-add-modal__heading">${escapeHtml(copy.heading)}</h2>`
+    } : {
+        html: buildModalHtml({ cart, cartItem, requestedItem }),
+        focusConfirm: false
+    };
+
     return swal.fire({
-        html: buildModalHtml({
-            cart,
-            cartItem,
-            requestedItem
-        }),
+        ...presentation,
         showCloseButton: true,
         showCancelButton: true,
         showConfirmButton: true,
@@ -148,7 +154,6 @@ export function showCartAddSuccessModal(swal, payload = {}) {
         confirmButtonText: copy.confirm,
         cancelButtonText: copy.cancel,
         closeButtonAriaLabel: copy.close,
-        focusConfirm: false,
         buttonsStyling: false,
         customClass: {
             container: 'cart-add-modal-container',

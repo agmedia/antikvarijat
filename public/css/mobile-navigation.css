@@ -210,7 +210,15 @@
         --mobile-header-bar-height: 4.4rem;
     }
 
-    .navbar-sticky.shadow-sm {
+    /* The theme adds inline padding for its fixed desktop navbar. */
+    body {
+        padding-top: 0 !important;
+    }
+
+    .front-storefront-header {
+        position: sticky;
+        top: 0;
+        z-index: 1030;
         box-shadow: none !important;
     }
 
@@ -320,7 +328,7 @@
     }
 }
 
-/* Stalno vidljiva mobilna pretraga */
+/* Mobilna pretraga */
 .mobile-header-search {
     width: 100%;
     padding: 0;
@@ -336,7 +344,6 @@
 
 .mobile-header-search-form {
     position: relative;
-    z-index: 1041;
 }
 
 .mobile-header-search-field {
@@ -425,7 +432,7 @@ body.mobile-search-open .mobile-header-search {
     z-index: 11050;
 }
 
-body.mobile-search-open .front-header-main {
+body.mobile-search-open .front-storefront-header {
     position: fixed;
     top: 0;
     right: 0;
