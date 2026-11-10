@@ -296,6 +296,13 @@
     window.AppLocale = @json(app()->getLocale());
     window.FrontTranslations = @json(trans('front'), JSON_UNESCAPED_UNICODE);
     window.FrontCartUrl = @json(\App\Helpers\LocaleHelper::route('kosarica'));
+
+    document.querySelector('.btn-scroll-top').addEventListener('click', (event) => {
+        if (window.matchMedia('(max-width: 991.98px)').matches) {
+            event.preventDefault();
+            window.scrollTo(0, 0);
+        }
+    });
 </script>
 <script src="{{ \App\Helpers\Asset::url('js/cart.js') }}"></script>
 
