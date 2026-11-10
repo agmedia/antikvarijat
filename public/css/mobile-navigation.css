@@ -217,7 +217,7 @@
         --mobile-header-bar-height: 4.4rem;
     }
 
-    /* Reserve the mobile bar's height instead of the theme's desktop offset. */
+    /* Reserve space for the fixed mobile header. */
     body {
         padding-top: var(--mobile-header-bar-height) !important;
     }

@@ -1,4 +1,4 @@
-<header class="shadow-sm navbar-sticky bg-dark front-storefront-header">
+<header class="shadow-sm bg-dark front-storefront-header">
     <!-- GORNJI RED: logo + VIDLJIV SEARCH + toolbar -->
     <div class="navbar navbar-expand-lg navbar-light bg-light paper-white-bck front-header-main">
         <div class="container front-header-row">
@@ -88,7 +88,7 @@
     </div>
 
     <!-- Desktop navigacija -->
-    <div class="navbar navbar-expand-lg navbar-dark bg-dark navbar-stuck-menu d-none d-lg-flex mt-0 pt-0 pb-0">
+    <div class="navbar navbar-expand-lg navbar-dark bg-dark d-none d-lg-flex mt-0 pt-0 pb-0">
         <div class="container">
             <div class="navbar-collapse w-100">
                 <ul class="navbar-nav pe-lg-2 me-lg-2 w-100">
