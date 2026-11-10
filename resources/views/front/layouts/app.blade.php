@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ app()->getLocale() }}" @class(['front-authenticated' => auth()->check()])>
+<html lang="{{ app()->getLocale() }}">
 <head>
     @php
         $locale = app()->getLocale();
@@ -296,46 +296,6 @@
     window.AppLocale = @json(app()->getLocale());
     window.FrontTranslations = @json(trans('front'), JSON_UNESCAPED_UNICODE);
     window.FrontCartUrl = @json(\App\Helpers\LocaleHelper::route('kosarica'));
-
-    // iOS browsers can still refresh at the top despite overscroll-behavior.
-    (() => {
-        if (!document.documentElement.classList.contains('front-authenticated') || !/iPhone|iPad|iPod/.test(navigator.userAgent)) {
-            return;
-        }
-
-        const mobileViewport = window.matchMedia('(max-width: 991.98px)');
-        let pageTouch = null;
-
-        document.addEventListener('touchstart', (event) => {
-            pageTouch = null;
-            if (!mobileViewport.matches || event.touches.length !== 1) {
-                return;
-            }
-
-            pageTouch = event.touches[0];
-        }, { passive: true });
-
-        document.addEventListener('touchmove', (event) => {
-            if (!pageTouch || !event.cancelable || window.scrollY > 0 || event.touches.length !== 1) {
-                return;
-            }
-
-            const touch = event.touches[0];
-            const horizontal = touch.clientX - pageTouch.clientX;
-            const vertical = touch.clientY - pageTouch.clientY;
-            if (vertical <= Math.abs(horizontal)) {
-                return;
-            }
-
-            for (let element = event.target; element instanceof Element && element !== document.body; element = element.parentElement) {
-                if (element.scrollHeight > element.clientHeight && /^(auto|scroll)$/.test(getComputedStyle(element).overflowY)) {
-                    return;
-                }
-            }
-
-            event.preventDefault();
-        }, { passive: false });
-    })();
 </script>
 <script src="{{ \App\Helpers\Asset::url('js/cart.js') }}"></script>
 

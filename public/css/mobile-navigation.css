@@ -209,10 +209,6 @@
         font-size: 16.5px;
     }
 
-    html.front-authenticated {
-        overscroll-behavior-y: none;
-    }
-
     :root {
         --mobile-header-bar-height: 4.4rem;
     }
