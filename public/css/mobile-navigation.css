@@ -207,6 +207,9 @@
 @media (max-width: 991.98px) {
     html {
         font-size: 16.5px;
+    }
+
+    html.front-authenticated {
         overscroll-behavior-y: none;
     }
 

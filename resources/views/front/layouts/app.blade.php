@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ app()->getLocale() }}">
+<html lang="{{ app()->getLocale() }}" @class(['front-authenticated' => auth()->check()])>
 <head>
     @php
         $locale = app()->getLocale();
@@ -299,7 +299,7 @@
 
     // iOS browsers can still refresh at the top despite overscroll-behavior.
     (() => {
-        if (!/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+        if (!document.documentElement.classList.contains('front-authenticated') || !/iPhone|iPad|iPod/.test(navigator.userAgent)) {
             return;
         }
 
