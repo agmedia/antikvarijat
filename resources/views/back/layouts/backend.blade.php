@@ -58,7 +58,7 @@
             <footer id="page-footer" class="admin-footer">
                 <div class="content">
                     <div class="admin-footer-inner">
-                        <a class="admin-footer-brand" href="https://www.antikvarijat-biblos.hr" target="_blank" rel="noopener">
+                        <a class="admin-footer-brand" href="https://www.antikvarijat-biblos.hr" target="_blank" rel="noopener" data-storefront-link>
                             <i class="fa-duotone fa-books" aria-hidden="true"></i>
                             <span>Antikvarijat Biblos</span>
                             <small>&copy; <span data-toggle="year-copy"></span></small>
@@ -129,6 +129,16 @@
         </script>
 
         <script>
+            // Avoid the iOS browser viewport offset when opening the storefront in a new tab.
+            if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+                document.addEventListener('click', (event) => {
+                    const link = event.target.closest?.('a[data-storefront-link]');
+                    if (link) {
+                        link.target = '_self';
+                    }
+                }, true);
+            }
+
             $(document).on('select2:open', function () {
                 $('.select2-container--open .select2-search__field')
                     .attr('placeholder', 'Pretraži opcije…')

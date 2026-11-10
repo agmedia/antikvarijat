@@ -74,7 +74,7 @@
                             <tr>
                                 <td data-label="Artikl">
                                     @if ($review->product)
-                                        <a class="font-w600" href="{{ url($review->product->url) }}" target="_blank" rel="noopener" title="Otvori artikl na webu">
+                                        <a class="font-w600" href="{{ url($review->product->url) }}" target="_blank" rel="noopener" title="Otvori artikl na webu" data-storefront-link>
                                             {{ $review->product->name }} <i class="fa-solid fa-arrow-up-right-from-square ml-1" aria-hidden="true"></i>
                                         </a>
                                         <div class="small text-muted">Šifra {{ $review->product->sku }}</div>

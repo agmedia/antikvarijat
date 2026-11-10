@@ -39,7 +39,7 @@
                         Brzi Linkovi
                     </div>
                     <div class="p-2">
-                        <a class="dropdown-item text-info" href="{{ route('index') }}" target="_blank">
+                        <a class="dropdown-item text-info" href="{{ route('index') }}" target="_blank" data-storefront-link>
                             <i class="fa-duotone fa-display mr-1"></i> Početna stranica
                         </a>
                         @if (! auth()->user()->isEditor())

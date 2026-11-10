@@ -245,7 +245,7 @@
                                 </td>
                                 <td class="text-right admin-product-actions" data-label="Radnje">
                                     <span class="admin-row-actions">
-                                    <a class="btn btn-sm btn-alt-secondary" target="_blank" href="{{ url($product->url) }}" title="Otvori artikl" aria-label="Otvori {{ $product->name }}">
+                                    <a class="btn btn-sm btn-alt-secondary" target="_blank" href="{{ url($product->url) }}" title="Otvori artikl" aria-label="Otvori {{ $product->name }}" data-storefront-link>
                                         <i class="fa-duotone fa-eye" aria-hidden="true"></i>
                                     </a>
                                     <a class="btn btn-sm btn-alt-secondary" href="{{ route('products.edit', ['product' => $product]) }}" title="Uredi artikl" aria-label="Uredi {{ $product->name }}">
