@@ -207,6 +207,7 @@
 @media (max-width: 991.98px) {
     html {
         font-size: 16.5px;
+        overscroll-behavior-y: none;
     }
 
     :root {
